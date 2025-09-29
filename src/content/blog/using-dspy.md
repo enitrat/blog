@@ -4,7 +4,7 @@ pubDate: 2025-09-29
 description: "Going from simple DSPy modules to an optimized production-ready application"
 ---
 
-![DSPy Logo](./banner.png)
+![DSPy Logo](../../assets/using-dspy.png)
 
 The following content is not an introduction to DSPy, nor is it a tutorial to learn how to use DSPy. I believe this topic has already been well covered (see articles by [Maxime Rivest](https://x.com/MaximeRivest/articles), [DSPy-0-to-1](https://github.com/haasonsaas/dspy-0to1-guide) and the [DSPy Documentation](https://dspy.ai/)). However, I believe that there's a lack of content on how to bring an AI-based app using DSPy to production, notably on using Async DSPy and I aim to close part of this gap with this article, inspired by a project that I've been working on.
 
