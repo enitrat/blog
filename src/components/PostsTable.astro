@@ -1,0 +1,40 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import FormattedDate from './FormattedDate.astro';
+
+interface Props {
+	posts: CollectionEntry<'blog'>[];
+}
+
+const { posts } = Astro.props;
+---
+
+<div class="rounded-lg border bg-card overflow-x-auto">
+	<table class="w-full text-sm">
+		<thead>
+			<tr class="border-b">
+				<th class="text-left p-4 font-medium">Title</th>
+				<th class="text-left p-4 font-medium w-[12rem]">Date</th>
+			</tr>
+		</thead>
+		<tbody>
+			{posts.map((post, index) => (
+				<tr class={`border-b ${index === posts.length - 1 ? 'last:border-0' : ''}`}>
+					<td class="p-4">
+						<a href={`/blog/${post.id}/`} class="font-medium hover:underline">
+							{post.data.title}
+						</a>
+						{post.data.description && (
+							<div class="text-muted-foreground mt-1">
+								{post.data.description}
+							</div>
+						)}
+					</td>
+					<td class="p-4 text-muted-foreground">
+						<FormattedDate date={post.data.pubDate} />
+					</td>
+				</tr>
+			))}
+		</tbody>
+	</table>
+</div>
