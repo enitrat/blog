@@ -9,7 +9,7 @@ import { Content as AboutContent } from '../content/about.md';
 
 // Get 3 most recent posts
 const allPosts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 const recentPosts = allPosts.slice(0, 3);
 ---
