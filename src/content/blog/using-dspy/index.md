@@ -2,9 +2,29 @@
 title: "Using DSPy in Production"
 pubDate: 2025-09-29
 description: "Going from simple DSPy modules to an optimized production-ready application"
+diagram: "
+flowchart TD
+    Start([User Query + Chat History]) -->|input| QP[QueryProcessorProgram]
+    QP -->|ProcessedQuery| DR[DocumentRetrieverProgram]
+
+    subgraph VectorStore[Vector Store]
+      DB[(Postgres + pgvector)]
+    end
+
+    DR -->|semantic search| DB
+    DB -->|top-k results| DR
+    DR -->|retrieved documents| RJ[RetrievalJudge]
+    RJ -->|filtered documents| Mode{mcp_mode?}
+
+    Mode -->|Yes| MCP[Format docs for MCP]
+    Mode -->|No| GP[GenerationProgram]
+
+    MCP -->|context| Output1([Return Context])
+    GP -->|generated answer| Output2([Return Answer])
+"
 ---
 
-![DSPy Logo](../../assets/using-dspy.png)
+![DSPy Logo](./banner.png)
 
 The following content is not an introduction to DSPy, nor is it a tutorial to learn how to use DSPy. I believe this topic has already been well covered (see articles by [Maxime Rivest](https://x.com/MaximeRivest/articles), [DSPy-0-to-1](https://github.com/haasonsaas/dspy-0to1-guide) and the [DSPy Documentation](https://dspy.ai/)). However, I believe that there's a lack of content on how to bring an AI-based app using DSPy to production, notably on using Async DSPy and I aim to close part of this gap with this article, inspired by a project that I've been working on.
 
@@ -124,26 +144,7 @@ It's a rather simple program! It takes as input a user's query and some context 
 
 The following diagram reflects the current structure of the pipeline.
 
-```mermaid
-flowchart TD
-    Start([User Query + Chat History]) -->|input| QP[QueryProcessorProgram]
-    QP -->|ProcessedQuery| DR[DocumentRetrieverProgram]
-
-    subgraph VectorStore[Vector Store]
-      DB[(Postgres + pgvector)]
-    end
-
-    DR -->|semantic search| DB
-    DB -->|top-k results| DR
-    DR -->|retrieved documents| RJ[RetrievalJudge]
-    RJ -->|filtered documents| Mode{mcp_mode?}
-
-    Mode -->|Yes| MCP[Format docs for MCP]
-    Mode -->|No| GP[GenerationProgram]
-
-    MCP -->|context| Output1([Return Context])
-    GP -->|generated answer| Output2([Return Answer])
-```
+![pipeline diagram](./mermaid.png)
 
 DSPy is so easy to start with that I don't see a necessity to detail anything further here. The only thing I want to emphasize is that your programs should be designed **async-first** rather than synchronous. So far, there's nothing really complex — but optimizers need to run synchronous code!
 
