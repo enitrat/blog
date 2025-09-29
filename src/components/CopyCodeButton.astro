@@ -1,0 +1,75 @@
+---
+// This component adds copy buttons to code blocks
+---
+
+<script>
+  function initCopyButtons() {
+    // Find all code blocks
+    const codeBlocks = document.querySelectorAll('.astro-code');
+
+    codeBlocks.forEach((block) => {
+      // Skip if button already exists
+      if (block.querySelector('.copy-btn')) return;
+
+      // Create copy button
+      const button = document.createElement('button');
+      button.className = 'copy-btn';
+      button.textContent = 'Copy';
+      button.setAttribute('aria-label', 'Copy code to clipboard');
+
+      // Add click handler
+      button.addEventListener('click', async () => {
+        const code = block.querySelector('code');
+        if (!code) return;
+
+        const text = code.textContent || '';
+
+        try {
+          await navigator.clipboard.writeText(text);
+          button.textContent = 'Copied!';
+          button.classList.add('copied');
+
+          setTimeout(() => {
+            button.textContent = 'Copy';
+            button.classList.remove('copied');
+          }, 2000);
+        } catch (err) {
+          // Fallback for older browsers
+          const textarea = document.createElement('textarea');
+          textarea.value = text;
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          textarea.select();
+
+          try {
+            document.execCommand('copy');
+            button.textContent = 'Copied!';
+            button.classList.add('copied');
+
+            setTimeout(() => {
+              button.textContent = 'Copy';
+              button.classList.remove('copied');
+            }, 2000);
+          } catch (e) {
+            button.textContent = 'Failed';
+            setTimeout(() => {
+              button.textContent = 'Copy';
+            }, 2000);
+          }
+
+          document.body.removeChild(textarea);
+        }
+      });
+
+      // Append button to code block
+      block.appendChild(button);
+    });
+  }
+
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', initCopyButtons);
+
+  // Re-initialize on view transitions (if using Astro's view transitions)
+  document.addEventListener('astro:page-load', initCopyButtons);
+</script>
