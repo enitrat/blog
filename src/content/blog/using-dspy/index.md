@@ -372,7 +372,9 @@ This will save the instructions specific to the `ProgramToOptimize`, which is no
 
 If you're running an AI application, you need to have insights into what's happening inside your system so that you can improve it properly. I've chosen to integrate with [LangSmith](https://docs.langchain.com/langsmith/home), but you can explore other observability frameworks like [Langfuse](https://langfuse.com/) or [MLflow](https://mlflow.org/).
 
-It's very simple to integrate with LangSmith: you only need to add some environment variables in your `.env` and annotate the functions you want to trace with a `@traceable(name="name", run_type="type")` decorator. What I like the most about it is that you can control the granularity of each trace easily.
+It's very simple to integrate with LangSmith: you only need to add some environment variables in your `.env` and annotate the functions you want to trace with a `@traceable(name="name", run_type="type")` decorator. What I like the most about it is that you can control the granularity of each trace easily. Here's an example of a trace, showing the different steps of the pipeline. You can inspect in details the inputs and outputs of each step to evaluate how your system is performing.
+
+![LangSmith](./langsmith_trace.png)
 
 Once you start collecting traces, you'll get better insights into the queries that your users are sending to your app. Make sure that you take those queries and make them part of your training dataset; this gives you a strong dataset of real-world data for your optimizers.
 
@@ -384,7 +386,7 @@ I've chosen FastAPI to create an API that's compliant with OpenAI's completions 
 2. Calling `aforward` on an instance of the DSPy pipeline
 3. When the async call ends, return the response.
 
-Having implemented my pipeline in an async way,
+Having implemented my pipeline in an async way, I'm not blocking the event loop of a thread for the duration of the request, which helps me process more requests in parallel while waiting for the AI providers to send their responses.
 
 ## Conclusion
 
