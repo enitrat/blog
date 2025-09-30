@@ -28,6 +28,8 @@ flowchart TD
 
 The following content is not an introduction to DSPy, nor is it a tutorial to learn how to use DSPy. I believe this topic has already been well covered (see articles by [Maxime Rivest](https://x.com/MaximeRivest/articles), [DSPy-0-to-1](https://github.com/haasonsaas/dspy-0to1-guide) and the [DSPy Documentation](https://dspy.ai/)). However, I believe that there's a lack of content on how to bring an AI-based app using DSPy to production, notably on using Async DSPy and I aim to close part of this gap with this article, inspired by a project that I've been working on.
 
+*After writing this article, I found out that the DSPy documentation now has a [section on tooling, development, and deployment](https://dspy.ai/tutorials/core_development/) that addresses the same gap I aimed to cover here. Be sure to take a look!*
+
 ## Table of Contents
 
 - [Using DSPy in Production](#using-dspy-in-production)
@@ -56,9 +58,7 @@ Let's start with the core part of our application: a DSPy program. If I wanted t
 
 ## Composing DSPy Programs - An Async Approach
 
-When I first started with DSPy, the first problem I hit was that I had only been exposed to it from a synchronous programming perspective in all tutorials and docs.
-
-Of course, as our goal is to serve an API endpoint that developers can use to solve programming queries, blocking the event loop for the time of the request to be fulfilled is not an option. Especially when running the AI pipeline end-to-end could take up to 30-50 seconds depending on the complexity and the amount of output tokens.
+When I first started with DSPy, the first problem I hit was that I had only been exposed to it from a synchronous programming perspective in the tutorials and docs. As our goal is to build a production service that will handle concurrent requests, blocking the event loop for the time of the request to be fulfilled is not an option; especially when running the AI pipeline end-to-end could take up to 30-50 seconds depending on the complexity and the amount of output tokens.
 
 The [DSPy Docs](https://dspy.ai/tutorials/async/#creating-custom-async-dspy-modules) indicate that you can create async modules by implementing the `aforward()` method instead of `forward()`, which should contain your module's async logic.
 
@@ -85,9 +85,17 @@ class RagPipeline(dspy.Module):
         sources: list[DocumentSource] | None = None,
     ) -> dspy.Prediction:
         chat_history_str = self._format_chat_history(chat_history or [])
-        processed_query, documents = await self._aprocess_query_and_retrieve_docs(
-            query, chat_history_str, sources
+        processed_query = await self.query_processor.aforward(
+            query=query, chat_history=chat_history_str
         )
+        documents = await self.document_retriever.aforward(
+            processed_query=processed_query, sources=processed_query.resources
+        )
+        with dspy.context(
+            lm=dspy.LM("gemini/gemini-flash-lite-latest", max_tokens=10000, temperature=0.5),
+            adapter=XMLAdapter(),
+        ):
+            documents = await self.retrieval_judge.aforward(query=query, documents=documents)
 
         context = self._prepare_context(documents)
         if mcp_mode:
@@ -112,9 +120,12 @@ You will notice that I did not include a `forward` method here. For some time, I
 - My tests were duplicated.
 - I ended up maintaining code that was never going to be used in production *just* so that I could run the optimizers.
 
-Clearly, this was not a viable approach for a long term project. I'll address all these issues in later sections, but for now, I want you to remember that **you should be writing your programs async first!**
+Clearly, this was not a viable approach for a long term project. However, I believe that I've found a good aproach that lets me keep the same code in my production app and my notebooks, which considerably simplifies maintaining my DSPy codebase.
 
-The `RagPipeline` class is a module that orchestrates multiple DSPy programs – Here's a look into our `GenerationProgram`, which is called in the final step of the pipeline:
+Back to our code – the `RagPipeline` class is a module that orchestrates multiple DSPy programs.
+While I'm using `gemini-flash` in the main context, I'm also using `gemini-flash-lite` for one of the sub-programs. DSPy lets you easily override the current context for a specific program by using the `with dspy.context()` context manager.
+
+ Here's a look into another sub-program, the `GenerationProgram`, which is called in the final step of the pipeline:
 
 ```python
 class CairoCodeGeneration(Signature):
@@ -146,7 +157,7 @@ The following diagram reflects the current structure of the pipeline.
 
 ![pipeline diagram](./mermaid.png)
 
-DSPy is so easy to start with that I don't see a necessity to detail anything further here. The only thing I want to emphasize is that your programs should be designed **async-first** rather than synchronous. So far, there's nothing really complex — but optimizers need to run synchronous code!
+With this structure in mind, you should have a broad overview of how DSPy programs can be composed. The only thing I want to emphasize is that your programs should be designed **async-first** rather than synchronous. So far, there's nothing really complex — until we discover that optimizers need to run synchronous code!
 
 ## Optimizing Programs
 
@@ -269,7 +280,7 @@ This caused my database code to create a new connection pool for every single da
 
 To solve this, I implemented an environment variable (`OPTIMIZER_RUN`) that switches my database access pattern from connection pooling to per-call connections when running optimizations. This way, each database operation uses a single connection that's properly opened and closed, avoiding connection leaks while maintaining efficient pooling for production use!
 
-This should address _most_ of the async/sync issues that you can encounter when you run optimizers, and this can easily be adapted to your use case.
+This should address _most_ of the async/sync issues that you can encounter when you run optimizers, and this can easily be adapted to your use case. These quick workarounds let you run the optimizers on the same code that you'll use in production, which spares you from maintaining two separate codebases!
 
 ### Defining The Right Metric Function
 
@@ -359,7 +370,7 @@ optimized_program = optimizer.compile(
 )
 ```
 
-Once the optimization is finished, you can save the optimized program.
+Once the optimization is finished, you can export the optimized program to a JSON file.
 
 ```python
     os.makedirs("./dspy_program", exist_ok=True)
@@ -368,15 +379,45 @@ Once the optimization is finished, you can save the optimized program.
 
 This will save the instructions specific to the `ProgramToOptimize`, which is not the same as our entire pipeline which is composed of multiple sub-programs. What I do in this case is that I call `save` on the `RagPipeline` instance, and then just copy-paste the signatures generated for `ProgramToOptimize` to the `RagPipeline` saved file.
 
+In my production app, I'll just load the optimized program this way:
+
+```python
+    rag_program = RagPipeline(config)
+    # Load optimizer
+    compiled_program_path = "optimizers/results/optimized_rag.json"
+    rag_program.load(compiled_program_path)
+```
+
+If you open the `json` file corresponding to the optimized program, you'll see the following structure:
+
+```json
+  "program_name": {
+    "traces": [],
+    "train": [],
+    "demos": [],
+    "signature": {
+        "instructions": "...",
+        "fields": [{...}, {...}, ...]
+    }
+}
+```
+
+When you run GEPA, it will update the `instructions` field of the `signature` object with the optimized instructions. The fields and their descriptions stay the same.
+
+The results of the optimization are quite good on our code generation program! We're up 5 points when optimizing Gemini Flash (stable), and 3 points when optimizing Gemini Flash (preview).
+
+![results](./results.jpg)
+
 ## Third-Party Monitoring Services
 
-If you're running an AI application, you need to have insights into what's happening inside your system so that you can improve it properly. I've chosen to integrate with [LangSmith](https://docs.langchain.com/langsmith/home), but you can explore other observability frameworks like [Langfuse](https://langfuse.com/) or [MLflow](https://mlflow.org/).
+If you're running an AI application, you need to have insights into what's happening inside your system so that you can improve it properly. I've chosen to integrate with [LangSmith](https://docs.langchain.com/langsmith/home), but you can explore other observability frameworks like [Langfuse](https://langfuse.com/) or [MLflow](https://mlflow.org/). The [DSPy docs](https://dspy.ai/tutorials/observability/#tracing) indicate how to integrate MLflow with DSPy, which you can self-host; but I've found that LangSmith was easier to setup and use for my use case.
 
-It's very simple to integrate with LangSmith: you only need to add some environment variables in your `.env` and annotate the functions you want to trace with a `@traceable(name="name", run_type="type")` decorator. What I like the most about it is that you can control the granularity of each trace easily. Here's an example of a trace, showing the different steps of the pipeline. You can inspect in details the inputs and outputs of each step to evaluate how your system is performing.
+In fact, integrating LangSmith is dead simple: you only need to add the langsmith dependency, some environment variables, and apply the `@traceable` decorator to the functions you want to trace. What I like the most about it is that you can control the granularity of each trace easily. Here's an example of a trace, showing the different steps of the pipeline. You can inspect in details the inputs and outputs of each step to evaluate how your system is performing.
 
 ![LangSmith](./langsmith_trace.png)
 
 Once you start collecting traces, you'll get better insights into the queries that your users are sending to your app. Make sure that you take those queries and make them part of your training dataset; this gives you a strong dataset of real-world data for your optimizers.
+
 
 ## Serving the app with an API
 
