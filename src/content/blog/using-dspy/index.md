@@ -32,7 +32,6 @@ The following content is not an introduction to DSPy, nor is it a tutorial to le
 
 ## Table of Contents
 
-- [Using DSPy in Production](#using-dspy-in-production)
 - [Composing DSPy Programs - An Async Approach](#composing-dspy-programs---an-async-approach)
 - [Optimizing Programs](#optimizing-programs)
   - [Isolating The Program to Optimize](#isolating-the-program-to-optimize)
