@@ -3,15 +3,20 @@ import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
 import PostsTable from '../components/PostsTable.astro';
+import BooksGrid from '../components/BooksGrid.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 import { getCollection } from 'astro:content';
 import { Content as AboutContent } from '../content/about.md';
+import { books } from '../booksData';
 
 // Get 3 most recent posts
 const allPosts = (await getCollection('blog')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 const recentPosts = allPosts.slice(0, 3);
+
+// Get currently reading books
+const currentlyReading = books.filter(book => book.status === 'reading');
 ---
 
 <!doctype html>
@@ -38,6 +43,17 @@ const recentPosts = allPosts.slice(0, 3);
 				<h2 class="text-xl font-semibold">Recent Posts</h2>
 				<PostsTable posts={recentPosts} />
 			</section>
+
+			<!-- Currently Reading -->
+			{currentlyReading.length > 0 && (
+				<section class="space-y-6">
+					<div class="flex items-center justify-between">
+						<h2 class="text-xl font-semibold">Currently Reading</h2>
+						<a href="/reads" class="text-sm hover:underline">View all →</a>
+					</div>
+					<BooksGrid books={currentlyReading} showRating={false} showDate={false} />
+				</section>
+			)}
 		</main>
 		<Footer />
 	</body>

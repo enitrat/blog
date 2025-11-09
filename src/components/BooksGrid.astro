@@ -1,0 +1,163 @@
+---
+import type { Book } from '../booksData';
+
+interface Props {
+	books: Book[];
+	showRating?: boolean;
+	showDate?: boolean;
+}
+
+const { books, showRating = true, showDate = false } = Astro.props;
+---
+
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+	{books.map((book) => (
+		<div class="group space-y-3 book-card" data-title={book.title} data-author={book.author} data-cover={book.coverUrl}>
+			<!-- Cover image -->
+			<a href="/reads" class="block aspect-[2/3] rounded-lg overflow-hidden bg-muted border shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+				<img
+					src={book.coverUrl}
+					alt={`${book.title} cover`}
+					class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 book-cover"
+					loading="lazy"
+				/>
+			</a>
+
+			<!-- Book info -->
+			<div class="space-y-1">
+				<!-- Title -->
+				<h3 class="font-medium text-sm leading-tight line-clamp-2">
+					{book.title}
+				</h3>
+
+				<!-- Author -->
+				<p class="text-xs text-muted-foreground line-clamp-1">
+					{book.author}
+				</p>
+
+				{showRating && book.rating && (
+					<div class="book-rating" data-rating={book.rating}></div>
+				)}
+
+				{showDate && book.dateFinished && (
+					<p class="text-xs text-muted-foreground">
+						Finished: {new Date(book.dateFinished).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+					</p>
+				)}
+
+				{showDate && book.dateStarted && !book.dateFinished && (
+					<p class="text-xs text-muted-foreground">
+						Started: {new Date(book.dateStarted).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+					</p>
+				)}
+			</div>
+		</div>
+	))}
+</div>
+
+<script>
+	// Generate placeholder SVG cover with title and author
+	function generatePlaceholderCover(title: string, author: string) {
+		const truncateText = (text: string, maxLength: number) => {
+			return text.length > maxLength ? text.substring(0, maxLength - 3) + '...' : text;
+		};
+
+		const displayTitle = truncateText(title, 30);
+		const displayAuthor = truncateText(author, 25);
+
+		const titleLines = [];
+		const words = displayTitle.split(' ');
+		let currentLine = '';
+
+		words.forEach((word) => {
+			const testLine = currentLine + (currentLine ? ' ' : '') + word;
+			if (testLine.length > 15 && currentLine) {
+				titleLines.push(currentLine);
+				currentLine = word;
+			} else {
+				currentLine = testLine;
+			}
+		});
+		if (currentLine) titleLines.push(currentLine);
+
+		const finalTitleLines = titleLines.slice(0, 3);
+
+		const svg = `
+			<svg width="300" height="450" xmlns="http://www.w3.org/2000/svg">
+				<rect width="300" height="450" fill="#FFFBEB"/>
+				<rect x="15" y="15" width="270" height="420" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>
+				<rect x="20" y="20" width="260" height="410" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
+				<text x="150" y="${120 + (finalTitleLines.length === 1 ? 20 : 0)}" font-family="Georgia, serif" font-size="28" font-weight="bold" fill="#1a1a1a" text-anchor="middle">
+					${finalTitleLines.map((line, i) => `<tspan x="150" dy="${i === 0 ? 0 : 32}">${line}</tspan>`).join('')}
+				</text>
+				<line x1="60" y1="${200 + (finalTitleLines.length - 1) * 15}" x2="240" y2="${200 + (finalTitleLines.length - 1) * 15}" stroke="rgba(0,0,0,0.2)" stroke-width="1"/>
+				<text x="150" y="${240 + (finalTitleLines.length - 1) * 15}" font-family="Georgia, serif" font-size="18" fill="#4a4a4a" text-anchor="middle">
+					${displayAuthor}
+				</text>
+			</svg>
+		`;
+
+		return 'data:image/svg+xml;base64,' + btoa(svg);
+	}
+
+	// Render star rating with decimal support using SVG
+	function renderStars(rating: number) {
+		if (!rating) return '';
+		let starsHTML = '<div class="flex gap-0.5 items-center">';
+
+		for (let i = 1; i <= 5; i++) {
+			const fillPercentage = Math.min(Math.max(rating - (i - 1), 0), 1) * 100;
+			const starId = `star-gradient-${Math.random().toString(36).substr(2, 9)}`;
+
+			starsHTML += `
+				<svg class="w-4 h-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+					<defs>
+						<linearGradient id="${starId}">
+							<stop offset="${fillPercentage}%" stop-color="rgb(234 179 8)" />
+							<stop offset="${fillPercentage}%" stop-color="rgb(229 231 235)" />
+						</linearGradient>
+					</defs>
+					<path fill="url(#${starId})" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+				</svg>
+			`;
+		}
+
+		starsHTML += `<span class="ml-1 text-xs text-muted-foreground">${rating.toFixed(1)}</span></div>`;
+		return starsHTML;
+	}
+
+	// Initialize book covers with placeholders
+	document.querySelectorAll('.book-card').forEach((card) => {
+		const bookCard = card as HTMLElement;
+		const title = bookCard.dataset.title || '';
+		const author = bookCard.dataset.author || '';
+		const coverUrl = bookCard.dataset.cover || '';
+		const coverImg = bookCard.querySelector('.book-cover') as HTMLImageElement;
+
+		if (coverImg) {
+			const placeholderSvg = generatePlaceholderCover(title, author);
+
+			// Start with placeholder
+			const originalSrc = coverImg.src;
+			coverImg.src = placeholderSvg;
+
+			// Try to load the actual cover
+			const actualCover = new Image();
+			actualCover.onload = function() {
+				coverImg.src = coverUrl;
+			};
+			actualCover.onerror = function() {
+				coverImg.src = placeholderSvg;
+			};
+			actualCover.src = coverUrl;
+		}
+	});
+
+	// Render star ratings
+	document.querySelectorAll('.book-rating').forEach((ratingEl) => {
+		const rating = parseFloat((ratingEl as HTMLElement).dataset.rating || '0');
+		if (rating) {
+			ratingEl.innerHTML = renderStars(rating);
+		}
+	});
+</script>
