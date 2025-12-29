@@ -1,11 +1,11 @@
 export const books = [
 	// Currently Reading
 	{
-		title: "The Unbearable Lightness of Being",
+		title: "Laughable Love",
 		author: "Milan Kundera",
-		coverUrl: "https://covers.openlibrary.org/b/isbn/9780061148521-M.jpg",
+		coverUrl: "https://covers.openlibrary.org/b/id/10391778-L.jpg",
 		status: "reading" as const,
-		dateStarted: new Date("2025-11-09"),
+		dateStarted: new Date("2025-12-26"),
 		dateFinished: null,
 		rating: null
 	},
@@ -28,6 +28,15 @@ export const books = [
 		rating: null
 	},
 	// Finished Reading
+	{
+		title: "The Unbearable Lightness of Being",
+		author: "Milan Kundera",
+		coverUrl: "https://covers.openlibrary.org/b/isbn/9780061148521-M.jpg",
+		status: "finished" as const,
+		dateStarted: new Date("2025-11-09"),
+		dateFinished: new Date("2025-11-25"),
+		rating: 4.4
+	},
 	{
 		title: "Kafka on the Shore",
 		author: "Haruki Murakami",
