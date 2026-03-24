@@ -20,16 +20,15 @@ Human attention hardly scales. AI-assisted development will generate code in vol
 
 There's a subtler problem, too. The quality of generated code is heavily driven by the quality of the code already in the context window. Good code in context produces decent code; decent code produces mediocre code; bad code compounds into something that actively degrades your codebase. The context is what your LLM is going to reference when writing code, and if that reference is bad, there's no chance it will produce something better.
 
-So how do you keep producing "good code"? First, define what "good" means. My working definition:
+So how do you keep producing "good code"? The first obvious step is to reject obviously bad code. The temptation to ship fast and dirty is strong, especially when you can output seemingly working code in minutes and the time required to think about what to build exceeds the time required to build it. This doesn't work at scale. Don't mortgage the future for a quick win today.
 
-> Anything that achieves the desired final state without putting at risk the future of the global system. Basically, what you'd say "LGTM" to.
+Some people swear by the "plan-then-implement" approach: write a thorough plan, hand it to Claude Code, and expect it to implement everything properly. It's a reasonable starting point, but you'll quickly realize you can't blindly trust the output. The agent will take suboptimal shortcuts for __everything__ not explicitly specified, and may not even follow the plan correctly.
 
-This is deliberately loose, as it depends on scope, project size, and risk tolerance. But it captures the essential constraint: don't mortgage the future for a quick win today.
+In my experience, "plan-then-implement" only works well with a tight feedback loop around atomic tasks that fit in about half a context window, where you can trigger reviews automatically, challenging both the plan and its implementation in their context. Waiting for PR reviews on Github for this is too late. Github is a platform made for humans, not for AIs, and your feedback loops should be much tighter.
 
-With that framing, there are two layers of defense.
+The upside of these new workflows is that you have the opportunity to build much better systems, much faster, because your ability to capitalize on existing infrastructure through high-quality context ingestion has dramatically increased. In open source ecosystems, you can almost certainly find a library or framework to use as a reference, and produce high-quality code from the start, even if you're not an expert in the domain.
 
-- Robustness means your system resists known failure modes.
-- Antifragility means your system learns from new failures. This is where it gets interesting, because you can constantly improve the quality of your system by learning from the mistakes of your LLMs.
+The remaining question is: how do you build good feedback loops? The first step is to write robust rules that prevent common failure modes from happening in the first place. The second is to build an _antifragile_ system, that not only strives to produce good code, but that learns from new failures and improves itself over time.
 
 ## Robustness: building the guardrail stack
 
