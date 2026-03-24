@@ -1,24 +1,6 @@
 export const books = [
 	// Currently Reading
 	{
-		title: "Laughable Love",
-		author: "Milan Kundera",
-		coverUrl: "https://covers.openlibrary.org/b/id/10391778-L.jpg",
-		status: "reading" as const,
-		dateStarted: new Date("2025-12-26"),
-		dateFinished: null,
-		rating: null
-	},
-	{
-		title: "Fooled by Randomness",
-		author: "Nassim Nicholas Taleb",
-		coverUrl: "https://covers.openlibrary.org/b/isbn/9780812975215-M.jpg",
-		status: "reading" as const,
-		dateStarted: new Date("2025-11-09"),
-		dateFinished: null,
-		rating: null
-	},
-	{
 		title: "Principles for Dealing with the Changing World Order",
 		author: "Ray Dalio",
 		coverUrl: "https://covers.openlibrary.org/b/isbn/9781982160272-M.jpg",
@@ -28,6 +10,24 @@ export const books = [
 		rating: null
 	},
 	// Finished Reading
+	{
+		title: "Fooled by Randomness",
+		author: "Nassim Nicholas Taleb",
+		coverUrl: "https://covers.openlibrary.org/b/isbn/9780812975215-M.jpg",
+		status: "finished" as const,
+		dateStarted: new Date("2026-02-29"),
+		dateFinished: null,
+		rating: null
+	},
+	{
+		title: "Laughable Love",
+		author: "Milan Kundera",
+		coverUrl: "https://covers.openlibrary.org/b/id/10391778-L.jpg",
+		status: "finished" as const,
+		dateStarted: new Date("2025-12-26"),
+		dateFinished: new Date("2026-01-14"),
+		rating: 4.2
+	},
 	{
 		title: "The Unbearable Lightness of Being",
 		author: "Milan Kundera",

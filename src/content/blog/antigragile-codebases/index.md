@@ -1,6 +1,10 @@
-![Banner](./banner.png)
+---
+title: "Antifragility in the Age of Agentic Code"
+pubDate: 2026-03-24
+description: "A mental model for how to handle the increasing amount of AI-produced code in codebases"
+---
 
-# Antifragility in the Age of Agentic Code
+![Banner](./banner.png)
 
 King Mithridates VI of Pontus had a rather strange daily ritual: he ingested small doses of poison, methodically, over years, to build resistance against assassination by poisoning. In _Antifragile_, Nicholas Nassim Taleb defines _antifragility_ as a system that doesn't just resist stress, but improves because of it. Every time King Mithridates ingested a dose of poison, he became more and more tolerant to it.
 
