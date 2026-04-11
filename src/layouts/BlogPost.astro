@@ -8,12 +8,25 @@ import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 import Analytics from '@vercel/analytics/astro';
 
-type Props = CollectionEntry<'blog'>['data'];
+type Translation = {
+	lang: string;
+	slug: string;
+	title: string;
+};
 
-const { title, description, pubDate, updatedDate } = Astro.props;
+type Props = CollectionEntry<'blog'>['data'] & {
+	translations?: Translation[];
+};
+
+const langLabels: Record<string, string> = {
+	en: 'Read in English',
+	fr: 'Lire en français',
+};
+
+const { title, description, pubDate, updatedDate, lang = 'en', translations = [] } = Astro.props;
 ---
 
-<html lang="en">
+<html lang={lang}>
 	<head>
 		<BaseHead title={title} description={description} />
 		<script type="application/ld+json" set:html={JSON.stringify({
@@ -33,13 +46,20 @@ const { title, description, pubDate, updatedDate } = Astro.props;
 				<!-- Post Header -->
 				<header class="space-y-2">
 					<h1 class="text-3xl font-bold">{title}</h1>
-					<div class="text-sm text-muted-foreground">
-						<FormattedDate date={pubDate} />
-						{updatedDate && (
-							<span class="ml-2 italic">
-								(Updated: <FormattedDate date={updatedDate} />)
-							</span>
-						)}
+					<div class="text-sm text-muted-foreground flex items-center gap-4">
+						<span>
+							<FormattedDate date={pubDate} />
+							{updatedDate && (
+								<span class="ml-2 italic">
+									(Updated: <FormattedDate date={updatedDate} />)
+								</span>
+							)}
+						</span>
+						{translations.map((t) => (
+							<a href={`/blog/${t.slug}/`} class="hover:underline">
+								{langLabels[t.lang] || t.lang}
+							</a>
+						))}
 					</div>
 					<Analytics />
 				</header>

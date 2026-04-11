@@ -13,8 +13,15 @@ type Props = CollectionEntry<'blog'>;
 
 const post = Astro.props;
 const { Content } = await render(post);
+
+// Find translations: posts in the same directory (same base slug)
+const allPosts = await getCollection('blog');
+const baseSlug = post.id.split('/')[0];
+const translations = allPosts
+	.filter((p) => p.id.split('/')[0] === baseSlug && p.id !== post.id)
+	.map((p) => ({ lang: p.data.lang, slug: p.id, title: p.data.title }));
 ---
 
-<BlogPost {...post.data}>
+<BlogPost {...post.data} translations={translations}>
 	<Content />
 </BlogPost>
