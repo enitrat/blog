@@ -21,9 +21,9 @@ Do not reconstruct the product or design rationale from this handoff. Read the e
 The implemented surface is primarily:
 
 - `src/pages/index.astro`
-- `src/components/home/HomeHeader.astro`
 - `src/components/home/LivingIndex.astro`
-- `src/styles/home.css`
+- `src/components/SiteHeader.astro` and `src/components/SiteFooter.astro`
+- `src/styles/site.css` and `src/styles/home.css`
 - `src/components/BaseHead.astro`
 - `src/consts.ts`
 

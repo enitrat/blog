@@ -2,8 +2,7 @@
 import { getCollection } from 'astro:content';
 import Page from '../../layouts/Page.astro';
 
-// One entry per piece. Translations are reachable from the article's own
-// margin apparatus, so they never appear as separate rows here.
+// A translation is reachable from the article itself, never a second row.
 const posts = (await getCollection('blog'))
 	.filter((post) => post.data.lang === 'en')
 	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
@@ -35,7 +34,7 @@ const formatDate = (date: Date) =>
 
 	{byYear.map((group) => (
 		<section class="year" aria-labelledby={`year-${group.year}`}>
-			<h2 id={`year-${group.year}`}>{group.year}</h2>
+			<h2 class="label" id={`year-${group.year}`}>{group.year}</h2>
 			<div class="writing-ledger">
 				{group.posts.map((post) => (
 					<article>
@@ -73,12 +72,7 @@ const formatDate = (date: Date) =>
 
 	.year h2 {
 		margin: 0 0 1.1rem;
-		color: var(--home-cobalt);
 		font-family: var(--home-sans);
-		font-size: 0.65rem;
-		font-weight: 680;
-		letter-spacing: 0.07em;
-		text-transform: uppercase;
 	}
 
 	.empty {

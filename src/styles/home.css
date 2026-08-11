@@ -1,8 +1,5 @@
-/*
- * Homepage-only composition. Tokens, base material, the header, the footer,
- * and the shared ledger rows live in site.css; this file owns the Living
- * Index, the art stage, and the homepage's Work/Writing/close sections.
- */
+/* Homepage-only composition: the Living Index, the art stage, and the
+   Work/Writing/close sections. Shared primitives live in site.css. */
 
 .living-index {
 	display: grid;
@@ -92,9 +89,8 @@
 	margin-bottom: 1.3rem;
 }
 
-/* Between 981px and ~1100px each index group is only ~255px wide, so the
-   destination link wrapped to two lines alongside its heading. Let it drop
-   onto its own line instead of crowding the title. */
+/* Near 1000px each group is only ~255px wide, where the destination link
+   wrapped to two lines beside its heading. Let it drop to its own line. */
 .index-group__heading {
 	flex-wrap: wrap;
 	gap: 0.35rem 1.5rem;
@@ -358,153 +354,9 @@
 	font-weight: 650;
 }
 
-.work-entry__copy a svg,
-.writing-ledger__arrow svg {
+.work-entry__copy a svg {
 	width: 1.1rem;
 	height: 1.1rem;
-}
-
-.about-close {
-	padding-block: clamp(5rem, 10vw, 10rem);
-	border-bottom: 1px solid var(--home-rule);
-}
-
-.section-heading {
-	margin-bottom: clamp(2.4rem, 5vw, 5rem);
-}
-
-/* Align the supporting copy to the ledger grid below it rather than letting
-   space-between fling it against the far page edge, orphaned from its heading. */
-.work-section .section-heading {
-	display: grid;
-	grid-template-columns: 1.35fr 0.9fr 0.9fr;
-	gap: clamp(1.5rem, 3vw, 3.5rem);
-	align-items: baseline;
-}
-
-.work-section .section-heading p {
-	grid-column: 2 / -1;
-}
-
-.section-heading h2 {
-	font-size: clamp(3.3rem, 7vw, 6rem);
-}
-
-.section-heading p {
-	max-width: 46ch;
-	margin: 0;
-	color: var(--home-muted);
-	font-size: 0.86rem;
-}
-
-.work-ledger {
-	display: grid;
-	grid-template-columns: 1.35fr 0.9fr 0.9fr;
-	gap: clamp(1.5rem, 3vw, 3.5rem);
-}
-
-.work-entry {
-	min-width: 0;
-	padding-top: 1rem;
-	border-top: 1px solid var(--home-ink);
-}
-
-.work-entry picture,
-.work-entry img {
-	display: block;
-	width: 100%;
-}
-
-.work-entry img {
-	height: clamp(15rem, 24vw, 27rem);
-	object-fit: cover;
-}
-
-.work-entry:not(.work-entry--lead) img {
-	height: clamp(12rem, 18vw, 20rem);
-}
-
-.work-entry__copy {
-	padding-top: 1.35rem;
-}
-
-.work-entry__copy h3 {
-	margin: 0;
-	font-family: var(--home-display);
-	font-size: clamp(1.7rem, 3vw, 2.65rem);
-	font-weight: 550;
-	letter-spacing: -0.03em;
-}
-
-.work-entry__copy p {
-	max-width: 48ch;
-	margin: 0.9rem 0 1.4rem;
-	color: var(--home-muted);
-	font-size: 0.82rem;
-}
-
-.work-entry__copy a {
-	display: inline-flex;
-	align-items: center;
-	gap: 0.75rem;
-	color: var(--home-cobalt);
-	font-size: 0.74rem;
-	font-weight: 650;
-}
-
-.work-entry__copy a svg,
-.writing-ledger__arrow svg {
-	width: 1.1rem;
-	height: 1.1rem;
-}
-
-.writing-ledger {
-	border-top: 1px solid var(--home-ink);
-}
-
-.writing-ledger article {
-	display: grid;
-	grid-template-columns: 9rem minmax(0, 1fr) 2rem;
-	align-items: start;
-	gap: clamp(1.2rem, 4vw, 4rem);
-	padding: clamp(1.4rem, 3vw, 2.4rem) 0;
-	border-bottom: 1px solid var(--home-rule);
-}
-
-.writing-ledger time {
-	padding-top: 0.3rem;
-	color: var(--home-cobalt);
-	font-size: 0.7rem;
-	font-weight: 620;
-	letter-spacing: 0.04em;
-}
-
-.writing-ledger h3 {
-	margin: 0;
-	font-family: var(--home-display);
-	font-size: clamp(1.5rem, 3vw, 2.55rem);
-	font-weight: 550;
-	line-height: 1.08;
-	letter-spacing: -0.025em;
-}
-
-.writing-ledger h3 a:hover {
-	color: var(--home-cobalt);
-}
-
-.writing-ledger p {
-	max-width: 70ch;
-	margin: 0.55rem 0 0;
-	color: var(--home-muted);
-	font-size: 0.82rem;
-}
-
-.writing-ledger__arrow {
-	display: grid;
-	place-items: center;
-	width: 2rem;
-	height: 2rem;
-	color: var(--home-cobalt);
 }
 
 .about-close {
@@ -536,6 +388,9 @@
 	margin-top: 2.5rem;
 }
 
+/* Solid border means the destination exists; dashed means it is still owed.
+   The two share every other dimension so the pair reads as one row. */
+.about-close nav a,
 .about-close nav span {
 	padding: 0.75rem 1rem;
 	border: 1px dashed var(--home-cobalt);
@@ -544,10 +399,20 @@
 	font-weight: 620;
 }
 
+.about-close nav a {
+	border-style: solid;
+	text-decoration: none;
+}
+
+.about-close nav a:hover,
+.about-close nav a:focus-visible {
+	background: var(--home-cobalt);
+	color: var(--home-paper);
+}
+
 @media (max-width: 980px) {
-	/* The orientation column becomes a full-width band so the two indexes can stay
-	   side by side. Keeping them stacked here made the opening field ~900px tall and
-	   pushed the art stage entirely out of the first viewport. */
+	/* Stacking these instead makes the opening field ~900px tall and pushes the
+	   art stage out of the first viewport entirely. */
 	.living-index {
 		grid-template-columns: minmax(0, 1fr);
 		grid-template-areas:
@@ -626,8 +491,8 @@
 		grid-template-columns: 1fr;
 	}
 
-	/* Also resets the inline padding the 980px block sets on this same selector;
-	   `.index-group` alone loses the specificity contest against it. */
+	/* Must also reset the inline padding the wider block sets on this same
+	   selector — the single-class version loses the specificity contest. */
 	.index-group + .index-group {
 		padding-inline: 0;
 		border-top: 1px solid var(--home-rule);
@@ -650,8 +515,7 @@
 		background: var(--home-paper);
 	}
 
-	/* Two stacked groups previously left a 104px unexplained void around their
-	   shared rule. Tighten toward the rule so it reads as a boundary, not a gap. */
+	/* Tightened toward the shared rule so it reads as a boundary, not a gap. */
 	.index-group {
 		padding: 2.25rem 0;
 	}
@@ -701,8 +565,19 @@
 	}
 }
 
+/* Movement goes, state stays. */
 @media (prefers-reduced-motion: reduce) {
+	/* The stage cuts between frames instead of crossfading. */
 	.art-stage figure:not([data-active="true"]) {
 		display: none;
+	}
+
+	.art-stage img {
+		transform: none;
+		transition: none;
+	}
+
+	.index-group li > a {
+		transition: color 220ms ease;
 	}
 }

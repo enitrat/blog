@@ -26,7 +26,7 @@ const initialId = work[0]?.id ?? writing[0]?.id;
 		<h1>Mathieu<br />Saugé</h1>
 		<p class="living-index__role">
 			Software Engineer
-			<span>Professional descriptor placeholder</span>
+			<span>CTO of Kakarot</span>
 		</p>
 		<div class="copy-placeholder" role="note" aria-label="Homepage introduction placeholder">
 			<strong>Introduction placeholder</strong>
@@ -64,7 +64,7 @@ const initialId = work[0]?.id ?? writing[0]?.id;
 		<section class="index-group" aria-labelledby="writing-index-title">
 			<div class="index-group__heading">
 				<h2 id="writing-index-title">Writing</h2>
-				<a href="/blog">Browse all writing</a>
+				<a href="/writing">Browse all writing</a>
 			</div>
 			<ul>
 				{writing.map((item) => (
@@ -82,13 +82,15 @@ const initialId = work[0]?.id ?? writing[0]?.id;
 		</section>
 	</div>
 
-	<div class="art-stage" aria-live="polite">
+	{/* Deliberately not a live region: the artwork is decorative, so announcing
+	    it would narrate a hover ornament over whatever the reader is doing. */}
+	<div class="art-stage">
 		{allItems.map((item) => (
 			<figure data-stage-frame={item.id} data-active={item.id === initialId ? 'true' : 'false'} aria-hidden={item.id === initialId ? 'false' : 'true'}>
 				<Picture
 					src={item.art}
 					formats={['avif', 'webp']}
-					widths={[640, 960, 1440, 1920, 2400]}
+					widths={[640, 960, 1440, 1792]}
 					sizes="(max-width: 760px) 100vw, 94vw"
 					alt=""
 					loading={item.id === initialId ? 'eager' : 'lazy'}
@@ -138,10 +140,9 @@ const initialId = work[0]?.id ?? writing[0]?.id;
 			const stage = root.querySelector<HTMLElement>('.art-stage');
 			const inView = new Set<HTMLElement>();
 
-			// Rank candidates by how close their centre sits to the reading line just
-			// below the sticky stage, not by intersectionRatio. Ratio ranking let short
-			// rows outscore taller ones permanently, so several entries never became
-			// active during an ordinary scroll.
+			// Ranks by distance to the reading line, not intersectionRatio: ratio
+			// lets short rows outscore taller ones permanently, so some entries
+			// never became active during an ordinary scroll.
 			const select = () => {
 				const line = (stage?.getBoundingClientRect().bottom ?? 0) + 24;
 				let best: HTMLElement | undefined;

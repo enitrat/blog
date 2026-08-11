@@ -1,13 +1,5 @@
-/*
- * The Marginalia Sheet — the reading surface for a single article.
- *
- * One measured reading column with a wide outer margin carrying the editorial
- * apparatus: the dated witness line, translations, and a live table of
- * contents that marks the section currently under the reader. The margin is
- * apparatus, never navigation the article depends on: the prose is complete
- * and ordered without it, and it collapses to a band above the text when the
- * page is too narrow to hold a true margin.
- */
+/* The reading surface for a single article: one measured column with the
+   editorial apparatus in the outer margin. */
 
 .sheet {
 	--margin-col: clamp(12rem, 22vw, 18rem);
@@ -54,7 +46,9 @@
 	font-size: 0.78rem;
 }
 
-.sheet__facts dt {
+.sheet__facts dt,
+.sheet__contents > span,
+.sheet__onward-item span {
 	color: var(--home-cobalt);
 	font-size: 0.7rem;
 	font-weight: 680;
@@ -86,11 +80,6 @@
 .sheet__contents > span {
 	display: block;
 	margin-bottom: 0.85rem;
-	color: var(--home-cobalt);
-	font-size: 0.7rem;
-	font-weight: 680;
-	letter-spacing: 0.07em;
-	text-transform: uppercase;
 }
 
 .sheet__contents ol {
@@ -135,7 +124,6 @@
 	color: var(--home-cobalt);
 }
 
-/* The one active mark, matching the index star on the homepage. */
 .site .sheet__contents a[aria-current="true"] {
 	padding-left: 0;
 	color: var(--home-cobalt);
@@ -164,8 +152,7 @@
 	text-align: left;
 }
 
-.article-body > :first-child,
-.article-body > :first-child > img {
+.article-body > :first-child {
 	margin-top: 0;
 }
 
@@ -184,7 +171,6 @@
 	scroll-margin-top: 2rem;
 }
 
-/* More space above a heading than below it. */
 .article-body h2 {
 	position: relative;
 	margin: 3.4rem 0 1.1rem;
@@ -198,10 +184,7 @@
 	font-size: clamp(1.25rem, 2vw, 1.5rem);
 }
 
-/* The section reference: a section sign and its ordinal, set in the OUTER margin
-   level with the heading it names, linking to that section. The same ordinals
-   appear in the contents list, so index and margin are one apparatus. Where the
-   margin closes up it sets inline ahead of the heading instead. */
+/* Pulled into the outer margin, level with the heading it names. */
 .site .section-mark {
 	position: absolute;
 	top: 1.5rem;
@@ -290,6 +273,11 @@
 	height: auto;
 	margin: 2.2rem 0;
 	background: var(--home-ink);
+}
+
+/* Every article opens on its banner, which must sit flush against the rule. */
+.article-body > :first-child > img {
+	margin-top: 0;
 }
 
 .article-body figure {
@@ -395,7 +383,6 @@
 	border-top: 1px solid var(--home-ink);
 }
 
-/* The three ways onward: the archive, the shelf, and a conversation. */
 .sheet__exits {
 	display: flex;
 	flex-wrap: wrap;
@@ -409,6 +396,8 @@
 	gap: 1rem clamp(1.5rem, 3vw, 2.75rem);
 }
 
+/* Solid underline means the destination exists; dashed means it is still owed. */
+.sheet__conversation a,
 .sheet__conversation span {
 	border-bottom: 1px dashed var(--home-cobalt);
 	padding-bottom: 0.15rem;
@@ -418,13 +407,15 @@
 	letter-spacing: 0.04em;
 }
 
+.sheet__conversation a {
+	border-bottom-style: solid;
+}
+
 .sheet__close > div {
 	padding: clamp(2.5rem, 5vw, 4rem) 0 clamp(3rem, 6vw, 5rem) clamp(1.5rem, 3.5vw, 3.5rem);
 	grid-column: 2;
 }
 
-/* Onward: the adjacent essays, then the archive. STORY promises a way
-   forward, so the article does not end on a back-link alone. */
 .sheet__onward {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
@@ -447,8 +438,6 @@
 	}
 }
 
-/* One column: the items read as stacked rows, so a hairline between them is the
-   boundary, not a stripe down one side. */
 @media (max-width: 760px) {
 	.sheet__onward-item + .sheet__onward-item {
 		border-top: 1px solid var(--home-rule);
@@ -462,14 +451,6 @@
 
 .sheet__onward-item--next {
 	text-align: right;
-}
-
-.sheet__onward-item span {
-	color: var(--home-cobalt);
-	font-size: 0.7rem;
-	font-weight: 680;
-	letter-spacing: 0.07em;
-	text-transform: uppercase;
 }
 
 .sheet__onward-item strong {
@@ -548,8 +529,6 @@
 		color: var(--home-cobalt);
 	}
 
-
-
 	.sheet__close > div {
 		grid-column: 1;
 	}
@@ -565,5 +544,13 @@
 		padding-inline: var(--home-gutter);
 		border-inline: 0;
 		border-left: 1px solid var(--home-cobalt);
+	}
+}
+
+/* Movement goes, state stays: the active entry still marks, it just
+   no longer slides there. */
+@media (prefers-reduced-motion: reduce) {
+	.site .sheet__contents a {
+		transition: color 200ms ease;
 	}
 }

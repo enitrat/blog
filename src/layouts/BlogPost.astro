@@ -4,9 +4,9 @@ import '@fontsource-variable/literata/wght.css';
 import '../styles/site.css';
 import '../styles/article.css';
 
+import type { CollectionEntry } from 'astro:content';
 import Analytics from '@vercel/analytics/astro';
 import type { MarkdownHeading } from 'astro';
-import type { CollectionEntry } from 'astro:content';
 import paperTexture from '../assets/home/paper-fiber.webp';
 import BaseHead from '../components/BaseHead.astro';
 import CopyCodeButton from '../components/CopyCodeButton.astro';
@@ -30,8 +30,8 @@ type Props = CollectionEntry<'blog'>['data'] & {
 };
 
 const langLabels: Record<string, string> = {
-	en: 'Read in English',
-	fr: 'Lire en français',
+	en: '[EN] Read in English',
+	fr: '[FR] Lire en français',
 };
 
 const {
@@ -50,8 +50,7 @@ const dateLocale = lang === 'fr' ? 'fr-FR' : 'en-GB';
 const formatDate = (date: Date) =>
 	date.toLocaleDateString(dateLocale, { year: 'numeric', month: 'long', day: 'numeric' });
 
-// Only h2/h3 make useful wayfinding; deeper levels crowd the margin. Top-level
-// entries carry the same ordinal the margin reference beside that section shows.
+// Deeper than h3 crowds the margin rather than helping anyone navigate.
 let section = 0;
 const contents = headings
 	.filter((heading) => heading.depth === 2 || heading.depth === 3)
@@ -66,6 +65,23 @@ const contents = headings
 <html lang={lang} class="site">
 	<head>
 		<BaseHead title={title} description={description} />
+		{/* Preloaded here, not in the shared head: the article is the only surface
+		    that paints a code glyph. */}
+		<link rel="preload" href="/fonts/roboto-mono-regular.woff2" as="font" type="font/woff2" crossorigin />
+		{/* Translations appear in no index, so these are the only signal that the
+		    two pages are one piece; without them a crawler sees duplicate content. */}
+		{translations.length > 0 && (
+			<Fragment>
+				<link rel="alternate" hreflang={lang} href={new URL(Astro.url.pathname, Astro.site)} />
+				{translations.map((t) => (
+					<link
+						rel="alternate"
+						hreflang={t.lang}
+						href={new URL(`/writing/${t.slug}/`, Astro.site)}
+					/>
+				))}
+			</Fragment>
+		)}
 		<script
 			type="application/ld+json"
 			set:html={JSON.stringify({
@@ -80,14 +96,6 @@ const contents = headings
 	</head>
 
 	<body style={`--paper-texture: url(${paperTexture.src})`}>
-		<!--
-		THESIS: One editorial world across every route; a personal site refuses the blog-template split where the homepage is designed and the archive, article, and shelf are left as defaults.
-		OWN-WORLD: Cool uncoated paper, near-black ink, cobalt rules and labels, rare orange events, sculptural Literata against compact Commissioner, flat square-cornered construction with no cards or shadows.
-		STORY: Arrive anywhere in the site and recognise the same hand; read an article at a true measure with its apparatus in the margin, then continue into another essay, a book, or a conversation.
-		FIRST VIEWPORT: A thin identity-and-navigation band over one near-black rule, then a Literata headline at page scale with a muted standfirst, then the ruled content field.
-		FORM: Marginalia Sheet for the reading surface, candidate 4 of the grounded list; seed key 61ce0048.
-		FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
-		-->
 		<div class="site-shell">
 			<SiteHeader />
 			<main>
@@ -117,7 +125,9 @@ const contents = headings
 										<dt>Also in</dt>
 										{translations.map((t) => (
 											<dd>
-												<a href={`/writing/${t.slug}/`}>{langLabels[t.lang] || t.lang}</a>
+												<a href={`/writing/${t.slug}/`} hreflang={t.lang} lang={t.lang}>
+													{langLabels[t.lang] || t.lang}
+												</a>
 											</dd>
 										))}
 									</div>
@@ -171,16 +181,12 @@ const contents = headings
 									<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
 									Bookshelf
 								</a>
-								{/*
-									STORY promises the reader can continue into a conversation from
-									here. The destinations are unresolved, so this carries the same
-									dashed marking the homepage close and the footer use. Make these
-									real X and Telegram links when the destinations exist; deleting
-									them makes the promise silently missing.
-								*/}
-								<span class="sheet__conversation" role="note" aria-label="Contact placeholders">
-									<span>X placeholder</span>
-									<span>Telegram placeholder</span>
+								{/* Give X and Telegram real hrefs once the handles exist; deleting
+								    them instead drops the invitation to start a conversation. */}
+								<span class="sheet__conversation">
+									<a href="https://github.com/enitrat" rel="me noreferrer" target="_blank">GitHub</a>
+									<span role="note">X placeholder</span>
+									<span role="note">Telegram placeholder</span>
 								</span>
 							</div>
 						</div>
@@ -193,8 +199,7 @@ const contents = headings
 		<Analytics />
 
 		<script>
-			// Marks the section the reader is currently in. The margin is apparatus:
-			// without this script every heading link still works as an anchor.
+			// Progressive enhancement: without this every heading link still anchors.
 			function setupContents() {
 				const nav = document.querySelector<HTMLElement>('[data-contents]');
 				if (!nav || nav.dataset.ready === 'true') return;
@@ -221,9 +226,8 @@ const contents = headings
 					}
 				};
 
-				// The heading nearest above a reading line near the top of the viewport
-				// wins, so the mark tracks what is actually being read rather than
-				// whichever heading last crossed a threshold.
+				// Nearest heading above the reading line wins, so the mark tracks what
+				// is being read rather than whichever heading last crossed a threshold.
 				const select = () => {
 					const line = window.innerHeight * 0.28;
 					let best = targets[0];

@@ -2,16 +2,13 @@
 import { books } from '../../booksData';
 import Page from '../../layouts/Page.astro';
 
-// Rendered at build time and grouped by status, so the archive is complete
-// without JavaScript. Twelve entries need reading order, not a filter panel.
 const groups = [
 	{ key: 'reading', label: 'Reading now' },
 	{ key: 'finished', label: 'Finished' },
 	{ key: 'want-to-read', label: 'Want to read' },
 ] as const;
 
-const dateOf = (book: (typeof books)[number]) =>
-	book.dateFinished ?? book.dateStarted ?? null;
+const dateOf = (book: (typeof books)[number]) => book.dateFinished ?? book.dateStarted ?? null;
 
 const shelves = groups
 	.map((group) => ({

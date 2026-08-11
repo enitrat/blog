@@ -1,22 +1,14 @@
 // @ts-check
 
+import { rehypeHeadingIds } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
-import tailwindcss from '@tailwindcss/vite';
-import { defineConfig } from 'astro/config';
 import vercel from '@astrojs/vercel';
-import { rehypeHeadingIds } from '@astrojs/markdown-remark';
+import { defineConfig } from 'astro/config';
 import codeTheme from './src/styles/code-theme.json' with { type: 'json' };
 import { isArgumentHeading } from './src/utils/sections.mjs';
 
-/**
- * Numbers every `h2` and hangs a section reference (§ plus its ordinal) in the
- * sheet's outer margin beside it. This is the article's place-keyed marginalia:
- * apparatus sitting next to the passage it refers to, with the same ordinals
- * repeated in the contents list so margin and index are one system. Written
- * inline to avoid pulling in a plugin and its unist dependency for thirty
- * lines of tree walking.
- */
+/** Numbers every argument `h2` and hangs a §ordinal link in the outer margin. */
 function rehypeSectionMarks() {
 	return (tree) => {
 		let n = 0;
@@ -37,13 +29,23 @@ function rehypeSectionMarks() {
 						properties: {
 							className: ['section-mark'],
 							href: `#${child.properties.id}`,
-							// The mark's accessible name; the glyph and numeral are
-							// decorative duplicates of the heading beside them.
+							// The glyph and numeral below are decorative duplicates of the
+							// adjacent heading, so the link needs its own name.
 							'aria-label': `Link to section ${n}`,
 						},
 						children: [
-							{ type: 'element', tagName: 'span', properties: {}, children: [{ type: 'text', value: '§' }] },
-							{ type: 'element', tagName: 'b', properties: {}, children: [{ type: 'text', value: String(n) }] },
+							{
+								type: 'element',
+								tagName: 'span',
+								properties: {},
+								children: [{ type: 'text', value: '§' }],
+							},
+							{
+								type: 'element',
+								tagName: 'b',
+								properties: {},
+								children: [{ type: 'text', value: String(n) }],
+							},
 						],
 					});
 				}
@@ -54,14 +56,13 @@ function rehypeSectionMarks() {
 	};
 }
 
-// https://astro.build/config
 export default defineConfig({
-	site: 'https://example.com',
+	// Every canonical link, sitemap entry, RSS link, and og:url resolves against
+	// this, so a wrong value is silently wrong everywhere rather than a build error.
+	site: 'https://msaug.dev',
 	integrations: [mdx(), sitemap()],
 
-	// /blog and /reads were the old addresses; the nav now says Writing and
-	// Bookshelf, so the routes match the words. Existing inbound links and
-	// indexed pages keep working.
+	// Keeps inbound links and already-indexed pages working after the rename.
 	redirects: {
 		'/blog': '/writing',
 		'/blog/[...slug]': '/writing/[...slug]',
@@ -74,9 +75,6 @@ export default defineConfig({
 			type: 'shiki',
 			excludeLangs: ['mermaid', 'math'],
 		},
-		// Code is set in the site's own five colours rather than an off-the-shelf
-		// theme, so a code block reads as part of the page instead of a pasted
-		// terminal. See src/styles/code-theme.json for the scope mapping.
 		shikiConfig: {
 			theme: codeTheme,
 		},
@@ -84,8 +82,5 @@ export default defineConfig({
 		rehypePlugins: [rehypeHeadingIds, rehypeSectionMarks],
 	},
 
-	vite: {
-		plugins: [tailwindcss()],
-	},
 	adapter: vercel(),
 });

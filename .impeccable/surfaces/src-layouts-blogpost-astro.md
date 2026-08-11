@@ -28,7 +28,7 @@ Real content only: the `blog` collection (four pieces, one with a French transla
 - **Routes renamed with redirects.** `/blog` → `/writing`, `/reads` → `/bookshelf`, `/about` added; 301s preserve inbound links. The nav vocabulary and the addresses must keep matching.
 - **About prose is verbatim.** Layout and typography only. The user explicitly chose to keep the existing role sentence unflagged, against the option of marking it as an unresolved placeholder — so its divergence from PRODUCT.md's "role deliberately unresolved" is a recorded user decision, not an oversight.
 - **No JavaScript dependency.** The bookshelf and archive render at build time. The article's margin apparatus is enhancement: every heading link works as a plain anchor without the marking script.
-- **The legacy world is quarantined, not deleted.** `src/styles/global.css` (Tailwind, `font-size: 85%`, Roboto Mono body) is imported only by the POC pages. `BaseHead.astro` imports no stylesheet, which is what keeps it out of the live routes. Re-adding a stylesheet import there would leak it back onto all five surfaces.
+- **The legacy world is gone.** `src/styles/global.css` (Tailwind, `font-size: 85%`, Roboto Mono body) and the POC pages that were its only importers have been deleted, along with Tailwind itself. `BaseHead.astro` still imports no stylesheet: a layout owns its surface's world, and adding a stylesheet import there would apply it to all five surfaces at once.
 - One entry per piece in the archive: translations are reached from the article's own apparatus, never listed as separate rows.
 
 ## Chosen direction and memorable moment

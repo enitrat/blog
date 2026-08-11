@@ -8,11 +8,7 @@
 	},
 	"tokenColors": [
 		{
-			"scope": [
-				"comment",
-				"punctuation.definition.comment",
-				"string.quoted.docstring"
-			],
+			"scope": ["comment", "punctuation.definition.comment", "string.quoted.docstring"],
 			"settings": {
 				"foreground": "#62666d",
 				"fontStyle": "italic"
@@ -44,96 +40,61 @@
 			}
 		},
 		{
-			"scope": [
-				"entity.name.type",
-				"entity.name.class",
-				"support.type",
-				"support.class"
-			],
+			"scope": ["entity.name.type", "entity.name.class", "support.type", "support.class"],
 			"settings": {
 				"foreground": "#0f3a8f"
 			}
 		},
 		{
-			"scope": [
-				"string",
-				"string.quoted",
-				"string.template",
-				"meta.string"
-			],
+			"scope": ["string", "string.quoted", "string.template", "meta.string"],
 			"settings": {
 				"foreground": "#3f4a52"
 			}
 		},
 		{
-			"scope": [
-				"constant.numeric",
-				"constant.language"
-			],
+			"scope": ["constant.numeric", "constant.language"],
 			"settings": {
 				"foreground": "#0f3a8f"
 			}
 		},
 		{
-			"scope": [
-				"variable",
-				"variable.other",
-				"variable.parameter",
-				"meta.definition.variable"
-			],
+			"scope": ["variable", "variable.other", "variable.parameter", "meta.definition.variable"],
 			"settings": {
 				"foreground": "#17191d"
 			}
 		},
 		{
-			"scope": [
-				"punctuation",
-				"meta.brace",
-				"punctuation.separator",
-				"punctuation.terminator"
-			],
+			"scope": ["punctuation", "meta.brace", "punctuation.separator", "punctuation.terminator"],
 			"settings": {
 				"foreground": "#62666d"
 			}
 		},
 		{
-			"scope": [
-				"entity.other.attribute-name",
-				"support.type.property-name"
-			],
+			"scope": ["entity.other.attribute-name", "support.type.property-name"],
 			"settings": {
 				"foreground": "#1747be"
 			}
 		},
 		{
-			"scope": [
-				"markup.inserted"
-			],
+			"scope": ["markup.inserted"],
 			"settings": {
 				"foreground": "#0f3a8f"
 			}
 		},
 		{
-			"scope": [
-				"markup.deleted"
-			],
+			"scope": ["markup.deleted"],
 			"settings": {
 				"foreground": "#f06424"
 			}
 		},
 		{
-			"scope": [
-				"invalid"
-			],
+			"scope": ["invalid"],
 			"settings": {
 				"foreground": "#f06424"
 			}
 		},
 		{
-			"scope": [
-				"constant.character.escape",
-				"constant.regexp"
-			],
+			"scope": ["constant.character.escape", "constant.regexp"],
 			"settings": {
 				"foreground": "#f06424"
 			}

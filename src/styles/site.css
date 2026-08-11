@@ -4,9 +4,18 @@
  * Owns the tokens, the base material, and the primitives that appear on more
  * than one surface (shell, header, footer, ledger rows, section heads).
  * Homepage-only composition stays in home.css; per-surface composition stays
- * with its own page. Everything here is scoped under `html.site` so the POC
- * pages keep their own world untouched.
+ * with its own page.
  */
+
+/* Declared beside the token that names it. Split the two and the token silently
+   resolves only for visitors who happen to have the family installed. */
+@font-face {
+	font-family: "Roboto Mono";
+	src: url("/fonts/roboto-mono-regular.woff2") format("woff2");
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
 
 :root {
 	--home-paper: #f7f5f0;
@@ -23,6 +32,10 @@
 }
 
 html.site {
+	/* The world is uncoated paper in one light state by design; declaring it
+	   keeps form controls, scrollbars, and the pre-paint canvas from rendering
+	   in the visitor's OS dark theme against a paper page. */
+	color-scheme: light;
 	font-size: 100%;
 	background: var(--home-paper);
 	scroll-behavior: smooth;
@@ -56,7 +69,9 @@ html.site body {
 .site a:focus-visible,
 .site button:focus-visible,
 .site summary:focus-visible {
-	outline: 2px solid var(--home-orange);
+	/* Cobalt, not the orange event colour: orange on this paper is 2.96:1,
+	   under the 3:1 floor a focus ring has to clear. Cobalt is 7.18:1. */
+	outline: 2px solid var(--home-cobalt);
 	outline-offset: 4px;
 }
 
@@ -144,6 +159,8 @@ html.site body {
 	gap: 1.25rem;
 }
 
+/* Solid underline means the destination exists; dashed means it is still owed. */
+.site-footer__contact a,
 .site-footer__contact span {
 	border-bottom: 1px dashed var(--home-cobalt);
 	padding-bottom: 0.15rem;
@@ -151,6 +168,10 @@ html.site body {
 	font-size: 0.7rem;
 	font-weight: 620;
 	letter-spacing: 0.04em;
+}
+
+.site-footer__contact a {
+	border-bottom-style: solid;
 }
 
 .site-footer a:hover {
@@ -167,8 +188,6 @@ html.site body {
 	text-transform: uppercase;
 }
 
-/* The masthead every non-home surface opens with: one headline, optional
-   standfirst, and a near-black rule that starts the page's grid. */
 .page-head {
 	padding-block: clamp(3rem, 6vw, 5.5rem) clamp(1.75rem, 3.5vw, 3rem);
 	border-bottom: 1px solid var(--home-ink);
@@ -193,15 +212,13 @@ html.site body {
 	font-size: 0.9rem;
 }
 
-/* Ruled ledger rows. Shared by the homepage writing index, the writing
-   archive, and the bookshelf so all three keep one rhythm. */
 .writing-ledger {
 	border-top: 1px solid var(--home-ink);
 }
 
 .writing-ledger article {
 	display: grid;
-	grid-template-columns: 9rem minmax(0, 1fr) 2rem;
+	grid-template-columns: 9rem minmax(0, 1fr) 2.75rem;
 	align-items: start;
 	gap: clamp(1.2rem, 4vw, 4rem);
 	padding: clamp(1.4rem, 3vw, 2.4rem) 0;
@@ -240,8 +257,9 @@ html.site body {
 .writing-ledger__arrow {
 	display: grid;
 	place-items: center;
-	width: 2rem;
-	height: 2rem;
+	/* 44px: this is the tappable thing that looks tappable on both ledgers. */
+	width: 2.75rem;
+	height: 2.75rem;
 	color: var(--home-cobalt);
 }
 
@@ -282,7 +300,7 @@ html.site body {
 	}
 
 	.writing-ledger article {
-		grid-template-columns: 1fr 2rem;
+		grid-template-columns: 1fr 2.75rem;
 		gap: 1rem;
 	}
 
@@ -292,16 +310,16 @@ html.site body {
 	}
 }
 
+/* Movement goes, state stays. A blanket `transition-duration: 0` here would also
+   kill the colour changes that are this site's only interactive feedback, so
+   each stylesheet opts out its own moving parts instead. */
 @media (prefers-reduced-motion: reduce) {
 	html.site {
 		scroll-behavior: auto;
 	}
 
-	.site *,
-	.site *::before,
-	.site *::after {
-		scroll-behavior: auto !important;
-		transition-duration: 0.01ms !important;
-		animation-duration: 0.01ms !important;
+	/* The nav underline grows from the left; under reduced motion it appears. */
+	.site-header nav a::after {
+		transition: none;
 	}
 }

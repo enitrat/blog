@@ -1,7 +1,6 @@
 ---
 interface Props {
-	// Surfaces that already show the marked contact pair in their own close pass
-	// false, so one screen never carries the same unresolved placeholder twice.
+	/** Pass false on surfaces that already show the contact pair in their own close. */
 	contact?: boolean;
 }
 
@@ -17,18 +16,13 @@ const year = new Date().getFullYear();
 		<a href="/about">About</a>
 		<a href="/rss.xml">RSS</a>
 	</nav>
-	{/*
-		PRODUCT.md names X and Telegram as the route a visitor uses to start a
-		conversation, and that is the site's stated success condition — so every
-		surface has to show it, not just the homepage close. The destinations are
-		still unresolved, so these carry the same dashed non-link marking the
-		homepage uses. Replace both with real links when the destinations exist;
-		do not delete them, or the promise goes silently missing.
-	*/}
+	{/* Give X and Telegram real hrefs once the handles exist. Deleting them
+	    instead drops the site's only invitation to start a conversation. */}
 	{contact && (
-		<span class="site-footer__contact" role="note" aria-label="Contact placeholders">
-			<span>X placeholder</span>
-			<span>Telegram placeholder</span>
+		<span class="site-footer__contact">
+			<a href="https://github.com/enitrat" rel="me noreferrer" target="_blank">GitHub</a>
+			<span role="note">X placeholder</span>
+			<span role="note">Telegram placeholder</span>
 		</span>
 	)}
 	<span>© {year}</span>

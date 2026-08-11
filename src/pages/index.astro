@@ -1,32 +1,28 @@
 ---
-import '@fontsource-variable/commissioner/wght.css';
-import '@fontsource-variable/literata/wght.css';
-import '../styles/site.css';
 import '../styles/home.css';
 
 import { Picture } from 'astro:assets';
 import { getCollection } from 'astro:content';
-import paperTexture from '../assets/home/paper-fiber.webp';
 import stageBuilder from '../assets/home/stage-builder.webp';
 import workLanguage from '../assets/home/work-language.webp';
 import workSystems from '../assets/home/work-systems.webp';
 import writingIdeas from '../assets/home/writing-ideas.webp';
-import BaseHead from '../components/BaseHead.astro';
-import SiteFooter from '../components/SiteFooter.astro';
-import SiteHeader from '../components/SiteHeader.astro';
 import LivingIndex, { type LivingIndexItem } from '../components/home/LivingIndex.astro';
 import { SITE_DESCRIPTION } from '../consts';
+import Page from '../layouts/Page.astro';
 
-const writingPosts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+// A translation is offered inside its own article, never as a second index row.
+const writingPosts = (await getCollection('blog'))
+	.filter((post) => post.data.lang === 'en')
+	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
 const work: LivingIndexItem[] = [
 	{
 		id: 'work-kakarot',
 		title: 'Kakarot',
 		href: 'https://kakarot.org/',
-		description: 'Field Report copy placeholder',
+		// These three descriptions are Mathieu's own words; rewrite only with his.
+		description: 'Efficient Zero-Knowledge Proofs systems for client-side proving',
 		art: stageBuilder,
 		external: true,
 	},
@@ -34,7 +30,7 @@ const work: LivingIndexItem[] = [
 		id: 'work-starknet-agent',
 		title: 'Starknet Agent',
 		href: 'https://agent.starknet.io',
-		description: 'Product story placeholder',
+		description: 'An AI conversational agent for the Starknet ecosystem',
 		art: workSystems,
 		external: true,
 	},
@@ -42,7 +38,7 @@ const work: LivingIndexItem[] = [
 		id: 'work-cairo-coder',
 		title: 'Cairo Coder',
 		href: 'https://www.cairo-coder.com/',
-		description: 'Architecture note placeholder',
+		description: 'An API for Cairo code generation, pluggable into any agentic tool over MCP',
 		art: workLanguage,
 		external: true,
 	},
@@ -56,93 +52,74 @@ const writing: LivingIndexItem[] = writingPosts.slice(0, 4).map((post, index) =>
 	description: post.data.description,
 	art: writingArt[index % writingArt.length],
 }));
-
 ---
 
-<!doctype html>
-<html lang="en" class="site home-page">
-	<head>
-		<BaseHead title="Mathieu Saugé" description={SITE_DESCRIPTION} />
-	</head>
-	<body style={`--paper-texture: url(${paperTexture.src})`}>
-		<!--
-		THESIS: A personal site whose Work and Writing remain immediately legible; artwork creates narrative events without becoming navigation or an app metaphor.
-		OWN-WORLD: Cool uncoated paper, black ink, cobalt rules, vivid orange image events, sculptural serif display type, and compact humanist text.
-		STORY: Meet Mathieu, distinguish what he has built from what he has written, encounter the images that connect them, then continue into a project, essay, or conversation.
-		FIRST VIEWPORT: A thin header leads into identity and two separate indexes; one panoramic artwork owns the next horizontal band and responds to the active entry.
-		FORM: Living Index with Horizontal Editorial Sequence and responsive Art Stage; grounded direction 6, seed key 526476f5.
-		FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
-		-->
-		<div class="site-shell">
-			<SiteHeader />
-			<main>
-				<LivingIndex work={work} writing={writing} />
+<Page title="Mathieu Saugé" description={SITE_DESCRIPTION}>
+	<LivingIndex work={work} writing={writing} />
 
-				<section class="work-section" id="work" aria-labelledby="work-title">
-					<header class="section-heading">
-						<h2 id="work-title">Work</h2>
-						<p><strong>Section copy placeholder.</strong> Field Reports will replace the temporary notes below.</p>
-					</header>
-					<div class="work-ledger">
-						{work.map((item, index) => (
-							<article class:list={['work-entry', index === 0 && 'work-entry--lead']}>
-								<Picture
-									src={item.art}
-									formats={['avif', 'webp']}
-									widths={[480, 720, 960, 1200]}
-									sizes={index === 0 ? '(max-width: 760px) 100vw, 46vw' : '(max-width: 760px) 100vw, 24vw'}
-									alt=""
-									loading="lazy"
-								/>
-								<div class="work-entry__copy">
-									<h3>{item.title}</h3>
-									<p><strong>Copy placeholder.</strong> Add the situation, your role, one consequential architectural or product decision, and the outcome.</p>
-									<a href={item.href} target="_blank" rel="noreferrer">
-										Visit project
-										<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
-									</a>
-								</div>
-							</article>
-						))}
+	<section class="work-section" id="work" aria-labelledby="work-title">
+		<header class="section-heading">
+			<h2 id="work-title">Work</h2>
+			<p><strong>Section copy placeholder.</strong> Field Reports will replace the temporary notes below.</p>
+		</header>
+		<div class="work-ledger">
+			{work.map((item, index) => (
+				<article class:list={['work-entry', index === 0 && 'work-entry--lead']}>
+					<Picture
+						src={item.art}
+						formats={['avif', 'webp']}
+						widths={[480, 720, 960, 1200]}
+						sizes={index === 0 ? '(max-width: 760px) 100vw, 46vw' : '(max-width: 760px) 100vw, 24vw'}
+						alt=""
+						loading="lazy"
+					/>
+					<div class="work-entry__copy">
+						<h3>{item.title}</h3>
+						<p><strong>Copy placeholder.</strong> Add the situation, your role, one consequential architectural or product decision, and the outcome.</p>
+						<a href={item.href} target="_blank" rel="noreferrer">
+							Visit project
+							<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
+						</a>
 					</div>
-				</section>
-
-				<section class="writing-section" id="writing" aria-labelledby="writing-title">
-					<header class="section-heading">
-						<h2 id="writing-title">Writing</h2>
-						<a href="/writing">Browse all writing</a>
-					</header>
-					<div class="writing-ledger">
-						{writingPosts.slice(0, 4).map((post) => (
-							<article>
-								<time datetime={post.data.pubDate.toISOString()}>
-									{post.data.pubDate.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: '2-digit' })}
-								</time>
-								<div>
-									<h3><a href={`/writing/${post.id}/`}>{post.data.title}</a></h3>
-									<p>{post.data.description}</p>
-								</div>
-								<a class="writing-ledger__arrow" href={`/writing/${post.id}/`} aria-label={`Read ${post.data.title}`}>
-									<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
-								</a>
-							</article>
-						))}
-					</div>
-				</section>
-
-				<section class="about-close" id="about" aria-labelledby="about-title">
-					<h2 id="about-title">Closing statement placeholder</h2>
-					<div>
-						<p><strong>Closing copy placeholder.</strong> Add a short invitation in your own voice for people who want to exchange ideas or discuss what they are building.</p>
-						<nav aria-label="Contact placeholders">
-							<span>X link placeholder</span>
-							<span>Telegram link placeholder</span>
-						</nav>
-					</div>
-				</section>
-			</main>
-
-			<SiteFooter />
+				</article>
+			))}
 		</div>
-	</body>
-</html>
+	</section>
+
+	<section class="writing-section" id="writing" aria-labelledby="writing-title">
+		<header class="section-heading">
+			<h2 id="writing-title">Writing</h2>
+			<a href="/writing">Browse all writing</a>
+		</header>
+		<div class="writing-ledger">
+			{writingPosts.slice(0, 4).map((post) => (
+				<article>
+					<time datetime={post.data.pubDate.toISOString()}>
+						{post.data.pubDate.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: '2-digit' })}
+					</time>
+					<div>
+						<h3><a href={`/writing/${post.id}/`}>{post.data.title}</a></h3>
+						<p>{post.data.description}</p>
+					</div>
+					<a class="writing-ledger__arrow" href={`/writing/${post.id}/`} aria-label={`Read ${post.data.title}`}>
+						<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
+					</a>
+				</article>
+			))}
+		</div>
+	</section>
+
+	<section class="about-close" id="about" aria-labelledby="about-title">
+		<h2 id="about-title">Closing statement placeholder</h2>
+		<div>
+			<p><strong>Closing copy placeholder.</strong> Add a short invitation in your own voice for people who want to exchange ideas or discuss what they are building.</p>
+			{/* Give X and Telegram real hrefs once the handles exist; deleting them
+			    instead drops the invitation to start a conversation. */}
+			<nav aria-label="Elsewhere">
+				<a href="https://github.com/enitrat" rel="me noreferrer" target="_blank">GitHub</a>
+				<span>X link placeholder</span>
+				<span>Telegram link placeholder</span>
+			</nav>
+		</div>
+	</section>
+</Page>
