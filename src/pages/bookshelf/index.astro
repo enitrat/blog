@@ -1,0 +1,164 @@
+---
+import { books } from '../../booksData';
+import Page from '../../layouts/Page.astro';
+
+// Rendered at build time and grouped by status, so the archive is complete
+// without JavaScript. Twelve entries need reading order, not a filter panel.
+const groups = [
+	{ key: 'reading', label: 'Reading now' },
+	{ key: 'finished', label: 'Finished' },
+	{ key: 'want-to-read', label: 'Want to read' },
+] as const;
+
+const dateOf = (book: (typeof books)[number]) =>
+	book.dateFinished ?? book.dateStarted ?? null;
+
+const shelves = groups
+	.map((group) => ({
+		...group,
+		books: books
+			.filter((book) => book.status === group.key)
+			.sort((a, b) => (dateOf(b)?.valueOf() ?? 0) - (dateOf(a)?.valueOf() ?? 0)),
+	}))
+	.filter((shelf) => shelf.books.length > 0);
+
+const formatYear = (date: Date | null) => (date ? String(date.getFullYear()) : '—');
+---
+
+<Page
+	title="Bookshelf — Mathieu Saugé"
+	description="A reading archive: what Mathieu Saugé is reading, has read, and means to read."
+>
+	<header class="page-head">
+		<h1>Bookshelf</h1>
+		<p>
+			<strong class="label">Section copy placeholder.</strong> A reading archive rather than a
+			recommendation list. Books worth more than a line get their own piece in Writing.
+		</p>
+	</header>
+
+	{shelves.map((shelf) => (
+		<section class="shelf" aria-labelledby={`shelf-${shelf.key}`}>
+			<div class="shelf__heading">
+				<h2 id={`shelf-${shelf.key}`}>{shelf.label}</h2>
+				<span>{shelf.books.length} {shelf.books.length === 1 ? 'book' : 'books'}</span>
+			</div>
+			<ul class="shelf__list">
+				{shelf.books.map((book) => (
+					<li>
+						<span class="shelf__year">{formatYear(dateOf(book))}</span>
+						<div class="shelf__title">
+							<h3>{book.title}</h3>
+							<p>{book.author}</p>
+						</div>
+						<span class="shelf__rating">
+							{book.rating ? book.rating.toFixed(1) : ''}
+							<span class="sr-only">{book.rating ? ` out of 5` : 'Not rated'}</span>
+						</span>
+					</li>
+				))}
+			</ul>
+		</section>
+	))}
+</Page>
+
+<style>
+	.shelf {
+		padding-top: clamp(2rem, 3.5vw, 3rem);
+	}
+
+	.shelf:last-of-type {
+		padding-bottom: clamp(4rem, 8vw, 7rem);
+	}
+
+	.shelf__heading {
+		display: flex;
+		align-items: baseline;
+		gap: 1rem;
+		margin-bottom: 1.1rem;
+	}
+
+	.shelf__heading h2 {
+		margin: 0;
+		font-family: var(--home-display);
+		font-size: clamp(1.6rem, 2.6vw, 2.3rem);
+		font-weight: 560;
+		letter-spacing: -0.03em;
+	}
+
+	.shelf__heading span {
+		color: var(--home-cobalt);
+		font-size: 0.65rem;
+		font-weight: 680;
+		letter-spacing: 0.07em;
+	}
+
+	.shelf__list {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		border-top: 1px solid var(--home-ink);
+	}
+
+	.shelf__list li {
+		display: grid;
+		grid-template-columns: 5rem minmax(0, 1fr) 3rem;
+		align-items: baseline;
+		gap: clamp(1rem, 3vw, 3rem);
+		padding: clamp(1.1rem, 2.2vw, 1.7rem) 0;
+		border-bottom: 1px solid var(--home-rule);
+	}
+
+	.shelf__year {
+		color: var(--home-cobalt);
+		font-size: 0.7rem;
+		font-weight: 620;
+		letter-spacing: 0.04em;
+	}
+
+	.shelf__title h3 {
+		margin: 0;
+		font-family: var(--home-display);
+		font-size: clamp(1.15rem, 1.9vw, 1.5rem);
+		font-weight: 550;
+		line-height: 1.16;
+		letter-spacing: -0.02em;
+	}
+
+	.shelf__title p {
+		margin: 0.3rem 0 0;
+		color: var(--home-muted);
+		font-size: 0.78rem;
+	}
+
+	.shelf__rating {
+		color: var(--home-ink);
+		font-size: 0.82rem;
+		font-weight: 620;
+		font-variant-numeric: tabular-nums;
+		text-align: right;
+	}
+
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	@media (max-width: 760px) {
+		.shelf__list li {
+			grid-template-columns: minmax(0, 1fr) 3rem;
+			gap: 0.5rem 1rem;
+		}
+
+		.shelf__year {
+			grid-column: 1 / -1;
+		}
+	}
+</style>

@@ -1,0 +1,88 @@
+---
+import { getCollection } from 'astro:content';
+import Page from '../../layouts/Page.astro';
+
+// One entry per piece. Translations are reachable from the article's own
+// margin apparatus, so they never appear as separate rows here.
+const posts = (await getCollection('blog'))
+	.filter((post) => post.data.lang === 'en')
+	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const years = [...new Set(posts.map((post) => post.data.pubDate.getFullYear()))].sort(
+	(a, b) => b - a,
+);
+
+const byYear = years.map((year) => ({
+	year,
+	posts: posts.filter((post) => post.data.pubDate.getFullYear() === year),
+}));
+
+const formatDate = (date: Date) =>
+	date.toLocaleDateString('en-GB', { month: 'short', day: '2-digit' });
+---
+
+<Page
+	title="Writing — Mathieu Saugé"
+	description="Essays, technical guides, and reflections by Mathieu Saugé."
+>
+	<header class="page-head">
+		<h1>Writing</h1>
+		<p>
+			<strong class="label">Section copy placeholder.</strong> One collection: essays, technical
+			guides, and project reflections in the order they were written.
+		</p>
+	</header>
+
+	{byYear.map((group) => (
+		<section class="year" aria-labelledby={`year-${group.year}`}>
+			<h2 id={`year-${group.year}`}>{group.year}</h2>
+			<div class="writing-ledger">
+				{group.posts.map((post) => (
+					<article>
+						<time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
+						<div>
+							<h3><a href={`/writing/${post.id}/`}>{post.data.title}</a></h3>
+							<p>{post.data.description}</p>
+						</div>
+						<a
+							class="writing-ledger__arrow"
+							href={`/writing/${post.id}/`}
+							aria-label={`Read ${post.data.title}`}
+						>
+							<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
+						</a>
+					</article>
+				))}
+			</div>
+		</section>
+	))}
+
+	{posts.length === 0 && (
+		<p class="empty">Nothing published yet.</p>
+	)}
+</Page>
+
+<style>
+	.year {
+		padding-top: clamp(2rem, 3.5vw, 3rem);
+	}
+
+	.year:last-of-type {
+		padding-bottom: clamp(4rem, 8vw, 7rem);
+	}
+
+	.year h2 {
+		margin: 0 0 1.1rem;
+		color: var(--home-cobalt);
+		font-family: var(--home-sans);
+		font-size: 0.65rem;
+		font-weight: 680;
+		letter-spacing: 0.07em;
+		text-transform: uppercase;
+	}
+
+	.empty {
+		padding-block: 4rem 7rem;
+		color: var(--home-muted);
+	}
+</style>

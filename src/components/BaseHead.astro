@@ -1,7 +1,9 @@
 ---
-// Import the global.css file here so that it is included on
-// all pages through the use of the <BaseHead /> component.
-import '../styles/global.css';
+// No stylesheet is imported here. The live site's world comes from
+// styles/site.css via its layouts; the legacy Tailwind world in
+// styles/global.css is imported only by the POC pages that still need it, so
+// its `font-size: 85%`, Roboto Mono body, and radius tokens cannot leak back
+// onto the real surfaces.
 import type { ImageMetadata } from 'astro';
 import { SITE_TITLE } from '../consts';
 
@@ -45,11 +47,11 @@ const { title, description, image } = Astro.props;
 <meta property="og:url" content={Astro.url} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
-<meta property="og:image" content={new URL(image?.src, Astro.url)} />
+{image && <meta property="og:image" content={new URL(image.src, Astro.url)} />}
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image" />
 <meta property="twitter:url" content={Astro.url} />
 <meta property="twitter:title" content={title} />
 <meta property="twitter:description" content={description} />
-<meta property="twitter:image" content={new URL(image?.src, Astro.url)} />
+{image && <meta property="twitter:image" content={new URL(image.src, Astro.url)} />}

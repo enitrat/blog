@@ -1,0 +1,38 @@
+---
+import '../styles/article.css';
+// Mathieu's own prose, rendered unchanged. This page owns layout and
+// typography only; the words and every claim in them stay as written.
+import { Content as AboutContent } from '../content/about.md';
+import Page from '../layouts/Page.astro';
+---
+
+<Page title="About — Mathieu Saugé" description="A short orientation: who Mathieu Saugé is and what he works on.">
+	<header class="page-head">
+		<h1>About</h1>
+	</header>
+
+	<div class="about">
+		<div class="article-body">
+			<AboutContent />
+		</div>
+	</div>
+</Page>
+
+<style>
+	.about {
+		padding-block: clamp(2.5rem, 5vw, 4rem) clamp(4rem, 8vw, 7rem);
+	}
+
+	/* about.md opens with its own "About Me" heading; the page head already
+	   names the surface, so the duplicate is hidden from sight and from
+	   assistive technology rather than deleted from Mathieu's file. */
+	.about :global(.article-body > h1) {
+		display: none;
+	}
+
+	.about :global(.article-body) {
+		padding: 0;
+		border-left: 0;
+		font-size: clamp(1.05rem, 1.5vw, 1.2rem);
+	}
+</style>

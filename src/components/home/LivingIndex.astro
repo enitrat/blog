@@ -1,0 +1,195 @@
+---
+import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+export interface LivingIndexItem {
+	id: string;
+	title: string;
+	href: string;
+	description: string;
+	art: ImageMetadata;
+	external?: boolean;
+}
+
+interface Props {
+	work: LivingIndexItem[];
+	writing: LivingIndexItem[];
+}
+
+const { work, writing } = Astro.props;
+const allItems = [...work, ...writing];
+const initialId = work[0]?.id ?? writing[0]?.id;
+---
+
+<section class="living-index" data-living-index data-active-id={initialId} aria-label="Work and writing index">
+	<div class="living-index__orientation">
+		<h1>Mathieu<br />Saugé</h1>
+		<p class="living-index__role">
+			Software Engineer
+			<span>Professional descriptor placeholder</span>
+		</p>
+		<div class="copy-placeholder" role="note" aria-label="Homepage introduction placeholder">
+			<strong>Introduction placeholder</strong>
+			<p>Write two or three sentences here, in your own voice, about what you build and why this place exists.</p>
+		</div>
+	</div>
+
+	<div class="living-index__groups">
+		<section class="index-group" aria-labelledby="work-index-title">
+			<div class="index-group__heading">
+				<h2 id="work-index-title">Work</h2>
+				<a href="#work">View selected work</a>
+			</div>
+			<ul>
+				{work.map((item) => (
+					<li>
+						<a
+							href={item.href}
+							data-stage-trigger={item.id}
+							data-active={item.id === initialId ? 'true' : 'false'}
+							target={item.external ? '_blank' : undefined}
+							rel={item.external ? 'noreferrer' : undefined}
+						>
+							<span>{item.title}</span>
+							<small>{item.description}</small>
+							<svg viewBox="0 0 24 24" aria-hidden="true">
+								<path d="M5 12h13M13 6l6 6-6 6" />
+							</svg>
+						</a>
+					</li>
+				))}
+			</ul>
+		</section>
+
+		<section class="index-group" aria-labelledby="writing-index-title">
+			<div class="index-group__heading">
+				<h2 id="writing-index-title">Writing</h2>
+				<a href="/blog">Browse all writing</a>
+			</div>
+			<ul>
+				{writing.map((item) => (
+					<li>
+						<a href={item.href} data-stage-trigger={item.id} data-active="false">
+							<span>{item.title}</span>
+							<small>{item.description}</small>
+							<svg viewBox="0 0 24 24" aria-hidden="true">
+								<path d="M5 12h13M13 6l6 6-6 6" />
+							</svg>
+						</a>
+					</li>
+				))}
+			</ul>
+		</section>
+	</div>
+
+	<div class="art-stage" aria-live="polite">
+		{allItems.map((item) => (
+			<figure data-stage-frame={item.id} data-active={item.id === initialId ? 'true' : 'false'} aria-hidden={item.id === initialId ? 'false' : 'true'}>
+				<Picture
+					src={item.art}
+					formats={['avif', 'webp']}
+					widths={[640, 960, 1440, 1920, 2400]}
+					sizes="(max-width: 760px) 100vw, 94vw"
+					alt=""
+					loading={item.id === initialId ? 'eager' : 'lazy'}
+					fetchpriority={item.id === initialId ? 'high' : 'auto'}
+				/>
+				<figcaption>
+					<span>Placeholder artwork</span>
+					<strong>{item.title}</strong>
+					<small>Replace with Mathieu's selected artwork and crop.</small>
+				</figcaption>
+			</figure>
+		))}
+	</div>
+</section>
+
+<script>
+	function setupLivingIndex() {
+		const root = document.querySelector<HTMLElement>('[data-living-index]');
+		if (!root || root.dataset.ready === 'true') return;
+		root.dataset.ready = 'true';
+
+		const triggers = Array.from(root.querySelectorAll<HTMLElement>('[data-stage-trigger]'));
+		const frames = Array.from(root.querySelectorAll<HTMLElement>('[data-stage-frame]'));
+
+		const activate = (id: string) => {
+			if (!id || root.dataset.activeId === id) return;
+			root.dataset.activeId = id;
+			for (const trigger of triggers) {
+				trigger.dataset.active = String(trigger.dataset.stageTrigger === id);
+			}
+			for (const frame of frames) {
+				const active = frame.dataset.stageFrame === id;
+				frame.dataset.active = String(active);
+				frame.setAttribute('aria-hidden', String(!active));
+			}
+		};
+
+		for (const trigger of triggers) {
+			const id = trigger.dataset.stageTrigger;
+			if (!id) continue;
+			trigger.addEventListener('pointerenter', () => activate(id));
+			trigger.addEventListener('focus', () => activate(id));
+		}
+
+		const narrow = window.matchMedia('(max-width: 760px)');
+		if (narrow.matches && 'IntersectionObserver' in window) {
+			const stage = root.querySelector<HTMLElement>('.art-stage');
+			const inView = new Set<HTMLElement>();
+
+			// Rank candidates by how close their centre sits to the reading line just
+			// below the sticky stage, not by intersectionRatio. Ratio ranking let short
+			// rows outscore taller ones permanently, so several entries never became
+			// active during an ordinary scroll.
+			const select = () => {
+				const line = (stage?.getBoundingClientRect().bottom ?? 0) + 24;
+				let best: HTMLElement | undefined;
+				let bestDistance = Number.POSITIVE_INFINITY;
+				for (const trigger of triggers) {
+					if (!inView.has(trigger)) continue;
+					const box = trigger.getBoundingClientRect();
+					const distance = Math.abs(box.top + box.height / 2 - line);
+					if (distance < bestDistance) {
+						bestDistance = distance;
+						best = trigger;
+					}
+				}
+				const id = best?.dataset.stageTrigger;
+				if (id) activate(id);
+			};
+
+			const observer = new IntersectionObserver(
+				(entries) => {
+					for (const entry of entries) {
+						const target = entry.target as HTMLElement;
+						if (entry.isIntersecting) inView.add(target);
+						else inView.delete(target);
+					}
+					select();
+				},
+				{ rootMargin: '-42% 0px -14% 0px', threshold: [0, 0.35, 0.7, 1] },
+			);
+			for (const trigger of triggers) observer.observe(trigger);
+
+			// Threshold crossings alone leave the choice stale between rows; a throttled
+			// scroll pass keeps the reading line authoritative.
+			let queued = false;
+			window.addEventListener(
+				'scroll',
+				() => {
+					if (queued) return;
+					queued = true;
+					requestAnimationFrame(() => {
+						queued = false;
+						select();
+					});
+				},
+				{ passive: true },
+			);
+		}
+	}
+
+	setupLivingIndex();
+	document.addEventListener('astro:page-load', setupLivingIndex);
+</script>

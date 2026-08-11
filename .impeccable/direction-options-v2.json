@@ -1,0 +1,32 @@
+{
+  "title": "Choose the visual world",
+  "question": "Does the Living Index fit the personal-site use case, or should we re-roll with another steer?",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Living Index",
+      "kicker": "PERSONAL SITE FIRST",
+      "lineage": "artist monographs, independent magazines, and authored personal homepages",
+      "thesis": "An immediately legible personal index whose editorial rhythm is transformed by artwork at consequential moments.",
+      "palette": ["#F7F5F0", "#15171A", "#1747BE", "#F06424", "#C7CFD7"],
+      "materials": ["uncoated white stock", "sharp black ink", "cinematic crops", "full-color art plates"],
+      "viewport": "Mathieu's name, concise orientation, and familiar navigation are immediately visible; one asymmetrical artwork and a dense but calm index introduce Work and Writing without disguising the page as another object.",
+      "risk": "Without decisive image scale, typographic character, and transitions, it could collapse into a merely tasteful portfolio or blog.",
+      "case": "It identifies the subject and purpose immediately while reserving the expressive ceiling for composition, imagery, pacing, and motion.",
+      "sketch": ".impeccable/sketches/v2-assigned.webp"
+    }
+  ],
+  "reroll": true,
+  "canon": true,
+  "canonCard": {
+    "label": "The category standard",
+    "lineage": "high-craft editorial personal site",
+    "thesis": "A restrained introduction followed by selected work, recent writing, reading, and contact in a familiar responsive grid.",
+    "palette": ["#FAFAF7", "#171717", "#73736D", "#D96332"],
+    "materials": ["uncoated paper", "editorial imagery", "fine rules", "precise typesetting"],
+    "viewport": "Mathieu's name and short introduction lead beside one artwork, followed immediately by selected work and recent writing.",
+    "risk": "Highly legible and credible, but the personal world and interactive ambition may not become memorable.",
+    "sketch": ".impeccable/sketches/v2-canon.webp"
+  },
+  "steer": true
+}

@@ -1,0 +1,9 @@
+Use case: stylized-concept
+Asset type: seamless website surface texture, generated fresh as a 2048x2048 square
+Primary request: Create a perfectly tileable, extremely subtle cool-white uncoated paper fiber texture for a high-end editorial website background.
+Scene/backdrop: The entire canvas is the paper surface viewed straight-on with completely even illumination.
+Style/medium: Realistic scanned archival uncoated stock, quiet tactile fibers and faint pulp variation, materially credible but almost imperceptible at normal viewing size.
+Composition/framing: Exact square, designed natively at 2048x2048; seamless on all four edges with no visible repeat seam, no focal point, no directional lighting, uniform density.
+Color palette: Cool white centered around #F4F4F1 with tiny neutral-gray and faint cool-blue fiber variation only.
+Materials/textures: Fine random cellulose fibers, microscopic flecks, extremely low contrast.
+Constraints: No text, logos, watermark, stains, foxing, tears, creases, deckled edges, shadows, gradients, vignette, warm beige, cream, yellow, brown, pink, pronounced grain, large fibers, speckles that read as dirt, or repeating geometric pattern.

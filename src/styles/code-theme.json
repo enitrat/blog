@@ -1,0 +1,142 @@
+{
+	"name": "living-index",
+	"type": "light",
+	"comment": "Syntax colours drawn from the site's own five-colour palette. Cobalt carries structure (keywords, operators, function and type names) exactly as it carries structure on the page; muted ink carries commentary and punctuation; plain ink carries identifiers; strings take a neutral dark. The ground is transparent so the page's paper and its texture show through the block. Orange is NOT spent on ordinary literals - a page of Python put it on 42 None/False/number tokens, which is not rarity - so it is reserved for escapes and invalid syntax, which are genuinely exceptional.",
+	"colors": {
+		"editor.background": "#00000000",
+		"editor.foreground": "#17191d"
+	},
+	"tokenColors": [
+		{
+			"scope": [
+				"comment",
+				"punctuation.definition.comment",
+				"string.quoted.docstring"
+			],
+			"settings": {
+				"foreground": "#62666d",
+				"fontStyle": "italic"
+			}
+		},
+		{
+			"scope": [
+				"keyword",
+				"keyword.control",
+				"keyword.operator",
+				"storage",
+				"storage.type",
+				"storage.modifier",
+				"variable.language"
+			],
+			"settings": {
+				"foreground": "#1747be"
+			}
+		},
+		{
+			"scope": [
+				"entity.name.function",
+				"support.function",
+				"meta.function-call.generic",
+				"entity.name.tag"
+			],
+			"settings": {
+				"foreground": "#0f3a8f"
+			}
+		},
+		{
+			"scope": [
+				"entity.name.type",
+				"entity.name.class",
+				"support.type",
+				"support.class"
+			],
+			"settings": {
+				"foreground": "#0f3a8f"
+			}
+		},
+		{
+			"scope": [
+				"string",
+				"string.quoted",
+				"string.template",
+				"meta.string"
+			],
+			"settings": {
+				"foreground": "#3f4a52"
+			}
+		},
+		{
+			"scope": [
+				"constant.numeric",
+				"constant.language"
+			],
+			"settings": {
+				"foreground": "#0f3a8f"
+			}
+		},
+		{
+			"scope": [
+				"variable",
+				"variable.other",
+				"variable.parameter",
+				"meta.definition.variable"
+			],
+			"settings": {
+				"foreground": "#17191d"
+			}
+		},
+		{
+			"scope": [
+				"punctuation",
+				"meta.brace",
+				"punctuation.separator",
+				"punctuation.terminator"
+			],
+			"settings": {
+				"foreground": "#62666d"
+			}
+		},
+		{
+			"scope": [
+				"entity.other.attribute-name",
+				"support.type.property-name"
+			],
+			"settings": {
+				"foreground": "#1747be"
+			}
+		},
+		{
+			"scope": [
+				"markup.inserted"
+			],
+			"settings": {
+				"foreground": "#0f3a8f"
+			}
+		},
+		{
+			"scope": [
+				"markup.deleted"
+			],
+			"settings": {
+				"foreground": "#f06424"
+			}
+		},
+		{
+			"scope": [
+				"invalid"
+			],
+			"settings": {
+				"foreground": "#f06424"
+			}
+		},
+		{
+			"scope": [
+				"constant.character.escape",
+				"constant.regexp"
+			],
+			"settings": {
+				"foreground": "#f06424"
+			}
+		}
+	]
+}

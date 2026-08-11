@@ -1,0 +1,143 @@
+---
+// POC — the REAL homepage (same Header/PostsTable/BooksGrid/Footer/about content),
+// with the fog treatment applied as ambient backdrop + a masked hero strip.
+// Visit /poc-home and compare against / side by side.
+// This experiment still uses the legacy Tailwind world, so it imports it
+// directly now that BaseHead no longer does.
+import '../styles/global.css';
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import PostsTable from '../components/PostsTable.astro';
+import BooksGrid from '../components/BooksGrid.astro';
+import FogBackdrop from '../components/FogBackdrop.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import { getCollection } from 'astro:content';
+import { Content as AboutContent } from '../content/about.md';
+import { books } from '../booksData';
+
+const allPosts = (await getCollection('blog')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+const recentPosts = allPosts.slice(0, 3);
+const currentlyReading = books.filter((book) => book.status === 'reading');
+---
+
+<!doctype html>
+<html lang="en" class="fog-poc">
+	<head>
+		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<meta name="robots" content="noindex" />
+	</head>
+	<body>
+		<FogBackdrop intensity={0.55} />
+		<Header />
+
+		<!-- Hero strip: the painting as a horizon band, not a centrepiece -->
+		<div class="mx-auto w-full lg:w-5/8 px-6 pt-8">
+			<figure class="horizon">
+				<img src="/wanderer.png" alt="" aria-hidden="true" />
+				<figcaption>
+					<span class="serif">Above the sea of fog</span>
+					<span class="tag">msaug.dev</span>
+				</figcaption>
+			</figure>
+		</div>
+
+		<main class="mx-auto w-full lg:w-5/8 px-6 py-10 space-y-12">
+			<div class="rounded-lg border bg-card p-6 flex gap-6 items-start">
+				<div class="flex-shrink-0">
+					<img src="/pfp.jpg" alt="Profile picture" class="w-28 h-28 rounded-full object-cover" />
+				</div>
+				<div class="flex-shrink-0 w-px h-28 bg-border"></div>
+				<div class="prose flex-1">
+					<AboutContent />
+				</div>
+			</div>
+
+			<section class="space-y-6">
+				<h2 class="text-xl font-semibold">Recent Posts</h2>
+				<PostsTable posts={recentPosts} />
+			</section>
+
+			{
+				currentlyReading.length > 0 && (
+					<section class="space-y-6">
+						<div class="flex items-center justify-between">
+							<h2 class="text-xl font-semibold">Currently Reading</h2>
+							<a href="/reads" class="text-sm hover:underline">
+								View all →
+							</a>
+						</div>
+						<BooksGrid books={currentlyReading} showRating={false} showDate={false} />
+					</section>
+				)
+			}
+		</main>
+		<Footer />
+
+		<style is:global>
+			/* let the shader show through the page */
+			html.fog-poc,
+			html.fog-poc body {
+				background: transparent;
+			}
+			/* cards lift off the fog instead of sitting on it as flat white slabs */
+			html.fog-poc .bg-card {
+				background: color-mix(in srgb, #ffffff 92%, transparent);
+			}
+			/* header keeps its own bg-card/90 + backdrop-blur — overriding it let text ghost through */
+		</style>
+
+		<style>
+			/* horizon strip: a wide crop of the painting, dissolving into the page */
+			.horizon {
+				position: relative;
+				margin: 0;
+				height: clamp(140px, 22vh, 220px);
+				overflow: hidden;
+				border-radius: var(--radius, 0.625rem);
+			}
+			.horizon img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				object-position: 50% 42%;
+				display: block;
+				opacity: 0.85;
+				--strip-mask: linear-gradient(
+						to bottom,
+						transparent 0%,
+						#000 22%,
+						#000 58%,
+						transparent 100%
+					),
+					linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
+				-webkit-mask-image: var(--strip-mask);
+				mask-image: var(--strip-mask);
+				-webkit-mask-composite: source-in;
+				mask-composite: intersect;
+			}
+			.horizon figcaption {
+				position: absolute;
+				left: 1.25rem;
+				bottom: 0.75rem;
+				display: flex;
+				align-items: baseline;
+				gap: 0.9rem;
+			}
+			.serif {
+				font-family: Georgia, 'Times New Roman', serif;
+				font-style: italic;
+				font-size: clamp(1.1rem, 2.4vw, 1.6rem);
+				color: #14161b;
+			}
+			.tag {
+				font-size: 0.62rem;
+				letter-spacing: 0.3em;
+				text-transform: uppercase;
+				color: #8c5a2b;
+			}
+		</style>
+	</body>
+</html>

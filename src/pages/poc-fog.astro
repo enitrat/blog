@@ -1,0 +1,265 @@
+---
+// POC — scroll-driven fog shader over "Wanderer above the Sea of Fog".
+// Standalone page: no Header/Footer/global.css, libs from esm.sh (nothing installed).
+// Visit /poc-fog. Delete this file to remove the experiment.
+const PALETTE = {
+	coat: '#14161B',
+	slate: '#55606E',
+	fog: '#9BA9BC',
+	dawn: '#E8DCC8',
+	ochre: '#8C5A2B',
+};
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title>Above the Sea of Fog — POC</title>
+		<meta name="robots" content="noindex" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&family=JetBrains+Mono:wght@300;400&display=swap"
+			rel="stylesheet"
+		/>
+	</head>
+	<body>
+		<canvas id="shader"></canvas>
+		<div class="stage">
+			<div class="plate">
+				<img id="plate" src="/wanderer.png" alt="Wanderer above the Sea of Fog" />
+			</div>
+		</div>
+
+		<div class="content">
+			<section>
+				<div class="hero">
+					<h1>Standing above<br /><em>the sea of fog</em></h1>
+					<p class="meta">msaug.dev · field notes from the summit</p>
+				</div>
+			</section>
+			<section><div class="rule"></div></section>
+			<section>
+				<p class="note">
+					The fog is the <b>unknown surface area</b> of a system. You climb, you get a vantage, and the
+					rocks under your boots are the only part you actually verified.
+				</p>
+			</section>
+			<section>
+				<p class="note">
+					Everything below is <b>inference</b>. Write it down anyway — the notes are the rope.
+				</p>
+			</section>
+		</div>
+
+		<script is:inline define:vars={{ PALETTE }} type="module">
+			import * as THREE from 'https://esm.sh/three@0.169.0';
+			import Lenis from 'https://esm.sh/lenis@1.1.14';
+			import gsap from 'https://esm.sh/gsap@3.12.5';
+			import ScrollTrigger from 'https://esm.sh/gsap@3.12.5/ScrollTrigger';
+			gsap.registerPlugin(ScrollTrigger);
+
+			const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+			/* ---- 1. fog shader: slow horizontal drift + slow vertical breath ---- */
+			const canvas = document.getElementById('shader');
+			const renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
+			renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+			const scene = new THREE.Scene();
+			const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+			const uniforms = {
+				uTime: { value: 0 },
+				uScroll: { value: 0 },
+				uRes: { value: new THREE.Vector2() },
+				uCoat: { value: new THREE.Color(PALETTE.coat) },
+				uSlate: { value: new THREE.Color(PALETTE.slate) },
+				uFog: { value: new THREE.Color(PALETTE.fog) },
+				uDawn: { value: new THREE.Color(PALETTE.dawn) },
+				uOchre: { value: new THREE.Color(PALETTE.ochre) },
+			};
+
+			const frag = `
+			precision highp float;
+			uniform float uTime, uScroll; uniform vec2 uRes;
+			uniform vec3 uCoat, uSlate, uFog, uDawn, uOchre;
+
+			float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+			float noise(vec2 p){
+			  vec2 i = floor(p), f = fract(p);
+			  vec2 u = f*f*(3.0-2.0*f);
+			  return mix(mix(hash(i), hash(i+vec2(1,0)), u.x),
+			             mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), u.x), u.y);
+			}
+			float fbm(vec2 p){
+			  float v = 0.0, a = 0.5;
+			  for(int i = 0; i < 5; i++){ v += a*noise(p); p *= 2.03; a *= 0.5; }
+			  return v;
+			}
+
+			void main(){
+			  vec2 uv = gl_FragCoord.xy / uRes;
+			  float t = uTime * 0.018;
+
+			  // vertical air: dark rock below, dawn light above
+			  vec3 sky = mix(uCoat, uSlate, smoothstep(0.0, 0.72, uv.y));
+			  sky = mix(sky, uDawn * 0.62, smoothstep(0.68, 1.0, uv.y + uScroll * 0.12));
+
+			  // banks of fog drifting right, breathing up
+			  vec2 q = vec2(uv.x * 2.4 - t, uv.y * 1.9 + t * 0.35 - uScroll * 0.25);
+			  float warp = fbm(q + fbm(q * 1.7) * 0.55);
+			  float band = smoothstep(0.22, 0.78, warp) * smoothstep(0.86, 0.24, uv.y);
+			  vec3 col = mix(sky, uFog, band * 0.78);
+
+			  // ochre heat where rock breaks the fog, bottom-centre
+			  float rock = smoothstep(0.34, 0.0, uv.y) * smoothstep(0.72, 0.18, abs(uv.x - 0.5));
+			  col = mix(col, uOchre * 0.5, rock * 0.42);
+
+			  // vignette + film grain so it never reads as a CSS gradient
+			  col *= 1.0 - 0.55 * pow(length(uv - vec2(0.5, 0.46)) * 1.32, 2.2);
+			  col += (hash(gl_FragCoord.xy + uTime) - 0.5) * 0.022;
+			  gl_FragColor = vec4(col, 1.0);
+			}`;
+
+			scene.add(
+				new THREE.Mesh(
+					new THREE.PlaneGeometry(2, 2),
+					new THREE.ShaderMaterial({
+						uniforms,
+						fragmentShader: frag,
+						vertexShader: 'void main(){ gl_Position = vec4(position, 1.0); }',
+					}),
+				),
+			);
+
+			function resize() {
+				renderer.setSize(innerWidth, innerHeight, false);
+				const r = renderer.getPixelRatio();
+				uniforms.uRes.value.set(innerWidth * r, innerHeight * r);
+			}
+			addEventListener('resize', resize);
+			resize();
+
+			/* ---- 2. lenis smooth scroll, driving gsap ---- */
+			const lenis = new Lenis({ lerp: 0.085 });
+			lenis.on('scroll', ScrollTrigger.update);
+			gsap.ticker.add((time) => {
+				lenis.raf(time * 1000);
+				if (!reduced) uniforms.uTime.value = time;
+			});
+			gsap.ticker.lagSmoothing(0);
+			renderer.setAnimationLoop(() => renderer.render(scene, cam));
+
+			/* ---- 3. the plate rises and dissolves into the fog as you climb ---- */
+			gsap.to('#plate', {
+				yPercent: -9,
+				scale: 1.07,
+				opacity: 0.18,
+				ease: 'none',
+				scrollTrigger: {
+					trigger: document.body,
+					start: 'top top',
+					end: 'bottom bottom',
+					scrub: 1,
+					onUpdate: (self) => {
+						uniforms.uScroll.value = self.progress;
+					},
+				},
+			});
+			gsap.from('h1', { opacity: 0, y: 18, duration: 2.2, ease: 'power2.out', delay: 0.25 });
+			gsap.utils.toArray('.note').forEach((n) =>
+				gsap.from(n, {
+					opacity: 0,
+					x: -14,
+					duration: 1.2,
+					ease: 'power2.out',
+					scrollTrigger: { trigger: n, start: 'top 78%' },
+				}),
+			);
+		</script>
+
+		<style define:vars={PALETTE}>
+			:global(html), :global(body) {
+				margin: 0;
+				padding: 0;
+				background: var(--coat);
+				color: var(--fog);
+				font-family: 'JetBrains Mono', monospace;
+			}
+			:global(body) { min-height: 320vh; }
+			#shader { position: fixed; inset: 0; z-index: 0; }
+			.stage {
+				position: fixed;
+				inset: 0;
+				display: grid;
+				place-items: center;
+				z-index: 1;
+				pointer-events: none;
+			}
+			.plate { width: min(56vh, 72vw); aspect-ratio: 3 / 4; will-change: transform, opacity; }
+			.plate img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				display: block;
+				--plate-mask: radial-gradient(
+					ellipse 62% 60% at 50% 44%,
+					#000 4%,
+					rgba(0, 0, 0, 0.62) 48%,
+					rgba(0, 0, 0, 0.18) 70%,
+					transparent 86%
+				);
+				-webkit-mask-image: var(--plate-mask);
+				mask-image: var(--plate-mask);
+				filter: saturate(0.92) contrast(1.04);
+			}
+			.content { position: relative; z-index: 2; pointer-events: none; }
+			section { min-height: 100vh; display: grid; place-items: center; padding: 8vh 6vw; }
+			h1 {
+				font-family: 'Cormorant Garamond', serif;
+				font-weight: 300;
+				font-size: clamp(2.2rem, 5vw, 4rem);
+				letter-spacing: 0.01em;
+				color: var(--dawn);
+				line-height: 1.05;
+				margin: 0;
+				text-wrap: balance;
+			}
+			h1 em { font-style: italic; color: var(--fog); }
+			.meta {
+				margin-top: 1.4rem;
+				font-size: 0.68rem;
+				line-height: 2;
+				letter-spacing: 0.28em;
+				color: color-mix(in srgb, var(--fog) 70%, transparent);
+				text-transform: uppercase;
+				color: var(--slate);
+			}
+			/* wide: painting sits left of the reading column, so type never lands on the figure */
+			@media (min-width: 960px) {
+				.plate { transform: translateX(-22%); }
+				section { justify-items: end; padding-right: 8vw; }
+				.hero { max-width: 26ch; }
+			}
+			@media (max-width: 959px) {
+				h1, .meta { text-align: center; }
+				.plate img { opacity: 0.55; }
+			}
+			.note {
+				max-width: 34ch;
+				font-size: 0.86rem;
+				line-height: 2;
+				color: var(--fog);
+				opacity: 0.72;
+				border-left: 1px solid color-mix(in srgb, var(--ochre) 60%, transparent);
+				padding-left: 1.6rem;
+			}
+			.note b { color: var(--dawn); font-weight: 400; }
+			.rule { width: 1px; height: 22vh; background: linear-gradient(var(--ochre), transparent); }
+			@media (prefers-reduced-motion: reduce) {
+				.plate img { opacity: 1 !important; }
+			}
+		</style>
+	</body>
+</html>

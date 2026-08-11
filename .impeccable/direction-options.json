@@ -1,0 +1,74 @@
+{
+  "title": "Choose the visual world",
+  "question": "Keep the systems atlas, take an alternate, or re-roll with a steer.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Surveyor's Systems Atlas",
+      "kicker": "PROPOSED WORLD",
+      "lineage": "field-survey charts, systems maps, and working atlases",
+      "thesis": "A builder makes difficult territory legible, then opens vivid windows into what was found there.",
+      "palette": ["#F3F0E8", "#181B20", "#1747B8", "#F06424", "#BBC6D2"],
+      "materials": ["mineral paper", "plotter ink", "tracing overlays", "full-color art plates"],
+      "viewport": "A bright mapped field fills the screen: Mathieu's name anchors one edge while precise routes connect a few large art plates and explicit portals into Work, Writing, Bookshelf, and About.",
+      "risk": "The cartographic grammar becomes cold or over-labelled if the artwork does not periodically take over at full scale.",
+      "case": "Strongest balance: technical leaders recognize the act of making complexity legible, while the atlas keeps every content area immediately navigable.",
+      "sketch": ".impeccable/sketches/assigned.webp"
+    },
+    {
+      "id": "challenger-daylight",
+      "label": "Daylight Section",
+      "lineage": "architectural sections and solar studies",
+      "thesis": "A personal world revealed as one continuous section, with strong ideas moving through it like sunlight.",
+      "palette": ["#F2EFEA", "#1C1F22", "#D6A43A", "#5B6B7C", "#D9DCDD"],
+      "materials": ["limewash", "section-cut charcoal", "sunbeam gold", "architectural graphite"],
+      "viewport": "A long cutaway studio crosses the page; Work, Writing, Bookshelf, and About occupy distinct rooms while a gold beam isolates the current narrative event.",
+      "risk": "The architecture metaphor may imply literal building design and make Mathieu's varied imagery feel like material pinned inside someone else's system.",
+      "case": "Fuses strongly on clarity and precision, but identifies Mathieu slightly less accurately than the atlas because the architectural metaphor is unusually literal.",
+      "sketch": ".impeccable/sketches/challenger-daylight.webp",
+      "hero": "https://impeccable.style/worlds/cards/architecture-inhabitable-space-daylight-section-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/architecture-inhabitable-space-daylight-section.webp"
+    },
+    {
+      "id": "challenger-multiplane",
+      "label": "Multiplane Storyworld",
+      "lineage": "hand-painted multiplane cel animation",
+      "thesis": "Work and ideas occupy painted depths, and moving through the site changes which layer comes into focus.",
+      "palette": ["#EEF0EA", "#263C43", "#6D7F82", "#EE7B2B", "#162126"],
+      "materials": ["painted cels", "matte gouache", "mist wash", "clear typographic plane"],
+      "viewport": "A daylight composition uses several restrained image planes; Mathieu's identity sits crisply above them while focus reveals the first path into his work.",
+      "risk": "The cinematic depth can become storybook-like, obscure dense information, or make every transition feel equally dramatic.",
+      "case": "Best emotional fusion with the artwork, but weaker than the atlas on executive orientation and dense reading surfaces.",
+      "sketch": ".impeccable/sketches/challenger-multiplane.webp",
+      "hero": "https://impeccable.style/worlds/cards/cinema-cinematography-editing-multiplane-cel-dawn-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/cinema-cinematography-editing-multiplane-cel-dawn.webp"
+    },
+    {
+      "id": "challenger-registration",
+      "label": "Registered Color Plates",
+      "lineage": "multi-block print registration",
+      "thesis": "A person becomes visible one precisely registered layer at a time: systems, products, writing, reading, and images.",
+      "palette": ["#F4ECD8", "#183A59", "#D85136", "#E5A95B", "#3D3026"],
+      "materials": ["fibrous paper", "keyblock line", "flat pigment plates", "registration marks"],
+      "viewport": "A clean keyline establishes Mathieu and the four portals; selected color plates register into place as the first artwork completes the sheet.",
+      "risk": "The fixed print grammar competes with the varied image corpus and risks borrowing a culturally specific aesthetic as decoration.",
+      "case": "The layered-craft metaphor is clear, but it fuses poorly because it would force unrelated artworks into one woodblock treatment.",
+      "sketch": ".impeccable/sketches/challenger-registration.webp",
+      "hero": "https://impeccable.style/worlds/cards/graphic-worlds-publishing-ukiyoe-block-registration-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/graphic-worlds-publishing-ukiyoe-block-registration.webp"
+    }
+  ],
+  "reroll": true,
+  "canon": true,
+  "canonCard": {
+    "label": "The category standard",
+    "lineage": "high-craft editorial personal site",
+    "thesis": "A restrained introduction, selected work, recent writing, and a quiet personal layer arranged in a familiar editorial grid.",
+    "palette": ["#FAFAF7", "#171717", "#6E6E68", "#E7652E"],
+    "materials": ["uncoated paper", "editorial photography", "fine rules", "precise typesetting"],
+    "viewport": "Mathieu's name and short introduction lead beside one artwork, followed immediately by selected work and recent writing.",
+    "risk": "Highly legible and credible, but unlikely to make the personal world or interactive ambition memorable.",
+    "sketch": ".impeccable/sketches/canon.webp"
+  },
+  "steer": true
+}

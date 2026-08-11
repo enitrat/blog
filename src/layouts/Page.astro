@@ -1,0 +1,42 @@
+---
+import '@fontsource-variable/commissioner/wght.css';
+import '@fontsource-variable/literata/wght.css';
+import '../styles/site.css';
+
+import paperTexture from '../assets/home/paper-fiber.webp';
+import BaseHead from '../components/BaseHead.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+
+interface Props {
+	title: string;
+	description: string;
+	lang?: string;
+}
+
+const { title, description, lang = 'en' } = Astro.props;
+---
+
+<!doctype html>
+<html lang={lang} class="site">
+	<head>
+		<BaseHead title={title} description={description} />
+	</head>
+	<body style={`--paper-texture: url(${paperTexture.src})`}>
+		<!--
+		THESIS: One editorial world across every route; a personal site refuses the blog-template split where the homepage is designed and the archive, article, and shelf are left as defaults.
+		OWN-WORLD: Cool uncoated paper, near-black ink, cobalt rules and labels, rare orange events, sculptural Literata against compact Commissioner, flat square-cornered construction with no cards or shadows.
+		STORY: Arrive anywhere in the site and recognise the same hand; read an article at a true measure with its apparatus in the margin, then continue into another essay, a book, or a conversation.
+		FIRST VIEWPORT: A thin identity-and-navigation band over one near-black rule, then a Literata headline at page scale with a muted standfirst, then the ruled content field.
+		FORM: Marginalia Sheet for the reading surface, candidate 4 of the grounded list; seed key 61ce0048.
+		FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+		-->
+		<div class="site-shell">
+			<SiteHeader />
+			<main>
+				<slot />
+			</main>
+			<SiteFooter />
+		</div>
+	</body>
+</html>

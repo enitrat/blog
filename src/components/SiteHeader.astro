@@ -1,0 +1,28 @@
+---
+// One header for every surface. Work stays a homepage section, so it resolves
+// to an in-page anchor at home and a rooted anchor everywhere else; the other
+// three are real routes.
+const path = Astro.url.pathname;
+const atHome = path === '/';
+
+const links = [
+	{ label: 'Work', href: atHome ? '#work' : '/#work', match: null },
+	{ label: 'Writing', href: '/writing', match: '/writing' },
+	{ label: 'Bookshelf', href: '/bookshelf', match: '/bookshelf' },
+	{ label: 'About', href: '/about', match: '/about' },
+];
+---
+
+<header class="site-header">
+	<a class="site-header__identity" href="/" aria-label="Mathieu Saugé, home">Mathieu Saugé</a>
+	<nav aria-label="Primary navigation">
+		{links.map((link) => (
+			<a
+				href={link.href}
+				aria-current={link.match && path.startsWith(link.match) ? 'page' : undefined}
+			>
+				{link.label}
+			</a>
+		))}
+	</nav>
+</header>

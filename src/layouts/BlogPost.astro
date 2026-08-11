@@ -1,12 +1,18 @@
 ---
-import '../styles/global.css';
+import '@fontsource-variable/commissioner/wght.css';
+import '@fontsource-variable/literata/wght.css';
+import '../styles/site.css';
+import '../styles/article.css';
+
+import Analytics from '@vercel/analytics/astro';
+import type { MarkdownHeading } from 'astro';
 import type { CollectionEntry } from 'astro:content';
+import paperTexture from '../assets/home/paper-fiber.webp';
 import BaseHead from '../components/BaseHead.astro';
 import CopyCodeButton from '../components/CopyCodeButton.astro';
-import Footer from '../components/Footer.astro';
-import FormattedDate from '../components/FormattedDate.astro';
-import Header from '../components/Header.astro';
-import Analytics from '@vercel/analytics/astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import { isArgumentHeading } from '../utils/sections.mjs';
 
 type Translation = {
 	lang: string;
@@ -14,8 +20,13 @@ type Translation = {
 	title: string;
 };
 
+type Adjacent = { slug: string; title: string };
+
 type Props = CollectionEntry<'blog'>['data'] & {
 	translations?: Translation[];
+	headings?: MarkdownHeading[];
+	newer?: Adjacent;
+	older?: Adjacent;
 };
 
 const langLabels: Record<string, string> = {
@@ -23,54 +34,223 @@ const langLabels: Record<string, string> = {
 	fr: 'Lire en français',
 };
 
-const { title, description, pubDate, updatedDate, lang = 'en', translations = [] } = Astro.props;
+const {
+	title,
+	description,
+	pubDate,
+	updatedDate,
+	lang = 'en',
+	translations = [],
+	headings = [],
+	newer,
+	older,
+} = Astro.props;
+
+const dateLocale = lang === 'fr' ? 'fr-FR' : 'en-GB';
+const formatDate = (date: Date) =>
+	date.toLocaleDateString(dateLocale, { year: 'numeric', month: 'long', day: 'numeric' });
+
+// Only h2/h3 make useful wayfinding; deeper levels crowd the margin. Top-level
+// entries carry the same ordinal the margin reference beside that section shows.
+let section = 0;
+const contents = headings
+	.filter((heading) => heading.depth === 2 || heading.depth === 3)
+	.map((heading) => {
+		const numbered = heading.depth === 2 && isArgumentHeading(heading.slug);
+		if (numbered) section += 1;
+		return { ...heading, ordinal: numbered ? section : undefined };
+	});
 ---
 
-<html lang={lang}>
+<!doctype html>
+<html lang={lang} class="site">
 	<head>
 		<BaseHead title={title} description={description} />
-		<script type="application/ld+json" set:html={JSON.stringify({
-			"@context": "https://schema.org",
-			"@type": "BlogPosting",
-			"headline": title,
-			"description": description,
-			"datePublished": pubDate.toISOString(),
-			"dateModified": (updatedDate || pubDate).toISOString()
-		})} />
+		<script
+			type="application/ld+json"
+			set:html={JSON.stringify({
+				'@context': 'https://schema.org',
+				'@type': 'BlogPosting',
+				headline: title,
+				description: description,
+				datePublished: pubDate.toISOString(),
+				dateModified: (updatedDate || pubDate).toISOString(),
+			})}
+		/>
 	</head>
 
-	<body>
-		<Header />
-		<main class="mx-auto lg:w-5/8 px-6 py-10 flex items-center justify-center">
-			<article class="space-y-8 w-full">
-				<!-- Post Header -->
-				<header class="space-y-2">
-					<h1 class="text-3xl font-bold">{title}</h1>
-					<div class="text-sm text-muted-foreground flex items-center gap-4">
-						<span>
-							<FormattedDate date={pubDate} />
-							{updatedDate && (
-								<span class="ml-2 italic">
-									(Updated: <FormattedDate date={updatedDate} />)
-								</span>
-							)}
-						</span>
-						{translations.map((t) => (
-							<a href={`/blog/${t.slug}/`} class="hover:underline">
-								{langLabels[t.lang] || t.lang}
-							</a>
-						))}
-					</div>
-					<Analytics />
-				</header>
+	<body style={`--paper-texture: url(${paperTexture.src})`}>
+		<!--
+		THESIS: One editorial world across every route; a personal site refuses the blog-template split where the homepage is designed and the archive, article, and shelf are left as defaults.
+		OWN-WORLD: Cool uncoated paper, near-black ink, cobalt rules and labels, rare orange events, sculptural Literata against compact Commissioner, flat square-cornered construction with no cards or shadows.
+		STORY: Arrive anywhere in the site and recognise the same hand; read an article at a true measure with its apparatus in the margin, then continue into another essay, a book, or a conversation.
+		FIRST VIEWPORT: A thin identity-and-navigation band over one near-black rule, then a Literata headline at page scale with a muted standfirst, then the ruled content field.
+		FORM: Marginalia Sheet for the reading surface, candidate 4 of the grounded list; seed key 61ce0048.
+		FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+		-->
+		<div class="site-shell">
+			<SiteHeader />
+			<main>
+				<article class="sheet">
+					<header class="sheet__head">
+						<h1>{title}</h1>
+						{description && <p class="sheet__standfirst">{description}</p>}
+					</header>
 
-				<!-- Post Body -->
-				<div class="prose">
-					<slot />
-				</div>
-			</article>
-		</main>
-		<Footer />
+					<div class="sheet__body">
+						<aside class="sheet__margin" aria-label="Article details">
+							<dl class="sheet__facts">
+								<div>
+									<dt>Published</dt>
+									<dd><time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time></dd>
+								</div>
+								{updatedDate && (
+									<div>
+										<dt>Updated</dt>
+										<dd>
+											<time datetime={updatedDate.toISOString()}>{formatDate(updatedDate)}</time>
+										</dd>
+									</div>
+								)}
+								{translations.length > 0 && (
+									<div>
+										<dt>Also in</dt>
+										{translations.map((t) => (
+											<dd>
+												<a href={`/writing/${t.slug}/`}>{langLabels[t.lang] || t.lang}</a>
+											</dd>
+										))}
+									</div>
+								)}
+							</dl>
+
+							{contents.length > 1 && (
+								<nav class="sheet__contents" aria-label="Contents" data-contents>
+									<span>Contents</span>
+									<ol>
+										{contents.map((heading) => (
+											<li data-depth={heading.depth}>
+												<a href={`#${heading.slug}`} data-contents-link={heading.slug}>
+													{heading.ordinal && <i aria-hidden="true">§{heading.ordinal}</i>}
+													{heading.text}
+												</a>
+											</li>
+										))}
+									</ol>
+								</nav>
+							)}
+						</aside>
+
+						<div class="article-body">
+							<slot />
+						</div>
+					</div>
+
+					<footer class="sheet__close">
+						<div>
+							<nav class="sheet__onward" aria-label="More writing">
+								{older && (
+									<a class="sheet__onward-item" href={`/writing/${older.slug}/`} rel="prev">
+										<span>Previous</span>
+										<strong>{older.title}</strong>
+									</a>
+								)}
+								{newer && (
+									<a class="sheet__onward-item sheet__onward-item--next" href={`/writing/${newer.slug}/`} rel="next">
+										<span>Next</span>
+										<strong>{newer.title}</strong>
+									</a>
+								)}
+							</nav>
+							<div class="sheet__exits">
+								<a class="sheet__all" href="/writing">
+									<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H6M11 18l-6-6 6-6" /></svg>
+									All writing
+								</a>
+								<a class="sheet__all" href="/bookshelf">
+									<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
+									Bookshelf
+								</a>
+								{/*
+									STORY promises the reader can continue into a conversation from
+									here. The destinations are unresolved, so this carries the same
+									dashed marking the homepage close and the footer use. Make these
+									real X and Telegram links when the destinations exist; deleting
+									them makes the promise silently missing.
+								*/}
+								<span class="sheet__conversation" role="note" aria-label="Contact placeholders">
+									<span>X placeholder</span>
+									<span>Telegram placeholder</span>
+								</span>
+							</div>
+						</div>
+					</footer>
+				</article>
+			</main>
+			<SiteFooter contact={false} />
+		</div>
 		<CopyCodeButton />
+		<Analytics />
+
+		<script>
+			// Marks the section the reader is currently in. The margin is apparatus:
+			// without this script every heading link still works as an anchor.
+			function setupContents() {
+				const nav = document.querySelector<HTMLElement>('[data-contents]');
+				if (!nav || nav.dataset.ready === 'true') return;
+				nav.dataset.ready = 'true';
+
+				const links = new Map<string, HTMLElement>();
+				for (const link of nav.querySelectorAll<HTMLElement>('[data-contents-link]')) {
+					const slug = link.dataset.contentsLink;
+					if (slug) links.set(slug, link);
+				}
+
+				const targets = [...links.keys()]
+					.map((slug) => document.getElementById(slug))
+					.filter((el): el is HTMLElement => el !== null);
+				if (targets.length === 0) return;
+
+				let currentSlug = '';
+				const mark = (slug: string) => {
+					if (slug === currentSlug) return;
+					currentSlug = slug;
+					for (const [key, link] of links) {
+						if (key === slug) link.setAttribute('aria-current', 'true');
+						else link.removeAttribute('aria-current');
+					}
+				};
+
+				// The heading nearest above a reading line near the top of the viewport
+				// wins, so the mark tracks what is actually being read rather than
+				// whichever heading last crossed a threshold.
+				const select = () => {
+					const line = window.innerHeight * 0.28;
+					let best = targets[0];
+					for (const target of targets) {
+						if (target.getBoundingClientRect().top <= line) best = target;
+						else break;
+					}
+					mark(best.id);
+				};
+
+				let queued = false;
+				const onScroll = () => {
+					if (queued) return;
+					queued = true;
+					requestAnimationFrame(() => {
+						queued = false;
+						select();
+					});
+				};
+
+				select();
+				window.addEventListener('scroll', onScroll, { passive: true });
+				window.addEventListener('resize', onScroll, { passive: true });
+			}
+
+			setupContents();
+			document.addEventListener('astro:page-load', setupContents);
+		</script>
 	</body>
 </html>

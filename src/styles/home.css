@@ -1,0 +1,708 @@
+/*
+ * Homepage-only composition. Tokens, base material, the header, the footer,
+ * and the shared ledger rows live in site.css; this file owns the Living
+ * Index, the art stage, and the homepage's Work/Writing/close sections.
+ */
+
+.living-index {
+	display: grid;
+	grid-template-columns: minmax(17rem, 0.72fr) minmax(34rem, 1.28fr);
+	grid-template-areas:
+		"orientation groups"
+		"stage stage";
+	border-bottom: 1px solid var(--home-rule);
+}
+
+.living-index__orientation {
+	grid-area: orientation;
+	padding: clamp(3.25rem, 7vw, 7rem) clamp(2rem, 5vw, 6rem) clamp(3rem, 6vw, 5.5rem) 0;
+	border-right: 1px solid var(--home-rule);
+}
+
+.living-index__orientation h1 {
+	max-width: 8ch;
+	margin: 0;
+	font-family: var(--home-display);
+	font-size: clamp(4rem, 7vw, 6rem);
+	font-weight: 540;
+	line-height: 0.88;
+	letter-spacing: -0.04em;
+}
+
+.living-index__role {
+	margin: 1.5rem 0 0;
+	font-size: clamp(1.05rem, 1.8vw, 1.4rem);
+	font-weight: 520;
+}
+
+.living-index__role span {
+	display: block;
+	margin-top: 0.35rem;
+	color: var(--home-cobalt);
+	font-size: 0.65rem;
+	font-weight: 640;
+	letter-spacing: 0.07em;
+	text-transform: uppercase;
+}
+
+.copy-placeholder {
+	max-width: 34rem;
+	margin-top: clamp(2.5rem, 6vw, 5.5rem);
+	padding-top: 1.1rem;
+	border-top: 1px solid var(--home-cobalt);
+	color: var(--home-muted);
+}
+
+.copy-placeholder strong,
+.work-entry__copy strong,
+.about-close strong {
+	color: var(--home-cobalt);
+	font-size: 0.65rem;
+	font-weight: 680;
+	letter-spacing: 0.07em;
+	text-transform: uppercase;
+}
+
+.copy-placeholder p {
+	max-width: 39ch;
+	margin: 0.7rem 0 0;
+	font-size: 0.84rem;
+}
+
+.living-index__groups {
+	grid-area: groups;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+}
+
+.index-group {
+	padding: clamp(2.4rem, 5vw, 4.5rem) clamp(1.5rem, 3.5vw, 3.5rem);
+}
+
+.index-group + .index-group {
+	border-left: 1px solid var(--home-rule);
+}
+
+.index-group__heading,
+.section-heading {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 1.5rem;
+	margin-bottom: 1.3rem;
+}
+
+/* Between 981px and ~1100px each index group is only ~255px wide, so the
+   destination link wrapped to two lines alongside its heading. Let it drop
+   onto its own line instead of crowding the title. */
+.index-group__heading {
+	flex-wrap: wrap;
+	gap: 0.35rem 1.5rem;
+}
+
+.index-group__heading h2 {
+	flex: 1 1 auto;
+}
+
+.index-group__heading a {
+	flex: 0 1 auto;
+	white-space: nowrap;
+}
+
+.index-group__heading h2,
+.section-heading h2 {
+	margin: 0;
+	font-family: var(--home-display);
+	font-size: clamp(1.8rem, 3vw, 2.8rem);
+	font-weight: 560;
+	letter-spacing: -0.03em;
+}
+
+.index-group__heading a,
+.section-heading > a {
+	color: var(--home-cobalt);
+	font-size: 0.7rem;
+	font-weight: 640;
+	letter-spacing: 0.05em;
+}
+
+.index-group ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	border-top: 1px solid var(--home-rule);
+}
+
+.index-group li {
+	border-bottom: 1px solid var(--home-rule);
+}
+
+.index-group li > a {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 1.35rem;
+	grid-template-areas:
+		"title arrow"
+		"description arrow";
+	gap: 0.28rem 1rem;
+	padding: 1.15rem 0.35rem;
+	transition:
+		color 220ms ease,
+		padding 260ms cubic-bezier(0.2, 0.75, 0.2, 1);
+}
+
+.index-group li > a::before {
+	display: none;
+}
+
+.index-group li > a span {
+	grid-area: title;
+	font-size: 0.98rem;
+	font-weight: 560;
+	line-height: 1.2;
+}
+
+.index-group li > a small {
+	grid-area: description;
+	color: var(--home-muted);
+	font-size: 0.7rem;
+	line-height: 1.35;
+}
+
+.index-group li > a svg {
+	grid-area: arrow;
+	align-self: center;
+	width: 1.15rem;
+	height: 1.15rem;
+}
+
+.index-group li > a[data-active="true"],
+.index-group li > a:hover,
+.index-group li > a:focus-visible {
+	padding-left: 0.9rem;
+	color: var(--home-cobalt);
+}
+
+.index-group li > a[data-active="true"] span::before {
+	content: "";
+	display: inline-block;
+	width: 0.48rem;
+	height: 0.48rem;
+	margin-right: 0.65rem;
+	background: var(--home-orange);
+	clip-path: polygon(50% 0, 64% 36%, 100% 50%, 64% 64%, 50% 100%, 36% 64%, 0 50%, 36% 36%);
+}
+
+.art-stage {
+	grid-area: stage;
+	position: relative;
+	min-height: clamp(24rem, 47vw, 43rem);
+	overflow: hidden;
+	background: var(--home-ink);
+	isolation: isolate;
+}
+
+.art-stage figure {
+	position: absolute;
+	inset: 0;
+	margin: 0;
+	opacity: 0;
+	visibility: hidden;
+	transition:
+		opacity 520ms cubic-bezier(0.16, 1, 0.3, 1),
+		visibility 520ms step-end;
+}
+
+.art-stage figure[data-active="true"] {
+	opacity: 1;
+	visibility: visible;
+	transition:
+		opacity 620ms cubic-bezier(0.16, 1, 0.3, 1),
+		visibility 0ms step-start;
+}
+
+.art-stage picture,
+.art-stage img {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.art-stage img {
+	object-fit: cover;
+	object-position: center;
+	transform: scale(1.015);
+	filter: saturate(0.96) contrast(1.03);
+	transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.art-stage figure[data-active="true"] img {
+	transform: scale(1);
+}
+
+.art-stage figcaption {
+	position: absolute;
+	left: clamp(1rem, 3vw, 3rem);
+	right: clamp(1rem, 3vw, 3rem);
+	bottom: clamp(1rem, 3vw, 2.5rem);
+	display: grid;
+	grid-template-columns: auto 1fr auto;
+	align-items: center;
+	gap: 1rem;
+	padding-top: 0.8rem;
+	border-top: 1px solid rgb(255 255 255 / 72%);
+	color: #fff;
+	text-shadow: 0 2px 18px rgb(0 0 0 / 48%);
+}
+
+.art-stage figcaption span,
+.art-stage figcaption small {
+	font-size: 0.64rem;
+	font-weight: 650;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.art-stage figcaption strong {
+	font-family: var(--home-display);
+	font-size: clamp(1.3rem, 2.2vw, 2.15rem);
+	font-weight: 550;
+}
+
+.work-section,
+.writing-section,
+.about-close {
+	padding-block: clamp(5rem, 10vw, 10rem);
+	border-bottom: 1px solid var(--home-rule);
+}
+
+.section-heading {
+	margin-bottom: clamp(2.4rem, 5vw, 5rem);
+}
+
+/* Align the supporting copy to the ledger grid below it rather than letting
+   space-between fling it against the far page edge, orphaned from its heading. */
+.work-section .section-heading {
+	display: grid;
+	grid-template-columns: 1.35fr 0.9fr 0.9fr;
+	gap: clamp(1.5rem, 3vw, 3.5rem);
+	align-items: baseline;
+}
+
+.work-section .section-heading p {
+	grid-column: 2 / -1;
+}
+
+.section-heading h2 {
+	font-size: clamp(3.3rem, 7vw, 6rem);
+}
+
+.section-heading p {
+	max-width: 46ch;
+	margin: 0;
+	color: var(--home-muted);
+	font-size: 0.86rem;
+}
+
+.work-ledger {
+	display: grid;
+	grid-template-columns: 1.35fr 0.9fr 0.9fr;
+	gap: clamp(1.5rem, 3vw, 3.5rem);
+}
+
+.work-entry {
+	min-width: 0;
+	padding-top: 1rem;
+	border-top: 1px solid var(--home-ink);
+}
+
+.work-entry picture,
+.work-entry img {
+	display: block;
+	width: 100%;
+}
+
+.work-entry img {
+	height: clamp(15rem, 24vw, 27rem);
+	object-fit: cover;
+}
+
+.work-entry:not(.work-entry--lead) img {
+	height: clamp(12rem, 18vw, 20rem);
+}
+
+.work-entry__copy {
+	padding-top: 1.35rem;
+}
+
+.work-entry__copy h3 {
+	margin: 0;
+	font-family: var(--home-display);
+	font-size: clamp(1.7rem, 3vw, 2.65rem);
+	font-weight: 550;
+	letter-spacing: -0.03em;
+}
+
+.work-entry__copy p {
+	max-width: 48ch;
+	margin: 0.9rem 0 1.4rem;
+	color: var(--home-muted);
+	font-size: 0.82rem;
+}
+
+.work-entry__copy a {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.75rem;
+	color: var(--home-cobalt);
+	font-size: 0.74rem;
+	font-weight: 650;
+}
+
+.work-entry__copy a svg,
+.writing-ledger__arrow svg {
+	width: 1.1rem;
+	height: 1.1rem;
+}
+
+.about-close {
+	padding-block: clamp(5rem, 10vw, 10rem);
+	border-bottom: 1px solid var(--home-rule);
+}
+
+.section-heading {
+	margin-bottom: clamp(2.4rem, 5vw, 5rem);
+}
+
+/* Align the supporting copy to the ledger grid below it rather than letting
+   space-between fling it against the far page edge, orphaned from its heading. */
+.work-section .section-heading {
+	display: grid;
+	grid-template-columns: 1.35fr 0.9fr 0.9fr;
+	gap: clamp(1.5rem, 3vw, 3.5rem);
+	align-items: baseline;
+}
+
+.work-section .section-heading p {
+	grid-column: 2 / -1;
+}
+
+.section-heading h2 {
+	font-size: clamp(3.3rem, 7vw, 6rem);
+}
+
+.section-heading p {
+	max-width: 46ch;
+	margin: 0;
+	color: var(--home-muted);
+	font-size: 0.86rem;
+}
+
+.work-ledger {
+	display: grid;
+	grid-template-columns: 1.35fr 0.9fr 0.9fr;
+	gap: clamp(1.5rem, 3vw, 3.5rem);
+}
+
+.work-entry {
+	min-width: 0;
+	padding-top: 1rem;
+	border-top: 1px solid var(--home-ink);
+}
+
+.work-entry picture,
+.work-entry img {
+	display: block;
+	width: 100%;
+}
+
+.work-entry img {
+	height: clamp(15rem, 24vw, 27rem);
+	object-fit: cover;
+}
+
+.work-entry:not(.work-entry--lead) img {
+	height: clamp(12rem, 18vw, 20rem);
+}
+
+.work-entry__copy {
+	padding-top: 1.35rem;
+}
+
+.work-entry__copy h3 {
+	margin: 0;
+	font-family: var(--home-display);
+	font-size: clamp(1.7rem, 3vw, 2.65rem);
+	font-weight: 550;
+	letter-spacing: -0.03em;
+}
+
+.work-entry__copy p {
+	max-width: 48ch;
+	margin: 0.9rem 0 1.4rem;
+	color: var(--home-muted);
+	font-size: 0.82rem;
+}
+
+.work-entry__copy a {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.75rem;
+	color: var(--home-cobalt);
+	font-size: 0.74rem;
+	font-weight: 650;
+}
+
+.work-entry__copy a svg,
+.writing-ledger__arrow svg {
+	width: 1.1rem;
+	height: 1.1rem;
+}
+
+.writing-ledger {
+	border-top: 1px solid var(--home-ink);
+}
+
+.writing-ledger article {
+	display: grid;
+	grid-template-columns: 9rem minmax(0, 1fr) 2rem;
+	align-items: start;
+	gap: clamp(1.2rem, 4vw, 4rem);
+	padding: clamp(1.4rem, 3vw, 2.4rem) 0;
+	border-bottom: 1px solid var(--home-rule);
+}
+
+.writing-ledger time {
+	padding-top: 0.3rem;
+	color: var(--home-cobalt);
+	font-size: 0.7rem;
+	font-weight: 620;
+	letter-spacing: 0.04em;
+}
+
+.writing-ledger h3 {
+	margin: 0;
+	font-family: var(--home-display);
+	font-size: clamp(1.5rem, 3vw, 2.55rem);
+	font-weight: 550;
+	line-height: 1.08;
+	letter-spacing: -0.025em;
+}
+
+.writing-ledger h3 a:hover {
+	color: var(--home-cobalt);
+}
+
+.writing-ledger p {
+	max-width: 70ch;
+	margin: 0.55rem 0 0;
+	color: var(--home-muted);
+	font-size: 0.82rem;
+}
+
+.writing-ledger__arrow {
+	display: grid;
+	place-items: center;
+	width: 2rem;
+	height: 2rem;
+	color: var(--home-cobalt);
+}
+
+.about-close {
+	display: grid;
+	grid-template-columns: minmax(18rem, 1fr) minmax(20rem, 0.85fr);
+	gap: clamp(3rem, 10vw, 10rem);
+}
+
+.about-close h2 {
+	max-width: 11ch;
+	margin: 0;
+	font-family: var(--home-display);
+	font-size: clamp(3.4rem, 7vw, 6rem);
+	font-weight: 540;
+	line-height: 0.98;
+	letter-spacing: -0.04em;
+}
+
+.about-close p {
+	max-width: 54ch;
+	margin: 0;
+	color: var(--home-muted);
+}
+
+.about-close nav {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.7rem;
+	margin-top: 2.5rem;
+}
+
+.about-close nav span {
+	padding: 0.75rem 1rem;
+	border: 1px dashed var(--home-cobalt);
+	color: var(--home-cobalt);
+	font-size: 0.7rem;
+	font-weight: 620;
+}
+
+@media (max-width: 980px) {
+	/* The orientation column becomes a full-width band so the two indexes can stay
+	   side by side. Keeping them stacked here made the opening field ~900px tall and
+	   pushed the art stage entirely out of the first viewport. */
+	.living-index {
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-areas:
+			"orientation"
+			"groups"
+			"stage";
+	}
+
+	.living-index__orientation {
+		display: grid;
+		grid-template-columns: auto minmax(15rem, 1fr);
+		grid-template-areas:
+			"name intro"
+			"role intro";
+		align-content: start;
+		gap: 0 clamp(2rem, 5vw, 4rem);
+		padding: clamp(2.75rem, 6vw, 4.5rem) 0 clamp(2.25rem, 5vw, 3.25rem);
+		border-right: 0;
+		border-bottom: 1px solid var(--home-rule);
+	}
+
+	.living-index__orientation h1 {
+		grid-area: name;
+	}
+
+	.living-index__role {
+		grid-area: role;
+	}
+
+	.copy-placeholder {
+		grid-area: intro;
+		align-self: end;
+		margin-top: 0;
+	}
+
+	.index-group {
+		padding-inline: 0 clamp(1.5rem, 3.5vw, 3.5rem);
+	}
+
+	.index-group + .index-group {
+		padding-inline: clamp(1.5rem, 3.5vw, 3.5rem) 0;
+	}
+
+	.work-ledger,
+	.work-section .section-heading {
+		grid-template-columns: 1fr 1fr;
+	}
+
+	.work-entry--lead {
+		grid-column: 1 / -1;
+	}
+}
+
+@media (max-width: 760px) {
+	.living-index {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.living-index__orientation {
+		display: block;
+		padding: 3.8rem 0 3rem;
+		border-right: 0;
+		border-bottom: 0;
+	}
+
+	.living-index__orientation h1 {
+		font-size: clamp(3.8rem, 18vw, 5.5rem);
+	}
+
+	.copy-placeholder {
+		margin-top: 3rem;
+	}
+
+	.living-index__groups {
+		grid-template-columns: 1fr;
+	}
+
+	/* Also resets the inline padding the 980px block sets on this same selector;
+	   `.index-group` alone loses the specificity contest against it. */
+	.index-group + .index-group {
+		padding-inline: 0;
+		border-top: 1px solid var(--home-rule);
+		border-left: 0;
+	}
+
+	.art-stage {
+		order: 2;
+		height: min(42svh, 24rem);
+		min-height: 18rem;
+		position: sticky;
+		top: 0;
+		z-index: 3;
+	}
+
+	.living-index__groups {
+		order: 3;
+		position: relative;
+		z-index: 2;
+		background: var(--home-paper);
+	}
+
+	/* Two stacked groups previously left a 104px unexplained void around their
+	   shared rule. Tighten toward the rule so it reads as a boundary, not a gap. */
+	.index-group {
+		padding: 2.25rem 0;
+	}
+
+	.art-stage figcaption {
+		grid-template-columns: 1fr;
+		gap: 0.2rem;
+	}
+
+	.art-stage figcaption small {
+		display: none;
+	}
+
+	/* The stage floor is 18rem on short phones; a long title must not run past it. */
+	.art-stage figcaption strong {
+		font-size: 1.15rem;
+		line-height: 1.15;
+	}
+
+	.section-heading,
+	.work-section .section-heading,
+	.about-close {
+		display: block;
+	}
+
+	.section-heading p,
+	.section-heading > a {
+		display: block;
+		margin-top: 1rem;
+	}
+
+	.work-ledger {
+		grid-template-columns: 1fr;
+	}
+
+	.work-entry--lead {
+		grid-column: auto;
+	}
+
+	.work-entry img,
+	.work-entry:not(.work-entry--lead) img {
+		height: min(72vw, 28rem);
+	}
+
+	.about-close > div {
+		margin-top: 2.5rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.art-stage figure:not([data-active="true"]) {
+		display: none;
+	}
+}

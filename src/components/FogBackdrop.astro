@@ -1,0 +1,141 @@
+---
+// POC — ambient fog shader keyed to "Wanderer above the Sea of Fog", tuned for the
+// site's LIGHT cream theme. Sits behind everything at z-index -1; content owns the page.
+// Libs from esm.sh so nothing is installed. Delete this file to remove the experiment.
+interface Props {
+	/** 0 = invisible, 1 = full strength. Keep low — this is wallpaper, not a hero. */
+	intensity?: number;
+}
+const { intensity = 0.55 } = Astro.props;
+
+// Sampled from the painting, remapped for a cream page.
+const PALETTE = {
+	paper: '#FDF9F6', // the site's existing --background
+	fog: '#C4CEDA', // the sea of fog, lightened
+	slate: '#8E9AAA', // far mountains
+	ochre: '#B98A57', // foreground rock, desaturated for light bg
+	dawn: '#F2E6D2', // warm break in the sky
+};
+---
+
+<canvas id="fog-backdrop" aria-hidden="true"></canvas>
+
+<script is:inline define:vars={{ PALETTE, intensity }} type="module">
+	import * as THREE from 'https://esm.sh/three@0.169.0';
+
+	const canvas = document.getElementById('fog-backdrop');
+	const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+	const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true });
+	renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+	const scene = new THREE.Scene();
+	const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+	const uniforms = {
+		uTime: { value: 0 },
+		uScroll: { value: 0 },
+		uRes: { value: new THREE.Vector2() },
+		uIntensity: { value: intensity },
+		uPaper: { value: new THREE.Color(PALETTE.paper) },
+		uFog: { value: new THREE.Color(PALETTE.fog) },
+		uSlate: { value: new THREE.Color(PALETTE.slate) },
+		uOchre: { value: new THREE.Color(PALETTE.ochre) },
+		uDawn: { value: new THREE.Color(PALETTE.dawn) },
+	};
+
+	const frag = `
+	precision highp float;
+	uniform float uTime, uScroll, uIntensity; uniform vec2 uRes;
+	uniform vec3 uPaper, uFog, uSlate, uOchre, uDawn;
+
+	float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+	float noise(vec2 p){
+	  vec2 i = floor(p), f = fract(p);
+	  vec2 u = f*f*(3.0-2.0*f);
+	  return mix(mix(hash(i), hash(i+vec2(1,0)), u.x),
+	             mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), u.x), u.y);
+	}
+	float fbm(vec2 p){
+	  float v = 0.0, a = 0.5;
+	  for(int i = 0; i < 4; i++){ v += a*noise(p); p *= 2.03; a *= 0.5; }
+	  return v;
+	}
+
+	void main(){
+	  vec2 uv = gl_FragCoord.xy / uRes;
+	  float t = uTime * 0.015;
+
+	  // paper stays paper; the sky only tints the top edge
+	  vec3 col = mix(uPaper, uDawn, smoothstep(0.55, 1.0, uv.y) * 0.55);
+
+	  // fog banks drifting right, breathing up as you scroll
+	  vec2 q = vec2(uv.x * 2.2 - t, uv.y * 1.7 + t * 0.3 - uScroll * 0.35);
+	  float warp = fbm(q + fbm(q * 1.6) * 0.5);
+	  float band = smoothstep(0.30, 0.80, warp) * smoothstep(0.95, 0.10, uv.y);
+	  col = mix(col, uFog, band * 0.55);
+
+	  // slate weight low and left, the far range under the fog
+	  float range = smoothstep(0.42, 0.0, uv.y) * (0.4 + 0.6 * fbm(q * 0.8));
+	  col = mix(col, uSlate, range * 0.22);
+
+	  // ochre warmth bottom-centre, where rock breaks through
+	  float rock = smoothstep(0.26, 0.0, uv.y) * smoothstep(0.85, 0.15, abs(uv.x - 0.5));
+	  col = mix(col, uOchre, rock * 0.16);
+
+	  // paper grain, so it reads as painted, not as a CSS gradient
+	  col += (hash(gl_FragCoord.xy + uTime) - 0.5) * 0.016;
+
+	  // never let it fight the text: blend the whole thing back toward paper
+	  col = mix(uPaper, col, uIntensity);
+	  gl_FragColor = vec4(col, 1.0);
+	}`;
+
+	scene.add(
+		new THREE.Mesh(
+			new THREE.PlaneGeometry(2, 2),
+			new THREE.ShaderMaterial({
+				uniforms,
+				fragmentShader: frag,
+				vertexShader: 'void main(){ gl_Position = vec4(position, 1.0); }',
+			}),
+		),
+	);
+
+	function resize() {
+		renderer.setSize(innerWidth, innerHeight, false);
+		const r = renderer.getPixelRatio();
+		uniforms.uRes.value.set(innerWidth * r, innerHeight * r);
+	}
+	addEventListener('resize', resize);
+	resize();
+
+	// scroll drives the fog upward — the only coupling to the page
+	addEventListener(
+		'scroll',
+		() => {
+			const max = document.body.scrollHeight - innerHeight;
+			uniforms.uScroll.value = max > 0 ? scrollY / max : 0;
+		},
+		{ passive: true },
+	);
+
+	if (reduced) {
+		renderer.render(scene, cam); // one static frame
+	} else {
+		renderer.setAnimationLoop((ms) => {
+			uniforms.uTime.value = ms / 1000;
+			renderer.render(scene, cam);
+		});
+	}
+</script>
+
+<style>
+	#fog-backdrop {
+		position: fixed;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		z-index: -1;
+		pointer-events: none;
+	}
+</style>
