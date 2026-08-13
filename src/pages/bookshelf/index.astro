@@ -1,14 +1,14 @@
 ---
-import { books } from '../../booksData';
+import { type Book, type BookStatus, books } from '../../booksData';
 import Page from '../../layouts/Page.astro';
 
-const groups = [
+const groups: { key: BookStatus; label: string }[] = [
 	{ key: 'reading', label: 'Reading now' },
 	{ key: 'finished', label: 'Finished' },
 	{ key: 'want-to-read', label: 'Want to read' },
-] as const;
+];
 
-const dateOf = (book: (typeof books)[number]) => book.dateFinished ?? book.dateStarted ?? null;
+const dateOf = (book: Book) => book.dateFinished ?? book.dateStarted;
 
 const shelves = groups
 	.map((group) => ({

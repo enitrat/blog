@@ -6,55 +6,7 @@ import sitemap from '@astrojs/sitemap';
 import vercel from '@astrojs/vercel';
 import { defineConfig } from 'astro/config';
 import codeTheme from './src/styles/code-theme.json' with { type: 'json' };
-import { isArgumentHeading } from './src/utils/sections.mjs';
-
-/** Numbers every argument `h2` and hangs a §ordinal link in the outer margin. */
-function rehypeSectionMarks() {
-	return (tree) => {
-		let n = 0;
-		const walk = (node) => {
-			if (!node.children) return;
-			for (const child of node.children) {
-				if (
-					child.type === 'element' &&
-					child.tagName === 'h2' &&
-					child.properties?.id &&
-					isArgumentHeading(child.properties.id)
-				) {
-					n += 1;
-					child.properties['data-section'] = String(n);
-					child.children.unshift({
-						type: 'element',
-						tagName: 'a',
-						properties: {
-							className: ['section-mark'],
-							href: `#${child.properties.id}`,
-							// The glyph and numeral below are decorative duplicates of the
-							// adjacent heading, so the link needs its own name.
-							'aria-label': `Link to section ${n}`,
-						},
-						children: [
-							{
-								type: 'element',
-								tagName: 'span',
-								properties: {},
-								children: [{ type: 'text', value: '§' }],
-							},
-							{
-								type: 'element',
-								tagName: 'b',
-								properties: {},
-								children: [{ type: 'text', value: String(n) }],
-							},
-						],
-					});
-				}
-				walk(child);
-			}
-		};
-		walk(tree);
-	};
-}
+import { rehypeSectionMarks } from './src/utils/sections.mjs';
 
 export default defineConfig({
 	// Every canonical link, sitemap entry, RSS link, and og:url resolves against

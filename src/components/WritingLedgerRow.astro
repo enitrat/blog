@@ -1,0 +1,31 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { postUrl } from '../utils/writing';
+import ArrowIcon from './ArrowIcon.astro';
+
+interface Props {
+	post: CollectionEntry<'blog'>;
+	/** Omit the year where the surrounding list already groups by it. */
+	showYear?: boolean;
+}
+
+const { post, showYear = true } = Astro.props;
+const { title, description, pubDate } = post.data;
+const href = postUrl(post);
+const dateLabel = pubDate.toLocaleDateString('en-GB', {
+	...(showYear && { year: 'numeric' }),
+	month: 'short',
+	day: '2-digit',
+});
+---
+
+<article>
+	<time datetime={pubDate.toISOString()}>{dateLabel}</time>
+	<div>
+		<h3><a href={href}>{title}</a></h3>
+		<p>{description}</p>
+	</div>
+	<a class="writing-ledger__arrow" href={href} aria-label={`Read ${title}`}>
+		<ArrowIcon />
+	</a>
+</article>

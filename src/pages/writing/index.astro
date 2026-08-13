@@ -1,11 +1,9 @@
 ---
-import { getCollection } from 'astro:content';
+import WritingLedgerRow from '../../components/WritingLedgerRow.astro';
 import Page from '../../layouts/Page.astro';
+import { getWritingIndex } from '../../utils/writing';
 
-// A translation is reachable from the article itself, never a second row.
-const posts = (await getCollection('blog'))
-	.filter((post) => post.data.lang === 'en')
-	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const posts = await getWritingIndex();
 
 const years = [...new Set(posts.map((post) => post.data.pubDate.getFullYear()))].sort(
 	(a, b) => b - a,
@@ -15,9 +13,6 @@ const byYear = years.map((year) => ({
 	year,
 	posts: posts.filter((post) => post.data.pubDate.getFullYear() === year),
 }));
-
-const formatDate = (date: Date) =>
-	date.toLocaleDateString('en-GB', { month: 'short', day: '2-digit' });
 ---
 
 <Page
@@ -37,20 +32,7 @@ const formatDate = (date: Date) =>
 			<h2 class="label" id={`year-${group.year}`}>{group.year}</h2>
 			<div class="writing-ledger">
 				{group.posts.map((post) => (
-					<article>
-						<time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
-						<div>
-							<h3><a href={`/writing/${post.id}/`}>{post.data.title}</a></h3>
-							<p>{post.data.description}</p>
-						</div>
-						<a
-							class="writing-ledger__arrow"
-							href={`/writing/${post.id}/`}
-							aria-label={`Read ${post.data.title}`}
-						>
-							<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
-						</a>
-					</article>
+					<WritingLedgerRow post={post} showYear={false} />
 				))}
 			</div>
 		</section>

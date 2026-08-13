@@ -1,6 +1,7 @@
 ---
 import { Picture } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
+import ArrowIcon from '../ArrowIcon.astro';
 
 export interface LivingIndexItem {
 	id: string;
@@ -29,7 +30,7 @@ const initialId = work[0]?.id ?? writing[0]?.id;
 			<span>CTO of Kakarot</span>
 		</p>
 		<div class="copy-placeholder" role="note" aria-label="Homepage introduction placeholder">
-			<strong>Introduction placeholder</strong>
+			<strong class="label">Introduction placeholder</strong>
 			<p>Write two or three sentences here, in your own voice, about what you build and why this place exists.</p>
 		</div>
 	</div>
@@ -52,9 +53,7 @@ const initialId = work[0]?.id ?? writing[0]?.id;
 						>
 							<span>{item.title}</span>
 							<small>{item.description}</small>
-							<svg viewBox="0 0 24 24" aria-hidden="true">
-								<path d="M5 12h13M13 6l6 6-6 6" />
-							</svg>
+							<ArrowIcon />
 						</a>
 					</li>
 				))}
@@ -72,9 +71,7 @@ const initialId = work[0]?.id ?? writing[0]?.id;
 						<a href={item.href} data-stage-trigger={item.id} data-active="false">
 							<span>{item.title}</span>
 							<small>{item.description}</small>
-							<svg viewBox="0 0 24 24" aria-hidden="true">
-								<path d="M5 12h13M13 6l6 6-6 6" />
-							</svg>
+							<ArrowIcon />
 						</a>
 					</li>
 				))}

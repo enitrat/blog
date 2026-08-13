@@ -24,6 +24,8 @@
 	--home-cobalt: #1747be;
 	--home-orange: #f06424;
 	--home-rule: color-mix(in srgb, var(--home-cobalt) 34%, var(--home-paper));
+	/* The eight-point star that marks the active entry, wherever one exists. */
+	--home-star: polygon(50% 0, 64% 36%, 100% 50%, 64% 64%, 50% 100%, 36% 64%, 0 50%, 36% 36%);
 	--home-display: "Literata Variable", Georgia, serif;
 	--home-sans: "Commissioner Variable", Arial, sans-serif;
 	--home-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -154,28 +156,56 @@ html.site body {
 	gap: 1.25rem;
 }
 
-.site-footer__contact {
-	display: flex;
-	gap: 1.25rem;
+.site-footer a:hover {
+	color: var(--home-cobalt);
 }
 
-/* Solid underline means the destination exists; dashed means it is still owed. */
-.site-footer__contact a,
-.site-footer__contact span {
-	border-bottom: 1px dashed var(--home-cobalt);
-	padding-bottom: 0.15rem;
+/* ---------- The conversation trio (ContactLinks.astro) ---------- */
+
+/* Solid border means the destination exists; dashed means it is still owed. */
+
+.contact-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem 1.25rem;
+}
+
+.contact-links a,
+.contact-links span[role="note"] {
 	color: var(--home-cobalt);
 	font-size: 0.7rem;
 	font-weight: 620;
+}
+
+.contact-links--underline a,
+.contact-links--underline span[role="note"] {
+	border-bottom: 1px dashed var(--home-cobalt);
+	padding-bottom: 0.15rem;
 	letter-spacing: 0.04em;
 }
 
-.site-footer__contact a {
+.contact-links--underline a {
 	border-bottom-style: solid;
 }
 
-.site-footer a:hover {
-	color: var(--home-cobalt);
+.contact-links--chips {
+	gap: 0.7rem;
+}
+
+.contact-links--chips a,
+.contact-links--chips span[role="note"] {
+	padding: 0.75rem 1rem;
+	border: 1px dashed var(--home-cobalt);
+}
+
+.contact-links--chips a {
+	border-style: solid;
+}
+
+.contact-links--chips a:hover,
+.contact-links--chips a:focus-visible {
+	background: var(--home-cobalt);
+	color: var(--home-paper);
 }
 
 /* ---------- Shared editorial primitives ---------- */

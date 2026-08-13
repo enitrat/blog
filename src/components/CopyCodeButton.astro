@@ -1,75 +1,37 @@
 ---
-// This component adds copy buttons to code blocks
+// Adds a copy button to every code block. Progressive enhancement: without
+// this the code is still selectable and copyable by hand.
 ---
 
 <script>
-  function initCopyButtons() {
-    // Find all code blocks
-    const codeBlocks = document.querySelectorAll('.astro-code');
+	function initCopyButtons() {
+		for (const block of document.querySelectorAll('.astro-code')) {
+			if (block.querySelector('.copy-btn')) continue;
 
-    codeBlocks.forEach((block) => {
-      // Skip if button already exists
-      if (block.querySelector('.copy-btn')) return;
+			const button = document.createElement('button');
+			button.className = 'copy-btn';
+			button.textContent = 'Copy';
+			button.setAttribute('aria-label', 'Copy code to clipboard');
 
-      // Create copy button
-      const button = document.createElement('button');
-      button.className = 'copy-btn';
-      button.textContent = 'Copy';
-      button.setAttribute('aria-label', 'Copy code to clipboard');
+			button.addEventListener('click', async () => {
+				const text = block.querySelector('code')?.textContent ?? '';
+				try {
+					await navigator.clipboard.writeText(text);
+					button.textContent = 'Copied!';
+					button.classList.add('copied');
+				} catch {
+					button.textContent = 'Failed';
+				}
+				setTimeout(() => {
+					button.textContent = 'Copy';
+					button.classList.remove('copied');
+				}, 2000);
+			});
 
-      // Add click handler
-      button.addEventListener('click', async () => {
-        const code = block.querySelector('code');
-        if (!code) return;
+			block.appendChild(button);
+		}
+	}
 
-        const text = code.textContent || '';
-
-        try {
-          await navigator.clipboard.writeText(text);
-          button.textContent = 'Copied!';
-          button.classList.add('copied');
-
-          setTimeout(() => {
-            button.textContent = 'Copy';
-            button.classList.remove('copied');
-          }, 2000);
-        } catch (err) {
-          // Fallback for older browsers
-          const textarea = document.createElement('textarea');
-          textarea.value = text;
-          textarea.style.position = 'fixed';
-          textarea.style.opacity = '0';
-          document.body.appendChild(textarea);
-          textarea.select();
-
-          try {
-            document.execCommand('copy');
-            button.textContent = 'Copied!';
-            button.classList.add('copied');
-
-            setTimeout(() => {
-              button.textContent = 'Copy';
-              button.classList.remove('copied');
-            }, 2000);
-          } catch (e) {
-            button.textContent = 'Failed';
-            setTimeout(() => {
-              button.textContent = 'Copy';
-            }, 2000);
-          }
-
-          document.body.removeChild(textarea);
-        }
-      });
-
-      // Append button to code block
-      block.appendChild(button);
-    });
-  }
-
-  // Initialize on page load
-  document.addEventListener('DOMContentLoaded', initCopyButtons);
-
-  // Re-initialize on view transitions (if using Astro's view transitions)
-  document.addEventListener('astro:page-load', initCopyButtons);
+	initCopyButtons();
+	document.addEventListener('astro:page-load', initCopyButtons);
 </script>

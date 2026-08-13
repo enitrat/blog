@@ -137,7 +137,7 @@
 	height: 0.42rem;
 	margin-right: 0.48rem;
 	background: var(--home-orange);
-	clip-path: polygon(50% 0, 64% 36%, 100% 50%, 64% 64%, 50% 100%, 36% 64%, 0 50%, 36% 36%);
+	clip-path: var(--home-star);
 }
 
 /* ---------- The reading column ---------- */
@@ -390,25 +390,8 @@
 	gap: 1rem clamp(1.5rem, 3vw, 2.75rem);
 }
 
-.sheet__conversation {
-	display: flex;
-	flex-wrap: wrap;
+.sheet__exits .contact-links {
 	gap: 1rem clamp(1.5rem, 3vw, 2.75rem);
-}
-
-/* Solid underline means the destination exists; dashed means it is still owed. */
-.sheet__conversation a,
-.sheet__conversation span {
-	border-bottom: 1px dashed var(--home-cobalt);
-	padding-bottom: 0.15rem;
-	color: var(--home-cobalt);
-	font-size: 0.7rem;
-	font-weight: 620;
-	letter-spacing: 0.04em;
-}
-
-.sheet__conversation a {
-	border-bottom-style: solid;
 }
 
 .sheet__close > div {

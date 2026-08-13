@@ -13,15 +13,18 @@ interface Props {
 	title: string;
 	description: string;
 	lang?: string;
+	/** Pass false on surfaces that already show the contact pair in their own close. */
+	footerContact?: boolean;
 }
 
-const { title, description, lang = 'en' } = Astro.props;
+const { title, description, lang = 'en', footerContact = true } = Astro.props;
 ---
 
 <!doctype html>
 <html lang={lang} class="site">
 	<head>
 		<BaseHead title={title} description={description} />
+		<slot name="head" />
 	</head>
 	<body style={`--paper-texture: url(${paperTexture.src})`}>
 		<div class="site-shell">
@@ -29,7 +32,7 @@ const { title, description, lang = 'en' } = Astro.props;
 			<main>
 				<slot />
 			</main>
-			<SiteFooter />
+			<SiteFooter contact={footerContact} />
 		</div>
 		<Analytics />
 	</body>

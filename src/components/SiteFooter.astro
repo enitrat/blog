@@ -1,4 +1,6 @@
 ---
+import ContactLinks from './ContactLinks.astro';
+
 interface Props {
 	/** Pass false on surfaces that already show the contact pair in their own close. */
 	contact?: boolean;
@@ -16,14 +18,6 @@ const year = new Date().getFullYear();
 		<a href="/about">About</a>
 		<a href="/rss.xml">RSS</a>
 	</nav>
-	{/* Give X and Telegram real hrefs once the handles exist. Deleting them
-	    instead drops the site's only invitation to start a conversation. */}
-	{contact && (
-		<span class="site-footer__contact">
-			<a href="https://github.com/enitrat" rel="me noreferrer" target="_blank">GitHub</a>
-			<span role="note">X placeholder</span>
-			<span role="note">Telegram placeholder</span>
-		</span>
-	)}
+	{contact && <ContactLinks />}
 	<span>© {year}</span>
 </footer>

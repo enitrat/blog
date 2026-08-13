@@ -50,16 +50,6 @@
 	color: var(--home-muted);
 }
 
-.copy-placeholder strong,
-.work-entry__copy strong,
-.about-close strong {
-	color: var(--home-cobalt);
-	font-size: 0.65rem;
-	font-weight: 680;
-	letter-spacing: 0.07em;
-	text-transform: uppercase;
-}
-
 .copy-placeholder p {
 	max-width: 39ch;
 	margin: 0.7rem 0 0;
@@ -120,6 +110,35 @@
 	font-size: 0.7rem;
 	font-weight: 640;
 	letter-spacing: 0.05em;
+}
+
+/* The full-bleed section heads outgrow the shared defaults above. */
+.section-heading {
+	margin-bottom: clamp(2.4rem, 5vw, 5rem);
+}
+
+.section-heading h2 {
+	font-size: clamp(3.3rem, 7vw, 6rem);
+}
+
+.section-heading p {
+	max-width: 46ch;
+	margin: 0;
+	color: var(--home-muted);
+	font-size: 0.86rem;
+}
+
+/* Align the supporting copy to the ledger grid below it rather than letting
+   space-between fling it against the far page edge, orphaned from its heading. */
+.work-section .section-heading {
+	display: grid;
+	grid-template-columns: 1.35fr 0.9fr 0.9fr;
+	gap: clamp(1.5rem, 3vw, 3.5rem);
+	align-items: baseline;
+}
+
+.work-section .section-heading p {
+	grid-column: 2 / -1;
 }
 
 .index-group ul {
@@ -185,7 +204,7 @@
 	height: 0.48rem;
 	margin-right: 0.65rem;
 	background: var(--home-orange);
-	clip-path: polygon(50% 0, 64% 36%, 100% 50%, 64% 64%, 50% 100%, 36% 64%, 0 50%, 36% 36%);
+	clip-path: var(--home-star);
 }
 
 .art-stage {
@@ -271,34 +290,6 @@
 	border-bottom: 1px solid var(--home-rule);
 }
 
-.section-heading {
-	margin-bottom: clamp(2.4rem, 5vw, 5rem);
-}
-
-/* Align the supporting copy to the ledger grid below it rather than letting
-   space-between fling it against the far page edge, orphaned from its heading. */
-.work-section .section-heading {
-	display: grid;
-	grid-template-columns: 1.35fr 0.9fr 0.9fr;
-	gap: clamp(1.5rem, 3vw, 3.5rem);
-	align-items: baseline;
-}
-
-.work-section .section-heading p {
-	grid-column: 2 / -1;
-}
-
-.section-heading h2 {
-	font-size: clamp(3.3rem, 7vw, 6rem);
-}
-
-.section-heading p {
-	max-width: 46ch;
-	margin: 0;
-	color: var(--home-muted);
-	font-size: 0.86rem;
-}
-
 .work-ledger {
 	display: grid;
 	grid-template-columns: 1.35fr 0.9fr 0.9fr;
@@ -381,33 +372,8 @@
 	color: var(--home-muted);
 }
 
-.about-close nav {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 0.7rem;
+.about-close .contact-links {
 	margin-top: 2.5rem;
-}
-
-/* Solid border means the destination exists; dashed means it is still owed.
-   The two share every other dimension so the pair reads as one row. */
-.about-close nav a,
-.about-close nav span {
-	padding: 0.75rem 1rem;
-	border: 1px dashed var(--home-cobalt);
-	color: var(--home-cobalt);
-	font-size: 0.7rem;
-	font-weight: 620;
-}
-
-.about-close nav a {
-	border-style: solid;
-	text-decoration: none;
-}
-
-.about-close nav a:hover,
-.about-close nav a:focus-visible {
-	background: var(--home-cobalt);
-	color: var(--home-paper);
 }
 
 @media (max-width: 980px) {

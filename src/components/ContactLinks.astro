@@ -1,0 +1,19 @@
+---
+/**
+ * The site's invitation to start a conversation, shown wherever a surface
+ * closes. Give X and Telegram real hrefs once the handles exist; deleting
+ * them instead drops that invitation entirely.
+ */
+interface Props {
+	/** underline = footer and article close; chips = homepage close. */
+	variant?: 'underline' | 'chips';
+}
+
+const { variant = 'underline' } = Astro.props;
+---
+
+<span class:list={['contact-links', `contact-links--${variant}`]}>
+	<a href="https://github.com/enitrat" rel="me noreferrer" target="_blank">GitHub</a>
+	<span role="note">X placeholder</span>
+	<span role="note">Telegram placeholder</span>
+</span>

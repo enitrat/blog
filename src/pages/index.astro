@@ -2,19 +2,21 @@
 import '../styles/home.css';
 
 import { Picture } from 'astro:assets';
-import { getCollection } from 'astro:content';
 import stageBuilder from '../assets/home/stage-builder.webp';
 import workLanguage from '../assets/home/work-language.webp';
 import workSystems from '../assets/home/work-systems.webp';
 import writingIdeas from '../assets/home/writing-ideas.webp';
+import ArrowIcon from '../components/ArrowIcon.astro';
+import ContactLinks from '../components/ContactLinks.astro';
 import LivingIndex, { type LivingIndexItem } from '../components/home/LivingIndex.astro';
+import WritingLedgerRow from '../components/WritingLedgerRow.astro';
 import { SITE_DESCRIPTION } from '../consts';
 import Page from '../layouts/Page.astro';
+import { getWritingIndex, postUrl } from '../utils/writing';
 
-// A translation is offered inside its own article, never as a second index row.
-const writingPosts = (await getCollection('blog'))
-	.filter((post) => post.data.lang === 'en')
-	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+// The Living Index and the writing ledger below it show the same four pieces;
+// deriving both from this one list keeps them from drifting apart.
+const recentPosts = (await getWritingIndex()).slice(0, 4);
 
 const work: LivingIndexItem[] = [
 	{
@@ -45,10 +47,10 @@ const work: LivingIndexItem[] = [
 ];
 
 const writingArt = [writingIdeas, workLanguage, workSystems, stageBuilder];
-const writing: LivingIndexItem[] = writingPosts.slice(0, 4).map((post, index) => ({
+const writing: LivingIndexItem[] = recentPosts.map((post, index) => ({
 	id: `writing-${post.id.replaceAll('/', '-')}`,
 	title: post.data.title,
-	href: `/writing/${post.id}/`,
+	href: postUrl(post),
 	description: post.data.description,
 	art: writingArt[index % writingArt.length],
 }));
@@ -60,7 +62,7 @@ const writing: LivingIndexItem[] = writingPosts.slice(0, 4).map((post, index) =>
 	<section class="work-section" id="work" aria-labelledby="work-title">
 		<header class="section-heading">
 			<h2 id="work-title">Work</h2>
-			<p><strong>Section copy placeholder.</strong> Field Reports will replace the temporary notes below.</p>
+			<p><strong class="label">Section copy placeholder.</strong> Field Reports will replace the temporary notes below.</p>
 		</header>
 		<div class="work-ledger">
 			{work.map((item, index) => (
@@ -75,10 +77,10 @@ const writing: LivingIndexItem[] = writingPosts.slice(0, 4).map((post, index) =>
 					/>
 					<div class="work-entry__copy">
 						<h3>{item.title}</h3>
-						<p><strong>Copy placeholder.</strong> Add the situation, your role, one consequential architectural or product decision, and the outcome.</p>
+						<p><strong class="label">Copy placeholder.</strong> Add the situation, your role, one consequential architectural or product decision, and the outcome.</p>
 						<a href={item.href} target="_blank" rel="noreferrer">
 							Visit project
-							<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
+							<ArrowIcon />
 						</a>
 					</div>
 				</article>
@@ -92,19 +94,8 @@ const writing: LivingIndexItem[] = writingPosts.slice(0, 4).map((post, index) =>
 			<a href="/writing">Browse all writing</a>
 		</header>
 		<div class="writing-ledger">
-			{writingPosts.slice(0, 4).map((post) => (
-				<article>
-					<time datetime={post.data.pubDate.toISOString()}>
-						{post.data.pubDate.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: '2-digit' })}
-					</time>
-					<div>
-						<h3><a href={`/writing/${post.id}/`}>{post.data.title}</a></h3>
-						<p>{post.data.description}</p>
-					</div>
-					<a class="writing-ledger__arrow" href={`/writing/${post.id}/`} aria-label={`Read ${post.data.title}`}>
-						<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
-					</a>
-				</article>
+			{recentPosts.map((post) => (
+				<WritingLedgerRow post={post} />
 			))}
 		</div>
 	</section>
@@ -112,14 +103,8 @@ const writing: LivingIndexItem[] = writingPosts.slice(0, 4).map((post, index) =>
 	<section class="about-close" id="about" aria-labelledby="about-title">
 		<h2 id="about-title">Closing statement placeholder</h2>
 		<div>
-			<p><strong>Closing copy placeholder.</strong> Add a short invitation in your own voice for people who want to exchange ideas or discuss what they are building.</p>
-			{/* Give X and Telegram real hrefs once the handles exist; deleting them
-			    instead drops the invitation to start a conversation. */}
-			<nav aria-label="Elsewhere">
-				<a href="https://github.com/enitrat" rel="me noreferrer" target="_blank">GitHub</a>
-				<span>X link placeholder</span>
-				<span>Telegram link placeholder</span>
-			</nav>
+			<p><strong class="label">Closing copy placeholder.</strong> Add a short invitation in your own voice for people who want to exchange ideas or discuss what they are building.</p>
+			<ContactLinks variant="chips" />
 		</div>
 	</section>
 </Page>
