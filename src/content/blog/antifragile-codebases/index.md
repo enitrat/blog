@@ -2,9 +2,10 @@
 title: "Antifragility in the Age of Agentic Code"
 pubDate: 2026-03-24
 description: "A mental model for how to handle the increasing amount of AI-produced code in codebases"
+related: ['software-factories', 'ai-swe-junior']
 ---
 
-![Banner](./banner.png)
+![](./banner.png)
 
 King Mithridates VI of Pontus had a rather strange daily ritual: he ingested small doses of poison, methodically, over years, to build resistance against assassination by poisoning. In _Antifragile_, Nicholas Nassim Taleb defines _antifragility_ as a system that doesn't just resist stress, but improves because of it. Every time King Mithridates ingested a dose of poison, he became more and more tolerant to it.
 
@@ -71,7 +72,7 @@ This adversarial workflow frees up time to focus on product and system design, w
 
 Here's a concrete illustration of one of my "Implementation" workflows, available on my [GitHub](https://github.com/enitrat/ralphinho). It takes a plan as input, iterates on implementation and review until multiple agents agree on a satisfactory result, and learns from each subsequent review cycle. From these learnings, I can derive new rules that the system enforces, steadily improving the quality of the codebase over time.
 
-![Workflow Illustration](./workflow.png)
+![The implementation workflow takes a plan through research, plan and implement phases, loops between implementation and review until the reviews come back clean, then turns the learnings extracted from each cycle into new enforced rules.](./workflow.png)
 
 ## The cost of skipping the preparation
 

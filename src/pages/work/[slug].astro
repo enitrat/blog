@@ -1,0 +1,77 @@
+---
+import { type CollectionEntry, getCollection, render } from 'astro:content';
+import ArrowIcon from '../../components/ArrowIcon.astro';
+import ContactLinks from '../../components/ContactLinks.astro';
+import Sheet from '../../layouts/Sheet.astro';
+import { getWorkIndex, workUrl } from '../../utils/work';
+
+export async function getStaticPaths() {
+	const reports = await getCollection('work');
+	return reports.map((report) => ({
+		params: { slug: report.id },
+		props: { report },
+	}));
+}
+
+type Props = { report: CollectionEntry<'work'> };
+
+const { report } = Astro.props;
+const { Content, headings } = await render(report);
+const { title, summary, role, period, site } = report.data;
+
+const siblings = (await getWorkIndex()).filter((r) => r.id !== report.id).slice(0, 2);
+---
+
+<Sheet title={title} description={summary} headings={headings}>
+	<dl class="sheet__facts" slot="facts">
+		{role && (
+			<div>
+				<dt>Role</dt>
+				<dd>{role}</dd>
+			</div>
+		)}
+		{period && (
+			<div>
+				<dt>Period</dt>
+				<dd>{period}</dd>
+			</div>
+		)}
+		{site && (
+			<div>
+				<dt>Project</dt>
+				<dd>
+					<a href={site} rel="noreferrer" target="_blank">
+						Visit {title}
+						<span class="sr-only">(opens in a new tab)</span>
+					</a>
+				</dd>
+			</div>
+		)}
+	</dl>
+
+	<Content />
+
+	<Fragment slot="close">
+		{siblings.length > 0 && (
+			<nav class="sheet__onward" aria-label="More work">
+				{siblings.map((sibling) => (
+					<a class="sheet__onward-item" href={workUrl(sibling)}>
+						<span>Also in work</span>
+						<strong>{sibling.data.title}</strong>
+					</a>
+				))}
+			</nav>
+		)}
+		<div class="sheet__exits">
+			<a class="sheet__all" href="/work">
+				<ArrowIcon direction="left" />
+				All work
+			</a>
+			<a class="sheet__all" href="/writing">
+				<ArrowIcon />
+				Writing
+			</a>
+			<ContactLinks />
+		</div>
+	</Fragment>
+</Sheet>

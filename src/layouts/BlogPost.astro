@@ -1,13 +1,9 @@
 ---
-import '../styles/article.css';
-
 import type { CollectionEntry } from 'astro:content';
 import type { MarkdownHeading } from 'astro';
 import ArrowIcon from '../components/ArrowIcon.astro';
 import ContactLinks from '../components/ContactLinks.astro';
-import CopyCodeButton from '../components/CopyCodeButton.astro';
-import { isArgumentHeading } from '../utils/sections.mjs';
-import Page from './Page.astro';
+import Sheet from './Sheet.astro';
 
 type Translation = {
 	lang: string;
@@ -17,16 +13,45 @@ type Translation = {
 
 type Adjacent = { href: string; title: string };
 
-type Props = CollectionEntry<'blog'>['data'] & {
+// Omitted because `related` arrives here already resolved from base slugs to
+// links.
+type Props = Omit<CollectionEntry<'blog'>['data'], 'related'> & {
 	translations?: Translation[];
 	headings?: MarkdownHeading[];
 	newer?: Adjacent;
 	older?: Adjacent;
+	/** When present, these replace the chronological neighbours in the close. */
+	related?: Adjacent[];
 };
 
 const langLabels: Record<string, string> = {
 	en: '[EN] Read in English',
 	fr: '[FR] Lire en français',
+};
+
+const uiLabels: Record<string, Record<string, string>> = {
+	en: {
+		published: 'Published',
+		updated: 'Updated',
+		alsoIn: 'Also in',
+		previous: 'Previous',
+		next: 'Next',
+		related: 'Related',
+		onward: 'More writing',
+		allWriting: 'All writing',
+		bookshelf: 'Bookshelf',
+	},
+	fr: {
+		published: 'Publié',
+		updated: 'Mis à jour',
+		alsoIn: 'Aussi en',
+		previous: 'Précédent',
+		next: 'Suivant',
+		related: 'Sur le même sujet',
+		onward: "Plus d'écrits",
+		allWriting: 'Tous les écrits',
+		bookshelf: 'Bibliothèque',
+	},
 };
 
 const {
@@ -39,35 +64,32 @@ const {
 	headings = [],
 	newer,
 	older,
+	related = [],
 } = Astro.props;
 
+const t = uiLabels[lang] ?? uiLabels.en;
 const dateLocale = lang === 'fr' ? 'fr-FR' : 'en-GB';
 const formatDate = (date: Date) =>
 	date.toLocaleDateString(dateLocale, { year: 'numeric', month: 'long', day: 'numeric' });
 
-// Deeper than h3 crowds the margin rather than helping anyone navigate.
-let section = 0;
-const contents = headings
-	.filter((heading) => heading.depth === 2 || heading.depth === 3)
-	.map((heading) => {
-		const numbered = heading.depth === 2 && isArgumentHeading(heading.slug);
-		if (numbered) section += 1;
-		return { ...heading, ordinal: numbered ? section : undefined };
-	});
+const onward =
+	related.length > 0
+		? related.slice(0, 2).map((item) => ({ ...item, label: t.related }))
+		: [
+				...(older ? [{ ...older, label: t.previous, rel: 'prev' }] : []),
+				...(newer ? [{ ...newer, label: t.next, rel: 'next', next: true }] : []),
+			];
 ---
 
-<Page title={title} description={description} lang={lang} footerContact={false}>
+<Sheet title={title} description={description} lang={lang} headings={headings}>
 	<Fragment slot="head">
-		{/* Preloaded here, not in the shared head: the article is the only surface
-		    that paints a code glyph. */}
-		<link rel="preload" href="/fonts/roboto-mono-regular.woff2" as="font" type="font/woff2" crossorigin />
 		{/* Translations appear in no index, so these are the only signal that the
 		    two pages are one piece; without them a crawler sees duplicate content. */}
 		{translations.length > 0 && (
 			<Fragment>
 				<link rel="alternate" hreflang={lang} href={new URL(Astro.url.pathname, Astro.site)} />
-				{translations.map((t) => (
-					<link rel="alternate" hreflang={t.lang} href={new URL(t.href, Astro.site)} />
+				{translations.map((tr) => (
+					<link rel="alternate" hreflang={tr.lang} href={new URL(tr.href, Astro.site)} />
 				))}
 			</Fragment>
 		)}
@@ -84,152 +106,60 @@ const contents = headings
 		/>
 	</Fragment>
 
-	<article class="sheet">
-		<header class="sheet__head">
-			<h1>{title}</h1>
-			{description && <p class="sheet__standfirst">{description}</p>}
-		</header>
-
-		<div class="sheet__body">
-			<aside class="sheet__margin" aria-label="Article details">
-				<dl class="sheet__facts">
-					<div>
-						<dt>Published</dt>
-						<dd><time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time></dd>
-					</div>
-					{updatedDate && (
-						<div>
-							<dt>Updated</dt>
-							<dd>
-								<time datetime={updatedDate.toISOString()}>{formatDate(updatedDate)}</time>
-							</dd>
-						</div>
-					)}
-					{translations.length > 0 && (
-						<div>
-							<dt>Also in</dt>
-							{translations.map((t) => (
-								<dd>
-									<a href={t.href} hreflang={t.lang} lang={t.lang}>
-										{langLabels[t.lang] || t.lang}
-									</a>
-								</dd>
-							))}
-						</div>
-					)}
-				</dl>
-
-				{contents.length > 1 && (
-					<nav class="sheet__contents" aria-label="Contents" data-contents>
-						<span>Contents</span>
-						<ol>
-							{contents.map((heading) => (
-								<li data-depth={heading.depth}>
-									<a href={`#${heading.slug}`} data-contents-link={heading.slug}>
-										{heading.ordinal && <i aria-hidden="true">§{heading.ordinal}</i>}
-										{heading.text}
-									</a>
-								</li>
-							))}
-						</ol>
-					</nav>
-				)}
-			</aside>
-
-			<div class="article-body">
-				<slot />
-			</div>
+	<dl class="sheet__facts" slot="facts">
+		<div>
+			<dt>{t.published}</dt>
+			<dd><time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time></dd>
 		</div>
-
-		<footer class="sheet__close">
+		{updatedDate && (
 			<div>
-				<nav class="sheet__onward" aria-label="More writing">
-					{older && (
-						<a class="sheet__onward-item" href={older.href} rel="prev">
-							<span>Previous</span>
-							<strong>{older.title}</strong>
-						</a>
-					)}
-					{newer && (
-						<a class="sheet__onward-item sheet__onward-item--next" href={newer.href} rel="next">
-							<span>Next</span>
-							<strong>{newer.title}</strong>
-						</a>
-					)}
-				</nav>
-				<div class="sheet__exits">
-					<a class="sheet__all" href="/writing">
-						<ArrowIcon direction="left" />
-						All writing
-					</a>
-					<a class="sheet__all" href="/bookshelf">
-						<ArrowIcon />
-						Bookshelf
-					</a>
-					<ContactLinks />
-				</div>
+				<dt>{t.updated}</dt>
+				<dd>
+					<time datetime={updatedDate.toISOString()}>{formatDate(updatedDate)}</time>
+				</dd>
 			</div>
-		</footer>
-	</article>
+		)}
+		{translations.length > 0 && (
+			<div>
+				<dt>{t.alsoIn}</dt>
+				{translations.map((tr) => (
+					<dd>
+						<a href={tr.href} hreflang={tr.lang} lang={tr.lang}>
+							{langLabels[tr.lang] || tr.lang}
+						</a>
+					</dd>
+				))}
+			</div>
+		)}
+	</dl>
 
-	<CopyCodeButton />
+	<slot />
 
-	<script>
-		// Progressive enhancement: without this every heading link still anchors.
-		function setupContents() {
-			const nav = document.querySelector<HTMLElement>('[data-contents]');
-			if (!nav || nav.dataset.ready === 'true') return;
-			nav.dataset.ready = 'true';
-
-			const links = new Map<string, HTMLElement>();
-			for (const link of nav.querySelectorAll<HTMLElement>('[data-contents-link]')) {
-				const slug = link.dataset.contentsLink;
-				if (slug) links.set(slug, link);
-			}
-
-			const targets = [...links.keys()]
-				.map((slug) => document.getElementById(slug))
-				.filter((el): el is HTMLElement => el !== null);
-			if (targets.length === 0) return;
-
-			let currentSlug = '';
-			const mark = (slug: string) => {
-				if (slug === currentSlug) return;
-				currentSlug = slug;
-				for (const [key, link] of links) {
-					if (key === slug) link.setAttribute('aria-current', 'true');
-					else link.removeAttribute('aria-current');
-				}
-			};
-
-			// Nearest heading above the reading line wins, so the mark tracks what
-			// is being read rather than whichever heading last crossed a threshold.
-			const select = () => {
-				const line = window.innerHeight * 0.28;
-				let best = targets[0];
-				for (const target of targets) {
-					if (target.getBoundingClientRect().top <= line) best = target;
-					else break;
-				}
-				mark(best.id);
-			};
-
-			let queued = false;
-			const onScroll = () => {
-				if (queued) return;
-				queued = true;
-				requestAnimationFrame(() => {
-					queued = false;
-					select();
-				});
-			};
-
-			select();
-			window.addEventListener('scroll', onScroll, { passive: true });
-			window.addEventListener('resize', onScroll, { passive: true });
-		}
-
-		setupContents();
-		document.addEventListener('astro:page-load', setupContents);
-	</script>
-</Page>
+	<Fragment slot="close">
+		{onward.length > 0 && (
+			<nav class="sheet__onward" aria-label={t.onward}>
+				{onward.map((item) => (
+					<a
+						class:list={['sheet__onward-item', 'next' in item && item.next && 'sheet__onward-item--next']}
+						href={item.href}
+						rel={'rel' in item ? item.rel : undefined}
+					>
+						<span>{item.label}</span>
+						<strong>{item.title}</strong>
+					</a>
+				))}
+			</nav>
+		)}
+		<div class="sheet__exits">
+			<a class="sheet__all" href="/writing">
+				<ArrowIcon direction="left" />
+				{t.allWriting}
+			</a>
+			<a class="sheet__all" href="/bookshelf">
+				<ArrowIcon />
+				{t.bookshelf}
+			</a>
+			<ContactLinks />
+		</div>
+	</Fragment>
+</Sheet>

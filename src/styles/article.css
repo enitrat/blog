@@ -1,4 +1,4 @@
-/* The reading surface for a single article: one measured column with the
+/* The reading surface for a single document: one measured column with the
    editorial apparatus in the outer margin. */
 
 .sheet {
@@ -38,6 +38,10 @@
 /* ---------- The margin apparatus ---------- */
 
 .sheet__margin {
+	position: sticky;
+	top: 2.5rem;
+	max-height: calc(100svh - 5rem);
+	overflow-y: auto;
 	padding: clamp(2.5rem, 5vw, 4rem) clamp(1.5rem, 3vw, 3rem) 3rem 0;
 }
 
@@ -92,59 +96,71 @@
 	margin-bottom: 0.1rem;
 }
 
-.sheet__contents li[data-depth="3"] {
-	padding-left: 0.85rem;
+/* Fixed columns, so the active state can only change colour, never geometry. */
+.site .sheet__contents a {
+	display: grid;
+	grid-template-columns: 0.95rem 1.6rem minmax(0, 1fr);
+	padding: 0.3rem 0;
+	color: var(--home-muted);
+	font-size: 0.78rem;
+	line-height: 1.35;
+	transition: color 200ms ease;
+}
+
+.sheet__contents a::before {
+	content: "";
+	grid-column: 1;
+	grid-row: 1;
+	align-self: center;
+	width: 0.42rem;
+	height: 0.42rem;
+	background: transparent;
+	clip-path: var(--home-star);
 }
 
 .sheet__contents a i {
-	display: inline-block;
-	min-width: 1.5rem;
+	grid-column: 2;
+	grid-row: 1;
 	color: color-mix(in srgb, var(--home-cobalt) 62%, var(--home-paper));
 	font-family: var(--home-display);
 	font-style: normal;
+}
+
+.sheet__contents a .t {
+	grid-column: 3;
+	grid-row: 1;
+}
+
+.sheet__contents li[data-depth="3"] .t {
+	padding-left: 0.85rem;
+}
+
+.site .sheet__contents a:hover,
+.site .sheet__contents a:focus-visible,
+.site .sheet__contents a[aria-current="true"] {
+	color: var(--home-cobalt);
+}
+
+.site .sheet__contents a[aria-current="true"] {
+	font-weight: 600;
 }
 
 .site .sheet__contents a[aria-current="true"] i {
 	color: var(--home-cobalt);
 }
 
-.site .sheet__contents a {
-	display: block;
-	padding: 0.3rem 0 0.3rem 0.9rem;
-	color: var(--home-muted);
-	font-size: 0.78rem;
-	line-height: 1.35;
-	transition:
-		color 200ms ease,
-		padding-left 240ms cubic-bezier(0.2, 0.75, 0.2, 1);
-}
-
-.site .sheet__contents a:hover,
-.site .sheet__contents a:focus-visible {
-	color: var(--home-cobalt);
-}
-
-.site .sheet__contents a[aria-current="true"] {
-	padding-left: 0;
-	color: var(--home-cobalt);
-	font-weight: 600;
-}
-
 .sheet__contents a[aria-current="true"]::before {
-	content: "";
-	display: inline-block;
-	width: 0.42rem;
-	height: 0.42rem;
-	margin-right: 0.48rem;
 	background: var(--home-orange);
-	clip-path: var(--home-star);
 }
 
 /* ---------- The reading column ---------- */
 
+/* Two tracks: prose keeps the 52ch measure, code and media span both. */
 .article-body {
-	--reading-inset: clamp(1.5rem, 3.5vw, 3.5rem);
-	max-width: 52ch;
+	--reading-inset: clamp(3.4rem, 5vw, 4.5rem);
+	display: grid;
+	grid-template-columns: minmax(0, 52ch) minmax(0, 1fr);
+	align-content: start;
 	padding: clamp(2.5rem, 5vw, 4rem) 0 clamp(4rem, 8vw, 7rem) var(--reading-inset);
 	border-left: 1px solid var(--home-rule);
 	font-size: 1.02rem;
@@ -152,10 +168,26 @@
 	text-align: left;
 }
 
+.article-body > * {
+	grid-column: 1;
+}
+
+/* The wide track, capped so a very wide screen never stretches a line of code
+   past what one glance can follow. */
+.article-body > pre,
+.article-body > figure,
+.article-body > table,
+.article-body > p:has(> img:only-child) {
+	grid-column: 1 / -1;
+	max-width: min(100%, 86ch);
+}
+
 .article-body > :first-child {
 	margin-top: 0;
 }
 
+/* Grid items do not collapse margins, so the heading gaps below add to this
+   1.35em rather than absorbing it. */
 .article-body p {
 	margin: 0 0 1.35em;
 }
@@ -171,30 +203,57 @@
 	scroll-margin-top: 2rem;
 }
 
+.article-body h2,
+.article-body .section-head {
+	margin: 2.1rem 0 1.1rem;
+}
+
 .article-body h2 {
-	position: relative;
-	margin: 3.4rem 0 1.1rem;
 	padding-top: 1.1rem;
 	border-top: 1px solid var(--home-rule);
 	font-size: clamp(1.7rem, 3vw, 2.25rem);
 }
 
+.article-body .section-head {
+	position: relative;
+	grid-column: 1;
+}
+
+.article-body .section-head h2 {
+	margin: 0;
+}
+
+/* An authored `---` before a heading would print two identical rules in a row. */
+.article-body hr:has(+ h2),
+.article-body hr:has(+ .section-head) {
+	display: none;
+}
+
 .article-body h3 {
-	margin: 2.6rem 0 0.85rem;
+	margin: 1.3rem 0 0.85rem;
 	font-size: clamp(1.25rem, 2vw, 1.5rem);
 }
 
-/* Pulled into the outer margin, level with the heading it names. */
-.site .section-mark {
+.article-body h4 {
+	margin: 0.7rem 0 0.7rem;
+	font-size: 1.05rem;
+}
+
+/* Hung in the reading gutter, level with the heading it names. The padding is
+   invisible hit area only, so the widest mark (§ plus two numerals) must still
+   clear the column rule. */
+.site .article-body .section-mark {
 	position: absolute;
-	top: 1.5rem;
-	right: calc(100% + var(--reading-inset) + var(--margin-col) - 3.5rem);
+	top: 1.2rem;
+	right: calc(100% + 0.6rem);
 	display: flex;
 	align-items: baseline;
 	gap: 0.15rem;
+	padding: 0.45rem;
+	margin: -0.45rem;
 	color: color-mix(in srgb, var(--home-cobalt) 62%, var(--home-paper));
 	font-family: var(--home-display);
-	font-size: 0.95rem;
+	font-size: 1.15rem;
 	font-weight: 560;
 	line-height: 1;
 	text-decoration: none;
@@ -206,14 +265,9 @@
 	font-weight: 560;
 }
 
-.article-body h2:hover .section-mark,
+.article-body .section-head:hover .section-mark,
 .site .section-mark:focus-visible {
 	color: var(--home-cobalt);
-}
-
-.article-body h4 {
-	margin: 2rem 0 0.7rem;
-	font-size: 1.05rem;
 }
 
 .site .article-body a {
@@ -249,7 +303,7 @@
 }
 
 .article-body blockquote {
-	margin: 2rem 0;
+	margin: 0.65rem 0 2rem;
 	padding: 0.2rem 0 0.2rem 1.4rem;
 	border-left: 1px solid var(--home-cobalt);
 	color: var(--home-muted);
@@ -262,7 +316,7 @@
 
 .article-body hr {
 	height: 0;
-	margin: 3rem 0;
+	margin: 1.65rem 0 3rem;
 	border: 0;
 	border-top: 1px solid var(--home-rule);
 }
@@ -271,7 +325,7 @@
 	display: block;
 	width: 100%;
 	height: auto;
-	margin: 2.2rem 0;
+	margin: 0.85rem 0 2.2rem;
 	background: var(--home-ink);
 }
 
@@ -281,7 +335,11 @@
 }
 
 .article-body figure {
-	margin: 2.2rem 0;
+	margin: 0.85rem 0 2.2rem;
+}
+
+.article-body figure img {
+	margin: 0;
 }
 
 .article-body figcaption {
@@ -291,8 +349,10 @@
 }
 
 .article-body table {
-	width: 100%;
-	margin: 2rem 0;
+	display: block;
+	width: fit-content;
+	margin: 0.65rem 0 2rem;
+	overflow-x: auto;
 	border-collapse: collapse;
 	font-size: 0.86rem;
 }
@@ -324,16 +384,45 @@
 	font-size: 0.86em;
 }
 
+/* Scroll shadows: paper masks pinned with background-attachment: local ride
+   the scroll, so an ink edge shows only while there is more code that way. */
 .article-body pre {
 	position: relative;
-	margin: 2rem 0;
+	margin: 0.65rem 0 2rem;
 	padding: 1.1rem 1.2rem;
 	overflow-x: auto;
 	border: 1px solid var(--home-rule);
-	border-left: 1px solid var(--home-cobalt);
+	border-left: 2px solid var(--home-cobalt);
+	background:
+		linear-gradient(to right, var(--home-paper) 40%, rgb(247 245 240 / 0%)) left / 2.5rem 100%
+		no-repeat local,
+		linear-gradient(to left, var(--home-paper) 40%, rgb(247 245 240 / 0%)) right / 2.5rem 100%
+		no-repeat local,
+		linear-gradient(to right, rgb(23 25 29 / 14%), rgb(23 25 29 / 0%)) left / 0.85rem 100% no-repeat
+		scroll,
+		linear-gradient(to left, rgb(23 25 29 / 14%), rgb(23 25 29 / 0%)) right / 0.85rem 100% no-repeat
+		scroll;
 	font-size: 0.82rem;
 	line-height: 1.6;
 	tab-size: 2;
+}
+
+.article-body pre:focus-visible {
+	outline: 2px solid var(--home-cobalt);
+	outline-offset: 4px;
+}
+
+.article-body pre[data-language]:not([data-language="plaintext"])::before {
+	content: attr(data-language);
+	position: absolute;
+	top: 0.6rem;
+	right: 0.6rem;
+	color: var(--home-muted);
+	font-family: var(--home-sans);
+	font-size: 0.58rem;
+	font-weight: 680;
+	letter-spacing: 0.07em;
+	text-transform: uppercase;
 }
 
 .article-body pre code {
@@ -375,7 +464,112 @@
 	color: var(--home-orange);
 }
 
-/* ---------- Article close ---------- */
+/* ---------- The progress rail ---------- */
+
+.progress-rail {
+	position: fixed;
+	top: 50%;
+	right: clamp(0.6rem, 1.2vw, 1.4rem);
+	z-index: 5;
+	display: flex;
+	flex-direction: column;
+	gap: 0.55rem;
+	align-items: flex-end;
+	translate: 0 -50%;
+	opacity: 0;
+	visibility: hidden;
+	transition:
+		opacity 260ms ease,
+		visibility 260ms step-end;
+}
+
+.progress-rail[data-visible="true"] {
+	opacity: 1;
+	visibility: visible;
+	transition:
+		opacity 260ms ease,
+		visibility 0ms step-start;
+}
+
+.progress-rail button {
+	display: block;
+	width: 1.35rem;
+	height: 2px;
+	padding: 0;
+	border: 0;
+	background: color-mix(in srgb, var(--home-ink) 26%, var(--home-paper));
+	cursor: pointer;
+	transition:
+		background 200ms ease,
+		width 200ms ease;
+}
+
+.progress-rail button[data-depth="3"] {
+	width: 0.8rem;
+}
+
+/* Generous invisible hit area around a 2px line. */
+.progress-rail button::after {
+	content: "";
+	display: block;
+	height: 0.55rem;
+	margin-top: -0.28rem;
+}
+
+.progress-rail button:hover {
+	background: var(--home-cobalt);
+}
+
+.progress-rail button[data-current="true"] {
+	width: 1.8rem;
+	background: var(--home-cobalt);
+}
+
+.progress-rail button b {
+	position: absolute;
+	right: calc(100% + 0.9rem);
+	top: 50%;
+	max-width: 18rem;
+	padding: 0.45rem 0.7rem;
+	border: 1px solid var(--home-ink);
+	background: var(--home-paper);
+	color: var(--home-ink);
+	font-family: var(--home-sans);
+	font-size: 0.72rem;
+	font-weight: 560;
+	line-height: 1.35;
+	text-align: left;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	translate: 0 -50%;
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition: opacity 160ms ease;
+}
+
+.progress-rail li {
+	position: relative;
+	list-style: none;
+}
+
+.progress-rail ol {
+	display: contents;
+}
+
+.progress-rail button:hover b {
+	opacity: 1;
+	visibility: visible;
+}
+
+@media (max-width: 980px) {
+	.progress-rail {
+		display: none;
+	}
+}
+
+/* ---------- Document close ---------- */
 
 .sheet__close {
 	display: grid;
@@ -436,6 +630,11 @@
 	text-align: right;
 }
 
+/* A lone next-neighbour has nothing to sit opposite, so it stops right-aligning. */
+.sheet__onward-item--next:only-child {
+	text-align: left;
+}
+
 .sheet__onward-item strong {
 	font-family: var(--home-display);
 	font-size: clamp(1.1rem, 1.8vw, 1.4rem);
@@ -476,6 +675,8 @@
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
 		gap: 0 clamp(1.5rem, 4vw, 3rem);
+		max-height: none;
+		overflow: visible;
 		padding: 2rem 0;
 		border-right: 0;
 		border-bottom: 1px solid var(--home-rule);
@@ -503,13 +704,19 @@
 		border-left: 0;
 	}
 
-	/* No outer margin to hang the reference in, so it sets inline ahead of its
+	/* No outer gutter to hang the reference in, so it sets inline ahead of its
 	   heading and keeps its link. */
-	.site .section-mark {
+	.site .article-body .section-mark {
 		position: static;
 		float: left;
-		margin-right: 0.55rem;
+		margin: 0 0.55rem 0 0;
+		padding: 0;
 		color: var(--home-cobalt);
+		font-size: 0.95rem;
+	}
+
+	.article-body .section-head h2 {
+		padding-top: 1.1rem;
 	}
 
 	.sheet__close > div {
@@ -523,17 +730,17 @@
 	}
 
 	.article-body pre {
+		max-width: none;
 		margin-inline: calc(var(--home-gutter) * -1);
 		padding-inline: var(--home-gutter);
 		border-inline: 0;
-		border-left: 1px solid var(--home-cobalt);
+		border-left: 2px solid var(--home-cobalt);
 	}
 }
 
-/* Movement goes, state stays: the active entry still marks, it just
-   no longer slides there. */
 @media (prefers-reduced-motion: reduce) {
-	.site .sheet__contents a {
-		transition: color 200ms ease;
+	.site .sheet__contents a,
+	.progress-rail button {
+		transition: none;
 	}
 }

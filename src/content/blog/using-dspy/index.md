@@ -2,6 +2,7 @@
 title: "Using DSPy in Production"
 pubDate: 2025-09-29
 description: "Going from simple DSPy modules to an optimized production-ready application"
+related: ['software-factories']
 diagram: "
 flowchart TD
     Start([User Query + Chat History]) -->|input| QP[QueryProcessorProgram]
@@ -24,23 +25,11 @@ flowchart TD
 "
 ---
 
-![DSPy Logo](./banner.png)
+![](./banner.png)
 
 The following content is not an introduction to DSPy, nor is it a tutorial to learn how to use DSPy. I believe this topic has already been well covered (see articles by [Maxime Rivest](https://x.com/MaximeRivest/articles), [DSPy-0-to-1](https://github.com/haasonsaas/dspy-0to1-guide) and the [DSPy Documentation](https://dspy.ai/)). However, I believe that there's a lack of content on how to bring an AI-based app using DSPy to production, notably on using Async DSPy and I aim to close part of this gap with this article, inspired by a project that I've been working on.
 
 *After writing this article, I found out that the DSPy documentation now has a [section on tooling, development, and deployment](https://dspy.ai/tutorials/core_development/) that addresses the same gap I aimed to cover here. Be sure to take a look!*
-
-## Table of Contents
-
-- [Composing DSPy Programs - An Async Approach](#composing-dspy-programs---an-async-approach)
-- [Optimizing Programs](#optimizing-programs)
-  - [Isolating The Program to Optimize](#isolating-the-program-to-optimize)
-  - [Optimizers For Async Programs](#optimizers-for-async-programs)
-  - [Defining The Right Metric Function](#defining-the-right-metric-function)
-- [Third-Party Monitoring Services](#third-party-monitoring-services)
-- [Serving the app with an API](#serving-the-app-with-an-api)
-- [Conclusion](#conclusion)
-
 
 I've made an opinionated choice on what tech stack to use based on what I had previous experience with. Notably, I've chosen to use:
 
@@ -154,7 +143,7 @@ It's a rather simple program! It takes as input a user's query and some context 
 
 The following diagram reflects the current structure of the pipeline.
 
-![pipeline diagram](./mermaid.png)
+![A user query and chat history pass through the query processor, then the document retriever, which runs a semantic search against Postgres with pgvector, then the retrieval judge, whose filtered documents are either formatted as MCP context or handed to the generation program to produce an answer.](./mermaid.png)
 
 With this structure in mind, you should have a broad overview of how DSPy programs can be composed. The only thing I want to emphasize is that your programs should be designed **async-first** rather than synchronous. So far, there's nothing really complex — until we discover that optimizers need to run synchronous code!
 
@@ -405,7 +394,7 @@ When you run GEPA, it will update the `instructions` field of the `signature` ob
 
 The results of the optimization are quite good on our code generation program! We're up 5 points when optimizing Gemini Flash (stable), and 3 points when optimizing Gemini Flash (preview).
 
-![results](./results.jpg)
+![Bar chart of generation quality against the golden set: GEPA optimization raises the score from 0.564 to 0.614 on gemini-stable and from 0.730 to 0.760 on gemini-preview.](./results.jpg)
 
 ## Third-Party Monitoring Services
 
@@ -413,7 +402,7 @@ If you're running an AI application, you need to have insights into what's happe
 
 In fact, integrating LangSmith is dead simple: you only need to add the langsmith dependency, some environment variables, and apply the `@traceable` decorator to the functions you want to trace. What I like the most about it is that you can control the granularity of each trace easily. Here's an example of a trace, showing the different steps of the pipeline. You can inspect in details the inputs and outputs of each step to evaluate how your system is performing.
 
-![LangSmith](./langsmith_trace.png)
+![A LangSmith waterfall trace of one 11.64-second RAG pipeline run, breaking it down into the query processor, document retriever, retrieval judge and generation program steps with their individual durations.](./langsmith_trace.png)
 
 Once you start collecting traces, you'll get better insights into the queries that your users are sending to your app. Make sure that you take those queries and make them part of your training dataset; this gives you a strong dataset of real-world data for your optimizers.
 

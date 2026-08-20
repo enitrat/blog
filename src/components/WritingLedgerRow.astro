@@ -7,9 +7,11 @@ interface Props {
 	post: CollectionEntry<'blog'>;
 	/** Omit the year where the surrounding list already groups by it. */
 	showYear?: boolean;
+	/** Codes of the other languages this piece exists in. */
+	extraLangs?: string[];
 }
 
-const { post, showYear = true } = Astro.props;
+const { post, showYear = true, extraLangs = [] } = Astro.props;
 const { title, description, pubDate } = post.data;
 const href = postUrl(post);
 const dateLabel = pubDate.toLocaleDateString('en-GB', {
@@ -17,10 +19,20 @@ const dateLabel = pubDate.toLocaleDateString('en-GB', {
 	month: 'short',
 	day: '2-digit',
 });
+const langNames = new Intl.DisplayNames('en', { type: 'language' });
+const langsGloss = extraLangs.map((lang) => langNames.of(lang) ?? lang).join(', ');
 ---
 
 <article>
-	<time datetime={pubDate.toISOString()}>{dateLabel}</time>
+	<div class="writing-ledger__meta">
+		<time datetime={pubDate.toISOString()}>{dateLabel}</time>
+		{extraLangs.length > 0 && (
+			<span>
+				[{extraLangs.map((lang) => lang.toUpperCase()).join('/')}]
+				<span class="sr-only">— also available in {langsGloss}</span>
+			</span>
+		)}
+	</div>
 	<div>
 		<h3><a href={href}>{title}</a></h3>
 		<p>{description}</p>
@@ -29,3 +41,18 @@ const dateLabel = pubDate.toLocaleDateString('en-GB', {
 		<ArrowIcon />
 	</a>
 </article>
+
+<style>
+	/* The shared ledger rule pads `time` from the top; here the wrapper owns
+	   that padding instead. */
+	.writing-ledger__meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.45rem;
+		margin: 0;
+	}
+
+	.writing-ledger__meta time {
+		padding-top: 0;
+	}
+</style>

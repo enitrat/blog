@@ -2,6 +2,7 @@
 title: "My First SWE Job No Longer Exists. What's the Future for Junior Engineers?"
 pubDate: 2025-12-29
 description: "AI has made my first SWE job obsolete. What's the future for junior engineers?"
+related: ['antifragile-codebases']
 ---
 
 ## My previous job does not exist anymore

@@ -137,10 +137,6 @@ typography:
     fontSize: "0.98rem"
     fontWeight: 560
     lineHeight: 1.2
-  standfirst-index:
-    fontFamily: "Commissioner Variable, Arial, sans-serif"
-    fontSize: "0.9rem"
-    lineHeight: 1.55
   table:
     fontFamily: "Commissioner Variable, Arial, sans-serif"
     fontSize: "0.86rem"
@@ -192,7 +188,7 @@ spacing:
   surface-head-block: "clamp(3rem, 6vw, 5.5rem)"
   sheet-head-block: "clamp(3.5rem, 8vw, 7rem)"
   reading-block: "clamp(2.5rem, 5vw, 4rem)"
-  reading-inset: "clamp(1.5rem, 3.5vw, 3.5rem)"
+  reading-inset: "clamp(3.4rem, 5vw, 4.5rem)"
   column-gap: "clamp(1.5rem, 3.5vw, 3.5rem)"
   ledger-row: "clamp(1.4rem, 3vw, 2.4rem)"
 components:
@@ -217,7 +213,8 @@ components:
   index-entry-active:
     backgroundColor: "{colors.cool-paper}"
     textColor: "{colors.cobalt-structure}"
-    padding: "1.15rem 0.35rem 1.15rem 0.9rem"
+    padding: "1.15rem 0.35rem 1.15rem 0"
+    transform: "translateX(0.4rem)"
   ledger-row:
     backgroundColor: "{colors.cool-paper}"
     textColor: "{colors.near-black-ink}"
@@ -242,7 +239,7 @@ components:
   contents-link:
     textColor: "{colors.muted-ink}"
     typography: "{typography.apparatus}"
-    padding: "0.3rem 0 0.3rem 0.9rem"
+    padding: "0.3rem 0"
   contents-link-active:
     textColor: "{colors.cobalt-structure}"
     typography: "{typography.apparatus}"
@@ -281,7 +278,15 @@ components:
   art-stage:
     backgroundColor: "{colors.near-black-ink}"
     textColor: "{colors.paper-white}"
-    height: "clamp(24rem, 47vw, 43rem)"
+    height: "clamp(20rem, 38vw, 36rem)"
+  progress-rail-tick:
+    backgroundColor: "color-mix(in srgb, #17191d 26%, #f7f5f0)"
+    width: "1.35rem"
+    height: "2px"
+  progress-rail-tick-current:
+    backgroundColor: "{colors.cobalt-structure}"
+    width: "1.8rem"
+    height: "2px"
 ---
 
 # Design System: Mathieu Saugé
@@ -290,9 +295,9 @@ components:
 
 **Creative North Star: "The Living Editorial Index"**
 
-This document covers the whole site: the homepage, the article reading page (`/writing/<slug>`), the writing archive (`/writing`), the bookshelf (`/bookshelf`), About (`/about`), and the shared foundation all five share. Every route is one editorial world; a personal site refuses the blog-template split where the homepage is designed and the archive, article, and shelf are left as framework defaults. Arrive anywhere and the same hand is recognisable: a light, tactile field of paper and ink where rigorous cobalt structure carries hierarchy while vivid orange appears as a rare narrative event.
+This document covers the whole site: the homepage, the reading page (`/writing/<slug>` and `/work/<slug>`), the work index (`/work`), the writing archive (`/writing`), the bookshelf (`/bookshelf`), About (`/about`), the not-found page, and the shared foundation they all share. Every route is one editorial world: the archive, the article, and the shelf are designed to the same standard as the homepage, never left as framework defaults. The same hand is recognisable from any entry point — a light, tactile field of paper and ink where rigorous cobalt structure carries hierarchy while vivid orange appears as a rare narrative event.
 
-The world is expressed twice, in two forms that share one material. The homepage is the **Living Index**: a horizontal editorial sequence of identity, two strictly separated indexes, and a panoramic artwork stage that answers browsing intent. Every other surface is a **ruled sheet**: a thin identity-and-navigation band over one near-black rule, then a Literata headline at page scale with a muted standfirst, then a ruled content field. The reading surface refines that into the **Marginalia Sheet** — one measured reading column with a wide outer margin carrying the editorial apparatus (the dated witness line, translations, and a contents list whose active entry takes the same orange star the homepage index uses), plus a numbered section reference (`§` and its ordinal) hung in the outer margin level with each `h2`, repeating the ordinals the contents list carries so margin and index are one apparatus. Interaction enriches the apparatus but never carries essential identity, labels, navigation, or prose order.
+The homepage is the **Living Index**: a horizontal editorial sequence of identity, two strictly separated indexes, and a panoramic artwork stage that answers browsing intent — and it is the page's *only* listing. Below the stage the page carries different material (the closing statement, the portals into the personal half, contact), never a fuller repeat of the same items, which would teach a visitor nothing the first viewport has not already shown. Every other surface is a **ruled sheet**: a thin identity-and-navigation band over one near-black rule, then a Literata headline at page scale with a muted standfirst, then a ruled content field. The reading surface refines that into the **Marginalia Sheet** — one measured reading column with a wide outer margin carrying the editorial apparatus (the dated witness line, translations, and a contents list whose active entry takes the same orange star the homepage index uses), plus a numbered section reference (`§` and its ordinal) hung in the outer margin level with each `h2`, repeating the ordinals the contents list carries so margin and index are one apparatus. Interaction enriches the apparatus but never carries essential identity, labels, navigation, or prose order.
 
 Two seeds record the shipped directions, not content authorship: `526476f5` for the homepage, `61ce0048` for the Marginalia Sheet and the three index surfaces. Homepage prose, the professional descriptor, current-role details, contact destinations, project summaries, archive and bookshelf section copy, and generated stage imagery remain explicit placeholders until Mathieu writes, verifies, or selects them. Article prose, book data, and the About text are Mathieu's own and render unchanged. Final artworks must be Mathieu-authored or Mathieu-selected and keep the narrative role established by the temporary compositions.
 
@@ -317,7 +322,7 @@ The palette is light and restrained at rest: paper and ink do most of the work, 
 
 ### Secondary
 
-- **Orange Event:** A high-energy accent for keyboard focus, the navigation underline, the active index star, the active contents mark, the copied state of the code copy button, escapes and invalid syntax in code, and authored moments inside imagery. Its rarity gives it force.
+- **Orange Event:** A high-energy accent for the navigation underline, the active index star, the active contents mark, the copied state of the code copy button, escapes and invalid syntax in code, and authored moments inside imagery. Its rarity gives it force. It is *not* the keyboard focus colour: orange on this paper is 2.96:1, under the 3:1 floor a focus ring must clear, so the global focus ring is cobalt (7.18:1).
 
 ### Neutral
 
@@ -357,9 +362,9 @@ The ramp is fluid rather than stepped: nearly every serif role is a `clamp()` pa
 
 **Commissioner roles, largest to smallest:**
 
-- **Role line / About body / Standfirst**: the three places sans-serif type is set above `1rem` — the homepage role line, About's prose (which reads larger because it has no margin apparatus beside it), and the article standfirst.
+- **Role line / About body / Standfirst**: the three places sans-serif type is set above `1rem` — the homepage role line (which the specific credential shares at `0.92em` — the identifying line is never a caption), About's prose, and the one standfirst voice every masthead uses. There is a single standfirst size, not a smaller index-only variant: a page's only framing sentence must not read as a caption.
 - **Body** (`1rem`, `1.55`): the site default. **Body-article** (`1.02rem`, `1.68`) is the reading column, dropping back to `1rem` below `760px`; the measure is `52ch`, which lands 67–73 real characters per line. Other measures are set per role between `39ch` and `70ch`.
-- **Descending metadata ramp**: entry titles (`0.98rem`), the masthead standfirst (`0.9rem`), tables and section copy (`0.86rem`), the homepage intro (`0.84rem`), navigation and descriptions (`0.82rem`), margin apparatus and contents links (`0.78rem`), action links (`0.74rem`), dates and footer text (`0.7rem`), labels (`0.65rem`), artwork captions (`0.64rem`), and the smallest markers — footer contact placeholders and the code copy button (`0.62rem`).
+- **Descending metadata ramp**: entry titles (`0.98rem`), tables and section copy (`0.86rem`), the homepage intro (`0.84rem`), navigation and descriptions (`0.82rem`), margin apparatus and contents links (`0.78rem`), action links (`0.74rem`), dates and footer text (`0.7rem`), labels (`0.65rem`), artwork captions (`0.64rem`), and the smallest markers — footer contact placeholders and the code copy button (`0.62rem`).
 - **Label** (680, `0.65rem`, `0.07em`, uppercase): placeholders, descriptors, year groups, table headers, margin terms, the "Contents" heading, and onward direction words. The `data` role (620, `0.04em`) is the un-cased sibling used for dates, shelf years, and ratings.
 
 **The Two-Voice Rule.** Literata carries identity and editorial hierarchy; Commissioner carries reading, navigation, metadata, and apparatus. Roboto Mono is for code and nothing else. Do not add a fourth voice.
@@ -374,13 +379,13 @@ The ramp is fluid rather than stepped: nearly every serif role is a `clamp()` pa
 
 Every surface sits inside one centered shell capped at `112rem`, inset by the page-gutter token, opening with the same `4.75rem` header over a near-black rule and closing with the same `6rem` footer. Non-home surfaces then open with the shared `page-head` masthead: one headline, an optional muted standfirst set `2.4rem` below it (a `6rem` Literata descender needs more clearance than a normal paragraph gap), and a near-black rule that starts the page's grid.
 
-The homepage begins with a two-column orientation field: Mathieu occupies the narrower left column (`minmax(17rem, 0.72fr)`), Work and Writing occupy two equal groups on the right, and the art stage spans the full content width beneath both. Its lower page alternates forms instead of repeating a card grid: Work uses three unequal editorial columns (`1.35fr 0.9fr 0.9fr`) so the lead project has more weight, Writing uses ruled ledger rows, and major sections use the section-block token with fine boundary rules for rhythm.
+The homepage begins with a two-column orientation field: Mathieu occupies the narrower left column (`minmax(17rem, 0.72fr)`) — name, role line with the specific credential at role scale, the contact row, the introduction — while Work and Writing occupy two equal groups of three entries each on the right, and the art stage spans the full content width beneath both. The field's paddings are sized so a meaningful band of the stage lands inside a 900px-tall viewport. Below the stage the page closes: the closing statement beside the portals (About, Bookshelf, Writing) and the contact chips. Nothing between stage and close — the index above already listed everything.
 
 The reading page is a two-column sheet: a margin of `minmax(12rem, 0.3fr)` beside a reading column of `minmax(0, 1fr)` whose prose is capped at `52ch` and inset past a cobalt rule. The margin is sticky at `2.5rem` from the top, bounded to `calc(100svh - 5rem)` and scrollable inside itself, so long apparatus never pushes past the viewport or drags the page. The article close inherits the same grid and stays in the second column, so the onward links and the archive link align with the prose rather than with the margin.
 
-The archive and bookshelf are stacked ruled groups — a cobalt label per year, a Literata heading plus a count per shelf — over the shared ledger row (`9rem` date column, fluid title-and-description column, `2rem` arrow column) and the shelf row (`5rem` year, fluid title-and-author, `3rem` right-aligned rating). About is the reading column alone, with no margin and slightly larger type.
+The work index, archive, and bookshelf are stacked ruled groups — a cobalt label per year, a Literata heading plus a count per shelf — over the shared ledger row (`9rem` date/meta column, fluid title-and-description column, `2rem` arrow column) and the shelf row (`5rem` year, fluid title-and-author, `3rem` right-aligned rating). Rows are capped at the row measure (`74rem`): wider, and the right-hand anchor separates so far from the title that the eye loses the row. About pairs the reading column with a right-hand facts column (Currently, Projects, Elsewhere) mirroring the article margin's dt/dd form.
 
-Two breakpoints do all the responsive work. At `980px` and below: the homepage orientation leaves the left column and becomes a full-width band whose name and role sit beside the introduction, so the two index groups stay side by side — stacking the groups instead pushed the opening field to roughly `900px`, stranded the art stage well past the first viewport, and left the orientation column as a tall void beside them; keeping the groups paired also means the only thing this breakpoint changes on the homepage is where orientation sits. The Work ledger becomes two columns with its lead entry spanning both. On the reading page the sheet collapses to one column, the margin becomes an unbounded auto-fit band above the prose with its facts inline, the reading column drops its inset and left rule, and the section sign sets inline ahead of its heading (there is no gutter left to hang in) while keeping its link.
+Two breakpoints do all the responsive work. At `980px` and below: the homepage orientation leaves the left column and becomes a full-width band whose name and role sit beside the introduction, so the two index groups stay side by side. Stacking the groups here would push the opening field to roughly `900px`, strand the art stage well past the first viewport, and leave the orientation column as a tall void beside them; keeping the groups paired means the only thing this breakpoint changes on the homepage is where orientation sits. On the reading page the sheet collapses to one column, the margin becomes an unbounded auto-fit band above the prose with its facts inline, the reading column drops its inset and left rule, and the section sign sets inline ahead of its heading (there is no gutter left to hang in) while keeping its link.
 
 At `760px` and below: the page gutter becomes the narrow token, the header and footer stack, all content fields go to one column, and the ledger drops its dedicated date column into a full-width first row. The homepage index groups stack and the art stage moves between identity and the indexes, becoming a sticky `min(42svh, 24rem)` band with an `18rem` floor while index entries pass beneath it. Code blocks bleed to the gutter edges, keeping only their cobalt left rule.
 
@@ -414,14 +419,14 @@ Two small marks are the only ornamental geometry: the eight-point orange star (`
 
 ### Site Header
 
-- **Structure:** Mathieu's serif identity sits left; Work, Writing, Bookshelf, and About sit right above one near-black rule. Work resolves to an in-page anchor at home and a rooted anchor everywhere else; the other three are real routes.
-- **State:** Links reveal a `2px` orange underline from left to right over `260ms` on hover, on focus, and on the current page. Keyboard focus also receives a `2px` orange outline with a `4px` offset (the global focus treatment).
+- **Structure:** Mathieu's serif identity sits left; Work, Writing, Bookshelf, and About sit right above one near-black rule. All four are real routes, and the labels follow the page language so a French article is not wrapped in English chrome.
+- **State:** Links reveal a `2px` orange underline from left to right over `260ms` on hover, on focus, and on the current page. Keyboard focus also receives a `2px` cobalt outline with a `4px` offset (the global focus treatment — cobalt, not orange, for contrast; see Colors).
 - **Responsive behavior:** Below `760px`, identity and navigation stack and all four destinations remain visible in a single distributed row at the `data` size.
 - **Boundary:** Bookshelf remains a navigation destination. Do not add a Bookshelf introduction, reading shelf, or book cards to the homepage opening sequence.
 
 ### Site Footer
 
-- **Structure:** Identity, a four-item navigation row (Writing, Bookshelf, About, RSS), the contact placeholders, and the year, in muted ink at the `data` size, flat and unruled.
+- **Structure:** Identity, a five-item navigation row (Work, Writing, Bookshelf, About, RSS — the same destination set as the header, so the map at the bottom of a page agrees with the map at the top), the contact placeholders, and the year, in muted ink at the `data` size, flat and unruled.
 - **Boundary:** The dashed X and Telegram placeholders appear on every route because contact is the site's stated success condition, and they must not go silently missing. Replace both with real links when the destinations exist; do not delete them or restyle them into buttons.
 
 ### Page Head
@@ -437,23 +442,25 @@ Two small marks are the only ornamental geometry: the eight-point orange star (`
 
 ### Shelf Rows
 
-- **Structure:** Per-status groups (Reading now, Finished, Want to read), each with a Literata heading, a cobalt count, and rows of year, title, author, and rating. Rendered at build time; twelve entries need reading order, not a filter panel.
-- **Boundary:** No cover images — they were hotlinked to an external host and could fail, so typography carries the metadata. Ratings are numerals with a screen-reader gloss, never star glyphs.
+- **Structure:** Per-status groups (Reading now, Finished, Want to read), each with a Literata heading, a cobalt count, and rows of year, title, author, and rating, capped at the row measure. Ratings are cobalt `data` numerals like the year, so the two ends of a row read as one system; an unrated book shows a muted em dash, never an empty cell. A book with a related piece in Writing (`writingSlug`) carries its title as a link into it — the shelf is a portal, not a terminus — and the page closes with exits to Writing and About.
+- **Boundary:** No cover images: they would depend on an external host that can fail, so typography carries the metadata. Ratings are numerals with a screen-reader gloss, never star glyphs. Title links only where a piece genuinely exists; never invent connections.
 
 ### Marginalia Sheet (signature component)
 
 - **Head:** A balanced Literata title capped at `20ch` over a muted standfirst, above a near-black rule.
 - **Margin:** A sticky, viewport-bounded aside carrying a definition list of facts — Published, Updated, Also in (translations) — with cobalt uppercase terms and muted values, then a contents list above a full cobalt rule.
-- **Contents:** `h2` and `h3` only; deeper levels crowd the margin. Depth 3 indents `0.85rem`. Resting entries are muted and inset `0.9rem`; the active entry drops its inset to zero, turns cobalt at weight 600, and takes the orange star. Activity is decided by the heading nearest above a reading line at 28% of viewport height, so the mark tracks what is being read rather than whichever heading last crossed a threshold.
-- **Section mark:** A `§` hung `1.1rem` into the gutter beside each `h2`, in thinned cobalt at rest and full cobalt when its heading is hovered or the mark is focused. It links to its own section and carries an accessible name; the glyph itself is decorative to assistive technology.
-- **Close:** Previous and Next essays in an auto-fit grid divided by a thinned cobalt rule (Next right-aligned), then an "All writing" link with a back arrow. An article never ends on a back-link alone.
+- **Contents:** `h2` and `h3` only; deeper levels crowd the margin. Each entry is a fixed three-column grid — star slot, ordinal, text — so the active state changes colour and weight, never geometry: nothing shifts or rewraps while the list is scanned, wrapped titles hang under their own first word, and a depth-3 title steps `0.85rem` right of its parent's. The active entry turns cobalt at weight 600 and takes the orange star in the reserved slot. Activity is decided by the heading nearest above a reading line at 28% of viewport height, and *nothing* is marked before the line reaches the first heading — the one active mark asserts a position, never a default. A heading that is itself apparatus (an authored "Table of Contents") is excluded from numbering and from the list.
+- **Section mark:** A `§` hung in the reading gutter beside each `h2` (right edge `0.6rem` off the text, inside the widened reading inset), in thinned cobalt at rest and full cobalt when its heading is hovered or the mark is focused. It is a *sibling* of the heading, wrapped with it in a `.section-head` container — never a child, so its label cannot pollute the heading's accessible name — and carries invisible padding growing its hit area past `24px`.
+- **Progress rail:** A pointer-only minimap fixed to the viewport's right edge while the reading column is on screen: one tick per contents entry (`h3` ticks shorter), the current tick cobalt and longer, a paper-on-rule popover naming the section on hover, click to jump. It duplicates the contents nav, so it is hidden from assistive technology and out of tab order — the margin apparatus is the accessible instrument. Hidden at `980px` and below.
+- **Close:** Hand-picked related pieces when the frontmatter names them (the honest onward offer after a technical guide is its sibling, not whatever was published next); otherwise Previous and Next in an auto-fit grid divided by a thinned cobalt rule. A lone neighbour stays left-aligned with the prose instead of right-aligning into the void. Then the exits: "All writing", "Bookshelf", contact. An article never ends on a back-link alone.
 
 ### Article Body (prose)
 
 - **Rhythm:** Paragraphs at `1.35em` bottom margin; `h2` at `3.4rem` above and `1.1rem` below over a cobalt rule; `h3` and `h4` step down proportionally. Lists indent `1.3rem` with cobalt markers. Blockquotes are a `1.4rem` inset behind a full cobalt rule in muted ink, upright rather than italic.
 - **Links:** Cobalt with a `1px` underline offset `0.2em`, resting at 40% cobalt and resolving to full cobalt on hover.
-- **Media and tables:** Images run the full column on a near-black ground with muted captions. Tables are borderless except for horizontal cell rules, with cobalt uppercase label-size headers over a near-black rule.
-- **Code:** Inline code sits on a 5% cobalt wash inside a thinned cobalt border at `0.86em`. Blocks keep a thinned cobalt border with a full cobalt left edge, a transparent ground, and horizontal scroll; below `760px` they bleed to the gutter and keep only the left rule. A copy button in the top-right corner appears on block hover or focus in cobalt label type and turns orange when it has copied.
+- **The wide track:** The reading column is a two-track grid — prose in the measured `52ch` track, code blocks, figures, images, and tables spanning both tracks up to `86ch`. The measure rule governs *reading matter*; a diagram or a code line clipped to the prose width while paper sits empty beside it serves nobody.
+- **Media and tables:** Images run their track on a near-black ground with muted captions; informative diagrams carry a real text equivalent (a factual alt or figcaption), decorative banners an empty alt. Tables scroll inside their own container. Cobalt uppercase label-size headers over a near-black rule.
+- **Code:** Inline code sits on a 5% cobalt wash inside a thinned cobalt border at `0.86em`. Blocks keep a thinned cobalt border with a `2px` full-cobalt left edge, a transparent ground, and horizontal scroll with scrolling shadows — ink-tinted edges that appear only while more code lies in that direction, so truncation always looks scrollable and never cut. The language prints as a muted micro label in the top-right corner at rest; the copy button appears in the same place on block hover or focus (the label yields to the control), turns orange when it has copied, and announces the copy through a status region. Below `760px` blocks bleed to the gutter and keep only the left rule.
 
 ### Homepage: Orientation Block
 
@@ -464,8 +471,8 @@ Two small marks are the only ornamental geometry: the eight-point orange star (`
 ### Homepage: Work and Writing Indexes
 
 - **Structure:** Each group has its own Literata heading, destination link, ruled list, item title, short description, and authored SVG arrow.
-- **State:** Hover, keyboard focus, or active intent shifts the entry toward cobalt and increases its left inset from `0.35rem` to `0.9rem`. The active entry alone receives the orange star.
-- **Behavior:** Links remain ordinary semantic links. Pointer hover and keyboard focus select the matching artwork on wide screens. On narrow screens the entry whose centre sits nearest a reading line just below the sticky stage selects it, so every entry takes its turn as the page scrolls. Ranking by intersection ratio instead let short rows outscore taller ones permanently and left several artworks unreachable.
+- **State:** Hover, keyboard focus, or active intent shifts the entry toward cobalt and slides it `0.4rem` right by transform — never by padding, so the state changes no geometry, nothing rewraps, and the row a pointer is aiming at cannot move away from it. The star occupies a permanently reserved column and lights orange on the active entry alone.
+- **Behavior:** Links remain ordinary semantic links. Pointer hover and keyboard focus select the matching artwork on wide screens. On narrow screens the entry whose centre sits nearest a reading line just below the sticky stage selects it, so every entry takes its turn as the page scrolls. Selection is by that reading line, never by intersection ratio: ratio ranking lets short rows outscore taller ones permanently and leaves artworks unreachable.
 - **Boundary:** Descriptions may be real repository content or explicit placeholders, but the visual system does not authorize final editorial copy.
 
 ### Homepage: Panoramic Art Stage
@@ -475,21 +482,21 @@ Two small marks are the only ornamental geometry: the eight-point orange star (`
 - **State:** Exactly one frame is visible and exposed to assistive technology at a time. The change follows index intent while preserving usable links and a coherent no-script first state.
 - **Asset boundary:** The shipped narrative images establish composition, palette, scale, and crop only. Replace them with Mathieu-authored or Mathieu-selected final artwork; the seamless paper texture may remain if it preserves the same cool, clean material.
 
-### Homepage: Work Ledger
+### Work (`/work` and `/work/<slug>`)
 
-- **Structure:** Unequal editorial columns, a strong near-black top rule per entry, rectangular imagery, Literata titles, muted supporting copy, and cobalt text links with consistent line-arrow SVGs.
-- **Responsive behavior:** Three columns become a lead-plus-two grid, then a single column below `760px`.
-- **Boundary:** Field Report summaries and outcome claims remain placeholders until Mathieu authors or approves them.
+- **Structure:** The work index is a `page-head` masthead over the shared ledger row — role and period in the cobalt meta column where the archive shows a date, title, summary, arrow. Each field report is a Marginalia Sheet whose margin states Role, Period, and the project link (the one external exit, named and marked as such); its close offers the sibling reports and the exits.
+- **Content:** One field report per project — the situation, Mathieu's role, the consequential decisions, the outcome, the lessons — written as prose like the blog. Role, period, and the report body remain visibly marked placeholders until Mathieu writes them; blank is more truthful than invented specificity.
+- **Boundary:** The project's own site is the *secondary* action, never the only affordance: the site's headline evidence category must not route visitors away as its default.
 
 ### Homepage: Contact Close
 
-- **Structure:** A large closing thought sits beside a compact invitation and contact destinations, open and flat, separated by whitespace and the section rule.
+- **Structure:** A large closing thought sits beside a compact invitation, the portals into the rest of the site (About, Bookshelf, Writing as ruled rows — the one route from the index into the personal half), and the contact destinations, open and flat.
 - **Boundary:** Dashed contact placeholders communicate unresolved destinations. Replace them with final X and Telegram links and Mathieu-authored closing prose; do not reinterpret them as a lead form, booking funnel, or service CTA.
 
 ### About
 
-- **Structure:** The shared masthead, then Mathieu's own prose in the reading column with no margin apparatus and a slightly larger type size (`clamp(1.05rem, 1.5vw, 1.2rem)`).
-- **Boundary:** The prose is verbatim; this surface owns layout and typography only. Its own `# About Me` heading is hidden from sight and from the accessibility tree because the masthead already names the surface — it is not deleted from Mathieu's file.
+- **Structure:** The shared masthead with a standfirst, then Mathieu's own prose in the reading column at a slightly larger type size (`clamp(1.05rem, 1.5vw, 1.2rem)`), beside a right-hand facts column (Currently, Projects, Elsewhere) in the article margin's dt/dd form. The page closes with onward exits to Writing and Bookshelf — no reading surface ends without an exit.
+- **Boundary:** The prose is verbatim; this surface owns layout and typography only. No photograph, no career timeline, no CV. Its own `# About Me` heading is hidden from sight and from the accessibility tree because the masthead already names the surface — it is not deleted from Mathieu's file.
 
 ## Do's and Don'ts
 
@@ -515,3 +522,16 @@ Two small marks are the only ornamental geometry: the eight-point orange star (`
 - **Don't** set reading matter below `0.7rem` or add a type voice beyond Literata, Commissioner, and Roboto Mono.
 - **Don't** present placeholder copy, current-role details, contact destinations, or generated artwork as final.
 - **Don't** invent professional claims, availability language, a career timeline, or a funnel-style call to action.
+
+## Rulings
+
+- **Work is a first-class section.** `/work` is a real route with one field report per project, written as prose like the blog. It is never a homepage anchor.
+- **The Living Index is the homepage's only listing.** Below the stage sits the close, nothing else — no second Work or Writing section repeating the index.
+- **The homepage close links to the personal half** (About, Bookshelf): one world, one site. The *opening* sequence carries no bookshelf material.
+- **No photograph on About.** Recognition rests on the name, the writing, and the work.
+- **Reading progress is the rail, not a word count.** Long essays signal position through the pointer-only progress rail; the margin facts carry no extent or reading-time term.
+- **Related pieces are hand-picked** in frontmatter (`related`), never a tag system, at this collection size.
+- **The focus ring is cobalt.** Orange fails the 3:1 contrast floor on this paper. Never make it orange.
+- **State never changes geometry.** Hover and active treatments recolour and transform; they must not change padding, insets, or anything that reflows a list under the pointer.
+- **A page never dead-ends.** Every surface — About, Bookshelf, the 404 — closes with a way onward.
+- **Copy-as-UI is reviewable; article prose is not.** Review judges presentation, placement, and apparatus labels, never the arguments in the writing.

@@ -1,9 +1,16 @@
 ---
 import WritingLedgerRow from '../../components/WritingLedgerRow.astro';
 import Page from '../../layouts/Page.astro';
-import { getWritingIndex } from '../../utils/writing';
+import { getTranslations, getWritingIndex } from '../../utils/writing';
 
 const posts = await getWritingIndex();
+
+const entries = await Promise.all(
+	posts.map(async (post) => ({
+		post,
+		extraLangs: (await getTranslations(post)).map((translation) => translation.lang),
+	})),
+);
 
 const years = [...new Set(posts.map((post) => post.data.pubDate.getFullYear()))].sort(
 	(a, b) => b - a,
@@ -11,7 +18,7 @@ const years = [...new Set(posts.map((post) => post.data.pubDate.getFullYear()))]
 
 const byYear = years.map((year) => ({
 	year,
-	posts: posts.filter((post) => post.data.pubDate.getFullYear() === year),
+	entries: entries.filter((entry) => entry.post.data.pubDate.getFullYear() === year),
 }));
 ---
 
@@ -25,14 +32,19 @@ const byYear = years.map((year) => ({
 			<strong class="label">Section copy placeholder.</strong> One collection: essays, technical
 			guides, and project reflections in the order they were written.
 		</p>
+		<a class="page-head__feed" href="/rss.xml">RSS feed</a>
 	</header>
 
 	{byYear.map((group) => (
 		<section class="year" aria-labelledby={`year-${group.year}`}>
 			<h2 class="label" id={`year-${group.year}`}>{group.year}</h2>
 			<div class="writing-ledger">
-				{group.posts.map((post) => (
-					<WritingLedgerRow post={post} showYear={false} />
+				{group.entries.map((entry) => (
+					<WritingLedgerRow
+						post={entry.post}
+						showYear={false}
+						extraLangs={entry.extraLangs}
+					/>
 				))}
 			</div>
 		</section>
@@ -44,6 +56,14 @@ const byYear = years.map((year) => ({
 </Page>
 
 <style>
+	.page-head__feed {
+		display: inline-block;
+		margin-top: 1.4rem;
+		color: var(--home-cobalt);
+		font-size: 0.74rem;
+		font-weight: 650;
+	}
+
 	.year {
 		padding-top: clamp(2rem, 3.5vw, 3rem);
 	}

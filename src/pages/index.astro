@@ -1,7 +1,7 @@
 ---
 import '../styles/home.css';
 
-import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
 import stageBuilder from '../assets/home/stage-builder.webp';
 import workLanguage from '../assets/home/work-language.webp';
 import workSystems from '../assets/home/work-systems.webp';
@@ -9,42 +9,29 @@ import writingIdeas from '../assets/home/writing-ideas.webp';
 import ArrowIcon from '../components/ArrowIcon.astro';
 import ContactLinks from '../components/ContactLinks.astro';
 import LivingIndex, { type LivingIndexItem } from '../components/home/LivingIndex.astro';
-import WritingLedgerRow from '../components/WritingLedgerRow.astro';
 import { SITE_DESCRIPTION } from '../consts';
 import Page from '../layouts/Page.astro';
+import { getWorkIndex, workUrl } from '../utils/work';
 import { getWritingIndex, postUrl } from '../utils/writing';
 
-// The Living Index and the writing ledger below it show the same four pieces;
-// deriving both from this one list keeps them from drifting apart.
-const recentPosts = (await getWritingIndex()).slice(0, 4);
+// Three writing entries against three work entries, so the two channels of
+// the index end at the same rule.
+const recentPosts = (await getWritingIndex()).slice(0, 3);
+const reports = await getWorkIndex();
 
-const work: LivingIndexItem[] = [
-	{
-		id: 'work-kakarot',
-		title: 'Kakarot',
-		href: 'https://kakarot.org/',
-		// These three descriptions are Mathieu's own words; rewrite only with his.
-		description: 'Efficient Zero-Knowledge Proofs systems for client-side proving',
-		art: stageBuilder,
-		external: true,
-	},
-	{
-		id: 'work-starknet-agent',
-		title: 'Starknet Agent',
-		href: 'https://agent.starknet.io',
-		description: 'An AI conversational agent for the Starknet ecosystem',
-		art: workSystems,
-		external: true,
-	},
-	{
-		id: 'work-cairo-coder',
-		title: 'Cairo Coder',
-		href: 'https://www.cairo-coder.com/',
-		description: 'An API for Cairo code generation, pluggable into any agentic tool over MCP',
-		art: workLanguage,
-		external: true,
-	},
-];
+const workArt: Record<string, ImageMetadata> = {
+	kakarot: stageBuilder,
+	'starknet-agent': workSystems,
+	'cairo-coder': workLanguage,
+};
+
+const work: LivingIndexItem[] = reports.map((report) => ({
+	id: `work-${report.id}`,
+	title: report.data.title,
+	href: workUrl(report),
+	description: report.data.summary,
+	art: workArt[report.id] ?? stageBuilder,
+}));
 
 const writingArt = [writingIdeas, workLanguage, workSystems, stageBuilder];
 const writing: LivingIndexItem[] = recentPosts.map((post, index) => ({
@@ -59,51 +46,29 @@ const writing: LivingIndexItem[] = recentPosts.map((post, index) => ({
 <Page title="Mathieu Saugé" description={SITE_DESCRIPTION}>
 	<LivingIndex work={work} writing={writing} />
 
-	<section class="work-section" id="work" aria-labelledby="work-title">
-		<header class="section-heading">
-			<h2 id="work-title">Work</h2>
-			<p><strong class="label">Section copy placeholder.</strong> Field Reports will replace the temporary notes below.</p>
-		</header>
-		<div class="work-ledger">
-			{work.map((item, index) => (
-				<article class:list={['work-entry', index === 0 && 'work-entry--lead']}>
-					<Picture
-						src={item.art}
-						formats={['avif', 'webp']}
-						widths={[480, 720, 960, 1200]}
-						sizes={index === 0 ? '(max-width: 760px) 100vw, 46vw' : '(max-width: 760px) 100vw, 24vw'}
-						alt=""
-						loading="lazy"
-					/>
-					<div class="work-entry__copy">
-						<h3>{item.title}</h3>
-						<p><strong class="label">Copy placeholder.</strong> Add the situation, your role, one consequential architectural or product decision, and the outcome.</p>
-						<a href={item.href} target="_blank" rel="noreferrer">
-							Visit project
-							<ArrowIcon />
-						</a>
-					</div>
-				</article>
-			))}
-		</div>
-	</section>
-
-	<section class="writing-section" id="writing" aria-labelledby="writing-title">
-		<header class="section-heading">
-			<h2 id="writing-title">Writing</h2>
-			<a href="/writing">Browse all writing</a>
-		</header>
-		<div class="writing-ledger">
-			{recentPosts.map((post) => (
-				<WritingLedgerRow post={post} />
-			))}
-		</div>
-	</section>
-
-	<section class="about-close" id="about" aria-labelledby="about-title">
-		<h2 id="about-title">Closing statement placeholder</h2>
+	<section class="home-close" id="contact" aria-labelledby="close-title">
+		<h2 id="close-title">Closing statement placeholder</h2>
 		<div>
 			<p><strong class="label">Closing copy placeholder.</strong> Add a short invitation in your own voice for people who want to exchange ideas or discuss what they are building.</p>
+
+			<nav class="home-close__portals" aria-label="Elsewhere on this site">
+				<a href="/about">
+					<span class="label">Who writes this</span>
+					<strong>About</strong>
+					<ArrowIcon />
+				</a>
+				<a href="/bookshelf">
+					<span class="label">What I read</span>
+					<strong>Bookshelf</strong>
+					<ArrowIcon />
+				</a>
+				<a href="/writing">
+					<span class="label">Everything written</span>
+					<strong>Writing</strong>
+					<ArrowIcon />
+				</a>
+			</nav>
+
 			<ContactLinks variant="chips" />
 		</div>
 	</section>

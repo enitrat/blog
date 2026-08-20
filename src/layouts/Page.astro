@@ -27,12 +27,13 @@ const { title, description, lang = 'en', footerContact = true } = Astro.props;
 		<slot name="head" />
 	</head>
 	<body style={`--paper-texture: url(${paperTexture.src})`}>
+		<a class="skip-link" href="#main">Skip to content</a>
 		<div class="site-shell">
-			<SiteHeader />
-			<main>
+			<SiteHeader lang={lang} />
+			<main id="main">
 				<slot />
 			</main>
-			<SiteFooter contact={footerContact} />
+			<SiteFooter contact={footerContact} lang={lang} />
 		</div>
 		<Analytics />
 	</body>

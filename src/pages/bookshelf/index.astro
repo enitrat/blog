@@ -45,11 +45,15 @@ const formatYear = (date: Date | null) => (date ? String(date.getFullYear()) : '
 					<li>
 						<span class="shelf__year">{formatYear(dateOf(book))}</span>
 						<div class="shelf__title">
-							<h3>{book.title}</h3>
+							<h3>
+								{book.writingSlug
+									? <a href={`/writing/${book.writingSlug}/`}>{book.title}</a>
+									: book.title}
+							</h3>
 							<p>{book.author}</p>
 						</div>
 						<span class="shelf__rating">
-							{book.rating ? book.rating.toFixed(1) : ''}
+							{book.rating ? book.rating.toFixed(1) : <span class="shelf__unrated">—</span>}
 							<span class="sr-only">{book.rating ? ` out of 5` : 'Not rated'}</span>
 						</span>
 					</li>
@@ -57,6 +61,11 @@ const formatYear = (date: Date | null) => (date ? String(date.getFullYear()) : '
 			</ul>
 		</section>
 	))}
+
+	<nav class="shelf__onward" aria-label="Continue">
+		<a href="/writing">Writing</a>
+		<a href="/about">About</a>
+	</nav>
 </Page>
 
 <style>
@@ -64,8 +73,16 @@ const formatYear = (date: Date | null) => (date ? String(date.getFullYear()) : '
 		padding-top: clamp(2rem, 3.5vw, 3rem);
 	}
 
-	.shelf:last-of-type {
-		padding-bottom: clamp(4rem, 8vw, 7rem);
+	.shelf__onward {
+		display: flex;
+		gap: clamp(1.5rem, 4vw, 3rem);
+		max-width: var(--home-row-max);
+		margin-top: clamp(2rem, 3.5vw, 3rem);
+		padding: clamp(1.1rem, 2.2vw, 1.7rem) 0 clamp(4rem, 8vw, 7rem);
+		border-top: 1px solid var(--home-ink);
+		color: var(--home-cobalt);
+		font-size: 0.78rem;
+		font-weight: 650;
 	}
 
 	.shelf__heading {
@@ -91,6 +108,7 @@ const formatYear = (date: Date | null) => (date ? String(date.getFullYear()) : '
 	}
 
 	.shelf__list {
+		max-width: var(--home-row-max);
 		margin: 0;
 		padding: 0;
 		list-style: none;
@@ -122,6 +140,12 @@ const formatYear = (date: Date | null) => (date ? String(date.getFullYear()) : '
 		letter-spacing: -0.02em;
 	}
 
+	/* Deliberate exception to "cobalt means clickable": a shelf title rests in
+	   ink and only reveals its link on hover. */
+	.shelf__title h3 a:hover {
+		color: var(--home-cobalt);
+	}
+
 	.shelf__title p {
 		margin: 0.3rem 0 0;
 		color: var(--home-muted);
@@ -129,23 +153,15 @@ const formatYear = (date: Date | null) => (date ? String(date.getFullYear()) : '
 	}
 
 	.shelf__rating {
-		color: var(--home-ink);
+		color: var(--home-cobalt);
 		font-size: 0.82rem;
 		font-weight: 620;
 		font-variant-numeric: tabular-nums;
 		text-align: right;
 	}
 
-	.sr-only {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		padding: 0;
-		margin: -1px;
-		overflow: hidden;
-		clip: rect(0, 0, 0, 0);
-		white-space: nowrap;
-		border: 0;
+	.shelf__unrated {
+		color: var(--home-muted);
 	}
 
 	@media (max-width: 760px) {

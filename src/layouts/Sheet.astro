@@ -1,0 +1,190 @@
+---
+import '../styles/article.css';
+
+import type { MarkdownHeading } from 'astro';
+import CopyCodeButton from '../components/CopyCodeButton.astro';
+import { isArgumentHeading } from '../utils/sections.mjs';
+import Page from './Page.astro';
+
+/**
+ * The reading surface for any long-form document. An adapter fills the `facts`
+ * and `close` slots; everything else is fixed here.
+ */
+interface Props {
+	title: string;
+	description?: string;
+	lang?: string;
+	headings?: MarkdownHeading[];
+}
+
+const { title, description, lang = 'en', headings = [] } = Astro.props;
+
+const labels: Record<string, Record<string, string>> = {
+	en: { details: 'Document details', contents: 'Contents' },
+	fr: { details: 'Détails du document', contents: 'Sommaire' },
+};
+const t = labels[lang] ?? labels.en;
+
+// Deeper than h3 crowds the margin rather than helping anyone navigate.
+let section = 0;
+const contents = headings
+	.filter((heading) => heading.depth === 2 || heading.depth === 3)
+	.map((heading) => {
+		const numbered = heading.depth === 2 && isArgumentHeading(heading.slug);
+		if (numbered) section += 1;
+		return { ...heading, ordinal: numbered ? section : undefined };
+	});
+---
+
+<Page title={title} description={description ?? title} lang={lang} footerContact={false}>
+	<Fragment slot="head">
+		{/* Preloaded here rather than in the shared head: this is the only
+		    surface that paints a code glyph. */}
+		<link rel="preload" href="/fonts/roboto-mono-regular.woff2" as="font" type="font/woff2" crossorigin />
+		<slot name="head" />
+	</Fragment>
+
+	<article class="sheet">
+		<header class="sheet__head">
+			<h1>{title}</h1>
+			{description && <p class="sheet__standfirst">{description}</p>}
+		</header>
+
+		<div class="sheet__body" data-sheet-body>
+			<aside class="sheet__margin" aria-label={t.details}>
+				<slot name="facts" />
+
+				{contents.length > 1 && (
+					<nav class="sheet__contents" aria-label={t.contents} data-contents>
+						<span>{t.contents}</span>
+						<ol>
+							{contents.map((heading) => (
+								<li data-depth={heading.depth}>
+									<a href={`#${heading.slug}`} data-contents-link={heading.slug}>
+										{heading.ordinal && <i aria-hidden="true">§{heading.ordinal}</i>}
+										<span class="t">{heading.text}</span>
+									</a>
+								</li>
+							))}
+						</ol>
+					</nav>
+				)}
+			</aside>
+
+			<div class="article-body">
+				<slot />
+			</div>
+		</div>
+
+		<footer class="sheet__close">
+			<div>
+				<slot name="close" />
+			</div>
+		</footer>
+	</article>
+
+	{/* A pointer-only duplicate of the contents nav, so it stays out of the
+	    accessibility tree and the tab order rather than doubling every stop. */}
+	{contents.length > 1 && (
+		<div class="progress-rail" aria-hidden="true" data-progress-rail>
+			<ol>
+				{contents.map((heading) => (
+					<li>
+						<button type="button" tabindex="-1" data-rail-target={heading.slug} data-depth={heading.depth}>
+							<b>{heading.ordinal ? `§${heading.ordinal} · ` : ''}{heading.text}</b>
+						</button>
+					</li>
+				))}
+			</ol>
+		</div>
+	)}
+
+	<CopyCodeButton />
+
+	<script>
+		function setupSheet() {
+			const nav = document.querySelector<HTMLElement>('[data-contents]');
+			if (!nav || nav.dataset.ready === 'true') return;
+			nav.dataset.ready = 'true';
+
+			const links = new Map<string, HTMLElement>();
+			for (const link of nav.querySelectorAll<HTMLElement>('[data-contents-link]')) {
+				const slug = link.dataset.contentsLink;
+				if (slug) links.set(slug, link);
+			}
+
+			const rail = document.querySelector<HTMLElement>('[data-progress-rail]');
+			const ticks = new Map<string, HTMLElement>();
+			if (rail) {
+				for (const tick of rail.querySelectorAll<HTMLElement>('[data-rail-target]')) {
+					const slug = tick.dataset.railTarget;
+					if (!slug) continue;
+					ticks.set(slug, tick);
+					tick.addEventListener('click', () => {
+						document.getElementById(slug)?.scrollIntoView();
+					});
+				}
+			}
+
+			const targets = [...links.keys()]
+				.map((slug) => document.getElementById(slug))
+				.filter((el): el is HTMLElement => el !== null);
+			if (targets.length === 0) return;
+
+			let currentSlug: string | null = null;
+			const mark = (slug: string | null) => {
+				if (slug === currentSlug) return;
+				currentSlug = slug;
+				for (const [key, link] of links) {
+					if (key === slug) link.setAttribute('aria-current', 'true');
+					else link.removeAttribute('aria-current');
+				}
+				for (const [key, tick] of ticks) {
+					tick.dataset.current = String(key === slug);
+				}
+			};
+
+			// Nearest heading above the reading line wins, so the mark tracks what
+			// is being read rather than whichever heading last crossed a threshold.
+			const select = () => {
+				const line = window.innerHeight * 0.28;
+				let best: HTMLElement | null = null;
+				for (const target of targets) {
+					if (target.getBoundingClientRect().top <= line) best = target;
+					else break;
+				}
+				mark(best ? best.id : null);
+			};
+
+			let queued = false;
+			const onScroll = () => {
+				if (queued) return;
+				queued = true;
+				requestAnimationFrame(() => {
+					queued = false;
+					select();
+				});
+			};
+
+			select();
+			window.addEventListener('scroll', onScroll, { passive: true });
+			window.addEventListener('resize', onScroll, { passive: true });
+
+			const body = document.querySelector('[data-sheet-body]');
+			if (rail && body && 'IntersectionObserver' in window) {
+				const observer = new IntersectionObserver(
+					(entries) => {
+						for (const entry of entries) {
+							rail.dataset.visible = String(entry.isIntersecting);
+						}
+					},
+					{ rootMargin: '-10% 0px -10% 0px' },
+				);
+				observer.observe(body);
+			}
+		}
+
+		setupSheet();
+		document.addEventListener('astro:page-load', setupSheet);
+	</script>
+</Page>

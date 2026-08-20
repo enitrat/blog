@@ -1,0 +1,41 @@
+---
+import ArrowIcon from '../components/ArrowIcon.astro';
+import Page from '../layouts/Page.astro';
+
+const destinations = [
+	{ href: '/', meta: 'Home', title: 'Mathieu Saugé' },
+	{ href: '/work', meta: 'Work', title: 'Field reports' },
+	{ href: '/writing', meta: 'Writing', title: 'Articles and notes' },
+	{ href: '/bookshelf', meta: 'Bookshelf', title: 'The reading archive' },
+	{ href: '/about', meta: 'About', title: 'A short orientation' },
+];
+---
+
+<Page title="Not found — Mathieu Saugé" description="That address does not name anything on this site.">
+	<header class="page-head">
+		<h1>Not found</h1>
+		<p>This address doesn't name anything here. The five real destinations:</p>
+	</header>
+
+	<div class="writing-ledger">
+		{destinations.map((destination) => (
+			<article>
+				<span class="writing-ledger__meta">{destination.meta}</span>
+				<div>
+					<h3><a href={destination.href}>{destination.title}</a></h3>
+				</div>
+				<a class="writing-ledger__arrow" href={destination.href} aria-label={`Go to ${destination.meta}`}>
+					<ArrowIcon />
+				</a>
+			</article>
+		))}
+	</div>
+</Page>
+
+<style>
+	.writing-ledger {
+		margin-top: clamp(2rem, 3.5vw, 3rem);
+		padding-bottom: clamp(4rem, 8vw, 7rem);
+		border-top: 0;
+	}
+</style>

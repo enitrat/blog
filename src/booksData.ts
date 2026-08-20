@@ -8,6 +8,8 @@ export interface Book {
 	dateFinished: Date | null;
 	/** Out of 5; null while unrated. */
 	rating: number | null;
+	/** Base slug of the blog piece this book is the subject of. */
+	writingSlug?: string;
 }
 
 export const books: Book[] = [

@@ -1,7 +1,7 @@
 ---
 import { type CollectionEntry, getCollection, render } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
-import { getAdjacent, getTranslations } from '../../utils/writing';
+import { getAdjacent, getRelated, getTranslations } from '../../utils/writing';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('blog');
@@ -16,6 +16,7 @@ const post = Astro.props;
 const { Content, headings } = await render(post);
 const translations = await getTranslations(post);
 const { newer, older } = await getAdjacent(post);
+const related = await getRelated(post);
 ---
 
 <BlogPost
@@ -24,6 +25,7 @@ const { newer, older } = await getAdjacent(post);
 	headings={headings}
 	newer={newer}
 	older={older}
+	related={related}
 >
 	<Content />
 </BlogPost>

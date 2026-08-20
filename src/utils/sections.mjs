@@ -25,49 +25,61 @@ export function isArgumentHeading(slug) {
 	return !APPARATUS_SLUGS.has(String(slug ?? '').toLowerCase());
 }
 
-/** Numbers every argument `h2` and hangs a §ordinal link in the outer margin. */
+/**
+ * Numbers every argument `h2` and hangs a §ordinal link beside it.
+ *
+ * The link must stay a sibling of the heading, never a child: inside the `h2`
+ * its label concatenates into the heading's accessible name.
+ */
 export function rehypeSectionMarks() {
 	return (tree) => {
 		let n = 0;
 		const walk = (node) => {
 			if (!node.children) return;
-			for (const child of node.children) {
-				if (
-					child.type === 'element' &&
-					child.tagName === 'h2' &&
-					child.properties?.id &&
-					isArgumentHeading(child.properties.id)
-				) {
-					n += 1;
-					child.properties['data-section'] = String(n);
-					child.children.unshift({
-						type: 'element',
-						tagName: 'a',
-						properties: {
-							className: ['section-mark'],
-							href: `#${child.properties.id}`,
-							// The glyph and numeral below are decorative duplicates of the
-							// adjacent heading, so the link needs its own name.
-							'aria-label': `Link to section ${n}`,
-						},
-						children: [
-							{
-								type: 'element',
-								tagName: 'span',
-								properties: {},
-								children: [{ type: 'text', value: '§' }],
-							},
-							{
-								type: 'element',
-								tagName: 'b',
-								properties: {},
-								children: [{ type: 'text', value: String(n) }],
-							},
-						],
-					});
-				}
+			node.children = node.children.map((child) => {
 				walk(child);
-			}
+				if (
+					child.type !== 'element' ||
+					child.tagName !== 'h2' ||
+					!child.properties?.id ||
+					!isArgumentHeading(child.properties.id)
+				) {
+					return child;
+				}
+				n += 1;
+				child.properties['data-section'] = String(n);
+				const mark = {
+					type: 'element',
+					tagName: 'a',
+					properties: {
+						className: ['section-mark'],
+						href: `#${child.properties.id}`,
+						// The glyph and numeral duplicate the adjacent heading, so the link
+						// needs a name of its own.
+						'aria-label': `Link to section ${n}`,
+					},
+					children: [
+						{
+							type: 'element',
+							tagName: 'span',
+							properties: { 'aria-hidden': 'true' },
+							children: [{ type: 'text', value: '§' }],
+						},
+						{
+							type: 'element',
+							tagName: 'b',
+							properties: { 'aria-hidden': 'true' },
+							children: [{ type: 'text', value: String(n) }],
+						},
+					],
+				};
+				return {
+					type: 'element',
+					tagName: 'div',
+					properties: { className: ['section-head'] },
+					children: [mark, child],
+				};
+			});
 		};
 		walk(tree);
 	};

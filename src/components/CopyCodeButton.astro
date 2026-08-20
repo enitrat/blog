@@ -5,13 +5,22 @@
 
 <script>
 	function initCopyButtons() {
-		for (const block of document.querySelectorAll('.astro-code')) {
+		for (const block of document.querySelectorAll<HTMLElement>('.astro-code')) {
 			if (block.querySelector('.copy-btn')) continue;
 
+			const language = block.dataset.language;
+			block.setAttribute('role', 'region');
+			block.setAttribute('aria-label', language ? `${language} code sample` : 'Code sample');
+
+			// No aria-label: the visible text is the button's accessible name, and
+			// the status region is what announces the change.
 			const button = document.createElement('button');
 			button.className = 'copy-btn';
 			button.textContent = 'Copy';
-			button.setAttribute('aria-label', 'Copy code to clipboard');
+
+			const status = document.createElement('span');
+			status.className = 'sr-only';
+			status.setAttribute('role', 'status');
 
 			button.addEventListener('click', async () => {
 				const text = block.querySelector('code')?.textContent ?? '';
@@ -19,16 +28,20 @@
 					await navigator.clipboard.writeText(text);
 					button.textContent = 'Copied!';
 					button.classList.add('copied');
+					status.textContent = 'Copied to clipboard';
 				} catch {
 					button.textContent = 'Failed';
+					status.textContent = 'Copy failed';
 				}
 				setTimeout(() => {
 					button.textContent = 'Copy';
 					button.classList.remove('copied');
+					status.textContent = '';
 				}, 2000);
 			});
 
 			block.appendChild(button);
+			block.appendChild(status);
 		}
 	}
 

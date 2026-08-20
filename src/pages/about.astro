@@ -2,6 +2,8 @@
 import '../styles/article.css';
 // Mathieu's own prose, rendered unchanged. This page owns layout and
 // typography only; the words and every claim in them stay as written.
+import ArrowIcon from '../components/ArrowIcon.astro';
+import ContactLinks from '../components/ContactLinks.astro';
 import { Content as AboutContent } from '../content/about.md';
 import Page from '../layouts/Page.astro';
 ---
@@ -9,17 +11,49 @@ import Page from '../layouts/Page.astro';
 <Page title="About — Mathieu Saugé" description="A short orientation: who Mathieu Saugé is and what he works on.">
 	<header class="page-head">
 		<h1>About</h1>
+		<p>
+			<strong class="label">Standfirst placeholder.</strong> A short orientation: what Mathieu
+			works on now, what he has built alongside it, and where the rest of it lives.
+		</p>
 	</header>
 
 	<div class="about">
 		<div class="article-body">
 			<AboutContent />
 		</div>
+
+		<aside class="about__margin">
+			<dl class="sheet__facts">
+				<dt>Currently</dt>
+				<dd>CTO of Kakarot</dd>
+				<dt>Projects</dt>
+				<dd><a href="/work/kakarot/">Kakarot</a></dd>
+				<dd><a href="/work/starknet-agent/">Starknet Agent</a></dd>
+				<dd><a href="/work/cairo-coder/">Cairo Coder</a></dd>
+				<dt>Elsewhere</dt>
+				<dd><ContactLinks /></dd>
+			</dl>
+		</aside>
+	</div>
+
+	<div class="about__close">
+		<a class="sheet__all" href="/writing">
+			<ArrowIcon />
+			Writing
+		</a>
+		<a class="sheet__all" href="/bookshelf">
+			<ArrowIcon />
+			Bookshelf
+		</a>
 	</div>
 </Page>
 
 <style>
 	.about {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) clamp(12rem, 20vw, 16rem);
+		align-items: start;
+		max-width: var(--home-row-max);
 		padding-block: clamp(2.5rem, 5vw, 4rem) clamp(4rem, 8vw, 7rem);
 	}
 
@@ -34,5 +68,37 @@ import Page from '../layouts/Page.astro';
 		padding: 0;
 		border-left: 0;
 		font-size: clamp(1.05rem, 1.5vw, 1.2rem);
+	}
+
+	.about__margin {
+		padding-left: clamp(1.5rem, 3vw, 3rem);
+		border-left: 1px solid var(--home-rule);
+	}
+
+	.about__margin :global(.sheet__facts dd:has(+ dd)) {
+		margin-bottom: 0.35rem;
+	}
+
+	.about__close {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem clamp(1.5rem, 3vw, 2.75rem);
+		max-width: var(--home-row-max);
+		padding-block: clamp(2rem, 4vw, 3rem) clamp(3rem, 6vw, 5rem);
+		border-top: 1px solid var(--home-ink);
+	}
+
+	@media (max-width: 980px) {
+		.about {
+			grid-template-columns: minmax(0, 1fr);
+			gap: clamp(2rem, 5vw, 3rem);
+		}
+
+		.about__margin {
+			padding-top: 2rem;
+			padding-left: 0;
+			border-top: 1px solid var(--home-rule);
+			border-left: 0;
+		}
 	}
 </style>

@@ -30,6 +30,9 @@
 	--home-sans: "Commissioner Variable", Arial, sans-serif;
 	--home-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 	--home-max: 112rem;
+	/* A ledger or shelf row wider than this separates its right-hand anchor
+	   (arrow, rating) so far from the title that the eye loses the row. */
+	--home-row-max: 74rem;
 	--home-gutter: clamp(1.25rem, 4vw, 4.5rem);
 }
 
@@ -63,7 +66,10 @@ html.site body {
 	box-sizing: border-box;
 }
 
-.site a {
+/* Zero specificity on purpose: this is the floor of the cascade. Any rule that
+   states a link colour — however small its selector — must win over this reset,
+   or the palette's "cobalt means clickable" contract silently breaks. */
+:where(.site) a {
 	color: inherit;
 	text-decoration: none;
 }
@@ -75,6 +81,38 @@ html.site body {
 	   under the 3:1 floor a focus ring has to clear. Cobalt is 7.18:1. */
 	outline: 2px solid var(--home-cobalt);
 	outline-offset: 4px;
+}
+
+/* Visually hidden, still announced. */
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+.skip-link {
+	position: absolute;
+	top: 0.75rem;
+	left: 0.75rem;
+	z-index: 10;
+	padding: 0.6rem 0.9rem;
+	background: var(--home-paper);
+	color: var(--home-cobalt);
+	font-size: 0.7rem;
+	font-weight: 680;
+	letter-spacing: 0.07em;
+	text-transform: uppercase;
+	transform: translateY(-200%);
+}
+
+.skip-link:focus-visible {
+	transform: none;
 }
 
 .site svg {
@@ -239,7 +277,8 @@ html.site body {
 	max-width: 52ch;
 	margin: 2.4rem 0 0;
 	color: var(--home-muted);
-	font-size: 0.9rem;
+	font-size: clamp(0.95rem, 1.4vw, 1.05rem);
+	line-height: 1.5;
 }
 
 .writing-ledger {
@@ -248,6 +287,7 @@ html.site body {
 
 .writing-ledger article {
 	display: grid;
+	max-width: var(--home-row-max);
 	grid-template-columns: 9rem minmax(0, 1fr) 2.75rem;
 	align-items: start;
 	gap: clamp(1.2rem, 4vw, 4rem);

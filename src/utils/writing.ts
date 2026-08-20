@@ -30,6 +30,17 @@ export async function getTranslations(post: Post) {
 		.map((p) => ({ lang: p.data.lang, href: postUrl(p), title: p.data.title }));
 }
 
+/** Resolves the post's `related` base slugs to same-language links, silently dropping any that name nothing. */
+export async function getRelated(post: Post) {
+	const slugs: string[] = post.data.related ?? [];
+	if (slugs.length === 0) return [];
+	const posts = await getCollection('blog');
+	return slugs
+		.map((slug) => posts.find((p) => p.id.split('/')[0] === slug && p.data.lang === post.data.lang))
+		.filter((p): p is Post => p !== undefined)
+		.map((p) => ({ href: postUrl(p), title: p.data.title }));
+}
+
 /**
  * Adjacent essays in this post's own language, so the article offers a way
  * onward rather than only a way back.

@@ -1,0 +1,45 @@
+---
+import ArrowIcon from '../../components/ArrowIcon.astro';
+import Page from '../../layouts/Page.astro';
+import { getWorkIndex, workUrl } from '../../utils/work';
+
+const reports = await getWorkIndex();
+---
+
+<Page
+	title="Work — Mathieu Saugé"
+	description="Field reports from the projects Mathieu Saugé has built and led."
+>
+	<header class="page-head">
+		<h1>Work</h1>
+		<p>
+			<strong class="label">Section copy placeholder.</strong> Field reports: the situation, the
+			role, the decisions that mattered, and what came of them.
+		</p>
+	</header>
+
+	<div class="writing-ledger">
+		{reports.map((report) => (
+			<article>
+				<span class="writing-ledger__meta">
+					{[report.data.role, report.data.period].filter(Boolean).join(' · ') || 'Field report'}
+				</span>
+				<div>
+					<h3><a href={workUrl(report)}>{report.data.title}</a></h3>
+					<p>{report.data.summary}</p>
+				</div>
+				<a class="writing-ledger__arrow" href={workUrl(report)} aria-label={`Read the ${report.data.title} field report`}>
+					<ArrowIcon />
+				</a>
+			</article>
+		))}
+	</div>
+</Page>
+
+<style>
+	.writing-ledger {
+		margin-top: clamp(2rem, 3.5vw, 3rem);
+		padding-bottom: clamp(4rem, 8vw, 7rem);
+		border-top: 0;
+	}
+</style>
