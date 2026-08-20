@@ -46,10 +46,12 @@ const writing: LivingIndexItem[] = recentPosts.map((post, index) => ({
 <Page title="Mathieu Saugé" description={SITE_DESCRIPTION}>
 	<LivingIndex work={work} writing={writing} />
 
-	<section class="home-close" id="contact" aria-labelledby="close-title">
-		<h2 id="close-title">Closing statement placeholder</h2>
+	<section class="home-close" id="contact" aria-label="Say hello">
 		<div>
-			<p><strong class="label">Closing copy placeholder.</strong> Add a short invitation in your own voice for people who want to exchange ideas or discuss what they are building.</p>
+			<p class="home-close__invitation">
+				If you've enjoyed reading about me and anything resonates, whether an essay, a project
+				I've built, or a book we've both read, send me a message and say hello!
+			</p>
 
 			<nav class="home-close__portals" aria-label="Elsewhere on this site">
 				<a href="/about">

@@ -299,7 +299,7 @@ This document covers the whole site: the homepage, the reading page (`/writing/<
 
 The homepage is the **Living Index**: a horizontal editorial sequence of identity, two strictly separated indexes, and a panoramic artwork stage that answers browsing intent — and it is the page's *only* listing. Below the stage the page carries different material (the closing statement, the portals into the personal half, contact), never a fuller repeat of the same items, which would teach a visitor nothing the first viewport has not already shown. Every other surface is a **ruled sheet**: a thin identity-and-navigation band over one near-black rule, then a Literata headline at page scale with a muted standfirst, then a ruled content field. The reading surface refines that into the **Marginalia Sheet** — one measured reading column with a wide outer margin carrying the editorial apparatus (the dated witness line, translations, and a contents list whose active entry takes the same orange star the homepage index uses), plus a numbered section reference (`§` and its ordinal) hung in the outer margin level with each `h2`, repeating the ordinals the contents list carries so margin and index are one apparatus. Interaction enriches the apparatus but never carries essential identity, labels, navigation, or prose order.
 
-Two seeds record the shipped directions, not content authorship: `526476f5` for the homepage, `61ce0048` for the Marginalia Sheet and the three index surfaces. Homepage prose, the professional descriptor, current-role details, contact destinations, project summaries, archive and bookshelf section copy, and generated stage imagery remain explicit placeholders until Mathieu writes, verifies, or selects them. Article prose, book data, and the About text are Mathieu's own and render unchanged. Final artworks must be Mathieu-authored or Mathieu-selected and keep the narrative role established by the temporary compositions.
+Two seeds record the shipped directions, not content authorship: `526476f5` for the homepage, `61ce0048` for the Marginalia Sheet and the three index surfaces. Field report bodies, role and period details on two reports, and the generated stage imagery remain explicit placeholders until Mathieu writes or selects them. All other prose — the homepage introduction and invitation, section standfirsts, article prose, book data, and the About text — is Mathieu's own and renders unchanged. Final artworks must be Mathieu-authored or Mathieu-selected and keep the narrative role established by the temporary compositions.
 
 **Key Characteristics:**
 
@@ -364,8 +364,8 @@ The ramp is fluid rather than stepped: nearly every serif role is a `clamp()` pa
 
 - **Role line / About body / Standfirst**: the three places sans-serif type is set above `1rem` — the homepage role line (which the specific credential shares at `0.92em` — the identifying line is never a caption), About's prose, and the one standfirst voice every masthead uses. There is a single standfirst size, not a smaller index-only variant: a page's only framing sentence must not read as a caption.
 - **Body** (`1rem`, `1.55`): the site default. **Body-article** (`1.02rem`, `1.68`) is the reading column, dropping back to `1rem` below `760px`; the measure is `52ch`, which lands 67–73 real characters per line. Other measures are set per role between `39ch` and `70ch`.
-- **Descending metadata ramp**: entry titles (`0.98rem`), tables and section copy (`0.86rem`), the homepage intro (`0.84rem`), navigation and descriptions (`0.82rem`), margin apparatus and contents links (`0.78rem`), action links (`0.74rem`), dates and footer text (`0.7rem`), labels (`0.65rem`), artwork captions (`0.64rem`), and the smallest markers — footer contact placeholders and the code copy button (`0.62rem`).
-- **Label** (680, `0.65rem`, `0.07em`, uppercase): placeholders, descriptors, year groups, table headers, margin terms, the "Contents" heading, and onward direction words. The `data` role (620, `0.04em`) is the un-cased sibling used for dates, shelf years, and ratings.
+- **Descending metadata ramp**: entry titles (`0.98rem`), tables and section copy (`0.86rem`), the homepage intro (`0.84rem`), navigation and descriptions (`0.82rem`), margin apparatus and contents links (`0.78rem`), action links (`0.74rem`), dates and footer text (`0.7rem`), labels (`0.65rem`), artwork captions (`0.64rem`), and the smallest markers — footer contact links and the code copy button (`0.62rem`).
+- **Label** (680, `0.65rem`, `0.07em`, uppercase): placeholder markers, descriptors, year groups, table headers, margin terms, the "Contents" heading, and onward direction words. The `data` role (620, `0.04em`) is the un-cased sibling used for dates, shelf years, and ratings.
 
 **The Two-Voice Rule.** Literata carries identity and editorial hierarchy; Commissioner carries reading, navigation, metadata, and apparatus. Roboto Mono is for code and nothing else. Do not add a fourth voice.
 
@@ -409,7 +409,7 @@ Motion is restrained and always additive. Artwork crossfades over `620ms` in and
 
 The form language is rectilinear and print-derived. Every surface, list, image, code block, and control has square corners; there is no radius scale and none should be introduced. One-pixel rules establish the grid at three weights of meaning: near-black for structural boundaries (the header, each masthead, a ledger's top edge, the article close), thinned cobalt for internal segmentation (rows, cells, the reading column's edge, code borders), and full cobalt for a deliberate claim (the contents rule, a blockquote, the code block's left edge). Arrows are authored SVG line work with square caps and miter joins; artwork is clipped cleanly by its stage.
 
-Two small marks are the only ornamental geometry: the eight-point orange star (`clip-path` polygon, `0.48rem` in the homepage index and `0.42rem` in the article contents) marking the one active entry, and the printed `§` section sign hung in the reading gutter. Both are state or place indicators, not decorative motifs. Dashed cobalt rectangles appear only around unresolved contact placeholders — in the footer on every route and in the homepage close — and must not be mistaken for a final button style. Ratings render as a numeral in tabular figures; the system uses no glyph icon set.
+Two small marks are the only ornamental geometry: the eight-point orange star (`clip-path` polygon, `0.48rem` in the homepage index and `0.42rem` in the article contents) marking the one active entry, and the printed `§` section sign hung in the reading gutter. Both are state or place indicators, not decorative motifs. Dashed cobalt rectangles mark an unresolved contact placeholder wherever one exists and must not be mistaken for a final button style; the shipped GitHub, X, and Telegram destinations are real links. Ratings render as a numeral in tabular figures; the system uses no glyph icon set.
 
 **The Square Field Rule.** Keep containers, media, code, and controls square-cornered. A rounded card or pill changes the visual language and does not belong in this system.
 
@@ -426,13 +426,13 @@ Two small marks are the only ornamental geometry: the eight-point orange star (`
 
 ### Site Footer
 
-- **Structure:** Identity, a five-item navigation row (Work, Writing, Bookshelf, About, RSS — the same destination set as the header, so the map at the bottom of a page agrees with the map at the top), the contact placeholders, and the year, in muted ink at the `data` size, flat and unruled.
-- **Boundary:** The dashed X and Telegram placeholders appear on every route because contact is the site's stated success condition, and they must not go silently missing. Replace both with real links when the destinations exist; do not delete them or restyle them into buttons.
+- **Structure:** Identity, a five-item navigation row (Work, Writing, Bookshelf, About, RSS — the same destination set as the header, so the map at the bottom of a page agrees with the map at the top), the contact links, and the year, in muted ink at the `data` size, flat and unruled.
+- **Boundary:** The contact links (GitHub, X, Telegram) appear on every route because contact is the site's stated success condition, and they must not go silently missing or be restyled into buttons.
 
 ### Page Head
 
 - **Structure:** The masthead every non-home surface opens with: one Literata headline capped at `18ch`, an optional muted standfirst capped at `52ch` and set well clear of the headline's descenders, and a near-black rule that begins the page's grid.
-- **Boundary:** Section copy on the archive and bookshelf is a marked placeholder. Keep it visibly provisional until Mathieu writes it.
+- **Boundary:** Standfirsts are Mathieu's words, set plainly: "Things I've worked on.", "Essays, technical guides, and project reflections.", "What I read." About carries no standfirst — its prose opens with its own greeting. Do not editorialize these into marketing copy.
 
 ### Writing Ledger
 
@@ -465,7 +465,7 @@ Two small marks are the only ornamental geometry: the eight-point orange star (`
 ### Homepage: Orientation Block
 
 - **Structure:** A large two-line name leads, followed by a restrained professional role and a short authored introduction.
-- **State:** Until supplied, the professional descriptor, current-role details, and introduction remain visibly marked placeholders. Blank is more truthful than invented specificity.
+- **State:** The introduction is Mathieu's own two-sentence text. Any element without Mathieu-supplied content stays a visibly marked placeholder; blank is more truthful than invented specificity.
 - **Separation:** On desktop, one quiet cobalt rule separates orientation from the indexes; on mobile the rule drops away as the sequence becomes vertical.
 
 ### Homepage: Work and Writing Indexes
@@ -490,8 +490,8 @@ Two small marks are the only ornamental geometry: the eight-point orange star (`
 
 ### Homepage: Contact Close
 
-- **Structure:** A large closing thought sits beside a compact invitation, the portals into the rest of the site (About, Bookshelf, Writing as ruled rows — the one route from the index into the personal half), and the contact destinations, open and flat.
-- **Boundary:** Dashed contact placeholders communicate unresolved destinations. Replace them with final X and Telegram links and Mathieu-authored closing prose; do not reinterpret them as a lead form, booking funnel, or service CTA.
+- **Structure:** A quiet single-column close: Mathieu's invitation at reading scale, then the portals into the rest of the site (About, Bookshelf, Writing as ruled rows — the one route from the index into the personal half), then the contact chips. No display-scale statement: the invitation is the voice.
+- **Boundary:** The close carries Mathieu's invitation in his own words over the real contact links, with no display-scale statement above it. Do not reinterpret it as a lead form, booking funnel, or service CTA.
 
 ### About
 

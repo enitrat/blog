@@ -46,7 +46,7 @@
 	margin-top: 1.4rem;
 }
 
-.copy-placeholder {
+.living-index__intro {
 	max-width: 34rem;
 	margin-top: clamp(1.5rem, 3vw, 2.5rem);
 	padding-top: 1.1rem;
@@ -54,7 +54,7 @@
 	color: var(--home-muted);
 }
 
-.copy-placeholder p {
+.living-index__intro p {
 	max-width: 39ch;
 	margin: 0.7rem 0 0;
 	font-size: 0.84rem;
@@ -252,27 +252,19 @@
 /* ---------- The close ---------- */
 
 .home-close {
-	display: grid;
-	grid-template-columns: minmax(18rem, 1fr) minmax(20rem, 0.85fr);
-	gap: clamp(3rem, 10vw, 10rem);
-	padding-block: clamp(5rem, 10vw, 10rem);
+	padding-block: clamp(4rem, 8vw, 7rem);
 	border-bottom: 1px solid var(--home-rule);
 }
 
-.home-close h2 {
-	max-width: 11ch;
-	margin: 0;
-	font-family: var(--home-display);
-	font-size: clamp(3.4rem, 7vw, 6rem);
-	font-weight: 540;
-	line-height: 0.98;
-	letter-spacing: -0.04em;
+.home-close > div {
+	max-width: 44rem;
 }
 
-.home-close p {
+.home-close__invitation {
 	max-width: 54ch;
 	margin: 0;
-	color: var(--home-muted);
+	font-size: clamp(1rem, 1.4vw, 1.1rem);
+	line-height: 1.6;
 }
 
 .home-close__portals {
@@ -358,7 +350,7 @@
 		grid-area: contact;
 	}
 
-	.copy-placeholder {
+	.living-index__intro {
 		grid-area: intro;
 		align-self: end;
 		margin-top: 0;
@@ -390,7 +382,7 @@
 		font-size: clamp(3.8rem, 18vw, 5.5rem);
 	}
 
-	.copy-placeholder {
+	.living-index__intro {
 		margin-top: 3rem;
 	}
 
@@ -440,14 +432,6 @@
 	.art-stage figcaption strong {
 		font-size: 1.15rem;
 		line-height: 1.15;
-	}
-
-	.home-close {
-		display: block;
-	}
-
-	.home-close > div {
-		margin-top: 2.5rem;
 	}
 }
 
