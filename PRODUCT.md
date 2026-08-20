@@ -14,19 +14,19 @@ The site is also for technically curious peers and potential collaborators who m
 
 ## Product Purpose
 
-This is Mathieu's evergreen personal space: a durable expression of what he works on, how he thinks, and what holds his attention. It exists to create intellectual and professional recognition that can develop into relationships and conversations, not to advertise availability or function as a job-seeking portfolio.
+This is Mathieu's evergreen personal space: a durable expression of what he works on, how he thinks, and what holds his attention. It creates recognition and conversation; it is not a job-seeking portfolio.
 
 Success means that a visitor can orient themselves quickly, discover meaningful evidence of Mathieu's work and personality, and find a specific reason to contact him through X or Telegram.
 
 ## Positioning
 
-Mathieu is a software engineering leader who can architect difficult systems and turn technology into products. His foundation is broad software engineering competence, complemented by deep applied experience in DeFi and blockchain and by repeated work leading technically ambitious projects.
+Mathieu is a software engineering leader who can architect difficult systems and turn technology into products. His foundation is broad engineering competence, complemented by applied DeFi/blockchain experience and leadership of technically ambitious projects.
 
 ZK is relevant experience and supporting evidence, particularly where it is applied to engineering and products, but it is not the site's headline specialization. The professional center is hands-on technical and product leadership in ambiguous environments rather than pure research or large-organization people management.
 
 ## Operating Context
 
-The work is most relevant to technically ambitious companies facing an architectural or product inflection point. This includes companies from seed stage through organizations of roughly 100–150 people, where high-leverage technical decisions, product translation, and clear communication matter more than process management alone.
+The work is most relevant to technically ambitious companies facing an architectural or product inflection point, especially teams from seed stage through roughly 100–150 people.
 
 The site supports two speeds of use: a direct path for a busy visitor verifying identity, work, and judgment, and a deeper path for someone exploring writing, books, imagery, and recurring ideas.
 
@@ -41,11 +41,11 @@ The site supports two speeds of use: a direct path for a busy visitor verifying 
 - The site invites conversation through X and Telegram. It does not use a lead form, scheduling funnel, service packages, or job-seeking calls to action.
 - The homepage must remain understandable without interaction. Exploration may add depth, but essential information cannot depend on hidden hotspots, animation, or metaphor.
 - All published prose must be written by Mathieu. The product may provide structure and editorial prompts, but it must not impersonate or replace his voice.
-- Mathieu's forthcoming role at Zama is intentionally unresolved in this record. No title, responsibilities, or positioning claims should be invented before he supplies them.
+- Mathieu works at Zama. The exact title, responsibilities, and positioning claims remain unresolved until he supplies them.
 
 ## Brand Commitments
 
-The site must feel like a reflection of Mathieu's world rather than a listing of professional achievements. It should demonstrate thoughtfulness, foresight, reliability, good ideas, and the ability to finish difficult work through evidence rather than self-description.
+The site should reflect Mathieu's world rather than list achievements. It demonstrates thoughtfulness, foresight, reliability, and execution through evidence rather than self-description.
 
 The voice is precise, reflective, understated, original, and occasionally playful. Anything resembling LinkedIn language, executive jargon, generic inspiration, inflated self-description, or faux-philosophical copy is unacceptable.
 

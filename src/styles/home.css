@@ -3,7 +3,9 @@
 
 .living-index {
 	display: grid;
-	grid-template-columns: minmax(17rem, 0.72fr) minmax(34rem, 1.28fr);
+	/* The groups channel takes the wider share: Work's promoted entries need a
+	   measure their two-line descriptions fit inside. */
+	grid-template-columns: minmax(17rem, 0.66fr) minmax(34rem, 1.34fr);
 	grid-template-areas:
 		"orientation groups"
 		"stage stage";
@@ -16,16 +18,6 @@
 	grid-area: orientation;
 	padding: clamp(2.25rem, 4vw, 3rem) clamp(2rem, 5vw, 6rem) clamp(2rem, 3.5vw, 2.5rem) 0;
 	border-right: 1px solid var(--home-rule);
-}
-
-.living-index__orientation h1 {
-	max-width: 8ch;
-	margin: 0;
-	font-family: var(--home-display);
-	font-size: clamp(4rem, 7vw, 6rem);
-	font-weight: 540;
-	line-height: 0.88;
-	letter-spacing: -0.04em;
 }
 
 .living-index__role {
@@ -52,10 +44,6 @@
 	font-weight: 600;
 }
 
-.living-index__contact {
-	margin-top: 1.4rem;
-}
-
 .living-index__intro {
 	max-width: 34rem;
 	margin-top: clamp(1.5rem, 3vw, 2.5rem);
@@ -65,15 +53,16 @@
 }
 
 .living-index__intro p {
-	max-width: 39ch;
+	max-width: 46ch;
 	margin: 0.7rem 0 0;
-	font-size: 0.84rem;
+	font-size: var(--type-intro-size);
 }
 
 .living-index__groups {
 	grid-area: groups;
 	display: grid;
-	grid-template-columns: 1fr 1fr;
+	/* Work leads, so the channel carrying it is the wider of the two. */
+	grid-template-columns: 1.16fr 1fr;
 }
 
 /* Work and Projects share the left channel; Writing owns the right one. */
@@ -193,6 +182,57 @@
 	background: var(--home-orange);
 }
 
+/* ---------- Work leads, Projects follows ---------- */
+
+/* Work sets the largest entry scale on the page: ledger-scale serif titles over
+   standfirst descriptions, so the primary group is unmistakable. The rows keep
+   the shared padding — scale alone carries the promotion, so the opening field
+   stays short enough to leave a band of the stage inside a 900px viewport. */
+.index-group--work li > a span {
+	font-family: var(--type-title-ledger-family);
+	font-size: var(--type-title-ledger-size);
+	font-weight: var(--type-title-ledger-weight);
+	line-height: var(--type-title-ledger-leading);
+	letter-spacing: var(--type-title-ledger-tracking);
+}
+
+.index-group--work li > a small {
+	font-size: var(--type-standfirst-size);
+	line-height: var(--type-standfirst-leading);
+}
+
+/* The reserved star column keeps its mark size; only its offset follows the
+   taller first line, so the star sits with the title's cap height. */
+.index-group--work li > a::before {
+	margin-top: 0.9rem;
+}
+
+/* Projects is the compact secondary group: its heading drops to the label voice
+   the year groups on /work use, and its entries stay at entry-title scale. */
+.index-group--projects .index-group__heading {
+	margin-bottom: 0.8rem;
+}
+
+.index-group--projects .index-group__heading h2 {
+	color: var(--home-cobalt);
+	font-family: var(--type-label-family);
+	font-size: var(--type-label-size);
+	font-weight: var(--type-label-weight);
+	letter-spacing: var(--type-label-tracking);
+	text-transform: uppercase;
+}
+
+/* One rung below its own heading, so the group's small type stays monotonic. */
+.index-group--projects .index-group__heading a {
+	font-size: var(--type-micro-size);
+	font-weight: var(--type-micro-weight);
+	letter-spacing: var(--type-micro-tracking);
+}
+
+.index-group--projects li > a {
+	padding-block: 0.85rem;
+}
+
 .art-stage {
 	grid-area: stage;
 	position: relative;
@@ -305,10 +345,7 @@
 	.living-index__orientation {
 		display: grid;
 		grid-template-columns: auto minmax(15rem, 1fr);
-		grid-template-areas:
-			"name intro"
-			"role intro"
-			"contact intro";
+		grid-template-areas: "role intro";
 		align-content: start;
 		gap: 0 clamp(2rem, 5vw, 4rem);
 		padding: clamp(2.75rem, 6vw, 4.5rem) 0 clamp(2.25rem, 5vw, 3.25rem);
@@ -316,16 +353,8 @@
 		border-bottom: 1px solid var(--home-rule);
 	}
 
-	.living-index__orientation h1 {
-		grid-area: name;
-	}
-
 	.living-index__role {
 		grid-area: role;
-	}
-
-	.living-index__contact {
-		grid-area: contact;
 	}
 
 	.living-index__intro {
@@ -354,10 +383,6 @@
 		padding: 3.8rem 0 3rem;
 		border-right: 0;
 		border-bottom: 0;
-	}
-
-	.living-index__orientation h1 {
-		font-size: clamp(3.8rem, 18vw, 5.5rem);
 	}
 
 	.living-index__intro {

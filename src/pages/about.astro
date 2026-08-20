@@ -11,49 +11,60 @@ import Page from '../layouts/Page.astro';
 <Page title="About — Mathieu Saugier" description="A short orientation: who Mathieu Saugier is and what he works on.">
 	{/* No standfirst: the prose opens with its own greeting, and a line above
 	    it would say the same thing twice. */}
-	<header class="page-head">
-		<h1>About</h1>
-	</header>
+	<div class="measure">
+		<header class="page-head">
+			<h1>About</h1>
+		</header>
 
-	<div class="about">
-		<div class="article-body">
-			<AboutContent />
+		<div class="about">
+			<div class="article-body article-body--flow">
+				<AboutContent />
+			</div>
+
+			{/* The prose already links every project to its field report, so the
+			    column carries only what the prose does not: the current post and
+			    the ways to reach Mathieu. */}
+			<aside class="about__margin">
+				<dl class="sheet__facts">
+					<dt>Currently</dt>
+					<dd>Senior Protocol Engineer at Zama</dd>
+					<dt>Elsewhere</dt>
+					<dd><ContactLinks /></dd>
+				</dl>
+			</aside>
 		</div>
 
-		<aside class="about__margin">
-			<dl class="sheet__facts">
-				<dt>Currently</dt>
-				<dd>Senior Protocol Engineer at Zama</dd>
-				<dt>Work</dt>
-				<dd><a href="/work/zama/">Zama</a></dd>
-				<dd><a href="/work/kakarot/">Kakarot</a></dd>
-				<dt>Projects</dt>
-				<dd><a href="/work/starknet-agent/">Starknet Agent</a></dd>
-				<dd><a href="/work/cairo-coder/">Cairo Coder</a></dd>
-				<dt>Elsewhere</dt>
-				<dd><ContactLinks /></dd>
-			</dl>
-		</aside>
-	</div>
-
-	<div class="about__close">
-		<a class="sheet__all" href="/writing">
-			<ArrowIcon />
-			Writing
-		</a>
-		<a class="sheet__all" href="/bookshelf">
-			<ArrowIcon />
-			Bookshelf
-		</a>
+		<div class="about__close">
+			<a class="sheet__all" href="/writing">
+				<ArrowIcon />
+				Writing
+			</a>
+			<a class="sheet__all" href="/bookshelf">
+				<ArrowIcon />
+				Bookshelf
+			</a>
+		</div>
 	</div>
 </Page>
 
 <style>
+	/* One right edge here too, but at the width this page actually needs: the
+	   reading column plus its facts. Holding the full row measure would leave
+	   the void between them the reading column was never going to fill —
+	   balance comes from closing unused width, not from a longer line. */
+	.measure {
+		--about-facts: 16rem;
+		--about-gap: clamp(2rem, 4vw, 3.5rem);
+
+		max-width: min(var(--home-row-max), calc(62ch + var(--about-gap) + var(--about-facts)));
+	}
+
 	.about {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) clamp(12rem, 20vw, 16rem);
+		grid-template-columns: minmax(0, 62ch) var(--about-facts);
+		justify-content: space-between;
+		gap: var(--about-gap);
 		align-items: start;
-		max-width: var(--home-row-max);
 		padding-block: clamp(2.5rem, 5vw, 4rem) clamp(4rem, 8vw, 7rem);
 	}
 
@@ -62,12 +73,6 @@ import Page from '../layouts/Page.astro';
 	   assistive technology rather than deleted from Mathieu's file. */
 	.about :global(.article-body > h1) {
 		display: none;
-	}
-
-	.about :global(.article-body) {
-		padding: 0;
-		border-left: 0;
-		font-size: clamp(1.05rem, 1.5vw, 1.2rem);
 	}
 
 	.about__margin {
@@ -83,7 +88,6 @@ import Page from '../layouts/Page.astro';
 		display: flex;
 		flex-wrap: wrap;
 		gap: 1rem clamp(1.5rem, 3vw, 2.75rem);
-		max-width: var(--home-row-max);
 		padding-block: clamp(2rem, 4vw, 3rem) clamp(3rem, 6vw, 5rem);
 		border-top: 1px solid var(--home-ink);
 	}

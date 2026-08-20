@@ -18,17 +18,19 @@
 }
 
 :root {
-	--home-paper: #f7f5f0;
-	--home-ink: #17191d;
-	--home-muted: #62666d;
-	--home-cobalt: #1747be;
-	--home-orange: #f06424;
-	--home-rule: color-mix(in srgb, var(--home-cobalt) 34%, var(--home-paper));
+	/* Intent aliases over the generated reference tokens (src/styles/tokens.css).
+	   New aliases must point at a --color/--font/--space/--type token, never a literal. */
+	--home-paper: var(--color-cool-paper);
+	--home-ink: var(--color-near-black-ink);
+	--home-muted: var(--color-muted-ink);
+	--home-cobalt: var(--color-cobalt-structure);
+	--home-orange: var(--color-orange-event);
+	--home-rule: var(--color-cobalt-rule);
 	/* The eight-point star that marks the active entry, wherever one exists. */
 	--home-star: polygon(50% 0, 64% 36%, 100% 50%, 64% 64%, 50% 100%, 36% 64%, 0 50%, 36% 36%);
-	--home-display: "Literata Variable", Georgia, serif;
-	--home-sans: "Commissioner Variable", Arial, sans-serif;
-	--home-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+	--home-display: var(--font-serif);
+	--home-sans: var(--font-sans);
+	--home-mono: var(--font-mono);
 	--home-max: 112rem;
 	/* A ledger or shelf row wider than this separates its right-hand anchor
 	   (arrow, rating) so far from the title that the eye loses the row. */
@@ -194,6 +196,19 @@ html.site body {
 	gap: 1.25rem;
 }
 
+/* Footer navigation is set at the data size, a ~21px tall line. Invisible
+   padding lifts every destination past the 44px pointer floor; the matching
+   negative margin gives the padding back to the layout, so the row keeps its
+   height and its printed spacing. The inline padding stays under half the
+   1.25rem gap, so two neighbouring targets never overlap. */
+.site-footer nav a {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.85rem 0.75rem;
+	margin: -0.85rem -0.75rem;
+}
+
 .site-footer a:hover {
 	color: var(--home-cobalt);
 }
@@ -215,15 +230,37 @@ html.site body {
 	font-weight: 620;
 }
 
-.contact-links--underline a,
+.contact-links--underline a > span,
 .contact-links--underline span[role="note"] {
 	border-bottom: 1px dashed var(--home-cobalt);
 	padding-bottom: 0.15rem;
 	letter-spacing: 0.04em;
 }
 
-.contact-links--underline a {
+.contact-links--underline a > span {
 	border-bottom-style: solid;
+	/* The rule hangs below the line box, as it did when it sat on the anchor
+	   itself — otherwise it grows the row and lifts the words off the baseline
+	   the footer's other items share. Cancels the padding and border above. */
+	margin-bottom: calc(-0.15rem - 1px);
+}
+
+/* Same invisible-padding treatment as the footer navigation: the rule stays on
+   the word (it rides the inner span) while the anchor grows to the 44px floor
+   and hands the space back with a negative margin. */
+.contact-links--underline a {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.85rem 0.15rem;
+	margin: -0.85rem -0.15rem;
+}
+
+/* A one-glyph destination is ~7px wide, so padding sized for words leaves it
+   short in the inline direction and it needs its own reach. */
+.contact-links--underline .contact-links__glyph {
+	padding-inline: 1.2rem;
+	margin-inline: -1.2rem;
 }
 
 .contact-links--chips {
@@ -232,6 +269,13 @@ html.site body {
 
 .contact-links--chips a,
 .contact-links--chips span[role="note"] {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	/* The chip's own padding leaves a one-glyph label under the 44px floor in
+	   both directions; the minimums finish the square. */
+	min-width: 44px;
+	min-height: 44px;
 	padding: 0.75rem 1rem;
 	border: 1px dashed var(--home-cobalt);
 }
@@ -281,18 +325,44 @@ html.site body {
 	line-height: 1.5;
 }
 
+/* One right edge per surface: the masthead rule, the group rules, and the rows
+   are capped together here rather than row by row, so no rule outruns the
+   content it belongs to. The header and footer keep the full shell width. */
+.measure {
+	max-width: var(--home-row-max);
+	margin-inline: auto;
+}
+
 .writing-ledger {
 	border-top: 1px solid var(--home-ink);
 }
 
 .writing-ledger article {
+	border-bottom: 1px solid var(--home-rule);
+}
+
+/* The whole row is the link — one destination must not occupy two tab stops.
+   Hover and focus recolour and translate only: padding or inset changes would
+   move the row out from under the pointer aiming at it. */
+.writing-ledger__row {
 	display: grid;
-	max-width: var(--home-row-max);
 	grid-template-columns: 9rem minmax(0, 1fr) 2.75rem;
 	align-items: start;
 	gap: clamp(1.2rem, 4vw, 4rem);
 	padding: clamp(1.4rem, 3vw, 2.4rem) 0;
-	border-bottom: 1px solid var(--home-rule);
+	transition:
+		color 220ms ease,
+		transform 260ms cubic-bezier(0.2, 0.75, 0.2, 1);
+}
+
+.writing-ledger__row:hover,
+.writing-ledger__row:focus-visible {
+	transform: translateX(0.4rem);
+}
+
+.writing-ledger__row:hover h3,
+.writing-ledger__row:focus-visible h3 {
+	color: var(--home-cobalt);
 }
 
 .writing-ledger time,
@@ -311,10 +381,6 @@ html.site body {
 	font-weight: 550;
 	line-height: 1.08;
 	letter-spacing: -0.025em;
-}
-
-.writing-ledger h3 a:hover {
-	color: var(--home-cobalt);
 }
 
 .writing-ledger p {
@@ -369,7 +435,7 @@ html.site body {
 		padding-block: 2rem;
 	}
 
-	.writing-ledger article {
+	.writing-ledger__row {
 		grid-template-columns: 1fr 2.75rem;
 		gap: 1rem;
 	}
@@ -391,5 +457,16 @@ html.site body {
 	/* The nav underline grows from the left; under reduced motion it appears. */
 	.site-header nav a::after {
 		transition: none;
+	}
+
+	/* The row's colour change stays; only its slide goes. */
+	.writing-ledger__row {
+		transition: color 220ms ease;
+		transform: none;
+	}
+
+	.writing-ledger__row:hover,
+	.writing-ledger__row:focus-visible {
+		transform: none;
 	}
 }

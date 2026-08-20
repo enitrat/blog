@@ -5,18 +5,38 @@
 
 <script>
 	function initCopyButtons() {
+		// One counter per language, so every block on the page has a name that
+		// tells the reader which sample they are on rather than repeating "Copy".
+		const seen = new Map<string, number>();
+
 		for (const block of document.querySelectorAll<HTMLElement>('.astro-code')) {
 			if (block.querySelector('.copy-btn')) continue;
 
 			const language = block.dataset.language;
-			block.setAttribute('role', 'region');
-			block.setAttribute('aria-label', language ? `${language} code sample` : 'Code sample');
+			const kind = language && language !== 'plaintext' ? language : 'code';
+			const ordinal = (seen.get(kind) ?? 0) + 1;
+			seen.set(kind, ordinal);
+			const name = `${kind} sample ${ordinal}`;
 
-			// No aria-label: the visible text is the button's accessible name, and
-			// the status region is what announces the change.
+			block.setAttribute('role', 'region');
+			block.setAttribute('aria-label', name);
+
+			// A scroll container is only reachable by keyboard if it is focusable,
+			// but a block with nothing to scroll would be a tab stop that does
+			// nothing — so the stop is added only while the code overflows.
+			const syncFocusable = () => {
+				if (block.scrollWidth > block.clientWidth) block.setAttribute('tabindex', '0');
+				else block.removeAttribute('tabindex');
+			};
+			syncFocusable();
+			if ('ResizeObserver' in window) new ResizeObserver(syncFocusable).observe(block);
+
+			// The visible word starts the accessible name, so the spoken name and
+			// the printed label still match.
 			const button = document.createElement('button');
 			button.className = 'copy-btn';
 			button.textContent = 'Copy';
+			button.setAttribute('aria-label', `Copy ${name}`);
 
 			const status = document.createElement('span');
 			status.className = 'sr-only';

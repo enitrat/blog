@@ -12,23 +12,27 @@ const destinations = [
 ---
 
 <Page title="Not found — Mathieu Saugier" description="That address does not name anything on this site.">
-	<header class="page-head">
-		<h1>Not found</h1>
-		<p>This address doesn't name anything here. The five real destinations:</p>
-	</header>
+	<div class="measure">
+		<header class="page-head">
+			<h1>Not found</h1>
+			<p>This address doesn't name anything here. The five real destinations:</p>
+		</header>
 
-	<div class="writing-ledger">
-		{destinations.map((destination) => (
-			<article>
-				<span class="writing-ledger__meta">{destination.meta}</span>
-				<div>
-					<h3><a href={destination.href}>{destination.title}</a></h3>
-				</div>
-				<a class="writing-ledger__arrow" href={destination.href} aria-label={`Go to ${destination.meta}`}>
-					<ArrowIcon />
-				</a>
-			</article>
-		))}
+		<div class="writing-ledger">
+			{destinations.map((destination) => (
+				<article>
+					<a class="writing-ledger__row" href={destination.href}>
+						<span class="writing-ledger__meta">{destination.meta}</span>
+						<div>
+							<h3>{destination.title}</h3>
+						</div>
+						<span class="writing-ledger__arrow" aria-hidden="true">
+							<ArrowIcon />
+						</span>
+					</a>
+				</article>
+			))}
+		</div>
 	</div>
 </Page>
 

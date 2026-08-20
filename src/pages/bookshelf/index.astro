@@ -26,43 +26,44 @@ const formatYear = (date: Date | null) => (date ? String(date.getFullYear()) : '
 	title="Bookshelf — Mathieu Saugier"
 	description="A reading archive: what Mathieu Saugier is reading, has read, and means to read."
 >
-	<header class="page-head">
-		<h1>Bookshelf</h1>
-		<p>What I read.</p>
-	</header>
+	<div class="measure">
+		<header class="page-head">
+			<h1>Bookshelf</h1>
+		</header>
 
-	{shelves.map((shelf) => (
-		<section class="shelf" aria-labelledby={`shelf-${shelf.key}`}>
-			<div class="shelf__heading">
-				<h2 id={`shelf-${shelf.key}`}>{shelf.label}</h2>
-				<span>{shelf.books.length} {shelf.books.length === 1 ? 'book' : 'books'}</span>
-			</div>
-			<ul class="shelf__list">
-				{shelf.books.map((book) => (
-					<li>
-						<span class="shelf__year">{formatYear(dateOf(book))}</span>
-						<div class="shelf__title">
-							<h3>
-								{book.writingSlug
-									? <a href={`/writing/${book.writingSlug}/`}>{book.title}</a>
-									: book.title}
-							</h3>
-							<p>{book.author}</p>
-						</div>
-						<span class="shelf__rating">
-							{book.rating ? book.rating.toFixed(1) : <span class="shelf__unrated">—</span>}
-							<span class="sr-only">{book.rating ? ` out of 5` : 'Not rated'}</span>
-						</span>
-					</li>
-				))}
-			</ul>
-		</section>
-	))}
+		{shelves.map((shelf) => (
+			<section class="shelf" aria-labelledby={`shelf-${shelf.key}`}>
+				<div class="shelf__heading">
+					<h2 id={`shelf-${shelf.key}`}>{shelf.label}</h2>
+					<span>{shelf.books.length} {shelf.books.length === 1 ? 'book' : 'books'}</span>
+				</div>
+				<ul class="shelf__list">
+					{shelf.books.map((book) => (
+						<li>
+							<span class="shelf__year">{formatYear(dateOf(book))}</span>
+							<div class="shelf__title">
+								<h3>
+									{book.writingSlug
+										? <a href={`/writing/${book.writingSlug}/`}>{book.title}</a>
+										: book.title}
+								</h3>
+								<p>{book.author}</p>
+							</div>
+							<span class="shelf__rating">
+								{book.rating ? book.rating.toFixed(1) : <span class="shelf__unrated">—</span>}
+								<span class="sr-only">{book.rating ? ` out of 5` : 'Not rated'}</span>
+							</span>
+						</li>
+					))}
+				</ul>
+			</section>
+		))}
 
-	<nav class="shelf__onward" aria-label="Continue">
-		<a href="/writing">Writing</a>
-		<a href="/about">About</a>
-	</nav>
+		<nav class="shelf__onward" aria-label="Continue">
+			<a href="/writing">Writing</a>
+			<a href="/about">About</a>
+		</nav>
+	</div>
 </Page>
 
 <style>
@@ -73,7 +74,6 @@ const formatYear = (date: Date | null) => (date ? String(date.getFullYear()) : '
 	.shelf__onward {
 		display: flex;
 		gap: clamp(1.5rem, 4vw, 3rem);
-		max-width: var(--home-row-max);
 		margin-top: clamp(2rem, 3.5vw, 3rem);
 		padding: clamp(1.1rem, 2.2vw, 1.7rem) 0 clamp(4rem, 8vw, 7rem);
 		border-top: 1px solid var(--home-ink);
@@ -105,7 +105,6 @@ const formatYear = (date: Date | null) => (date ? String(date.getFullYear()) : '
 	}
 
 	.shelf__list {
-		max-width: var(--home-row-max);
 		margin: 0;
 		padding: 0;
 		list-style: none;
@@ -123,9 +122,9 @@ const formatYear = (date: Date | null) => (date ? String(date.getFullYear()) : '
 
 	.shelf__year {
 		color: var(--home-cobalt);
-		font-size: 0.7rem;
-		font-weight: 620;
-		letter-spacing: 0.04em;
+		font-size: var(--type-data-size);
+		font-weight: var(--type-data-weight);
+		letter-spacing: var(--type-data-tracking);
 	}
 
 	.shelf__title h3 {
@@ -149,10 +148,13 @@ const formatYear = (date: Date | null) => (date ? String(date.getFullYear()) : '
 		font-size: 0.78rem;
 	}
 
+	/* The two ends of a row are one system: the rating takes the same data role
+	   as the year, from the same tokens, so the pair cannot drift apart. */
 	.shelf__rating {
 		color: var(--home-cobalt);
-		font-size: 0.82rem;
-		font-weight: 620;
+		font-size: var(--type-data-size);
+		font-weight: var(--type-data-weight);
+		letter-spacing: var(--type-data-tracking);
 		font-variant-numeric: tabular-nums;
 		text-align: right;
 	}

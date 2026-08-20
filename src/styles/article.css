@@ -2,12 +2,29 @@
    editorial apparatus in the outer margin. */
 
 .sheet {
-	--margin-col: clamp(12rem, 22vw, 18rem);
+	--margin-col: clamp(11rem, 15vw, 14rem);
+	/* The true measure. Binding: balance comes from centring the sheet, never
+	   from a longer line, so every part that aligns to the prose reads this. */
+	--reading-measure: 52ch;
+	/* The measure is counted in `ch`, so anything that aligns to it must resolve
+	   `ch` against the reading type — not the 1rem default. */
+	--reading-body-size: var(--type-body-article-size);
+	/* Wide enough for the longest copy-button state, so the language label can
+	   be offset by a value that never moves. */
+	--copy-btn-width: 4.4rem;
 }
 
+/* The sheet is one centred spine: head, rule, prose, images, and close all
+   share the reading measure's exact width, centred in the shell. The margin
+   apparatus hangs in the left field outside the spine. `ch` resolves against
+   the element's own font size, so every box that must equal the measure
+   carries the reading type size itself. */
 .sheet__head {
+	max-width: var(--reading-measure);
+	margin-inline: auto;
 	padding-block: clamp(3.5rem, 8vw, 7rem) clamp(1.75rem, 3.5vw, 3rem);
 	border-bottom: 1px solid var(--home-ink);
+	font-size: var(--reading-body-size);
 }
 
 .sheet__head h1 {
@@ -29,20 +46,26 @@
 	line-height: 1.5;
 }
 
+/* Symmetric side fields centre the spine; the apparatus lives in the left one. */
 .sheet__body {
 	display: grid;
-	grid-template-columns: var(--margin-col) minmax(0, 1fr);
+	grid-template-columns: minmax(0, 1fr) minmax(0, var(--reading-measure)) minmax(0, 1fr);
 	align-items: start;
+	font-size: var(--reading-body-size);
 }
 
 /* ---------- The margin apparatus ---------- */
 
 .sheet__margin {
+	grid-column: 1;
+	justify-self: end;
+	width: min(100%, var(--margin-col));
 	position: sticky;
 	top: 2.5rem;
 	max-height: calc(100svh - 5rem);
 	overflow-y: auto;
 	padding: clamp(2.5rem, 5vw, 4rem) clamp(1.5rem, 3vw, 3rem) 3rem 0;
+	font-size: 1rem;
 }
 
 .sheet__facts {
@@ -51,10 +74,17 @@
 }
 
 .sheet__facts dt,
-.sheet__contents > span,
+.sheet__contents > span {
+	color: var(--home-cobalt);
+	font-size: var(--type-label-size);
+	font-weight: var(--type-label-weight);
+	letter-spacing: var(--type-label-tracking);
+	text-transform: uppercase;
+}
+
 .sheet__onward-item span {
 	color: var(--home-cobalt);
-	font-size: 0.7rem;
+	font-size: var(--type-data-size);
 	font-weight: 680;
 	letter-spacing: 0.07em;
 	text-transform: uppercase;
@@ -99,7 +129,7 @@
 /* Fixed columns, so the active state can only change colour, never geometry. */
 .site .sheet__contents a {
 	display: grid;
-	grid-template-columns: 0.95rem 1.6rem minmax(0, 1fr);
+	grid-template-columns: 0.95rem minmax(0, 1fr);
 	padding: 0.3rem 0;
 	color: var(--home-muted);
 	font-size: 0.78rem;
@@ -118,16 +148,8 @@
 	clip-path: var(--home-star);
 }
 
-.sheet__contents a i {
-	grid-column: 2;
-	grid-row: 1;
-	color: color-mix(in srgb, var(--home-cobalt) 62%, var(--home-paper));
-	font-family: var(--home-display);
-	font-style: normal;
-}
-
 .sheet__contents a .t {
-	grid-column: 3;
+	grid-column: 2;
 	grid-row: 1;
 }
 
@@ -155,16 +177,16 @@
 
 /* ---------- The reading column ---------- */
 
-/* Two tracks: prose keeps the 52ch measure, code and media span both. */
+/* The reading column starts on the spine and may grow rightward into the free
+   field for code and tables only; everything else holds the measure exactly. */
 .article-body {
-	--reading-inset: clamp(3.4rem, 5vw, 4.5rem);
+	grid-column: 2 / -1;
 	display: grid;
-	grid-template-columns: minmax(0, 52ch) minmax(0, 1fr);
+	grid-template-columns: minmax(0, var(--reading-measure)) minmax(0, 1fr);
 	align-content: start;
-	padding: clamp(2.5rem, 5vw, 4rem) 0 clamp(4rem, 8vw, 7rem) var(--reading-inset);
-	border-left: 1px solid var(--home-rule);
-	font-size: 1.02rem;
-	line-height: 1.68;
+	padding: clamp(2.5rem, 5vw, 4rem) 0 clamp(4rem, 8vw, 7rem);
+	font-size: var(--reading-body-size);
+	line-height: var(--type-body-article-leading);
 	text-align: left;
 }
 
@@ -172,12 +194,36 @@
 	grid-column: 1;
 }
 
-/* The wide track, capped so a very wide screen never stretches a line of code
-   past what one glance can follow. */
+/* A page-level prose field uses the same reading typography without inheriting
+   the sheet's three-column spine. This keeps non-sheet prose on the same
+   primitive instead of reimplementing article layout in the page. */
+.article-body--flow {
+	grid-column: auto;
+	display: block;
+	width: auto;
+	padding: 0;
+	font-size: var(--type-body-about-size);
+	line-height: var(--type-body-about-leading);
+}
+
+.article-body--flow > * {
+	grid-column: auto;
+}
+
+/* Justified with hyphenation: the measure's right edge is a real edge, matching
+   the head rule above it, instead of a ragged cut. */
+.article-body p,
+.article-body li {
+	text-align: justify;
+	hyphens: auto;
+}
+
+/* The wide track is for code and tables only — they need horizontal room.
+   Capped so a very wide screen never stretches a line of code past what one
+   glance can follow. Images and figures keep the prose measure: a picture
+   wider than the text unbalances the column it illustrates. */
 .article-body > pre,
-.article-body > figure,
-.article-body > table,
-.article-body > p:has(> img:only-child) {
+.article-body > table {
 	grid-column: 1 / -1;
 	max-width: min(100%, 86ch);
 }
@@ -203,8 +249,7 @@
 	scroll-margin-top: 2rem;
 }
 
-.article-body h2,
-.article-body .section-head {
+.article-body h2 {
 	margin: 2.1rem 0 1.1rem;
 }
 
@@ -214,18 +259,8 @@
 	font-size: clamp(1.7rem, 3vw, 2.25rem);
 }
 
-.article-body .section-head {
-	position: relative;
-	grid-column: 1;
-}
-
-.article-body .section-head h2 {
-	margin: 0;
-}
-
 /* An authored `---` before a heading would print two identical rules in a row. */
-.article-body hr:has(+ h2),
-.article-body hr:has(+ .section-head) {
+.article-body hr:has(+ h2) {
 	display: none;
 }
 
@@ -237,37 +272,6 @@
 .article-body h4 {
 	margin: 0.7rem 0 0.7rem;
 	font-size: 1.05rem;
-}
-
-/* Hung in the reading gutter, level with the heading it names. The padding is
-   invisible hit area only, so the widest mark (§ plus two numerals) must still
-   clear the column rule. */
-.site .article-body .section-mark {
-	position: absolute;
-	top: 1.2rem;
-	right: calc(100% + 0.6rem);
-	display: flex;
-	align-items: baseline;
-	gap: 0.15rem;
-	padding: 0.45rem;
-	margin: -0.45rem;
-	color: color-mix(in srgb, var(--home-cobalt) 62%, var(--home-paper));
-	font-family: var(--home-display);
-	font-size: 1.15rem;
-	font-weight: 560;
-	line-height: 1;
-	text-decoration: none;
-	white-space: nowrap;
-	transition: color 200ms ease;
-}
-
-.section-mark b {
-	font-weight: 560;
-}
-
-.article-body .section-head:hover .section-mark,
-.site .section-mark:focus-visible {
-	color: var(--home-cobalt);
 }
 
 .site .article-body a {
@@ -398,9 +402,9 @@
 		no-repeat local,
 		linear-gradient(to left, var(--home-paper) 40%, rgb(247 245 240 / 0%)) right / 2.5rem 100%
 		no-repeat local,
-		linear-gradient(to right, rgb(23 25 29 / 14%), rgb(23 25 29 / 0%)) left / 0.85rem 100% no-repeat
+		linear-gradient(to right, rgb(23 25 29 / 24%), rgb(23 25 29 / 0%)) left / 1.25rem 100% no-repeat
 		scroll,
-		linear-gradient(to left, rgb(23 25 29 / 14%), rgb(23 25 29 / 0%)) right / 0.85rem 100% no-repeat
+		linear-gradient(to left, rgb(23 25 29 / 24%), rgb(23 25 29 / 0%)) right / 1.25rem 100% no-repeat
 		scroll;
 	font-size: 0.82rem;
 	line-height: 1.6;
@@ -412,14 +416,16 @@
 	outline-offset: 4px;
 }
 
+/* Offset by the copy button's reserved width: both must stay legible together
+   while the pointer is over the block. */
 .article-body pre[data-language]:not([data-language="plaintext"])::before {
 	content: attr(data-language);
 	position: absolute;
 	top: 0.6rem;
-	right: 0.6rem;
+	right: calc(0.5rem + var(--copy-btn-width) + 0.6rem);
 	color: var(--home-muted);
 	font-family: var(--home-sans);
-	font-size: 0.58rem;
+	font-size: var(--type-micro-size);
 	font-weight: 680;
 	letter-spacing: 0.07em;
 	text-transform: uppercase;
@@ -429,11 +435,14 @@
 	font-family: var(--home-mono);
 }
 
+/* Fixed width, so "Copied!" cannot grow the button over the language label. */
 .copy-btn {
 	position: absolute;
 	top: 0.5rem;
 	right: 0.5rem;
+	width: var(--copy-btn-width);
 	padding: 0.3rem 0.55rem;
+	text-align: center;
 	border: 1px solid var(--home-rule);
 	background: var(--home-paper);
 	color: var(--home-cobalt);
@@ -464,117 +473,13 @@
 	color: var(--home-orange);
 }
 
-/* ---------- The progress rail ---------- */
-
-.progress-rail {
-	position: fixed;
-	top: 50%;
-	right: clamp(0.6rem, 1.2vw, 1.4rem);
-	z-index: 5;
-	display: flex;
-	flex-direction: column;
-	gap: 0.55rem;
-	align-items: flex-end;
-	translate: 0 -50%;
-	opacity: 0;
-	visibility: hidden;
-	transition:
-		opacity 260ms ease,
-		visibility 260ms step-end;
-}
-
-.progress-rail[data-visible="true"] {
-	opacity: 1;
-	visibility: visible;
-	transition:
-		opacity 260ms ease,
-		visibility 0ms step-start;
-}
-
-.progress-rail button {
-	display: block;
-	width: 1.35rem;
-	height: 2px;
-	padding: 0;
-	border: 0;
-	background: color-mix(in srgb, var(--home-ink) 26%, var(--home-paper));
-	cursor: pointer;
-	transition:
-		background 200ms ease,
-		width 200ms ease;
-}
-
-.progress-rail button[data-depth="3"] {
-	width: 0.8rem;
-}
-
-/* Generous invisible hit area around a 2px line. */
-.progress-rail button::after {
-	content: "";
-	display: block;
-	height: 0.55rem;
-	margin-top: -0.28rem;
-}
-
-.progress-rail button:hover {
-	background: var(--home-cobalt);
-}
-
-.progress-rail button[data-current="true"] {
-	width: 1.8rem;
-	background: var(--home-cobalt);
-}
-
-.progress-rail button b {
-	position: absolute;
-	right: calc(100% + 0.9rem);
-	top: 50%;
-	max-width: 18rem;
-	padding: 0.45rem 0.7rem;
-	border: 1px solid var(--home-ink);
-	background: var(--home-paper);
-	color: var(--home-ink);
-	font-family: var(--home-sans);
-	font-size: 0.72rem;
-	font-weight: 560;
-	line-height: 1.35;
-	text-align: left;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	translate: 0 -50%;
-	opacity: 0;
-	visibility: hidden;
-	pointer-events: none;
-	transition: opacity 160ms ease;
-}
-
-.progress-rail li {
-	position: relative;
-	list-style: none;
-}
-
-.progress-rail ol {
-	display: contents;
-}
-
-.progress-rail button:hover b {
-	opacity: 1;
-	visibility: visible;
-}
-
-@media (max-width: 980px) {
-	.progress-rail {
-		display: none;
-	}
-}
-
 /* ---------- Document close ---------- */
 
 .sheet__close {
 	display: grid;
-	grid-template-columns: var(--margin-col) minmax(0, 1fr);
+	grid-template-columns: minmax(0, 1fr) minmax(0, var(--reading-measure)) minmax(0, 1fr);
 	border-top: 1px solid var(--home-ink);
+	font-size: var(--reading-body-size);
 }
 
 .sheet__exits {
@@ -588,16 +493,26 @@
 	gap: 1rem clamp(1.5rem, 3vw, 2.75rem);
 }
 
+/* The close occupies the spine exactly: it starts on the prose's left edge and
+   ends on its right. */
 .sheet__close > div {
-	padding: clamp(2.5rem, 5vw, 4rem) 0 clamp(3rem, 6vw, 5rem) clamp(1.5rem, 3.5vw, 3.5rem);
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	padding: clamp(2.5rem, 5vw, 4rem) 0 clamp(3rem, 6vw, 5rem);
 	grid-column: 2;
 }
 
+/* Explicit column count, never auto-fit: a card that silently wrapped to its own
+   row would leave the divider between the pair hanging on nothing. */
 .sheet__onward {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+	grid-template-columns: minmax(0, 1fr);
 	gap: 0 clamp(1.5rem, 4vw, 3.5rem);
 	margin-bottom: 2.25rem;
+}
+
+.sheet__onward:has(> * + *) {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .site .sheet__onward-item {
@@ -616,6 +531,11 @@
 }
 
 @media (max-width: 760px) {
+	/* One column, and the pair is divided by a rule above rather than beside. */
+	.sheet__onward:has(> * + *) {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
 	.sheet__onward-item + .sheet__onward-item {
 		border-top: 1px solid var(--home-rule);
 	}
@@ -670,6 +590,32 @@
 		grid-template-columns: minmax(0, 1fr);
 	}
 
+	/* No side fields to centre in, so the masthead returns to the shell edge. */
+	.sheet__head {
+		max-width: none;
+		margin-inline: 0;
+	}
+
+	/* One column: the apparatus becomes a full-width band and the spine centres
+	   inside the remaining width on its own. */
+	.article-body {
+		grid-column: 1;
+		grid-template-columns: minmax(0, var(--reading-measure));
+		justify-content: center;
+	}
+
+	.sheet__margin {
+		grid-column: 1;
+		justify-self: stretch;
+		width: auto;
+	}
+
+	.sheet__close > div {
+		width: 100%;
+		max-width: var(--reading-measure);
+		margin-inline: auto;
+	}
+
 	.sheet__margin {
 		position: static;
 		display: grid;
@@ -704,21 +650,6 @@
 		border-left: 0;
 	}
 
-	/* No outer gutter to hang the reference in, so it sets inline ahead of its
-	   heading and keeps its link. */
-	.site .article-body .section-mark {
-		position: static;
-		float: left;
-		margin: 0 0.55rem 0 0;
-		padding: 0;
-		color: var(--home-cobalt);
-		font-size: 0.95rem;
-	}
-
-	.article-body .section-head h2 {
-		padding-top: 1.1rem;
-	}
-
 	.sheet__close > div {
 		grid-column: 1;
 	}
@@ -739,8 +670,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.site .sheet__contents a,
-	.progress-rail button {
+	.site .sheet__contents a {
 		transition: none;
 	}
 }

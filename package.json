@@ -4,7 +4,9 @@
 	"version": "0.0.1",
 	"scripts": {
 		"dev": "astro dev",
-		"build": "astro build",
+		"tokens": "node scripts/generate-tokens.mjs",
+		"tokens:check": "node scripts/generate-tokens.mjs --check",
+		"build": "node scripts/generate-tokens.mjs --check && astro build",
 		"preview": "astro preview",
 		"astro": "astro",
 		"lint": "biome check .",
@@ -26,6 +28,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.2.4",
-		"playwright": "^1.55.1"
+		"playwright": "^1.55.1",
+		"yaml": "^2.9.0"
 	}
 }

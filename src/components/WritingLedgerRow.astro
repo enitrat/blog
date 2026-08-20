@@ -24,21 +24,23 @@ const langsGloss = extraLangs.map((lang) => langNames.of(lang) ?? lang).join(', 
 ---
 
 <article>
-	<div class="writing-ledger__meta">
-		<time datetime={pubDate.toISOString()}>{dateLabel}</time>
-		{extraLangs.length > 0 && (
-			<span>
-				[{extraLangs.map((lang) => lang.toUpperCase()).join('/')}]
-				<span class="sr-only">— also available in {langsGloss}</span>
-			</span>
-		)}
-	</div>
-	<div>
-		<h3><a href={href}>{title}</a></h3>
-		<p>{description}</p>
-	</div>
-	<a class="writing-ledger__arrow" href={href} aria-label={`Read ${title}`}>
-		<ArrowIcon />
+	<a class="writing-ledger__row" href={href}>
+		<div class="writing-ledger__meta">
+			<time datetime={pubDate.toISOString()}>{dateLabel}</time>
+			{extraLangs.length > 0 && (
+				<span>
+					[{extraLangs.map((lang) => lang.toUpperCase()).join('/')}]
+					<span class="sr-only">— also available in {langsGloss}</span>
+				</span>
+			)}
+		</div>
+		<div>
+			<h3>{title}</h3>
+			<p>{description}</p>
+		</div>
+		<span class="writing-ledger__arrow" aria-hidden="true">
+			<ArrowIcon />
+		</span>
 	</a>
 </article>
 

@@ -26,36 +26,39 @@ const byYear = years.map((year) => ({
 	title="Writing — Mathieu Saugier"
 	description="Essays, technical guides, and reflections by Mathieu Saugier."
 >
-	<header class="page-head">
-		<h1>Writing</h1>
-		<p>Essays, technical guides, and project reflections.</p>
-		<a class="page-head__feed" href="/rss.xml">RSS feed</a>
-	</header>
+	<div class="measure">
+		<header class="page-head">
+			<h1>Writing</h1>
+			<a class="page-head__feed" href="/rss.xml">RSS feed</a>
+		</header>
 
-	{byYear.map((group) => (
-		<section class="year" aria-labelledby={`year-${group.year}`}>
-			<h2 class="label" id={`year-${group.year}`}>{group.year}</h2>
-			<div class="writing-ledger">
-				{group.entries.map((entry) => (
-					<WritingLedgerRow
-						post={entry.post}
-						showYear={false}
-						extraLangs={entry.extraLangs}
-					/>
-				))}
-			</div>
-		</section>
-	))}
+		{byYear.map((group) => (
+			<section class="year" aria-labelledby={`year-${group.year}`}>
+				<h2 class="label" id={`year-${group.year}`}>{group.year}</h2>
+				<div class="writing-ledger">
+					{group.entries.map((entry) => (
+						<WritingLedgerRow
+							post={entry.post}
+							showYear={false}
+							extraLangs={entry.extraLangs}
+						/>
+					))}
+				</div>
+			</section>
+		))}
 
-	{posts.length === 0 && (
-		<p class="empty">Nothing published yet.</p>
-	)}
+		{posts.length === 0 && (
+			<p class="empty">Nothing published yet.</p>
+		)}
+	</div>
 </Page>
 
 <style>
+	/* The masthead carries no standfirst, so this link sits directly under a
+	   6rem Literata descender and needs the same clearance one would take. */
 	.page-head__feed {
 		display: inline-block;
-		margin-top: 1.4rem;
+		margin-top: 2.4rem;
 		color: var(--home-cobalt);
 		font-size: 0.74rem;
 		font-weight: 650;

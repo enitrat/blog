@@ -3,7 +3,6 @@ import '../styles/article.css';
 
 import type { MarkdownHeading } from 'astro';
 import CopyCodeButton from '../components/CopyCodeButton.astro';
-import { isArgumentHeading } from '../utils/sections.mjs';
 import Page from './Page.astro';
 
 /**
@@ -25,15 +24,14 @@ const labels: Record<string, Record<string, string>> = {
 };
 const t = labels[lang] ?? labels.en;
 
+// Rendered once and printed below, since the markup is the only place the
+// contents-derived apparatus can be checked against.
+const body = await Astro.slots.render('default');
+
 // Deeper than h3 crowds the margin rather than helping anyone navigate.
-let section = 0;
 const contents = headings
 	.filter((heading) => heading.depth === 2 || heading.depth === 3)
-	.map((heading) => {
-		const numbered = heading.depth === 2 && isArgumentHeading(heading.slug);
-		if (numbered) section += 1;
-		return { ...heading, ordinal: numbered ? section : undefined };
-	});
+	.map((heading) => ({ ...heading }));
 ---
 
 <Page title={title} description={description ?? title} lang={lang} footerContact={false}>
@@ -50,7 +48,7 @@ const contents = headings
 			{description && <p class="sheet__standfirst">{description}</p>}
 		</header>
 
-		<div class="sheet__body" data-sheet-body>
+		<div class="sheet__body">
 			<aside class="sheet__margin" aria-label={t.details}>
 				<slot name="facts" />
 
@@ -61,7 +59,6 @@ const contents = headings
 							{contents.map((heading) => (
 								<li data-depth={heading.depth}>
 									<a href={`#${heading.slug}`} data-contents-link={heading.slug}>
-										{heading.ordinal && <i aria-hidden="true">§{heading.ordinal}</i>}
 										<span class="t">{heading.text}</span>
 									</a>
 								</li>
@@ -71,9 +68,7 @@ const contents = headings
 				)}
 			</aside>
 
-			<div class="article-body">
-				<slot />
-			</div>
+			<div class="article-body" set:html={body} />
 		</div>
 
 		<footer class="sheet__close">
@@ -82,22 +77,6 @@ const contents = headings
 			</div>
 		</footer>
 	</article>
-
-	{/* A pointer-only duplicate of the contents nav, so it stays out of the
-	    accessibility tree and the tab order rather than doubling every stop. */}
-	{contents.length > 1 && (
-		<div class="progress-rail" aria-hidden="true" data-progress-rail>
-			<ol>
-				{contents.map((heading) => (
-					<li>
-						<button type="button" tabindex="-1" data-rail-target={heading.slug} data-depth={heading.depth}>
-							<b>{heading.ordinal ? `§${heading.ordinal} · ` : ''}{heading.text}</b>
-						</button>
-					</li>
-				))}
-			</ol>
-		</div>
-	)}
 
 	<CopyCodeButton />
 
@@ -113,19 +92,6 @@ const contents = headings
 				if (slug) links.set(slug, link);
 			}
 
-			const rail = document.querySelector<HTMLElement>('[data-progress-rail]');
-			const ticks = new Map<string, HTMLElement>();
-			if (rail) {
-				for (const tick of rail.querySelectorAll<HTMLElement>('[data-rail-target]')) {
-					const slug = tick.dataset.railTarget;
-					if (!slug) continue;
-					ticks.set(slug, tick);
-					tick.addEventListener('click', () => {
-						document.getElementById(slug)?.scrollIntoView();
-					});
-				}
-			}
-
 			const targets = [...links.keys()]
 				.map((slug) => document.getElementById(slug))
 				.filter((el): el is HTMLElement => el !== null);
@@ -138,9 +104,6 @@ const contents = headings
 				for (const [key, link] of links) {
 					if (key === slug) link.setAttribute('aria-current', 'true');
 					else link.removeAttribute('aria-current');
-				}
-				for (const [key, tick] of ticks) {
-					tick.dataset.current = String(key === slug);
 				}
 			};
 
@@ -169,19 +132,6 @@ const contents = headings
 			select();
 			window.addEventListener('scroll', onScroll, { passive: true });
 			window.addEventListener('resize', onScroll, { passive: true });
-
-			const body = document.querySelector('[data-sheet-body]');
-			if (rail && body && 'IntersectionObserver' in window) {
-				const observer = new IntersectionObserver(
-					(entries) => {
-						for (const entry of entries) {
-							rail.dataset.visible = String(entry.isIntersecting);
-						}
-					},
-					{ rootMargin: '-10% 0px -10% 0px' },
-				);
-				observer.observe(body);
-			}
 		}
 
 		setupSheet();

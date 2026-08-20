@@ -6,10 +6,11 @@ import { getWorkIndex, workUrl } from '../../utils/work';
 const reports = await getWorkIndex();
 
 // Same two groups as the homepage index: employment, then things built
-// alongside it.
+// alongside it. Each heading id doubles as the fragment the homepage index
+// links to, so `/work/#projects` lands on the group it names.
 const groups = [
-	{ key: 'work', label: 'Work', reports: reports.filter((r) => r.data.kind === 'work') },
-	{ key: 'project', label: 'Projects', reports: reports.filter((r) => r.data.kind === 'project') },
+	{ id: 'work', label: 'Work', reports: reports.filter((r) => r.data.kind === 'work') },
+	{ id: 'projects', label: 'Projects', reports: reports.filter((r) => r.data.kind === 'project') },
 ].filter((group) => group.reports.length > 0);
 ---
 
@@ -17,32 +18,35 @@ const groups = [
 	title="Work — Mathieu Saugier"
 	description="Field reports from the projects Mathieu Saugier has built and led."
 >
-	<header class="page-head">
-		<h1>Work</h1>
-		<p>Things I've worked on.</p>
-	</header>
+	<div class="measure">
+		<header class="page-head">
+			<h1>Work</h1>
+		</header>
 
-	{groups.map((group) => (
-		<section class="group" aria-labelledby={`group-${group.key}`}>
-			<h2 class="label" id={`group-${group.key}`}>{group.label}</h2>
-			<div class="writing-ledger">
-				{group.reports.map((report) => (
-					<article>
-						<span class="writing-ledger__meta">
-							{[report.data.role, report.data.period].filter(Boolean).join(' · ') || 'Field report'}
-						</span>
-						<div>
-							<h3><a href={workUrl(report)}>{report.data.title}</a></h3>
-							<p>{report.data.summary}</p>
-						</div>
-						<a class="writing-ledger__arrow" href={workUrl(report)} aria-label={`Read the ${report.data.title} field report`}>
-							<ArrowIcon />
-						</a>
-					</article>
-				))}
-			</div>
-		</section>
-	))}
+		{groups.map((group) => (
+			<section class="group" aria-labelledby={group.id}>
+				<h2 class="label" id={group.id}>{group.label}</h2>
+				<div class="writing-ledger">
+					{group.reports.map((report) => (
+						<article>
+							<a class="writing-ledger__row" href={workUrl(report)}>
+								<span class="writing-ledger__meta">
+									{[report.data.role, report.data.period].filter(Boolean).join(' · ') || 'Field report'}
+								</span>
+								<div>
+									<h3>{report.data.title}</h3>
+									<p>{report.data.summary}</p>
+								</div>
+								<span class="writing-ledger__arrow" aria-hidden="true">
+									<ArrowIcon />
+								</span>
+							</a>
+						</article>
+					))}
+				</div>
+			</section>
+		))}
+	</div>
 </Page>
 
 <style>

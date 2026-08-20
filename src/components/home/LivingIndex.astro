@@ -2,7 +2,6 @@
 import { Picture } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import ArrowIcon from '../ArrowIcon.astro';
-import ContactLinks from '../ContactLinks.astro';
 
 export interface LivingIndexItem {
 	id: string;
@@ -23,27 +22,23 @@ const allItems = [...work, ...projects, ...writing];
 const initialId = work[0]?.id ?? projects[0]?.id ?? writing[0]?.id;
 ---
 
-<section class="living-index" data-living-index data-active-id={initialId} aria-label="Work and writing index">
+<section class="living-index" data-living-index data-active-id={initialId} aria-label="Index">
 	<div class="living-index__orientation">
-		<h1>Mathieu<br />Saugier</h1>
 		<p class="living-index__role">
 			Senior Protocol Engineer @ <a href="https://zama.org" target="_blank" rel="noopener noreferrer">Zama</a>
 		</p>
 		<div class="living-index__intro">
 			<p>
-				I like building consumer products end to end and have solid experience working in the
-				DeFi industry. This is my little corner of the internet, where you'll find some of my
-				work, my projects, and the things that appealed to me.
+				This is my little corner of the internet, where you'll find some of my
+				work, my projects, and the things that appealed to me. I like building consumer products end to end and have solid experience working in the
+				DeFi industry.
 			</p>
-		</div>
-		<div class="living-index__contact">
-			<ContactLinks />
 		</div>
 	</div>
 
 	<div class="living-index__groups">
 		<div class="living-index__stack">
-			<section class="index-group" aria-labelledby="work-index-title">
+			<section class="index-group index-group--work" aria-labelledby="work-index-title">
 				<div class="index-group__heading">
 					<h2 id="work-index-title">Work</h2>
 					<a href="/work">All field reports</a>
@@ -65,9 +60,10 @@ const initialId = work[0]?.id ?? projects[0]?.id ?? writing[0]?.id;
 				</ul>
 			</section>
 
-			<section class="index-group" aria-labelledby="projects-index-title">
+			<section class="index-group index-group--projects" aria-labelledby="projects-index-title">
 				<div class="index-group__heading">
 					<h2 id="projects-index-title">Projects</h2>
+					<a href="/work/#projects">All projects</a>
 				</div>
 				<ul>
 					{projects.map((item) => (

@@ -6,7 +6,6 @@ import sitemap from '@astrojs/sitemap';
 import vercel from '@astrojs/vercel';
 import { defineConfig } from 'astro/config';
 import codeTheme from './src/styles/code-theme.json' with { type: 'json' };
-import { rehypeSectionMarks } from './src/utils/sections.mjs';
 
 export default defineConfig({
 	// Every canonical link, sitemap entry, RSS link, and og:url resolves against
@@ -31,7 +30,7 @@ export default defineConfig({
 			theme: codeTheme,
 		},
 
-		rehypePlugins: [rehypeHeadingIds, rehypeSectionMarks],
+		rehypePlugins: [rehypeHeadingIds],
 	},
 
 	adapter: vercel(),
