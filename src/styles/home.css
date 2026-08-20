@@ -34,6 +34,16 @@
 	font-weight: 520;
 }
 
+.living-index__role a {
+	color: var(--home-cobalt);
+}
+
+.living-index__role a:hover,
+.living-index__role a:focus-visible {
+	text-decoration: underline;
+	text-underline-offset: 0.2em;
+}
+
 .living-index__role span {
 	display: block;
 	margin-top: 0.35rem;
@@ -66,11 +76,21 @@
 	grid-template-columns: 1fr 1fr;
 }
 
+/* Work and Projects share the left channel; Writing owns the right one. */
+.living-index__stack {
+	display: grid;
+	align-content: start;
+}
+
 .index-group {
 	padding: clamp(1.75rem, 3vw, 2.5rem) clamp(1.5rem, 3.5vw, 3.5rem);
 }
 
-.index-group + .index-group {
+.living-index__stack .index-group + .index-group {
+	padding-top: 0.5rem;
+}
+
+.index-group--writing {
 	border-left: 1px solid var(--home-rule);
 }
 
@@ -267,48 +287,6 @@
 	line-height: 1.6;
 }
 
-.home-close__portals {
-	margin-top: 2.5rem;
-	border-top: 1px solid var(--home-ink);
-}
-
-.home-close__portals a {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) 1.35rem;
-	grid-template-areas:
-		"label arrow"
-		"title arrow";
-	gap: 0.3rem 1rem;
-	padding: 1.1rem 0.2rem;
-	border-bottom: 1px solid var(--home-rule);
-	transition: color 200ms ease;
-}
-
-.home-close__portals a strong {
-	grid-area: title;
-	font-family: var(--home-display);
-	font-size: clamp(1.3rem, 2vw, 1.7rem);
-	font-weight: 550;
-	letter-spacing: -0.02em;
-}
-
-.home-close__portals a .label {
-	grid-area: label;
-}
-
-.home-close__portals a svg {
-	grid-area: arrow;
-	align-self: center;
-	width: 1.15rem;
-	height: 1.15rem;
-	color: var(--home-cobalt);
-}
-
-.home-close__portals a:hover,
-.home-close__portals a:focus-visible {
-	color: var(--home-cobalt);
-}
-
 .home-close .contact-links {
 	margin-top: 2.5rem;
 }
@@ -360,7 +338,7 @@
 		padding-inline: 0 clamp(1.5rem, 3.5vw, 3.5rem);
 	}
 
-	.index-group + .index-group {
+	.index-group--writing {
 		padding-inline: clamp(1.5rem, 3.5vw, 3.5rem) 0;
 	}
 }
@@ -392,7 +370,7 @@
 
 	/* Must also reset the inline padding the wider block sets on this same
 	   selector — the single-class version loses the specificity contest. */
-	.index-group + .index-group {
+	.index-group--writing {
 		padding-inline: 0;
 		border-top: 1px solid var(--home-rule);
 		border-left: 0;

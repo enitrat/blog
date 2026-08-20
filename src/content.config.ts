@@ -22,6 +22,8 @@ const work = defineCollection({
 	schema: z.object({
 		title: z.string(),
 		summary: z.string(),
+		/** work = employment (Zama, Kakarot); project = things built alongside it. */
+		kind: z.enum(['work', 'project']).default('work'),
 		role: z.string().optional(),
 		/** Free-form, e.g. "2023 — present". */
 		period: z.string().optional(),

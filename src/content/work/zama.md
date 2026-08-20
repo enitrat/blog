@@ -1,10 +1,10 @@
 ---
-title: 'Kakarot'
-summary: 'Efficient Zero-Knowledge Proofs systems for client-side proving'
+title: 'Zama'
+summary: 'Fully Homomorphic Encryption for blockchain and AI'
 kind: 'work'
-role: 'CTO'
-site: 'https://kakarot.org/'
-order: 1
+role: 'Senior Protocol Engineer'
+site: 'https://zama.org'
+order: 0
 ---
 
 **Field report placeholder.** The report covers the situation, your role, the consequential architectural and product decisions, what shipped, and the lessons.

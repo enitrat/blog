@@ -6,7 +6,6 @@ import stageBuilder from '../assets/home/stage-builder.webp';
 import workLanguage from '../assets/home/work-language.webp';
 import workSystems from '../assets/home/work-systems.webp';
 import writingIdeas from '../assets/home/writing-ideas.webp';
-import ArrowIcon from '../components/ArrowIcon.astro';
 import ContactLinks from '../components/ContactLinks.astro';
 import LivingIndex, { type LivingIndexItem } from '../components/home/LivingIndex.astro';
 import { SITE_DESCRIPTION } from '../consts';
@@ -14,24 +13,26 @@ import Page from '../layouts/Page.astro';
 import { getWorkIndex, workUrl } from '../utils/work';
 import { getWritingIndex, postUrl } from '../utils/writing';
 
-// Three writing entries against three work entries, so the two channels of
-// the index end at the same rule.
 const recentPosts = (await getWritingIndex()).slice(0, 3);
 const reports = await getWorkIndex();
 
-const workArt: Record<string, ImageMetadata> = {
+const reportArt: Record<string, ImageMetadata> = {
+	zama: writingIdeas,
 	kakarot: stageBuilder,
 	'starknet-agent': workSystems,
 	'cairo-coder': workLanguage,
 };
 
-const work: LivingIndexItem[] = reports.map((report) => ({
+const toItem = (report: (typeof reports)[number]): LivingIndexItem => ({
 	id: `work-${report.id}`,
 	title: report.data.title,
 	href: workUrl(report),
 	description: report.data.summary,
-	art: workArt[report.id] ?? stageBuilder,
-}));
+	art: reportArt[report.id] ?? stageBuilder,
+});
+
+const work = reports.filter((report) => report.data.kind === 'work').map(toItem);
+const projects = reports.filter((report) => report.data.kind === 'project').map(toItem);
 
 const writingArt = [writingIdeas, workLanguage, workSystems, stageBuilder];
 const writing: LivingIndexItem[] = recentPosts.map((post, index) => ({
@@ -43,8 +44,8 @@ const writing: LivingIndexItem[] = recentPosts.map((post, index) => ({
 }));
 ---
 
-<Page title="Mathieu Saugé" description={SITE_DESCRIPTION}>
-	<LivingIndex work={work} writing={writing} />
+<Page title="Mathieu Saugier" description={SITE_DESCRIPTION}>
+	<LivingIndex work={work} projects={projects} writing={writing} />
 
 	<section class="home-close" id="contact" aria-label="Say hello">
 		<div>
@@ -52,24 +53,6 @@ const writing: LivingIndexItem[] = recentPosts.map((post, index) => ({
 				If you've enjoyed reading about me and anything resonates, whether an essay, a project
 				I've built, or a book we've both read, send me a message and say hello!
 			</p>
-
-			<nav class="home-close__portals" aria-label="Elsewhere on this site">
-				<a href="/about">
-					<span class="label">Who writes this</span>
-					<strong>About</strong>
-					<ArrowIcon />
-				</a>
-				<a href="/bookshelf">
-					<span class="label">What I read</span>
-					<strong>Bookshelf</strong>
-					<ArrowIcon />
-				</a>
-				<a href="/writing">
-					<span class="label">Everything written</span>
-					<strong>Writing</strong>
-					<ArrowIcon />
-				</a>
-			</nav>
 
 			<ContactLinks variant="chips" />
 		</div>

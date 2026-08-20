@@ -14,24 +14,21 @@ export interface LivingIndexItem {
 
 interface Props {
 	work: LivingIndexItem[];
+	projects: LivingIndexItem[];
 	writing: LivingIndexItem[];
 }
 
-const { work, writing } = Astro.props;
-const allItems = [...work, ...writing];
-const initialId = work[0]?.id ?? writing[0]?.id;
+const { work, projects, writing } = Astro.props;
+const allItems = [...work, ...projects, ...writing];
+const initialId = work[0]?.id ?? projects[0]?.id ?? writing[0]?.id;
 ---
 
 <section class="living-index" data-living-index data-active-id={initialId} aria-label="Work and writing index">
 	<div class="living-index__orientation">
-		<h1>Mathieu<br />Saugé</h1>
+		<h1>Mathieu<br />Saugier</h1>
 		<p class="living-index__role">
-			Software Engineer
-			<span>CTO of Kakarot</span>
+			Senior Protocol Engineer @ <a href="https://zama.org" target="_blank" rel="noopener noreferrer">Zama</a>
 		</p>
-		<div class="living-index__contact">
-			<ContactLinks />
-		</div>
 		<div class="living-index__intro">
 			<p>
 				I like building consumer products end to end and have solid experience working in the
@@ -39,32 +36,54 @@ const initialId = work[0]?.id ?? writing[0]?.id;
 				work, my projects, and the things that appealed to me.
 			</p>
 		</div>
+		<div class="living-index__contact">
+			<ContactLinks />
+		</div>
 	</div>
 
 	<div class="living-index__groups">
-		<section class="index-group" aria-labelledby="work-index-title">
-			<div class="index-group__heading">
-				<h2 id="work-index-title">Work</h2>
-				<a href="/work">All field reports</a>
-			</div>
-			<ul>
-				{work.map((item) => (
-					<li>
-						<a
-							href={item.href}
-							data-stage-trigger={item.id}
-							data-active={item.id === initialId ? 'true' : 'false'}
-						>
-							<span>{item.title}</span>
-							<small>{item.description}</small>
-							<ArrowIcon />
-						</a>
-					</li>
-				))}
-			</ul>
-		</section>
+		<div class="living-index__stack">
+			<section class="index-group" aria-labelledby="work-index-title">
+				<div class="index-group__heading">
+					<h2 id="work-index-title">Work</h2>
+					<a href="/work">All field reports</a>
+				</div>
+				<ul>
+					{work.map((item) => (
+						<li>
+							<a
+								href={item.href}
+								data-stage-trigger={item.id}
+								data-active={item.id === initialId ? 'true' : 'false'}
+							>
+								<span>{item.title}</span>
+								<small>{item.description}</small>
+								<ArrowIcon />
+							</a>
+						</li>
+					))}
+				</ul>
+			</section>
 
-		<section class="index-group" aria-labelledby="writing-index-title">
+			<section class="index-group" aria-labelledby="projects-index-title">
+				<div class="index-group__heading">
+					<h2 id="projects-index-title">Projects</h2>
+				</div>
+				<ul>
+					{projects.map((item) => (
+						<li>
+							<a href={item.href} data-stage-trigger={item.id} data-active="false">
+								<span>{item.title}</span>
+								<small>{item.description}</small>
+								<ArrowIcon />
+							</a>
+						</li>
+					))}
+				</ul>
+			</section>
+		</div>
+
+		<section class="index-group index-group--writing" aria-labelledby="writing-index-title">
 			<div class="index-group__heading">
 				<h2 id="writing-index-title">Writing</h2>
 				<a href="/writing">Browse all writing</a>

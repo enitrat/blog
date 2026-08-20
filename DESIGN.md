@@ -1,5 +1,5 @@
 ---
-name: Mathieu Saugé
+name: Mathieu Saugier
 description: One editorial world across every route — cool paper, near-black ink, cobalt structure, rare orange events.
 colors:
   cobalt-structure: "#1747be"
@@ -289,7 +289,7 @@ components:
     height: "2px"
 ---
 
-# Design System: Mathieu Saugé
+# Design System: Mathieu Saugier
 
 ## Overview
 
@@ -297,7 +297,7 @@ components:
 
 This document covers the whole site: the homepage, the reading page (`/writing/<slug>` and `/work/<slug>`), the work index (`/work`), the writing archive (`/writing`), the bookshelf (`/bookshelf`), About (`/about`), the not-found page, and the shared foundation they all share. Every route is one editorial world: the archive, the article, and the shelf are designed to the same standard as the homepage, never left as framework defaults. The same hand is recognisable from any entry point — a light, tactile field of paper and ink where rigorous cobalt structure carries hierarchy while vivid orange appears as a rare narrative event.
 
-The homepage is the **Living Index**: a horizontal editorial sequence of identity, two strictly separated indexes, and a panoramic artwork stage that answers browsing intent — and it is the page's *only* listing. Below the stage the page carries different material (the closing statement, the portals into the personal half, contact), never a fuller repeat of the same items, which would teach a visitor nothing the first viewport has not already shown. Every other surface is a **ruled sheet**: a thin identity-and-navigation band over one near-black rule, then a Literata headline at page scale with a muted standfirst, then a ruled content field. The reading surface refines that into the **Marginalia Sheet** — one measured reading column with a wide outer margin carrying the editorial apparatus (the dated witness line, translations, and a contents list whose active entry takes the same orange star the homepage index uses), plus a numbered section reference (`§` and its ordinal) hung in the outer margin level with each `h2`, repeating the ordinals the contents list carries so margin and index are one apparatus. Interaction enriches the apparatus but never carries essential identity, labels, navigation, or prose order.
+The homepage is the **Living Index**: a horizontal editorial sequence of identity, three strictly separated indexes (Work, Projects, Writing), and a panoramic artwork stage that answers browsing intent — and it is the page's *only* listing. Below the stage the page carries different material (the invitation and contact), never a fuller repeat of the same items, which would teach a visitor nothing the first viewport has not already shown. Every other surface is a **ruled sheet**: a thin identity-and-navigation band over one near-black rule, then a Literata headline at page scale with a muted standfirst, then a ruled content field. The reading surface refines that into the **Marginalia Sheet** — one measured reading column with a wide outer margin carrying the editorial apparatus (the dated witness line, translations, and a contents list whose active entry takes the same orange star the homepage index uses), plus a numbered section reference (`§` and its ordinal) hung in the outer margin level with each `h2`, repeating the ordinals the contents list carries so margin and index are one apparatus. Interaction enriches the apparatus but never carries essential identity, labels, navigation, or prose order.
 
 Two seeds record the shipped directions, not content authorship: `526476f5` for the homepage, `61ce0048` for the Marginalia Sheet and the three index surfaces. Field report bodies, role and period details on two reports, and the generated stage imagery remain explicit placeholders until Mathieu writes or selects them. All other prose — the homepage introduction and invitation, section standfirsts, article prose, book data, and the About text — is Mathieu's own and renders unchanged. Final artworks must be Mathieu-authored or Mathieu-selected and keep the narrative role established by the temporary compositions.
 
@@ -379,7 +379,7 @@ The ramp is fluid rather than stepped: nearly every serif role is a `clamp()` pa
 
 Every surface sits inside one centered shell capped at `112rem`, inset by the page-gutter token, opening with the same `4.75rem` header over a near-black rule and closing with the same `6rem` footer. Non-home surfaces then open with the shared `page-head` masthead: one headline, an optional muted standfirst set `2.4rem` below it (a `6rem` Literata descender needs more clearance than a normal paragraph gap), and a near-black rule that starts the page's grid.
 
-The homepage begins with a two-column orientation field: Mathieu occupies the narrower left column (`minmax(17rem, 0.72fr)`) — name, role line with the specific credential at role scale, the contact row, the introduction — while Work and Writing occupy two equal groups of three entries each on the right, and the art stage spans the full content width beneath both. The field's paddings are sized so a meaningful band of the stage lands inside a 900px-tall viewport. Below the stage the page closes: the closing statement beside the portals (About, Bookshelf, Writing) and the contact chips. Nothing between stage and close — the index above already listed everything.
+The homepage begins with a two-column orientation field: Mathieu occupies the narrower left column (`minmax(17rem, 0.72fr)`) — name, role line with the specific credential at role scale, the contact row, the introduction — while the right side carries two channels: Work and Projects stacked in the left channel, Writing in the right, and the art stage spans the full content width beneath both. The field's paddings are sized so a meaningful band of the stage lands inside a 900px-tall viewport. Below the stage the page closes: the invitation and the contact chips. Nothing between stage and close — the index above already listed everything.
 
 The reading page is a two-column sheet: a margin of `minmax(12rem, 0.3fr)` beside a reading column of `minmax(0, 1fr)` whose prose is capped at `52ch` and inset past a cobalt rule. The margin is sticky at `2.5rem` from the top, bounded to `calc(100svh - 5rem)` and scrollable inside itself, so long apparatus never pushes past the viewport or drags the page. The article close inherits the same grid and stays in the second column, so the onward links and the archive link align with the prose rather than with the margin.
 
@@ -389,7 +389,7 @@ Two breakpoints do all the responsive work. At `980px` and below: the homepage o
 
 At `760px` and below: the page gutter becomes the narrow token, the header and footer stack, all content fields go to one column, and the ledger drops its dedicated date column into a full-width first row. The homepage index groups stack and the art stage moves between identity and the indexes, becoming a sticky `min(42svh, 24rem)` band with an `18rem` floor while index entries pass beneath it. Code blocks bleed to the gutter edges, keeping only their cobalt left rule.
 
-**The Segmented Index Rule.** Work and Writing always keep separate headings, lists, and destinations. Never interleave them into one stream, even when the layout stacks.
+**The Segmented Index Rule.** Work, Projects, and Writing always keep separate headings, lists, and destinations — Work is employment, Projects are things built alongside it. Never interleave them into one stream, even when the layout stacks.
 
 **The One-Panorama Rule.** The homepage opening sequence gets one content-width dominant image stage. Supporting Work imagery below may vary in size, but it must not compete with the stage in the first viewport. The four non-home surfaces carry no artwork at all.
 
@@ -490,7 +490,7 @@ Two small marks are the only ornamental geometry: the eight-point orange star (`
 
 ### Homepage: Contact Close
 
-- **Structure:** A quiet single-column close: Mathieu's invitation at reading scale, then the portals into the rest of the site (About, Bookshelf, Writing as ruled rows — the one route from the index into the personal half), then the contact chips. No display-scale statement: the invitation is the voice.
+- **Structure:** A quiet single-column close: Mathieu's invitation at reading scale over the contact chips. No display-scale statement and no portal rows: the invitation is the voice, and the header carries the destinations.
 - **Boundary:** The close carries Mathieu's invitation in his own words over the real contact links, with no display-scale statement above it. Do not reinterpret it as a lead form, booking funnel, or service CTA.
 
 ### About
@@ -527,7 +527,7 @@ Two small marks are the only ornamental geometry: the eight-point orange star (`
 
 - **Work is a first-class section.** `/work` is a real route with one field report per project, written as prose like the blog. It is never a homepage anchor.
 - **The Living Index is the homepage's only listing.** Below the stage sits the close, nothing else — no second Work or Writing section repeating the index.
-- **The homepage close links to the personal half** (About, Bookshelf): one world, one site. The *opening* sequence carries no bookshelf material.
+- **The header carries the routes into the personal half** (About, Bookshelf); the close stays a plain invitation over the contact links. The homepage carries no bookshelf material.
 - **No photograph on About.** Recognition rests on the name, the writing, and the work.
 - **Reading progress is the rail, not a word count.** Long essays signal position through the pointer-only progress rail; the margin facts carry no extent or reading-time term.
 - **Related pieces are hand-picked** in frontmatter (`related`), never a tag system, at this collection size.
