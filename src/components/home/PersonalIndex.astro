@@ -13,8 +13,6 @@ interface Props {
 }
 
 const { work, projects, writing } = Astro.props;
-const currentWork = work[0];
-const featuredWriting = writing[0];
 
 const sections = [
 	{ id: 'work', label: 'Work.', href: '/work', items: work },
@@ -30,18 +28,6 @@ const sections = [
 		<div class="personal-index__copy">
 			<p>Hi, I'm Mathieu. I like building products end to end, and I keep building outside of work.</p>
 			<p>I currently work as a Senior Protocol Engineer at <a href="/work/zama/">Zama</a>.</p>
-		</div>
-	</section>
-
-	<section class="personal-index__now" aria-labelledby="personal-index-now">
-		<p class="personal-index__label" id="personal-index-now">Now</p>
-		<div>
-			<a class="personal-index__current-title" href={currentWork?.href ?? '/work'}>{currentWork?.title ?? 'Work'}</a>
-			<p>{currentWork?.description ?? 'A record of things built and learned.'}</p>
-		</div>
-		<div>
-			<a class="personal-index__current-title" href={featuredWriting?.href ?? '/writing'}>{featuredWriting?.title ?? 'Writing'}</a>
-			<p>{featuredWriting?.description ?? 'Notes on software, systems, and ideas.'}</p>
 		</div>
 	</section>
 

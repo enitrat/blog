@@ -1,10 +1,12 @@
 ---
 title: 'Zama'
-summary: 'Fully Homomorphic Encryption for blockchain and AI'
+summary: 'Scaling blockchain infrastructure and building products with Fully Homomorphic Encryption'
 kind: 'work'
 role: 'Senior Protocol Engineer'
 site: 'https://zama.org'
 order: 0
 ---
 
-**Field report placeholder.** The report covers the situation, your role, the consequential architectural and product decisions, what shipped, and the lessons.
+I joined Zama as a Senior Protocol Engineer. During my first quarter, I audited the existing blockchain infrastructure and helped set the direction for scaling network throughput by 10x.
+
+I then started working with the Product team on products built with Fully Homomorphic Encryption. We began with confidential DeFi investments in Vaults, using an anonymity-set-based system.

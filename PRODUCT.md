@@ -41,7 +41,7 @@ The site supports two speeds of use: a direct path for a busy visitor verifying 
 - The site invites conversation through X and Telegram. It does not use a lead form, scheduling funnel, service packages, or job-seeking calls to action.
 - The homepage must remain understandable without interaction. Exploration may add depth, but essential information cannot depend on hidden hotspots, animation, or metaphor.
 - All published prose must be written by Mathieu. The product may provide structure and editorial prompts, but it must not impersonate or replace his voice.
-- Mathieu works at Zama. The exact title, responsibilities, and positioning claims remain unresolved until he supplies them.
+- Mathieu is a Senior Protocol Engineer at Zama. He works on scaling the network and on products built with Fully Homomorphic Encryption.
 
 ## Brand Commitments
 
@@ -53,7 +53,7 @@ Mathieu's cultivated visual work is a binding part of the identity. Images shoul
 
 ## Evidence on Hand
 
-- Kakarot: architectural leadership and applied blockchain/ZK engineering. The public account still needs to be authored as a Field Report.
+- Kakarot: architectural leadership and applied blockchain/ZK engineering. Kakarot was later acquired by Zama.
 - The Cairo Programming Language book: evidence of technical depth, clear communication, ecosystem contribution, and sustained execution.
 - The Starknet conversational agent and Cairo Coder: evidence of turning emerging AI capabilities into developer products.
 - Existing writing on AI for software engineering, including retrospective evidence of convictions that anticipated later industry direction.

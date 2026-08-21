@@ -1,10 +1,14 @@
 ---
 title: 'Kakarot'
-summary: 'Efficient Zero-Knowledge Proofs systems for client-side proving'
+summary: 'Efficient zero-knowledge proving systems for client-side proving'
 kind: 'work'
 role: 'CTO'
 site: 'https://kakarot.org/'
 order: 1
 ---
 
-**Field report placeholder.** The report covers the situation, your role, the consequential architectural and product decisions, what shipped, and the lessons.
+I joined Kakarot as an engineer to make Starknet EVM-compatible. The project later pivoted towards Keth, a zkEVM block proving engine, and I took on the role of CTO.
+
+We eventually released Cairo-M, one of the most efficient zk-proving systems for client-side proving at the time.
+
+Kakarot was later acquired by Zama.

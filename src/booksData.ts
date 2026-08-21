@@ -22,13 +22,11 @@ export const books: Book[] = [
 		rating: null,
 	},
 	{
-		// TODO(msaug): confirm the real dates — the original entry said started
-		// 2026-02-29 (not a real date) and finished with no finish date.
 		title: 'Fooled by Randomness',
 		author: 'Nassim Nicholas Taleb',
 		status: 'finished',
-		dateStarted: new Date('2026-03-01'),
-		dateFinished: null,
+		dateStarted: null,
+		dateFinished: new Date('2026-02-01'),
 		rating: null,
 	},
 	{

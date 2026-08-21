@@ -6,4 +6,6 @@ site: 'https://www.cairo-coder.com/'
 order: 3
 ---
 
-**Field report placeholder.** The report covers the situation, your role, the consequential decisions, the outcome, and the lessons.
+Before MCP existed, I built Cairo Coder as an OpenAI-compatible API. An AI coding IDE could plug into it and receive context about Cairo programming.
+
+With that context, simple queries could produce Cairo code that compiled and was correct. The project focused on giving the model the information it needed before asking it to write code.
