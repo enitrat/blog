@@ -1,8 +1,6 @@
 ---
 // Imports no stylesheet on purpose: each layout owns its surface's styles, so
 // adding one here would leak that layout's world onto every other surface.
-import { SITE_TITLE } from '../consts';
-
 interface Props {
 	title: string;
 	description: string;
@@ -17,12 +15,6 @@ const { title, description } = Astro.props;
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="sitemap" href="/sitemap-index.xml" />
-<link
-	rel="alternate"
-	type="application/rss+xml"
-	title={SITE_TITLE}
-	href={new URL('rss.xml', Astro.site)}
-/>
 <meta name="generator" content={Astro.generator} />
 
 <link rel="canonical" href={canonicalURL} />

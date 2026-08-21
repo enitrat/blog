@@ -12,7 +12,7 @@ import codeThemeData from './src/styles/code-theme.json' with { type: 'json' };
 const codeTheme = { ...codeThemeData, type: /** @type {'light'} */ ('light') };
 
 export default defineConfig({
-	// Every canonical link, sitemap entry, RSS link, and og:url resolves against
+	// Every canonical link, sitemap entry, and og:url resolves against
 	// this, so a wrong value is silently wrong everywhere rather than a build error.
 	site: 'https://msaug.dev',
 	integrations: [mdx(), sitemap()],

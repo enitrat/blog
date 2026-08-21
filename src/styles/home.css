@@ -18,20 +18,20 @@
 }
 
 .personal-index__intro {
-	margin-top: clamp(6.5rem, 14vw, 11rem);
+	margin-top: clamp(2.25rem, 5vw, 4.5rem);
 }
 
 .personal-index__intro h1 {
 	margin: 0;
 	font-family: var(--home-sans);
-	font-size: var(--type-headline-size);
-	font-weight: var(--type-headline-weight);
-	line-height: var(--type-headline-leading);
-	letter-spacing: var(--type-headline-tracking);
+	font-size: var(--type-title-size);
+	font-weight: 560;
+	line-height: 1;
+	letter-spacing: -0.04em;
 }
 
 .personal-index__role {
-	margin: 1rem 0 0;
+	margin: 0.6rem 0 0;
 	color: var(--home-muted);
 	font-size: var(--type-role-line-size);
 	font-weight: var(--type-role-line-weight);
@@ -44,7 +44,7 @@
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 	gap: clamp(1.5rem, 5vw, 5rem);
 	max-width: 54rem;
-	margin-top: clamp(3rem, 6vw, 5.5rem);
+	margin-top: clamp(2rem, 4vw, 3.5rem);
 	color: var(--home-muted);
 	font-size: var(--type-intro-size);
 	line-height: var(--type-intro-leading);
@@ -63,7 +63,7 @@
 }
 
 .personal-index__sections {
-	margin-top: clamp(5rem, 10vw, 8rem);
+	margin-top: clamp(3.25rem, 6vw, 5rem);
 }
 
 .personal-index__section + .personal-index__section {
@@ -152,7 +152,7 @@
 
 @media (max-width: 720px) {
 	.personal-index__intro {
-		margin-top: 6rem;
+		margin-top: 2.75rem;
 	}
 
 	.personal-index__copy {

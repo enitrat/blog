@@ -6,6 +6,6 @@ site: 'https://agent.starknet.io'
 order: 2
 ---
 
-Starknet Agent was a personal project I built in collaboration with Starknet. I set up the chatbot infrastructure and connected it to a retrieval-augmented generation system.
+As I got more and more involved in the Starknet ecosystem, discussion channels started flooding with questions that could simply have been answered by linking the right resource. At the time (early 2024), LLMs were getting good enough to be helpful chatbots, and I started thinking about how to architect a RAG-based system that would answer most of those questions and point people in the right direction.
 
-It could answer questions about Starknet and Cairo development through a single conversation. The project was a practical way to make a large technical ecosystem easier to query.
+I built Starknet Agent in collaboration with the Starknet Foundation, owning the entire system end-to-end, running evaluations, and using it myself for my day-to-day work.

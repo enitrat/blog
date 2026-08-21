@@ -29,7 +29,6 @@ const byYear = years.map((year) => ({
 	<div class="measure">
 		<header class="page-head">
 			<h1>Writing</h1>
-			<a class="page-head__feed" href="/rss.xml">RSS feed</a>
 		</header>
 
 		{byYear.map((group) => (
@@ -54,16 +53,6 @@ const byYear = years.map((year) => ({
 </Page>
 
 <style>
-	/* The masthead carries no standfirst, so this link sits directly under a
-	   6rem Literata descender and needs the same clearance one would take. */
-	.page-head__feed {
-		display: inline-block;
-		margin-top: 2.4rem;
-		color: var(--home-cobalt);
-		font-size: 0.74rem;
-		font-weight: 650;
-	}
-
 	.year {
 		padding-top: clamp(2rem, 3.5vw, 3rem);
 	}

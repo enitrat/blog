@@ -15,9 +15,9 @@ interface Props {
 const { work, projects, writing } = Astro.props;
 
 const sections = [
-	{ id: 'work', label: 'Work.', href: '/work', items: work },
-	{ id: 'projects', label: 'Projects.', href: '/work/#projects', items: projects },
-	{ id: 'writing', label: 'Writing.', href: '/writing', items: writing },
+	{ id: 'work', label: 'Work', href: '/work', items: work },
+	{ id: 'projects', label: 'Projects', href: '/work/#projects', items: projects },
+	{ id: 'writing', label: 'Writing', href: '/writing', items: writing },
 ];
 ---
 
@@ -56,7 +56,7 @@ const sections = [
 
 		<section class="personal-index__section" aria-labelledby="personal-index-bookshelf">
 			<div class="personal-index__section-heading">
-				<h2 id="personal-index-bookshelf">Bookshelf.</h2>
+				<h2 id="personal-index-bookshelf">Bookshelf</h2>
 				<a href="/bookshelf">View all&nbsp; ↗</a>
 			</div>
 			<a class="personal-index__shelf-link" href="/bookshelf">
