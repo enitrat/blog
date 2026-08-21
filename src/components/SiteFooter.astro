@@ -1,0 +1,30 @@
+---
+import ContactLinks from './ContactLinks.astro';
+
+interface Props {
+	/** Pass false on surfaces that already show the contact pair in their own close. */
+	contact?: boolean;
+	lang?: string;
+}
+
+const { contact = true, lang = 'en' } = Astro.props;
+const year = new Date().getFullYear();
+
+const labels: Record<string, Record<string, string>> = {
+	en: { work: 'Work', writing: 'Writing', bookshelf: 'Bookshelf', about: 'About' },
+	fr: { work: 'Travaux', writing: 'Écrits', bookshelf: 'Bibliothèque', about: 'À propos' },
+};
+const t = labels[lang] ?? labels.en;
+---
+
+<footer class="site-footer">
+	<span>Mathieu Saugier</span>
+	<nav aria-label="Footer navigation">
+		<a href="/work">{t.work}</a>
+		<a href="/writing">{t.writing}</a>
+		<a href="/bookshelf">{t.bookshelf}</a>
+		<a href="/about">{t.about}</a>
+	</nav>
+	{contact && <ContactLinks />}
+	<span>© {year}</span>
+</footer>

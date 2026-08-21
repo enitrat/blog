@@ -2,9 +2,10 @@
 title: "The Software Factory"
 pubDate: 2026-04-11
 description: "What the assembly line teaches us about building software with AI agents"
+related: ['using-dspy', 'antifragile-codebases']
 ---
 
-![Banner](./banner.png)
+![](./banner.png)
 
 ## Taylor, Ford, and the birth of industrial process
 
@@ -34,7 +35,7 @@ But a factory can't run without knowing what it produces. Ford didn't start asse
 
 To make this concrete, let's use a running example: converting Figma mockups into code components with their associated Storybook stories. This is a textbook case of repetitive, well-scoped work, exactly the kind a software factory can industrialize. The factory receives a Figma design as input, produces a component and its story, then three control tools validate the result autonomously: the [Figma MCP](https://help.figma.com/hc/en-us/articles/32132100833559-Guide-to-the-Figma-MCP-server) to extract the reference design, [Storybook](https://storybook.js.org/) to preview the component across all its states, and [agent-browser](https://agent-browser.dev/) to run automated visual tests via a headless browser. The remaining work is to automate this process, ensuring all steps run properly and consistently. We'll come back to this example throughout this section.
 
-![Factory Illustration](./img_1.png)
+![The factory takes a Figma design as input, runs research, implement and validate phases, loops back to implement when validation fails, and emits a component with its Storybook story once the checks pass.](./img_1.png)
 
 ### Defining the output
 
@@ -56,7 +57,7 @@ The main bottleneck of a software factory is the input context. An LLM only prod
 
 The quality of the output is the product of the existing foundations, the injected context, and the quality of the factory's workflows. If any one of the three is weak, the result will be too, regardless of the other two.
 
-![contexts illustration](./img_2.png)
+![External, internal and directional context all feed into the software factory, whose output quality is the product of all three.](./img_2.png)
 
 In a physical assembly line, there are inspection stations at strategic points in production. In a software factory, this role is played by third-party tools — custom tooling, tests, third-party services, quality checks instructions for an agent, or even human intervention, that can be used to validate an output. In our Figma-to-code example, the three tools introduced earlier (Figma, Storybook, agent-browser) are used together to form a validation loop on the chain, verifying design conformity across all states.
 

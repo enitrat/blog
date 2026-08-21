@@ -1,0 +1,37 @@
+{
+	"schemaVersion": 2,
+	"generatedAt": "2026-08-21T00:00:00.000Z",
+	"title": "Design System: Mathieu Saugier",
+	"extensions": {
+		"narrative": {
+			"northStar": "The quiet personal index",
+			"overview": "A personal website with a quiet index as its center: warm white space, near-black type, restrained blue links, thin neutral rules, and generous room for content. The homepage makes Mathieu and the things he is doing visible in one scrollable surface. Work, writing, bookshelf, about, and article pages share the same shell and reading language.",
+			"keyCharacteristics": [
+				"Warm white field with near-black type and restrained blue interaction.",
+				"Commissioner for direct reading; Literata for section headings and article titles.",
+				"Open list rows with useful descriptions and clear destinations.",
+				"Whitespace and quiet rules instead of cards, gradients, glass, or dashboard chrome.",
+				"One shared shell and measured reading surface across every route."
+			],
+			"rules": [
+				{ "name": "The Quiet Index Rule", "body": "Let real content and sequence create interest. The homepage is a curated index into real routes, not a product dashboard or a decorative gallery.", "section": "layout" },
+				{ "name": "The Two-Voice Rule", "body": "Literata carries editorial hierarchy; Commissioner carries reading, navigation, metadata, and apparatus. Roboto Mono is for code only.", "section": "typography" },
+				{ "name": "The Open Row Rule", "body": "Use a title, a useful description, and a clear destination. Keep Work, Projects, Writing, and Bookshelf as distinct sections.", "section": "layout" },
+				{ "name": "The Flat Field Rule", "body": "Separate content with spacing, thin rules, measure, and tonal contrast. Do not introduce floating cards, ambient shadows, glass, or ornamental blur.", "section": "elevation" },
+				{ "name": "The Optional Apparatus Rule", "body": "Article details and contents are useful orientation, never the only path through the prose. The document remains complete without JavaScript.", "section": "layout" }
+			],
+			"dos": [
+				"Do give every route the shared shell, header, footer, and token primitives.",
+				"Do keep the homepage useful as a no-script list of real destinations.",
+				"Do preserve Mathieu's Markdown prose and book data while changing presentation.",
+				"Do inspect wide and narrow viewports and respect reduced motion."
+			],
+			"donts": [
+				"Don't reintroduce cards, pills, gradients, glass, hard shadows, dense dashboards, or fake activity signals.",
+				"Don't merge Work and Writing into one feed.",
+				"Don't invent professional claims, current-role details, contact destinations, or authored copy.",
+				"Don't make hover, animation, or the article margin necessary for comprehension."
+			]
+		}
+	}
+}

@@ -1,0 +1,42 @@
+---
+interface Props {
+	lang?: string;
+}
+
+const { lang = 'en' } = Astro.props;
+const path = Astro.url.pathname;
+
+const labels: Record<string, Record<string, string>> = {
+	en: { work: 'Work', writing: 'Writing', bookshelf: 'Bookshelf', about: 'About' },
+	fr: { work: 'Travaux', writing: 'Écrits', bookshelf: 'Bibliothèque', about: 'À propos' },
+};
+const t = labels[lang] ?? labels.en;
+
+const links = [
+	{ label: t.work, href: '/work', match: '/work' },
+	{ label: t.writing, href: '/writing', match: '/writing' },
+	{ label: t.bookshelf, href: '/bookshelf', match: '/bookshelf' },
+	{ label: t.about, href: '/about', match: '/about' },
+];
+---
+
+<header class="site-header">
+	<a
+		class="site-header__identity"
+		href="/"
+		aria-label="Mathieu Saugier, home"
+		aria-current={path === '/' ? 'page' : undefined}
+	>
+		Mathieu Saugier
+	</a>
+	<nav aria-label="Primary navigation">
+		{links.map((link) => (
+			<a
+				href={link.href}
+				aria-current={path.startsWith(link.match) ? 'page' : undefined}
+			>
+				{link.label}
+			</a>
+		))}
+	</nav>
+</header>

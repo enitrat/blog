@@ -1,0 +1,179 @@
+---
+import { type Book, type BookStatus, books } from '../../booksData';
+import Page from '../../layouts/Page.astro';
+
+const groups: { key: BookStatus; label: string }[] = [
+	{ key: 'reading', label: 'Reading now' },
+	{ key: 'finished', label: 'Finished' },
+	{ key: 'want-to-read', label: 'Want to read' },
+];
+
+const dateOf = (book: Book) => book.dateFinished ?? book.dateStarted;
+
+const shelves = groups
+	.map((group) => ({
+		...group,
+		books: books
+			.filter((book) => book.status === group.key)
+			.sort((a, b) => (dateOf(b)?.valueOf() ?? 0) - (dateOf(a)?.valueOf() ?? 0)),
+	}))
+	.filter((shelf) => shelf.books.length > 0);
+
+const formatYear = (date: Date | null) => (date ? String(date.getFullYear()) : '—');
+---
+
+<Page
+	title="Bookshelf — Mathieu Saugier"
+	description="A reading archive: what Mathieu Saugier is reading, has read, and means to read."
+>
+	<div class="measure">
+		<header class="page-head">
+			<h1>Bookshelf</h1>
+		</header>
+
+		{shelves.map((shelf) => (
+			<section class="shelf" aria-labelledby={`shelf-${shelf.key}`}>
+				<div class="shelf__heading">
+					<h2 id={`shelf-${shelf.key}`}>{shelf.label}</h2>
+					<span>{shelf.books.length} {shelf.books.length === 1 ? 'book' : 'books'}</span>
+				</div>
+				<ul class="shelf__list">
+					{shelf.books.map((book) => (
+						<li>
+							<span class="shelf__year">{formatYear(dateOf(book))}</span>
+							<div class="shelf__title">
+								<h3>
+									{book.writingSlug
+										? <a href={`/writing/${book.writingSlug}/`}>{book.title}</a>
+										: book.title}
+								</h3>
+								<p>{book.author}</p>
+							</div>
+							<span class="shelf__rating">
+								{book.rating ? book.rating.toFixed(1) : <span class="shelf__unrated">—</span>}
+								<span class="sr-only">{book.rating ? ` out of 5` : 'Not rated'}</span>
+							</span>
+						</li>
+					))}
+				</ul>
+			</section>
+		))}
+
+		<nav class="shelf__onward" aria-label="Continue">
+			<a href="/writing">Writing</a>
+			<a href="/about">About</a>
+		</nav>
+	</div>
+</Page>
+
+<style>
+	.shelf {
+		padding-top: clamp(2rem, 3.5vw, 3rem);
+	}
+
+	.shelf__onward {
+		display: flex;
+		gap: clamp(1.5rem, 4vw, 3rem);
+		margin-top: clamp(2rem, 3.5vw, 3rem);
+		padding: clamp(1.1rem, 2.2vw, 1.7rem) 0 clamp(4rem, 8vw, 7rem);
+		border-top: 1px solid var(--home-ink);
+		color: var(--home-cobalt);
+		font-size: 0.78rem;
+		font-weight: 650;
+	}
+
+	.shelf__heading {
+		display: flex;
+		align-items: baseline;
+		gap: 1rem;
+		margin-bottom: 1.1rem;
+	}
+
+	.shelf__heading h2 {
+		margin: 0;
+		font-family: var(--home-display);
+		font-size: var(--type-title-size);
+		font-weight: var(--type-title-weight);
+		line-height: 1;
+		font-style: italic;
+		letter-spacing: var(--type-title-tracking);
+	}
+
+	.shelf__heading span {
+		color: var(--home-muted);
+		font-size: var(--type-label-size);
+		font-weight: var(--type-label-weight);
+		letter-spacing: var(--type-label-tracking);
+		text-transform: uppercase;
+	}
+
+	.shelf__list {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		border-top: 1px solid var(--home-ink);
+	}
+
+	.shelf__list li {
+		display: grid;
+		grid-template-columns: 5rem minmax(0, 1fr) 3rem;
+		align-items: baseline;
+		gap: clamp(1rem, 3vw, 3rem);
+		padding: clamp(1.1rem, 2.2vw, 1.7rem) 0;
+		border-bottom: 1px solid var(--home-rule);
+	}
+
+	.shelf__year {
+		color: var(--home-muted);
+		font-size: var(--type-data-size);
+		font-weight: var(--type-data-weight);
+		letter-spacing: var(--type-data-tracking);
+	}
+
+	.shelf__title h3 {
+		margin: 0;
+		font-family: var(--home-sans);
+		font-size: var(--type-title-work-size);
+		font-weight: var(--type-title-work-weight);
+		line-height: var(--type-title-work-leading);
+	}
+
+	/* Deliberate exception to "cobalt means clickable": a shelf title rests in
+	   ink and only reveals its link on hover. */
+	.shelf__title h3 a:hover,
+	.shelf__title h3 a:focus-visible {
+		color: var(--home-cobalt);
+	}
+
+	.shelf__title p {
+		margin: 0.3rem 0 0;
+		color: var(--home-muted);
+		font-size: var(--type-meta-size);
+	}
+
+	/* The two ends of a row are one system: the rating takes the same data role
+	   as the year, from the same tokens, so the pair cannot drift apart. */
+	.shelf__rating {
+		color: var(--home-muted);
+		font-size: var(--type-data-size);
+		font-weight: var(--type-data-weight);
+		letter-spacing: var(--type-data-tracking);
+		font-variant-numeric: tabular-nums;
+		text-align: right;
+	}
+
+	.shelf__unrated {
+		color: var(--home-muted);
+	}
+
+	@media (max-width: 760px) {
+		.shelf__list li {
+			grid-template-columns: minmax(0, 1fr) 2.75rem;
+			gap: 0.5rem 1rem;
+		}
+
+		.shelf__year {
+			grid-column: 1 / -1;
+		}
+	}
+</style>

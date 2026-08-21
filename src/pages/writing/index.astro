@@ -1,0 +1,73 @@
+---
+import WritingLedgerRow from '../../components/WritingLedgerRow.astro';
+import Page from '../../layouts/Page.astro';
+import { getTranslations, getWritingIndex } from '../../utils/writing';
+
+const posts = await getWritingIndex();
+
+const entries = await Promise.all(
+	posts.map(async (post) => ({
+		post,
+		extraLangs: (await getTranslations(post)).map((translation) => translation.lang),
+	})),
+);
+
+const years = [...new Set(posts.map((post) => post.data.pubDate.getFullYear()))].sort(
+	(a, b) => b - a,
+);
+
+const byYear = years.map((year) => ({
+	year,
+	entries: entries.filter((entry) => entry.post.data.pubDate.getFullYear() === year),
+}));
+---
+
+<Page
+	title="Writing — Mathieu Saugier"
+	description="Essays, technical guides, and reflections by Mathieu Saugier."
+>
+	<div class="measure">
+		<header class="page-head">
+			<h1>Writing</h1>
+		</header>
+
+		{byYear.map((group) => (
+			<section class="year" aria-labelledby={`year-${group.year}`}>
+				<h2 class="label" id={`year-${group.year}`}>{group.year}</h2>
+				<div class="writing-ledger">
+					{group.entries.map((entry) => (
+						<WritingLedgerRow
+							post={entry.post}
+							showYear={false}
+							extraLangs={entry.extraLangs}
+						/>
+					))}
+				</div>
+			</section>
+		))}
+
+		{posts.length === 0 && (
+			<p class="empty">Nothing published yet.</p>
+		)}
+	</div>
+</Page>
+
+<style>
+	.year {
+		padding-top: clamp(2rem, 3.5vw, 3rem);
+	}
+
+	.year:last-of-type {
+		padding-bottom: clamp(4rem, 8vw, 7rem);
+	}
+
+	.year h2 {
+		margin: 0 0 1.1rem;
+		font-family: var(--home-sans);
+	}
+
+	.empty {
+		padding-block: 4rem 7rem;
+		color: var(--home-muted);
+	}
+</style>

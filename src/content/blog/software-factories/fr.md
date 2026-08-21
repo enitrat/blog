@@ -3,9 +3,10 @@ title: "La chaîne de montage logiciel"
 pubDate: 2026-04-11
 description: "Ce que la chaîne de montage nous apprend sur la production de logiciel avec des agents IA"
 lang: "fr"
+related: ['using-dspy', 'antifragile-codebases']
 ---
 
-![Banner](./banner.png)
+![](./banner.png)
 
 ## Taylor, Ford, et la naissance du process industriel
 
@@ -35,7 +36,7 @@ Mais une usine ne peut pas tourner sans savoir ce qu'elle produit. Ford ne s'est
 
 Pour rendre les choses concrètes, prenons un exemple qui servira de fil rouge : convertir des maquettes Figma en composants de code, avec leurs stories Storybook associées. C'est un cas typique de tâche répétitive et bien cadrée — exactement le genre de travail qu'une software factory peut industrialiser. La factory reçoit un design Figma en entrée, produit un composant et sa story, puis trois outils de contrôle valident le résultat de manière autonome : le [MCP Figma](https://help.figma.com/hc/en-us/articles/32132100833559-Guide-to-the-Figma-MCP-server) pour extraire le design de référence, [Storybook](https://storybook.js.org/) pour prévisualiser le composant sous tous ses états, et [agent-browser](https://agent-browser.dev/) pour exécuter des tests visuels automatisés via un headless browser. Le travail restant est d'automatiser ce processus, en s'assurant que toutes les étapes s'exécutent correctement et de manière cohérente. On reviendra sur cet exemple tout au long de cette section.
 
-![Factory Illustration](./img_1.png)
+![La factory reçoit un design Figma en entrée, enchaîne les phases research, implement et validate, reboucle sur l'implémentation quand la validation échoue, et produit un composant avec sa story Storybook lorsque les contrôles passent.](./img_1.png)
 
 ### Définir la destination
 
@@ -57,7 +58,7 @@ Le goulot d'étranglement principal d'une factory, c'est le contexte. Un LLM ne 
 
 La qualité de l'output est le produit des fondations existantes, du contexte injecté, et de la qualité des workflows de la factory. Si l'un des trois facteurs est faible, le résultat l'est aussi, indépendamment de la qualité des deux autres.
 
-![contexts illustration](./img_2.png)
+![Les contextes externe, interne et directionnel alimentent tous la software factory, dont la qualité de l'output est le produit des trois.](./img_2.png)
 
 ### Les postes de contrôle
 

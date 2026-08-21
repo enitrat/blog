@@ -1,0 +1,40 @@
+---
+import '@fontsource-variable/commissioner/wght.css';
+import '@fontsource-variable/literata/wght.css';
+import '../styles/tokens.css';
+import '../styles/site.css';
+
+import Analytics from '@vercel/analytics/astro';
+import BaseHead from '../components/BaseHead.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+
+interface Props {
+	title: string;
+	description: string;
+	lang?: string;
+	/** Pass false on surfaces that already show the contact pair in their own close. */
+	footerContact?: boolean;
+}
+
+const { title, description, lang = 'en', footerContact = true } = Astro.props;
+---
+
+<!doctype html>
+<html lang={lang} class="site">
+	<head>
+		<BaseHead title={title} description={description} />
+		<slot name="head" />
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Skip to content</a>
+		<div class="site-shell">
+			<SiteHeader lang={lang} />
+			<main id="main">
+				<slot />
+			</main>
+			<SiteFooter contact={footerContact} lang={lang} />
+		</div>
+		<Analytics />
+	</body>
+</html>

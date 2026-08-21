@@ -1,0 +1,108 @@
+---
+import '../styles/article.css';
+// Mathieu's own prose, rendered unchanged. This page owns layout and
+// typography only; the words and every claim in them stay as written.
+import ArrowIcon from '../components/ArrowIcon.astro';
+import ContactLinks from '../components/ContactLinks.astro';
+import { Content as AboutContent } from '../content/about.md';
+import Page from '../layouts/Page.astro';
+---
+
+<Page title="About — Mathieu Saugier" description="A short orientation: who Mathieu Saugier is and what he works on.">
+	{/* No standfirst: the prose opens with its own greeting, and a line above
+	    it would say the same thing twice. */}
+	<div class="measure">
+		<header class="page-head">
+			<h1>About</h1>
+		</header>
+
+		<div class="about">
+			<div class="article-body article-body--flow">
+				<AboutContent />
+			</div>
+
+			{/* The prose already links every project to its field report, so the
+			    column carries only what the prose does not: the current post and
+			    the ways to reach Mathieu. */}
+			<aside class="about__margin">
+				<dl class="sheet__facts">
+					<dt>Currently</dt>
+					<dd>Senior Protocol Engineer at Zama</dd>
+					<dt>Elsewhere</dt>
+					<dd><ContactLinks /></dd>
+				</dl>
+			</aside>
+		</div>
+
+		<div class="about__close">
+			<a class="sheet__all" href="/writing">
+				<ArrowIcon />
+				Writing
+			</a>
+			<a class="sheet__all" href="/bookshelf">
+				<ArrowIcon />
+				Bookshelf
+			</a>
+		</div>
+	</div>
+</Page>
+
+<style>
+	/* One right edge here too, but at the width this page actually needs: the
+	   reading column plus its facts. Holding the full row measure would leave
+	   the void between them the reading column was never going to fill —
+	   balance comes from closing unused width, not from a longer line. */
+	.measure {
+		--about-facts: 16rem;
+		--about-gap: clamp(2rem, 4vw, 3.5rem);
+
+		max-width: min(var(--home-row-max), calc(62ch + var(--about-gap) + var(--about-facts)));
+	}
+
+	.about {
+		display: grid;
+		grid-template-columns: minmax(0, 62ch) var(--about-facts);
+		justify-content: space-between;
+		gap: var(--about-gap);
+		align-items: start;
+		padding-block: clamp(2.5rem, 5vw, 4rem) clamp(4rem, 8vw, 7rem);
+	}
+
+	/* about.md opens with its own "About Me" heading; the page head already
+	   names the surface, so the duplicate is hidden from sight and from
+	   assistive technology rather than deleted from Mathieu's file. */
+	.about :global(.article-body > h1) {
+		display: none;
+	}
+
+	.about__margin {
+		padding-left: clamp(1.5rem, 3vw, 3rem);
+		border-left: 1px solid var(--home-rule);
+	}
+
+	.about__margin :global(.sheet__facts dd:has(+ dd)) {
+		margin-bottom: 0.35rem;
+	}
+
+	.about__close {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem clamp(1.5rem, 3vw, 2.75rem);
+		padding-block: clamp(2rem, 4vw, 3rem) clamp(3rem, 6vw, 5rem);
+		border-top: 1px solid var(--home-ink);
+	}
+
+	@media (max-width: 980px) {
+		.about {
+			grid-template-columns: minmax(0, 1fr);
+			gap: clamp(2rem, 5vw, 3rem);
+		}
+
+		.about__margin {
+			padding-top: 2rem;
+			padding-left: 0;
+			border-top: 1px solid var(--home-rule);
+			border-left: 0;
+		}
+	}
+</style>

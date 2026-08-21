@@ -1,15 +1,28 @@
 // @ts-check
 
+import { rehypeHeadingIds } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
-import tailwindcss from '@tailwindcss/vite';
-import { defineConfig } from 'astro/config';
 import vercel from '@astrojs/vercel';
+import { defineConfig } from 'astro/config';
+import codeThemeData from './src/styles/code-theme.json' with { type: 'json' };
 
-// https://astro.build/config
+// JSON imports widen literal values; keep the theme's discriminated `type`
+// explicit at the configuration boundary so Astro and Shiki can validate it.
+const codeTheme = { ...codeThemeData, type: /** @type {'light'} */ ('light') };
+
 export default defineConfig({
-	site: 'https://example.com',
+	// Every canonical link, sitemap entry, and og:url resolves against
+	// this, so a wrong value is silently wrong everywhere rather than a build error.
+	site: 'https://msaug.dev',
 	integrations: [mdx(), sitemap()],
+
+	// Keeps inbound links and already-indexed pages working after the rename.
+	redirects: {
+		'/blog': '/writing',
+		'/blog/[...slug]': '/writing/[...slug]',
+		'/reads': '/bookshelf',
+	},
 
 	markdown: {
 		// Note: mermaid diagrams need to be added as images, due to vercel deployment issues.
@@ -18,15 +31,11 @@ export default defineConfig({
 			excludeLangs: ['mermaid', 'math'],
 		},
 		shikiConfig: {
-			themes: {
-				light: 'catppuccin-latte',
-				dark: 'github-dark',
-			},
+			theme: codeTheme,
 		},
+
+		rehypePlugins: [rehypeHeadingIds],
 	},
 
-	vite: {
-		plugins: [tailwindcss()],
-	},
 	adapter: vercel(),
 });

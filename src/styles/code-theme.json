@@ -1,0 +1,104 @@
+{
+	"name": "quiet-personal-index",
+	"type": "light",
+	"comment": "Syntax colours follow the quiet personal index: blue carries structure, muted ink carries commentary and punctuation, near-black carries identifiers, and orange is reserved for exceptional syntax. The transparent ground lets code remain part of the reading surface.",
+	"colors": {
+		"editor.background": "#00000000",
+		"editor.foreground": "#171717"
+	},
+	"settings": [],
+	"tokenColors": [
+		{
+			"scope": ["comment", "punctuation.definition.comment", "string.quoted.docstring"],
+			"settings": {
+				"foreground": "#737373",
+				"fontStyle": "italic"
+			}
+		},
+		{
+			"scope": [
+				"keyword",
+				"keyword.control",
+				"keyword.operator",
+				"storage",
+				"storage.type",
+				"storage.modifier",
+				"variable.language"
+			],
+			"settings": {
+				"foreground": "#3567d8"
+			}
+		},
+		{
+			"scope": [
+				"entity.name.function",
+				"support.function",
+				"meta.function-call.generic",
+				"entity.name.tag"
+			],
+			"settings": {
+				"foreground": "#234da8"
+			}
+		},
+		{
+			"scope": ["entity.name.type", "entity.name.class", "support.type", "support.class"],
+			"settings": {
+				"foreground": "#234da8"
+			}
+		},
+		{
+			"scope": ["string", "string.quoted", "string.template", "meta.string"],
+			"settings": {
+				"foreground": "#4b4b4b"
+			}
+		},
+		{
+			"scope": ["constant.numeric", "constant.language"],
+			"settings": {
+				"foreground": "#234da8"
+			}
+		},
+		{
+			"scope": ["variable", "variable.other", "variable.parameter", "meta.definition.variable"],
+			"settings": {
+				"foreground": "#171717"
+			}
+		},
+		{
+			"scope": ["punctuation", "meta.brace", "punctuation.separator", "punctuation.terminator"],
+			"settings": {
+				"foreground": "#737373"
+			}
+		},
+		{
+			"scope": ["entity.other.attribute-name", "support.type.property-name"],
+			"settings": {
+				"foreground": "#3567d8"
+			}
+		},
+		{
+			"scope": ["markup.inserted"],
+			"settings": {
+				"foreground": "#234da8"
+			}
+		},
+		{
+			"scope": ["markup.deleted"],
+			"settings": {
+				"foreground": "#b86f45"
+			}
+		},
+		{
+			"scope": ["invalid"],
+			"settings": {
+				"foreground": "#b86f45"
+			}
+		},
+		{
+			"scope": ["constant.character.escape", "constant.regexp"],
+			"settings": {
+				"foreground": "#b86f45"
+			}
+		}
+	]
+}

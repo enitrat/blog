@@ -1,114 +1,112 @@
-export const books = [
-	// Currently Reading
+export type BookStatus = 'reading' | 'finished' | 'want-to-read';
+
+export interface Book {
+	title: string;
+	author: string;
+	status: BookStatus;
+	dateStarted: Date | null;
+	dateFinished: Date | null;
+	/** Out of 5; null while unrated. */
+	rating: number | null;
+	/** Base slug of the blog piece this book is the subject of. */
+	writingSlug?: string;
+}
+
+export const books: Book[] = [
 	{
-		title: "Principles for Dealing with the Changing World Order",
-		author: "Ray Dalio",
-		coverUrl: "https://covers.openlibrary.org/b/isbn/9781982160272-M.jpg",
-		status: "reading" as const,
-		dateStarted: new Date("2025-11-09"),
+		title: 'Principles for Dealing with the Changing World Order',
+		author: 'Ray Dalio',
+		status: 'reading',
+		dateStarted: new Date('2025-11-09'),
 		dateFinished: null,
-		rating: null
-	},
-	// Finished Reading
-	{
-		title: "Fooled by Randomness",
-		author: "Nassim Nicholas Taleb",
-		coverUrl: "https://covers.openlibrary.org/b/isbn/9780812975215-M.jpg",
-		status: "finished" as const,
-		dateStarted: new Date("2026-02-29"),
-		dateFinished: null,
-		rating: null
+		rating: null,
 	},
 	{
-		title: "Laughable Love",
-		author: "Milan Kundera",
-		coverUrl: "https://covers.openlibrary.org/b/id/10391778-L.jpg",
-		status: "finished" as const,
-		dateStarted: new Date("2025-12-26"),
-		dateFinished: new Date("2026-01-14"),
-		rating: 4.2
-	},
-	{
-		title: "The Unbearable Lightness of Being",
-		author: "Milan Kundera",
-		coverUrl: "https://covers.openlibrary.org/b/isbn/9780061148521-M.jpg",
-		status: "finished" as const,
-		dateStarted: new Date("2025-11-09"),
-		dateFinished: new Date("2025-11-25"),
-		rating: 4.4
-	},
-	{
-		title: "Kafka on the Shore",
-		author: "Haruki Murakami",
-		coverUrl: "https://covers.openlibrary.org/b/isbn/9781400079278-M.jpg",
-		status: "finished" as const,
-		dateFinished: new Date("2025-06-15"),
+		title: 'Fooled by Randomness',
+		author: 'Nassim Nicholas Taleb',
+		status: 'finished',
 		dateStarted: null,
-		rating: 4.2
+		dateFinished: new Date('2026-02-01'),
+		rating: null,
 	},
 	{
-		title: "Norwegian Wood",
-		author: "Haruki Murakami",
-		coverUrl: "https://covers.openlibrary.org/b/isbn/9780375704024-M.jpg",
-		status: "finished" as const,
-		dateFinished: new Date("2025-03-10"),
-		dateStarted: null,
-		rating: 3.9
+		title: 'Laughable Love',
+		author: 'Milan Kundera',
+		status: 'finished',
+		dateStarted: new Date('2025-12-26'),
+		dateFinished: new Date('2026-01-14'),
+		rating: 4.2,
 	},
 	{
-		title: "The Brothers Karamazov",
-		author: "Fyodor Dostoevsky",
-		coverUrl: "https://covers.openlibrary.org/b/isbn/9780374528379-M.jpg",
-		status: "finished" as const,
-		dateFinished: new Date("2025-01-20"),
-		dateStarted: null,
-		rating: 4
+		title: 'The Unbearable Lightness of Being',
+		author: 'Milan Kundera',
+		status: 'finished',
+		dateStarted: new Date('2025-11-09'),
+		dateFinished: new Date('2025-11-25'),
+		rating: 4.4,
 	},
 	{
-		title: "Brave New World",
-		author: "Aldous Huxley",
-		coverUrl: "https://covers.openlibrary.org/b/isbn/9780060850524-M.jpg",
-		status: "finished" as const,
-		dateFinished: new Date("2024-09-15"),
+		title: 'Kafka on the Shore',
+		author: 'Haruki Murakami',
+		status: 'finished',
 		dateStarted: null,
-		rating: 4.1
+		dateFinished: new Date('2025-06-15'),
+		rating: 4.2,
 	},
 	{
-		title: "The Idiot",
-		author: "Fyodor Dostoevsky",
-		coverUrl: "https://covers.openlibrary.org/b/isbn/9780375702242-M.jpg",
-		status: "finished" as const,
-		dateFinished: new Date("2024-05-20"),
+		title: 'Norwegian Wood',
+		author: 'Haruki Murakami',
+		status: 'finished',
 		dateStarted: null,
-		rating: 4.5
+		dateFinished: new Date('2025-03-10'),
+		rating: 3.9,
 	},
 	{
-		title: "Crime and Punishment",
-		author: "Fyodor Dostoevsky",
-		coverUrl: "https://covers.openlibrary.org/b/isbn/9780143058144-M.jpg",
-		status: "finished" as const,
-		dateFinished: new Date("2023-10-12"),
+		title: 'The Brothers Karamazov',
+		author: 'Fyodor Dostoevsky',
+		status: 'finished',
 		dateStarted: null,
-		rating: 3.7
+		dateFinished: new Date('2025-01-20'),
+		rating: 4,
 	},
 	{
-		title: "The Red and the Black",
-		author: "Stendhal",
-		coverUrl: "https://covers.openlibrary.org/b/isbn/9780140447644-M.jpg",
-		status: "finished" as const,
-		dateFinished: new Date("2023-06-08"),
+		title: 'Brave New World',
+		author: 'Aldous Huxley',
+		status: 'finished',
 		dateStarted: null,
-		rating: 4.0
+		dateFinished: new Date('2024-09-15'),
+		rating: 4.1,
 	},
 	{
-		title: "Froth on the Daydream",
-		author: "Boris Vian",
-		coverUrl: "https://covers.openlibrary.org/b/isbn/9781841959016-M.jpg",
-		status: "finished" as const,
-		dateFinished: new Date("2024-12-01"),
+		title: 'The Idiot',
+		author: 'Fyodor Dostoevsky',
+		status: 'finished',
 		dateStarted: null,
-		rating: 3
+		dateFinished: new Date('2024-05-20'),
+		rating: 4.5,
+	},
+	{
+		title: 'Crime and Punishment',
+		author: 'Fyodor Dostoevsky',
+		status: 'finished',
+		dateStarted: null,
+		dateFinished: new Date('2023-10-12'),
+		rating: 3.7,
+	},
+	{
+		title: 'The Red and the Black',
+		author: 'Stendhal',
+		status: 'finished',
+		dateStarted: null,
+		dateFinished: new Date('2023-06-08'),
+		rating: 4.0,
+	},
+	{
+		title: 'Froth on the Daydream',
+		author: 'Boris Vian',
+		status: 'finished',
+		dateStarted: null,
+		dateFinished: new Date('2024-12-01'),
+		rating: 3,
 	},
 ];
-
-export type Book = typeof books[number];

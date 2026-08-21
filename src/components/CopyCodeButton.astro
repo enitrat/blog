@@ -1,75 +1,70 @@
 ---
-// This component adds copy buttons to code blocks
+// Adds a copy button to every code block. Progressive enhancement: without
+// this the code is still selectable and copyable by hand.
 ---
 
 <script>
-  function initCopyButtons() {
-    // Find all code blocks
-    const codeBlocks = document.querySelectorAll('.astro-code');
+	function initCopyButtons() {
+		// One counter per language, so every block on the page has a name that
+		// tells the reader which sample they are on rather than repeating "Copy".
+		const seen = new Map<string, number>();
 
-    codeBlocks.forEach((block) => {
-      // Skip if button already exists
-      if (block.querySelector('.copy-btn')) return;
+		for (const block of document.querySelectorAll<HTMLElement>('.astro-code')) {
+			if (block.querySelector('.copy-btn')) continue;
 
-      // Create copy button
-      const button = document.createElement('button');
-      button.className = 'copy-btn';
-      button.textContent = 'Copy';
-      button.setAttribute('aria-label', 'Copy code to clipboard');
+			const language = block.dataset.language;
+			const kind = language && language !== 'plaintext' ? language : 'code';
+			const ordinal = (seen.get(kind) ?? 0) + 1;
+			seen.set(kind, ordinal);
+			const name = `${kind} sample ${ordinal}`;
 
-      // Add click handler
-      button.addEventListener('click', async () => {
-        const code = block.querySelector('code');
-        if (!code) return;
+			block.setAttribute('role', 'region');
+			block.setAttribute('aria-label', name);
 
-        const text = code.textContent || '';
+			// A scroll container is only reachable by keyboard if it is focusable,
+			// but a block with nothing to scroll would be a tab stop that does
+			// nothing — so the stop is added only while the code overflows.
+			const syncFocusable = () => {
+				if (block.scrollWidth > block.clientWidth) block.setAttribute('tabindex', '0');
+				else block.removeAttribute('tabindex');
+			};
+			syncFocusable();
+			if ('ResizeObserver' in window) new ResizeObserver(syncFocusable).observe(block);
 
-        try {
-          await navigator.clipboard.writeText(text);
-          button.textContent = 'Copied!';
-          button.classList.add('copied');
+			// The visible word starts the accessible name, so the spoken name and
+			// the printed label still match.
+			const button = document.createElement('button');
+			button.className = 'copy-btn';
+			button.textContent = 'Copy';
+			button.setAttribute('aria-label', `Copy ${name}`);
 
-          setTimeout(() => {
-            button.textContent = 'Copy';
-            button.classList.remove('copied');
-          }, 2000);
-        } catch (err) {
-          // Fallback for older browsers
-          const textarea = document.createElement('textarea');
-          textarea.value = text;
-          textarea.style.position = 'fixed';
-          textarea.style.opacity = '0';
-          document.body.appendChild(textarea);
-          textarea.select();
+			const status = document.createElement('span');
+			status.className = 'sr-only';
+			status.setAttribute('role', 'status');
 
-          try {
-            document.execCommand('copy');
-            button.textContent = 'Copied!';
-            button.classList.add('copied');
+			button.addEventListener('click', async () => {
+				const text = block.querySelector('code')?.textContent ?? '';
+				try {
+					await navigator.clipboard.writeText(text);
+					button.textContent = 'Copied!';
+					button.classList.add('copied');
+					status.textContent = 'Copied to clipboard';
+				} catch {
+					button.textContent = 'Failed';
+					status.textContent = 'Copy failed';
+				}
+				setTimeout(() => {
+					button.textContent = 'Copy';
+					button.classList.remove('copied');
+					status.textContent = '';
+				}, 2000);
+			});
 
-            setTimeout(() => {
-              button.textContent = 'Copy';
-              button.classList.remove('copied');
-            }, 2000);
-          } catch (e) {
-            button.textContent = 'Failed';
-            setTimeout(() => {
-              button.textContent = 'Copy';
-            }, 2000);
-          }
+			block.appendChild(button);
+			block.appendChild(status);
+		}
+	}
 
-          document.body.removeChild(textarea);
-        }
-      });
-
-      // Append button to code block
-      block.appendChild(button);
-    });
-  }
-
-  // Initialize on page load
-  document.addEventListener('DOMContentLoaded', initCopyButtons);
-
-  // Re-initialize on view transitions (if using Astro's view transitions)
-  document.addEventListener('astro:page-load', initCopyButtons);
+	initCopyButtons();
+	document.addEventListener('astro:page-load', initCopyButtons);
 </script>
