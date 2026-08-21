@@ -1,22 +1,6 @@
----
-/**
- * The site's invitation to start a conversation, shown wherever a surface
- * closes.
- */
-interface Props {
-	/** underline = footer and article close; chips = homepage close. */
-	variant?: 'underline' | 'chips';
-}
-
-const { variant = 'underline' } = Astro.props;
----
-
-{/* The inner span carries the printed underline while the anchor around it
-    carries the invisible padding that lifts the hit area past 44px, so the
-    rule stays on the word's baseline instead of the target's edge. */}
-<span class:list={['contact-links', `contact-links--${variant}`]}>
+<span class="contact-links">
 	<a href="https://github.com/enitrat" rel="me noreferrer" target="_blank"><span>GitHub</span></a>
-	<a class="contact-links__glyph" href="https://x.com/eniwhere_" rel="me noreferrer" target="_blank">
+	<a href="https://x.com/eniwhere_" rel="me noreferrer" target="_blank">
 		<span>X</span>
 	</a>
 	<a href="https://t.me/enitrat" rel="me noreferrer" target="_blank"><span>Telegram</span></a>

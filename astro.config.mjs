@@ -5,7 +5,11 @@ import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import vercel from '@astrojs/vercel';
 import { defineConfig } from 'astro/config';
-import codeTheme from './src/styles/code-theme.json' with { type: 'json' };
+import codeThemeData from './src/styles/code-theme.json' with { type: 'json' };
+
+// JSON imports widen literal values; keep the theme's discriminated `type`
+// explicit at the configuration boundary so Astro and Shiki can validate it.
+const codeTheme = { ...codeThemeData, type: /** @type {'light'} */ ('light') };
 
 export default defineConfig({
 	// Every canonical link, sitemap entry, RSS link, and og:url resolves against

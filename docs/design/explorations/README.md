@@ -2,11 +2,11 @@
 
 These sketches record considered directions. They are not implementation specifications.
 
-## Living Index — selected for exploration
+## Quiet personal index — shipped direction
 
-![Living Index direction sketch](./living-index.webp)
-
-An explicit personal site whose character comes from composition, image behavior, typography, and pacing. Identity and destinations stay clear; artwork changes the editorial rhythm.
+The shipped site is a quiet, text-first personal index: identity, current work,
+projects, writing, and reading remain visible in one scrollable surface. The
+shared shell and reading styles carry the same language into every route.
 
 ## Editorial Standard — preserved alternative
 
@@ -16,6 +16,6 @@ A conventional responsive editorial grid for introduction, work, writing, readin
 
 ## Status
 
-- Living Index: current direction.
+- Quiet personal index: shipped direction.
 - Editorial Standard: retained as a clarity reference.
-- `DESIGN.md`: shipped design system.
+- `DESIGN.md`: canonical design system.

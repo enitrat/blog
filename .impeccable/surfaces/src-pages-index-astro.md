@@ -13,12 +13,13 @@ See `.impeccable/homepage-surface-brief.md` for the current brief. This sidecar 
 
 - `src/pages/index.astro`
 - Mode: Experience with immediate professional orientation.
-- Direction: Living Index.
+- Direction: Quiet personal index.
 
 ## Non-negotiables
 
 - Shared header and explicit Work, Projects, Writing, Bookshelf, and About routes.
 - Separate Work, Projects, and Writing indexes; never a mixed feed.
-- One panoramic stage; artwork supports browsing and is not navigation.
+- Visible Work, Projects, Writing, and Bookshelf sections with View all routes.
+- No artwork, cards, or decorative stage on the homepage.
 - Essential content works without JavaScript; reduced motion preserves a still state.
 - Follow `DESIGN.md`'s shared primitives and responsive rules.

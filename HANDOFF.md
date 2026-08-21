@@ -1,4 +1,4 @@
-# Handoff: Living Index
+# Handoff: Quiet personal index
 
 ## Current state
 
@@ -8,24 +8,24 @@ The design/layout pass is complete. `bun run build`, `bun run tokens:check`, `bu
 
 - `PRODUCT.md` — audience, positioning, and scope.
 - `CONTEXT.md` — project vocabulary.
-- `DESIGN.md` — shipped design system and Atomic Design rules.
+- `DESIGN.md` — shipped quiet personal-index design system.
 - `.impeccable/homepage-surface-brief.md` — homepage direction.
 - `.impeccable/surfaces/` — non-home surface constraints.
-- `src/assets/home/PLACEHOLDERS.md` — replaceable artwork.
+- The homepage is intentionally text-first; no artwork bundle is required for the shipped direction.
 
 ## Homepage invariants
 
 - Header: Mathieu, Work, Writing, Bookshelf, About.
-- Opening field: orientation, separate Work/Projects and Writing indexes, then one art stage.
-- At `980px` and below, orientation becomes a full-width band; the two index channels remain paired.
-- At `760px` and below, the page stacks and the art stage becomes sticky. Essential links remain ordinary links and usable without JavaScript.
-- Work and Writing are never merged. Bookshelf is navigation-only on the homepage.
+- Opening field: identity, role, two orientation paragraphs, and a small Now row.
+- The first page exposes separate Work, Projects, Writing, and Bookshelf sections with View all routes.
+- Rows remain ordinary links and usable without JavaScript; mobile stacks the Now row and section content.
+- Work and Writing are never merged. The homepage does not need artwork to communicate.
 
 ## Reading invariants
 
-- Shared masthead and ruled sheet.
-- `52ch` reading measure.
-- Optional, bounded margin apparatus with one contents list.
+- Shared masthead and measured reading sheet.
+- `66ch` reading measure on wide screens, with a readable mobile band.
+- Optional, bounded margin details with one contents list.
 - Prose and heading links remain usable without the apparatus or JavaScript.
 - No homepage artwork on reading/index surfaces.
 
@@ -38,4 +38,4 @@ bun run lint
 git diff --check
 ```
 
-When changing the homepage, inspect at least `1440×900`, `979×900`, `760×900`, `390×844`, and `320×568`. Check overflow, navigation, stage stacking, focus, reduced motion, and the no-script reading path. Do not invent authored copy, role details, contact destinations, project claims, or final artwork.
+When changing the homepage, inspect at least `1440×900`, `979×900`, `760×900`, `390×844`, and `320×568`. Check overflow, navigation, section stacking, focus, reduced motion, and the no-script reading path. Do not invent authored copy, role details, contact destinations, or project claims.

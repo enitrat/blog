@@ -4,29 +4,26 @@
 
 - Target: `src/pages/index.astro`
 - Mode: Experience with immediate professional orientation.
-- Direction: Living Index.
-- References: `.impeccable/mocks/living-index-b-horizontal-sequence.webp` and `.impeccable/mocks/living-index-c-art-stage.webp`.
+- Direction: Quiet personal index.
+- References: Aniket Pawar's personal index and the minimal structure of thomas.md.
 
 ## Structure
 
 1. Shared header with Mathieu, Work, Writing, Bookshelf, and About.
-2. Orientation with role and introduction.
-3. Separate Work, Projects, and Writing indexes.
-4. One panoramic art stage responding to index intent.
-5. Work detail, Writing ledger, contact close, and footer.
+2. Large identity, role, and two short orientation paragraphs.
+3. A small “Now” row pointing to current work and the latest writing.
+4. Separate Work, Projects, Writing, and Bookshelf sections visible on one scrollable page.
+5. Every section has a simple “View all” route and open list rows.
+6. Shared footer with contact links.
 
-Work and Writing never become one feed. Bookshelf is navigation-only here. Artwork supports browsing but carries no essential copy or navigation.
+The homepage is a curated index into real routes. It does not duplicate full
+archives, invent activity signals, or rely on artwork, hydration, or hover for
+essential meaning.
 
 ## System constraints
 
-- Use the shared primitives and the Living Index rules in `DESIGN.md`.
-- Essential identity, navigation, and content work without animation, WebGL, hover, or hydration.
-- Desktop uses hover/focus for stage selection; narrow screens use the reading line while scrolling.
-- Reduced motion leaves a stable still composition.
-- Placeholder prose, contact destinations, role details, and generated artwork stay visibly provisional.
-
-## Open decisions
-
-- Final homepage introduction and professional descriptor.
-- Final artwork and its mapping to entries.
-- Initial active entry and final contact destinations.
+- Use the shared `Page`, `site.css`, `article.css`, and token primitives.
+- Warm white, near-black type, restrained blue links, and thin neutral rules.
+- Commissioner carries direct reading; Literata carries section headings and article titles.
+- No cards, gradients, glass, hard shadows, dense dashboards, or decorative stages.
+- Essential content works without JavaScript; reduced motion leaves a stable still state.

@@ -1,0 +1,82 @@
+---
+interface Item {
+	id: string;
+	title: string;
+	href: string;
+	description: string;
+}
+
+interface Props {
+	work: Item[];
+	projects: Item[];
+	writing: Item[];
+}
+
+const { work, projects, writing } = Astro.props;
+const currentWork = work[0];
+const featuredWriting = writing[0];
+
+const sections = [
+	{ id: 'work', label: 'Work.', href: '/work', items: work },
+	{ id: 'projects', label: 'Projects.', href: '/work/#projects', items: projects },
+	{ id: 'writing', label: 'Writing.', href: '/writing', items: writing },
+];
+---
+
+<div class="personal-index">
+	<section class="personal-index__intro" aria-labelledby="personal-index-title">
+		<h1 id="personal-index-title">Mathieu Saugier</h1>
+		<p class="personal-index__role">Software engineer</p>
+		<div class="personal-index__copy">
+			<p>Hi, I'm Mathieu. I like building products end to end, and I keep building outside of work.</p>
+			<p>I currently work as a Senior Protocol Engineer at <a href="/work/zama/">Zama</a>.</p>
+		</div>
+	</section>
+
+	<section class="personal-index__now" aria-labelledby="personal-index-now">
+		<p class="personal-index__label" id="personal-index-now">Now</p>
+		<div>
+			<a class="personal-index__current-title" href={currentWork?.href ?? '/work'}>{currentWork?.title ?? 'Work'}</a>
+			<p>{currentWork?.description ?? 'A record of things built and learned.'}</p>
+		</div>
+		<div>
+			<a class="personal-index__current-title" href={featuredWriting?.href ?? '/writing'}>{featuredWriting?.title ?? 'Writing'}</a>
+			<p>{featuredWriting?.description ?? 'Notes on software, systems, and ideas.'}</p>
+		</div>
+	</section>
+
+	<div class="personal-index__sections">
+		{sections.map((section) => (
+			<section class="personal-index__section" aria-labelledby={`personal-index-${section.id}`}>
+				<div class="personal-index__section-heading">
+					<h2 id={`personal-index-${section.id}`}>{section.label}</h2>
+					<a href={section.href}>View all&nbsp; ↗</a>
+				</div>
+				<ul class="personal-index__list">
+					{section.items.map((item) => (
+						<li>
+							<a href={item.href}>
+								<span>
+									<strong>{item.title}</strong>
+									<small>{item.description}</small>
+								</span>
+								<span aria-hidden="true">↗</span>
+							</a>
+						</li>
+					))}
+				</ul>
+			</section>
+		))}
+
+		<section class="personal-index__section" aria-labelledby="personal-index-bookshelf">
+			<div class="personal-index__section-heading">
+				<h2 id="personal-index-bookshelf">Bookshelf.</h2>
+				<a href="/bookshelf">View all&nbsp; ↗</a>
+			</div>
+			<a class="personal-index__shelf-link" href="/bookshelf">
+				<span>A personal reading archive.</span>
+				<span aria-hidden="true">↗</span>
+			</a>
+		</section>
+	</div>
+</div>

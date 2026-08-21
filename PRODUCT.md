@@ -59,7 +59,7 @@ Mathieu's cultivated visual work is a binding part of the identity. Images shoul
 - Existing writing on AI for software engineering, including retrospective evidence of convictions that anticipated later industry direction.
 - Existing blog articles and supporting imagery under `src/content/blog/`.
 - A personal reading archive in `src/booksData.ts`; most entries currently lack commentary.
-- Earlier visual experiments (a fog shader and a masked-horizon homepage over "Wanderer above the Sea of Fog") were evidence, not an approved visual system. The Living Index direction superseded them and they have been deleted; `docs/design/explorations/README.md` keeps the record of the directions that were considered.
+- Earlier visual experiments were evidence, not an approved visual system. The current quiet personal index supersedes them; the repository keeps only the clarity reference that remains useful to the shipped system.
 - Additional visual work exists outside the current repository and will need to be curated before the visual direction is finalized.
 
 ## Product Principles

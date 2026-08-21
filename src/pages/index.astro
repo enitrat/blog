@@ -1,13 +1,7 @@
 ---
 import '../styles/home.css';
 
-import type { ImageMetadata } from 'astro';
-import stageBuilder from '../assets/home/stage-builder.webp';
-import workLanguage from '../assets/home/work-language.webp';
-import workSystems from '../assets/home/work-systems.webp';
-import writingIdeas from '../assets/home/writing-ideas.webp';
-import ContactLinks from '../components/ContactLinks.astro';
-import LivingIndex, { type LivingIndexItem } from '../components/home/LivingIndex.astro';
+import PersonalIndex from '../components/home/PersonalIndex.astro';
 import { SITE_DESCRIPTION } from '../consts';
 import Page from '../layouts/Page.astro';
 import { getWorkIndex, workUrl } from '../utils/work';
@@ -16,45 +10,24 @@ import { getWritingIndex, postUrl } from '../utils/writing';
 const recentPosts = (await getWritingIndex()).slice(0, 3);
 const reports = await getWorkIndex();
 
-const reportArt: Record<string, ImageMetadata> = {
-	zama: writingIdeas,
-	kakarot: stageBuilder,
-	'starknet-agent': workSystems,
-	'cairo-coder': workLanguage,
-};
-
-const toItem = (report: (typeof reports)[number]): LivingIndexItem => ({
+const toItem = (report: (typeof reports)[number]) => ({
 	id: `work-${report.id}`,
 	title: report.data.title,
 	href: workUrl(report),
 	description: report.data.summary,
-	art: reportArt[report.id] ?? stageBuilder,
 });
 
 const work = reports.filter((report) => report.data.kind === 'work').map(toItem);
 const projects = reports.filter((report) => report.data.kind === 'project').map(toItem);
 
-const writingArt = [writingIdeas, workLanguage, workSystems, stageBuilder];
-const writing: LivingIndexItem[] = recentPosts.map((post, index) => ({
+const writing = recentPosts.map((post) => ({
 	id: `writing-${post.id.replaceAll('/', '-')}`,
 	title: post.data.title,
 	href: postUrl(post),
 	description: post.data.description,
-	art: writingArt[index % writingArt.length],
 }));
 ---
 
 <Page title="Mathieu Saugier" description={SITE_DESCRIPTION}>
-	<LivingIndex work={work} projects={projects} writing={writing} />
-
-	<section class="home-close" id="contact" aria-label="Say hello">
-		<div>
-			<p class="home-close__invitation">
-				If you've enjoyed reading about me and anything resonates, whether an essay, a project
-				I've built, or a book we've both read, send me a message and say hello!
-			</p>
-
-			<ContactLinks variant="chips" />
-		</div>
-	</section>
+	<PersonalIndex work={work} projects={projects} writing={writing} />
 </Page>

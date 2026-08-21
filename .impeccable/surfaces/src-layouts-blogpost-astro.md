@@ -9,7 +9,7 @@ related_targets: ["src/pages/writing/index.astro","src/pages/bookshelf/index.ast
 
 ## Mode
 
-`/writing/<slug>`, `/writing`, `/bookshelf`, and `/about` are Read surfaces. They inherit the Living Index world but prioritize comprehension and wayfinding.
+`/writing/<slug>`, `/writing`, `/bookshelf`, and `/about` are Read surfaces. They inherit the quiet personal-index world but prioritize comprehension and wayfinding.
 
 ## Rules
 
@@ -18,7 +18,7 @@ related_targets: ["src/pages/writing/index.astro","src/pages/bookshelf/index.ast
 - Keep About prose verbatim; layout and typography may change.
 - Use one archive row per piece. Reach translations from the article, never as duplicate rows.
 - Keep the site usable without JavaScript. The margin is enhancement, not navigation.
-- Use the Marginalia Sheet: page head, measured `52ch` prose, bounded margin, one contents list, and onward exits.
+- Use the shared reading sheet: page head, measured prose, bounded margin, one contents list, and onward exits.
 - Use site-colour code on a transparent ground; do not import a terminal theme.
 - Bookshelf uses typography and numeric ratings, not remote cover images or star glyphs.
 - Homepage artwork does not appear on these surfaces.

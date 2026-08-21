@@ -1,28 +1,17 @@
-/* The reading surface for a single document: one measured column with the
-   editorial apparatus in the outer margin. */
+/* Long-form reading surfaces. The layout is deliberately shared by writing
+   and work reports so a content page never needs its own visual dialect. */
 
 .sheet {
-	--margin-col: clamp(11rem, 15vw, 14rem);
-	/* The true measure. Binding: balance comes from centring the sheet, never
-	   from a longer line, so every part that aligns to the prose reads this. */
-	--reading-measure: 52ch;
-	/* The measure is counted in `ch`, so anything that aligns to it must resolve
-	   `ch` against the reading type — not the 1rem default. */
+	--margin-col: clamp(10rem, 15vw, 14rem);
+	--reading-measure: 66ch;
 	--reading-body-size: var(--type-body-article-size);
-	/* Wide enough for the longest copy-button state, so the language label can
-	   be offset by a value that never moves. */
 	--copy-btn-width: 4.4rem;
 }
 
-/* The sheet is one centred spine: head, rule, prose, images, and close all
-   share the reading measure's exact width, centred in the shell. The margin
-   apparatus hangs in the left field outside the spine. `ch` resolves against
-   the element's own font size, so every box that must equal the measure
-   carries the reading type size itself. */
 .sheet__head {
 	max-width: var(--reading-measure);
 	margin-inline: auto;
-	padding-block: clamp(3.5rem, 8vw, 7rem) clamp(1.75rem, 3.5vw, 3rem);
+	padding-block: var(--space-sheet-head-block) clamp(2rem, 4vw, 3rem);
 	border-bottom: 1px solid var(--home-ink);
 	font-size: var(--reading-body-size);
 }
@@ -31,22 +20,21 @@
 	max-width: 20ch;
 	margin: 0;
 	font-family: var(--home-display);
-	font-size: clamp(2.7rem, 6vw, 5.2rem);
-	font-weight: 560;
-	line-height: 0.96;
-	letter-spacing: -0.032em;
+	font-size: var(--type-headline-article-size);
+	font-weight: var(--type-headline-article-weight);
+	line-height: var(--type-headline-article-leading);
+	letter-spacing: var(--type-headline-article-tracking);
 	text-wrap: balance;
 }
 
 .sheet__standfirst {
-	max-width: 54ch;
-	margin: 1.6rem 0 0;
+	max-width: 58ch;
+	margin: 1.5rem 0 0;
 	color: var(--home-muted);
-	font-size: clamp(0.95rem, 1.4vw, 1.1rem);
-	line-height: 1.5;
+	font-size: var(--type-standfirst-size);
+	line-height: var(--type-standfirst-leading);
 }
 
-/* Symmetric side fields centre the spine; the apparatus lives in the left one. */
 .sheet__body {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) minmax(0, var(--reading-measure)) minmax(0, 1fr);
@@ -54,66 +42,53 @@
 	font-size: var(--reading-body-size);
 }
 
-/* ---------- The margin apparatus ---------- */
-
 .sheet__margin {
+	position: sticky;
+	top: 2rem;
 	grid-column: 1;
 	justify-self: end;
 	width: min(100%, var(--margin-col));
-	position: sticky;
-	top: 2.5rem;
-	max-height: calc(100svh - 5rem);
+	max-height: calc(100svh - 4rem);
 	overflow-y: auto;
-	padding: clamp(2.5rem, 5vw, 4rem) clamp(1.5rem, 3vw, 3rem) 3rem 0;
-	font-size: 1rem;
+	padding: var(--space-reading-block) clamp(1.25rem, 3vw, 2.5rem) 3rem 0;
+	font-size: var(--type-apparatus-size);
 }
 
 .sheet__facts {
 	margin: 0;
-	font-size: 0.78rem;
 }
 
 .sheet__facts dt,
-.sheet__contents > span {
-	color: var(--home-cobalt);
+.sheet__contents > span,
+.sheet__onward-item span {
+	color: var(--home-muted);
 	font-size: var(--type-label-size);
 	font-weight: var(--type-label-weight);
 	letter-spacing: var(--type-label-tracking);
 	text-transform: uppercase;
 }
 
-.sheet__onward-item span {
-	color: var(--home-cobalt);
-	font-size: var(--type-data-size);
-	font-weight: 680;
-	letter-spacing: 0.07em;
-	text-transform: uppercase;
-}
-
 .sheet__facts dd {
-	margin: 0.3rem 0 1.15rem;
+	margin: 0.3rem 0 1.2rem;
 	color: var(--home-muted);
 }
 
 .sheet__facts dd a {
 	color: var(--home-cobalt);
-	font-weight: 600;
-}
-
-.sheet__facts dd a:hover {
 	text-decoration: underline;
-	text-underline-offset: 0.25em;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.2em;
 }
 
 .sheet__contents {
-	margin-top: 0.35rem;
-	padding-top: 1.1rem;
-	border-top: 1px solid var(--home-cobalt);
+	margin-top: 1.75rem;
+	padding-top: 1rem;
+	border-top: 1px solid var(--home-rule);
 }
 
 .sheet__contents > span {
 	display: block;
-	margin-bottom: 0.85rem;
+	margin-bottom: 0.75rem;
 }
 
 .sheet__contents ol {
@@ -123,38 +98,20 @@
 }
 
 .sheet__contents li {
-	margin-bottom: 0.1rem;
+	margin: 0;
 }
 
-/* Fixed columns, so the active state can only change colour, never geometry. */
 .site .sheet__contents a {
-	display: grid;
-	grid-template-columns: 0.95rem minmax(0, 1fr);
+	display: block;
 	padding: 0.3rem 0;
 	color: var(--home-muted);
-	font-size: 0.78rem;
 	line-height: 1.35;
-	transition: color 200ms ease;
-}
-
-.sheet__contents a::before {
-	content: "";
-	grid-column: 1;
-	grid-row: 1;
-	align-self: center;
-	width: 0.42rem;
-	height: 0.42rem;
-	background: transparent;
-	clip-path: var(--home-star);
-}
-
-.sheet__contents a .t {
-	grid-column: 2;
-	grid-row: 1;
+	transition: color 180ms ease;
 }
 
 .sheet__contents li[data-depth="3"] .t {
-	padding-left: 0.85rem;
+	display: block;
+	padding-left: 0.9rem;
 }
 
 .site .sheet__contents a:hover,
@@ -164,42 +121,26 @@
 }
 
 .site .sheet__contents a[aria-current="true"] {
-	font-weight: 600;
+	font-weight: 620;
 }
 
-.site .sheet__contents a[aria-current="true"] i {
-	color: var(--home-cobalt);
-}
-
-.sheet__contents a[aria-current="true"]::before {
-	background: var(--home-orange);
-}
-
-/* ---------- The reading column ---------- */
-
-/* The reading column starts on the spine and may grow rightward into the free
-   field for code and tables only; everything else holds the measure exactly. */
 .article-body {
-	grid-column: 2 / -1;
 	display: grid;
 	grid-template-columns: minmax(0, var(--reading-measure)) minmax(0, 1fr);
+	grid-column: 2 / -1;
 	align-content: start;
-	padding: clamp(2.5rem, 5vw, 4rem) 0 clamp(4rem, 8vw, 7rem);
+	padding: var(--space-reading-block) 0 clamp(4rem, 8vw, 7rem);
 	font-size: var(--reading-body-size);
 	line-height: var(--type-body-article-leading);
-	text-align: left;
 }
 
 .article-body > * {
 	grid-column: 1;
 }
 
-/* A page-level prose field uses the same reading typography without inheriting
-   the sheet's three-column spine. This keeps non-sheet prose on the same
-   primitive instead of reimplementing article layout in the page. */
 .article-body--flow {
-	grid-column: auto;
 	display: block;
+	grid-column: auto;
 	width: auto;
 	padding: 0;
 	font-size: var(--type-body-about-size);
@@ -210,18 +151,6 @@
 	grid-column: auto;
 }
 
-/* Justified with hyphenation: the measure's right edge is a real edge, matching
-   the head rule above it, instead of a ragged cut. */
-.article-body p,
-.article-body li {
-	text-align: justify;
-	hyphens: auto;
-}
-
-/* The wide track is for code and tables only — they need horizontal room.
-   Capped so a very wide screen never stretches a line of code past what one
-   glance can follow. Images and figures keep the prose measure: a picture
-   wider than the text unbalances the column it illustrates. */
 .article-body > pre,
 .article-body > table {
 	grid-column: 1 / -1;
@@ -232,12 +161,11 @@
 	margin-top: 0;
 }
 
-/* Grid items do not collapse margins, so the heading gaps below add to this
-   1.35em rather than absorbing it. */
 .article-body p {
 	margin: 0 0 1.35em;
 }
 
+.article-body h1,
 .article-body h2,
 .article-body h3,
 .article-body h4 {
@@ -249,29 +177,27 @@
 	scroll-margin-top: 2rem;
 }
 
-.article-body h2 {
-	margin: 2.1rem 0 1.1rem;
+.article-body h1 {
+	font-size: var(--type-title-size);
 }
 
 .article-body h2 {
-	padding-top: 1.1rem;
-	border-top: 1px solid var(--home-rule);
-	font-size: clamp(1.7rem, 3vw, 2.25rem);
-}
-
-/* An authored `---` before a heading would print two identical rules in a row. */
-.article-body hr:has(+ h2) {
-	display: none;
+	margin: 2.5rem 0 1rem;
+	font-size: var(--type-prose-h2-size);
 }
 
 .article-body h3 {
-	margin: 1.3rem 0 0.85rem;
-	font-size: clamp(1.25rem, 2vw, 1.5rem);
+	margin: 1.75rem 0 0.85rem;
+	font-size: var(--type-prose-h3-size);
 }
 
 .article-body h4 {
-	margin: 0.7rem 0 0.7rem;
-	font-size: 1.05rem;
+	margin: 1.25rem 0 0.7rem;
+	font-size: var(--type-prose-h4-size);
+}
+
+.article-body hr:has(+ h2) {
+	display: none;
 }
 
 .site .article-body a {
@@ -279,8 +205,8 @@
 	text-decoration: underline;
 	text-decoration-thickness: 1px;
 	text-underline-offset: 0.2em;
-	text-decoration-color: color-mix(in srgb, var(--home-cobalt) 40%, transparent);
-	transition: text-decoration-color 200ms ease;
+	text-decoration-color: var(--color-cobalt-underline);
+	transition: text-decoration-color 180ms ease;
 }
 
 .site .article-body a:hover {
@@ -288,7 +214,7 @@
 }
 
 .article-body strong {
-	font-weight: 640;
+	font-weight: 650;
 }
 
 .article-body ul,
@@ -311,7 +237,6 @@
 	padding: 0.2rem 0 0.2rem 1.4rem;
 	border-left: 1px solid var(--home-cobalt);
 	color: var(--home-muted);
-	font-style: normal;
 }
 
 .article-body blockquote p:last-child {
@@ -320,7 +245,7 @@
 
 .article-body hr {
 	height: 0;
-	margin: 1.65rem 0 3rem;
+	margin: 2rem 0 3rem;
 	border: 0;
 	border-top: 1px solid var(--home-rule);
 }
@@ -329,17 +254,15 @@
 	display: block;
 	width: 100%;
 	height: auto;
-	margin: 0.85rem 0 2.2rem;
-	background: var(--home-ink);
+	margin: 1rem 0 2.5rem;
 }
 
-/* Every article opens on its banner, which must sit flush against the rule. */
 .article-body > :first-child > img {
 	margin-top: 0;
 }
 
 .article-body figure {
-	margin: 0.85rem 0 2.2rem;
+	margin: 1rem 0 2.5rem;
 }
 
 .article-body figure img {
@@ -349,7 +272,7 @@
 .article-body figcaption {
 	margin-top: 0.7rem;
 	color: var(--home-muted);
-	font-size: 0.74rem;
+	font-size: var(--type-caption-label-size);
 }
 
 .article-body table {
@@ -358,7 +281,7 @@
 	margin: 0.65rem 0 2rem;
 	overflow-x: auto;
 	border-collapse: collapse;
-	font-size: 0.86rem;
+	font-size: var(--type-table-size);
 }
 
 .article-body th,
@@ -371,43 +294,32 @@
 
 .article-body th {
 	border-bottom-color: var(--home-ink);
-	color: var(--home-cobalt);
-	font-size: 0.65rem;
-	font-weight: 680;
-	letter-spacing: 0.07em;
+	color: var(--home-muted);
+	font-size: var(--type-label-size);
+	font-weight: var(--type-label-weight);
+	letter-spacing: var(--type-label-tracking);
 	text-transform: uppercase;
 }
-
-/* ---------- Code ---------- */
 
 .article-body :not(pre) > code {
 	padding: 0.12em 0.34em;
 	border: 1px solid var(--home-rule);
-	background: color-mix(in srgb, var(--home-cobalt) 5%, var(--home-paper));
+	background: var(--color-cobalt-wash);
 	font-family: var(--home-mono);
-	font-size: 0.86em;
+	font-size: var(--type-code-inline-size);
 }
 
-/* Scroll shadows: paper masks pinned with background-attachment: local ride
-   the scroll, so an ink edge shows only while there is more code that way. */
 .article-body pre {
 	position: relative;
 	margin: 0.65rem 0 2rem;
 	padding: 1.1rem 1.2rem;
 	overflow-x: auto;
-	border: 1px solid var(--home-rule);
+	border-block: 1px solid var(--home-rule);
 	border-left: 2px solid var(--home-cobalt);
-	background:
-		linear-gradient(to right, var(--home-paper) 40%, rgb(247 245 240 / 0%)) left / 2.5rem 100%
-		no-repeat local,
-		linear-gradient(to left, var(--home-paper) 40%, rgb(247 245 240 / 0%)) right / 2.5rem 100%
-		no-repeat local,
-		linear-gradient(to right, rgb(23 25 29 / 24%), rgb(23 25 29 / 0%)) left / 1.25rem 100% no-repeat
-		scroll,
-		linear-gradient(to left, rgb(23 25 29 / 24%), rgb(23 25 29 / 0%)) right / 1.25rem 100% no-repeat
-		scroll;
-	font-size: 0.82rem;
-	line-height: 1.6;
+	background: transparent;
+	font-family: var(--home-mono);
+	font-size: var(--type-code-size);
+	line-height: var(--type-code-leading);
 	tab-size: 2;
 }
 
@@ -416,8 +328,6 @@
 	outline-offset: 4px;
 }
 
-/* Offset by the copy button's reserved width: both must stay legible together
-   while the pointer is over the block. */
 .article-body pre[data-language]:not([data-language="plaintext"])::before {
 	content: attr(data-language);
 	position: absolute;
@@ -426,8 +336,8 @@
 	color: var(--home-muted);
 	font-family: var(--home-sans);
 	font-size: var(--type-micro-size);
-	font-weight: 680;
-	letter-spacing: 0.07em;
+	font-weight: var(--type-micro-weight);
+	letter-spacing: var(--type-micro-tracking);
 	text-transform: uppercase;
 }
 
@@ -435,51 +345,78 @@
 	font-family: var(--home-mono);
 }
 
-/* Fixed width, so "Copied!" cannot grow the button over the language label. */
 .copy-btn {
 	position: absolute;
 	top: 0.5rem;
 	right: 0.5rem;
 	width: var(--copy-btn-width);
 	padding: 0.3rem 0.55rem;
-	text-align: center;
 	border: 1px solid var(--home-rule);
 	background: var(--home-paper);
 	color: var(--home-cobalt);
 	font-family: var(--home-sans);
-	font-size: 0.62rem;
-	font-weight: 680;
-	letter-spacing: 0.06em;
+	font-size: var(--type-micro-size);
+	font-weight: var(--type-micro-weight);
+	letter-spacing: var(--type-micro-tracking);
 	text-transform: uppercase;
 	line-height: 1;
-	opacity: 0;
 	cursor: pointer;
-	transition:
-		opacity 180ms ease,
-		border-color 180ms ease;
 }
 
-.article-body pre:hover .copy-btn,
+.copy-btn:hover,
 .copy-btn:focus-visible {
-	opacity: 1;
-}
-
-.copy-btn:hover {
 	border-color: var(--home-cobalt);
 }
 
 .copy-btn.copied {
-	border-color: var(--home-orange);
 	color: var(--home-orange);
 }
 
-/* ---------- Document close ---------- */
-
+/* The close is a final, quiet index into adjacent material. */
 .sheet__close {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) minmax(0, var(--reading-measure)) minmax(0, 1fr);
 	border-top: 1px solid var(--home-ink);
 	font-size: var(--reading-body-size);
+}
+
+.sheet__close > div {
+	display: grid;
+	grid-column: 2;
+	grid-template-columns: minmax(0, 1fr);
+	padding: var(--space-reading-block) 0 clamp(3rem, 6vw, 5rem);
+}
+
+.sheet__onward {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 0 clamp(1.5rem, 4vw, 3.5rem);
+	margin-bottom: 2rem;
+}
+
+.sheet__onward:has(> * + *) {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.site .sheet__onward-item {
+	display: grid;
+	gap: 0.45rem;
+	padding: 1rem 0;
+	color: var(--home-ink);
+	transition: color 180ms ease;
+}
+
+.sheet__onward-item strong {
+	font-family: var(--home-display);
+	font-size: var(--type-title-onward-size);
+	font-weight: var(--type-title-onward-weight);
+	line-height: var(--type-title-onward-leading);
+	letter-spacing: var(--type-title-onward-tracking);
+}
+
+.site .sheet__onward-item:hover,
+.site .sheet__onward-item:focus-visible {
+	color: var(--home-cobalt);
 }
 
 .sheet__exits {
@@ -489,142 +426,56 @@
 	gap: 1rem clamp(1.5rem, 3vw, 2.75rem);
 }
 
-.sheet__exits .contact-links {
-	gap: 1rem clamp(1.5rem, 3vw, 2.75rem);
+.site .sheet__all {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.65rem;
+	color: var(--home-cobalt);
+	font-size: var(--type-action-link-size);
+	font-weight: var(--type-action-link-weight);
 }
 
-/* The close occupies the spine exactly: it starts on the prose's left edge and
-   ends on its right. */
-.sheet__close > div {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr);
-	padding: clamp(2.5rem, 5vw, 4rem) 0 clamp(3rem, 6vw, 5rem);
-	grid-column: 2;
-}
-
-/* Explicit column count, never auto-fit: a card that silently wrapped to its own
-   row would leave the divider between the pair hanging on nothing. */
-.sheet__onward {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr);
-	gap: 0 clamp(1.5rem, 4vw, 3.5rem);
-	margin-bottom: 2.25rem;
-}
-
-.sheet__onward:has(> * + *) {
-	grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.site .sheet__onward-item {
-	display: grid;
-	gap: 0.5rem;
-	padding: 1.4rem 0;
-	color: var(--home-ink);
-	transition: color 200ms ease;
+.sheet__all svg {
+	width: 1.05rem;
+	height: 1.05rem;
 }
 
 @media (min-width: 761px) {
 	.sheet__onward-item + .sheet__onward-item {
-		border-left: 1px solid var(--home-rule);
 		padding-left: clamp(1.5rem, 4vw, 3.5rem);
-	}
-}
-
-@media (max-width: 760px) {
-	/* One column, and the pair is divided by a rule above rather than beside. */
-	.sheet__onward:has(> * + *) {
-		grid-template-columns: minmax(0, 1fr);
+		border-left: 1px solid var(--home-rule);
 	}
 
-	.sheet__onward-item + .sheet__onward-item {
-		border-top: 1px solid var(--home-rule);
+	.sheet__onward-item--next {
+		text-align: right;
 	}
 
-	/* Scoped to beat the unconditional right-align that follows this block. */
-	.sheet__onward .sheet__onward-item--next {
+	.sheet__onward-item--next:only-child {
 		text-align: left;
 	}
 }
 
-.sheet__onward-item--next {
-	text-align: right;
-}
-
-/* A lone next-neighbour has nothing to sit opposite, so it stops right-aligning. */
-.sheet__onward-item--next:only-child {
-	text-align: left;
-}
-
-.sheet__onward-item strong {
-	font-family: var(--home-display);
-	font-size: clamp(1.1rem, 1.8vw, 1.4rem);
-	font-weight: 550;
-	line-height: 1.14;
-	letter-spacing: -0.02em;
-}
-
-.site .sheet__onward-item:hover,
-.site .sheet__onward-item:focus-visible {
-	color: var(--home-cobalt);
-}
-
-.site .sheet__all {
-	display: inline-flex;
-	align-items: center;
-	gap: 0.75rem;
-	color: var(--home-cobalt);
-	font-size: 0.78rem;
-	font-weight: 650;
-}
-
-.sheet__all svg {
-	width: 1.1rem;
-	height: 1.1rem;
-}
-
-/* ---------- Narrow: the margin becomes a band ---------- */
-
 @media (max-width: 980px) {
+	.sheet__head {
+		max-width: none;
+	}
+
 	.sheet__body,
 	.sheet__close {
 		grid-template-columns: minmax(0, 1fr);
 	}
 
-	/* No side fields to centre in, so the masthead returns to the shell edge. */
-	.sheet__head {
-		max-width: none;
-		margin-inline: 0;
-	}
-
-	/* One column: the apparatus becomes a full-width band and the spine centres
-	   inside the remaining width on its own. */
-	.article-body {
-		grid-column: 1;
-		grid-template-columns: minmax(0, var(--reading-measure));
-		justify-content: center;
-	}
-
 	.sheet__margin {
+		position: static;
 		grid-column: 1;
 		justify-self: stretch;
 		width: auto;
-	}
-
-	.sheet__close > div {
-		width: 100%;
-		max-width: var(--reading-measure);
-		margin-inline: auto;
-	}
-
-	.sheet__margin {
-		position: static;
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-		gap: 0 clamp(1.5rem, 4vw, 3rem);
 		max-height: none;
 		overflow: visible;
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+		gap: 0 clamp(1.5rem, 4vw, 3rem);
 		padding: 2rem 0;
-		border-right: 0;
 		border-bottom: 1px solid var(--home-rule);
 	}
 
@@ -644,14 +495,17 @@
 		border-top: 0;
 	}
 
-	.article-body,
-	.sheet__close > div {
-		padding-left: 0;
-		border-left: 0;
+	.article-body {
+		grid-column: 1;
+		grid-template-columns: minmax(0, var(--reading-measure));
+		justify-content: center;
 	}
 
 	.sheet__close > div {
 		grid-column: 1;
+		width: 100%;
+		max-width: var(--reading-measure);
+		margin-inline: auto;
 	}
 }
 
@@ -667,10 +521,24 @@
 		border-inline: 0;
 		border-left: 2px solid var(--home-cobalt);
 	}
+
+	.sheet__onward:has(> * + *) {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.sheet__onward-item + .sheet__onward-item {
+		border-top: 1px solid var(--home-rule);
+	}
+
+	.sheet__onward .sheet__onward-item--next {
+		text-align: left;
+	}
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.site .sheet__contents a {
+	.site .sheet__contents a,
+	.site .sheet__onward-item,
+	.site .article-body a {
 		transition: none;
 	}
 }

@@ -1,463 +1,232 @@
-/* Homepage-only composition: the Living Index, the art stage, and the close.
-   Shared primitives live in site.css. */
+/* The home page is an index of real content, not a separate product surface. */
 
-.living-index {
-	display: grid;
-	/* The groups channel takes the wider share: Work's promoted entries need a
-	   measure their two-line descriptions fit inside. */
-	grid-template-columns: minmax(17rem, 0.66fr) minmax(34rem, 1.34fr);
-	grid-template-areas:
-		"orientation groups"
-		"stage stage";
-	border-bottom: 1px solid var(--home-rule);
+.personal-index {
+	max-width: 60rem;
+	margin-inline: auto;
+	padding-block: 0 clamp(5rem, 10vw, 8rem);
 }
 
-/* Padded tightly so a band of the art stage still lands inside a 900px-tall
-   viewport rather than below the fold. */
-.living-index__orientation {
-	grid-area: orientation;
-	padding: clamp(2.25rem, 4vw, 3rem) clamp(2rem, 5vw, 6rem) clamp(2rem, 3.5vw, 2.5rem) 0;
-	border-right: 1px solid var(--home-rule);
+.personal-index__section-heading a {
+	transition: color 180ms ease;
 }
 
-.living-index__role {
-	margin: 1.5rem 0 0;
-	font-size: clamp(1.05rem, 1.8vw, 1.4rem);
-	font-weight: 520;
-}
-
-.living-index__role a {
+.personal-index__section-heading a:hover,
+.personal-index__section-heading a:focus-visible,
+.personal-index__shelf-link:hover,
+.personal-index__shelf-link:focus-visible {
 	color: var(--home-cobalt);
 }
 
-.living-index__role a:hover,
-.living-index__role a:focus-visible {
-	text-decoration: underline;
-	text-underline-offset: 0.2em;
+.personal-index__intro {
+	margin-top: clamp(6.5rem, 14vw, 11rem);
 }
 
-.living-index__role span {
-	display: block;
-	margin-top: 0.35rem;
-	color: var(--home-cobalt);
-	font-size: 0.92em;
-	font-weight: 600;
+.personal-index__intro h1 {
+	margin: 0;
+	font-family: var(--home-sans);
+	font-size: var(--type-headline-size);
+	font-weight: var(--type-headline-weight);
+	line-height: var(--type-headline-leading);
+	letter-spacing: var(--type-headline-tracking);
 }
 
-.living-index__intro {
-	max-width: 34rem;
-	margin-top: clamp(1.5rem, 3vw, 2.5rem);
-	padding-top: 1.1rem;
-	border-top: 1px solid var(--home-cobalt);
+.personal-index__role {
+	margin: 1rem 0 0;
 	color: var(--home-muted);
+	font-size: var(--type-role-line-size);
+	font-weight: var(--type-role-line-weight);
+	line-height: var(--type-role-line-leading);
+	letter-spacing: var(--type-role-line-tracking);
 }
 
-.living-index__intro p {
-	max-width: 46ch;
-	margin: 0.7rem 0 0;
+.personal-index__copy {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: clamp(1.5rem, 5vw, 5rem);
+	max-width: 54rem;
+	margin-top: clamp(3rem, 6vw, 5.5rem);
+	color: var(--home-muted);
 	font-size: var(--type-intro-size);
+	line-height: var(--type-intro-leading);
 }
 
-.living-index__groups {
-	grid-area: groups;
-	display: grid;
-	/* Work leads, so the channel carrying it is the wider of the two. */
-	grid-template-columns: 1.16fr 1fr;
-}
-
-/* Work and Projects share the left channel; Writing owns the right one. */
-.living-index__stack {
-	display: grid;
-	align-content: start;
-}
-
-.index-group {
-	padding: clamp(1.75rem, 3vw, 2.5rem) clamp(1.5rem, 3.5vw, 3.5rem);
-}
-
-.living-index__stack .index-group + .index-group {
-	padding-top: 0.5rem;
-}
-
-.index-group--writing {
-	border-left: 1px solid var(--home-rule);
-}
-
-.index-group__heading {
-	display: flex;
-	align-items: baseline;
-	justify-content: space-between;
-	margin-bottom: 1.3rem;
-	/* Near 1000px each group is only ~255px wide, where the destination link
-	   wrapped to two lines beside its heading. Let it drop to its own line. */
-	flex-wrap: wrap;
-	gap: 0.35rem 1.5rem;
-}
-
-.index-group__heading h2 {
-	flex: 1 1 auto;
+.personal-index__copy p {
 	margin: 0;
-	font-family: var(--home-display);
-	font-size: clamp(1.8rem, 3vw, 2.8rem);
-	font-weight: 560;
-	letter-spacing: -0.03em;
 }
 
-.index-group__heading a {
-	flex: 0 1 auto;
-	white-space: nowrap;
-	color: var(--home-cobalt);
-	font-size: 0.7rem;
-	font-weight: 640;
-	letter-spacing: 0.05em;
+.personal-index__copy a,
+.personal-index__now a {
+	color: var(--home-ink);
+	text-decoration: underline;
+	text-decoration-color: var(--home-cobalt);
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.18em;
 }
 
-.index-group ul {
-	margin: 0;
-	padding: 0;
-	list-style: none;
-	border-top: 1px solid var(--home-rule);
-}
-
-.index-group li {
-	border-bottom: 1px solid var(--home-rule);
-}
-
-/* Fixed star column and a transform-only hover: hovering an entry must never
-   change its geometry, or the list shifts under the cursor. */
-.index-group li > a {
+.personal-index__now {
 	display: grid;
-	grid-template-columns: 1.1rem minmax(0, 1fr) 1.35rem;
-	grid-template-areas:
-		"star title arrow"
-		"star description arrow";
-	gap: 0.28rem 0;
-	padding: 1.15rem 0.35rem 1.15rem 0;
-	transition:
-		color 220ms ease,
-		transform 260ms cubic-bezier(0.2, 0.75, 0.2, 1);
+	grid-template-columns: 8rem repeat(2, minmax(0, 1fr));
+	gap: 2rem;
+	margin-top: clamp(5rem, 10vw, 8rem);
+	padding-top: 1.2rem;
+	border-top: 1px solid var(--home-ink);
 }
 
-.index-group li > a::before {
-	content: "";
-	grid-area: star;
-	align-self: start;
-	margin-top: 0.35rem;
-	width: 0.48rem;
-	height: 0.48rem;
-	background: transparent;
-	clip-path: var(--home-star);
-}
-
-.index-group li > a span {
-	grid-area: title;
-	font-size: 0.98rem;
-	font-weight: 560;
-	line-height: 1.2;
-}
-
-.index-group li > a small {
-	grid-area: description;
+.personal-index__label {
+	margin: 0;
 	color: var(--home-muted);
-	font-size: 0.82rem;
-	line-height: 1.45;
-}
-
-.index-group li > a svg {
-	grid-area: arrow;
-	align-self: center;
-	justify-self: end;
-	width: 1.15rem;
-	height: 1.15rem;
-}
-
-.index-group li > a[data-active="true"],
-.index-group li > a:hover,
-.index-group li > a:focus-visible {
-	color: var(--home-cobalt);
-	transform: translateX(0.4rem);
-}
-
-.index-group li > a[data-active="true"]::before {
-	background: var(--home-orange);
-}
-
-/* ---------- Work leads, Projects follows ---------- */
-
-/* Work sets the largest entry scale on the page: ledger-scale serif titles over
-   standfirst descriptions, so the primary group is unmistakable. The rows keep
-   the shared padding — scale alone carries the promotion, so the opening field
-   stays short enough to leave a band of the stage inside a 900px viewport. */
-.index-group--work li > a span {
-	font-family: var(--type-title-ledger-family);
-	font-size: var(--type-title-ledger-size);
-	font-weight: var(--type-title-ledger-weight);
-	line-height: var(--type-title-ledger-leading);
-	letter-spacing: var(--type-title-ledger-tracking);
-}
-
-.index-group--work li > a small {
-	font-size: var(--type-standfirst-size);
-	line-height: var(--type-standfirst-leading);
-}
-
-/* The reserved star column keeps its mark size; only its offset follows the
-   taller first line, so the star sits with the title's cap height. */
-.index-group--work li > a::before {
-	margin-top: 0.9rem;
-}
-
-/* Projects is the compact secondary group: its heading drops to the label voice
-   the year groups on /work use, and its entries stay at entry-title scale. */
-.index-group--projects .index-group__heading {
-	margin-bottom: 0.8rem;
-}
-
-.index-group--projects .index-group__heading h2 {
-	color: var(--home-cobalt);
-	font-family: var(--type-label-family);
 	font-size: var(--type-label-size);
 	font-weight: var(--type-label-weight);
 	letter-spacing: var(--type-label-tracking);
 	text-transform: uppercase;
 }
 
-/* One rung below its own heading, so the group's small type stays monotonic. */
-.index-group--projects .index-group__heading a {
-	font-size: var(--type-micro-size);
-	font-weight: var(--type-micro-weight);
-	letter-spacing: var(--type-micro-tracking);
+.personal-index__now > div {
+	max-width: 24rem;
 }
 
-.index-group--projects li > a {
-	padding-block: 0.85rem;
+.personal-index__current-title {
+	font-size: var(--type-title-work-size);
+	font-weight: var(--type-title-work-weight);
+	line-height: var(--type-title-work-leading);
 }
 
-.art-stage {
-	grid-area: stage;
-	position: relative;
-	min-height: clamp(20rem, 38vw, 36rem);
-	overflow: hidden;
-	background: var(--home-ink);
-	isolation: isolate;
+.personal-index__now div p {
+	margin: 0.55rem 0 0;
+	color: var(--home-muted);
+	font-size: var(--type-meta-size);
 }
 
-.art-stage figure {
-	position: absolute;
-	inset: 0;
+.personal-index__sections {
+	margin-top: clamp(5rem, 10vw, 8rem);
+}
+
+.personal-index__section + .personal-index__section {
+	margin-top: clamp(4rem, 8vw, 7rem);
+}
+
+.personal-index__section-heading {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 1.5rem;
+	padding-bottom: 1rem;
+	border-bottom: 1px solid var(--home-ink);
+}
+
+.personal-index__section-heading h2 {
 	margin: 0;
-	opacity: 0;
-	visibility: hidden;
-	transition:
-		opacity 520ms cubic-bezier(0.16, 1, 0.3, 1),
-		visibility 520ms step-end;
-}
-
-.art-stage figure[data-active="true"] {
-	opacity: 1;
-	visibility: visible;
-	transition:
-		opacity 620ms cubic-bezier(0.16, 1, 0.3, 1),
-		visibility 0ms step-start;
-}
-
-.art-stage picture,
-.art-stage img {
-	display: block;
-	width: 100%;
-	height: 100%;
-}
-
-.art-stage img {
-	object-fit: cover;
-	object-position: center;
-	transform: scale(1.015);
-	filter: saturate(0.96) contrast(1.03);
-	transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.art-stage figure[data-active="true"] img {
-	transform: scale(1);
-}
-
-.art-stage figcaption {
-	position: absolute;
-	left: clamp(1rem, 3vw, 3rem);
-	right: clamp(1rem, 3vw, 3rem);
-	bottom: clamp(1rem, 3vw, 2.5rem);
-	display: grid;
-	grid-template-columns: auto 1fr auto;
-	align-items: center;
-	gap: 1rem;
-	padding-top: 0.8rem;
-	border-top: 1px solid rgb(255 255 255 / 72%);
-	color: #fff;
-	text-shadow: 0 2px 18px rgb(0 0 0 / 48%);
-}
-
-.art-stage figcaption span,
-.art-stage figcaption small {
-	font-size: 0.64rem;
-	font-weight: 650;
-	letter-spacing: 0.06em;
-	text-transform: uppercase;
-}
-
-.art-stage figcaption strong {
 	font-family: var(--home-display);
-	font-size: clamp(1.3rem, 2.2vw, 2.15rem);
-	font-weight: 550;
+	font-size: var(--type-title-size);
+	font-style: italic;
+	font-weight: 540;
+	line-height: 1;
+	letter-spacing: var(--type-title-tracking);
 }
 
-/* ---------- The close ---------- */
+.personal-index__section-heading a {
+	color: var(--home-muted);
+	font-size: var(--type-action-link-size);
+}
 
-.home-close {
-	padding-block: clamp(4rem, 8vw, 7rem);
+.personal-index__list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.personal-index__list li {
 	border-bottom: 1px solid var(--home-rule);
 }
 
-.home-close > div {
-	max-width: 44rem;
+.personal-index__list li > a,
+.personal-index__shelf-link {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 2rem;
+	align-items: center;
+	padding: 1.15rem 0;
+	transition:
+		color 180ms ease,
+		transform 220ms ease;
 }
 
-.home-close__invitation {
-	max-width: 54ch;
-	margin: 0;
-	font-size: clamp(1rem, 1.4vw, 1.1rem);
-	line-height: 1.6;
+.personal-index__list li > a:hover,
+.personal-index__list li > a:focus-visible,
+.personal-index__shelf-link:hover,
+.personal-index__shelf-link:focus-visible {
+	transform: translateX(0.8rem);
 }
 
-.home-close .contact-links {
-	margin-top: 2.5rem;
+.personal-index__list strong {
+	display: block;
+	font-size: var(--type-title-work-size);
+	font-weight: var(--type-title-work-weight);
+	line-height: var(--type-title-work-leading);
 }
 
-@media (max-width: 980px) {
-	/* Stacking these instead makes the opening field ~900px tall and pushes the
-	   art stage out of the first viewport entirely. */
-	.living-index {
-		grid-template-columns: minmax(0, 1fr);
-		grid-template-areas:
-			"orientation"
-			"groups"
-			"stage";
-	}
-
-	.living-index__orientation {
-		display: grid;
-		grid-template-columns: auto minmax(15rem, 1fr);
-		grid-template-areas: "role intro";
-		align-content: start;
-		gap: 0 clamp(2rem, 5vw, 4rem);
-		padding: clamp(2.75rem, 6vw, 4.5rem) 0 clamp(2.25rem, 5vw, 3.25rem);
-		border-right: 0;
-		border-bottom: 1px solid var(--home-rule);
-	}
-
-	.living-index__role {
-		grid-area: role;
-	}
-
-	.living-index__intro {
-		grid-area: intro;
-		align-self: end;
-		margin-top: 0;
-	}
-
-	.index-group {
-		padding-inline: 0 clamp(1.5rem, 3.5vw, 3.5rem);
-	}
-
-	.index-group--writing {
-		padding-inline: clamp(1.5rem, 3.5vw, 3.5rem) 0;
-	}
+.personal-index__list small {
+	display: block;
+	max-width: 58ch;
+	margin-top: 0.3rem;
+	color: var(--home-muted);
+	font-size: var(--type-meta-size);
+	line-height: 1.45;
 }
 
-@media (max-width: 760px) {
-	.living-index {
-		display: flex;
-		flex-direction: column;
+.personal-index__list li > a > span:last-child,
+.personal-index__shelf-link > span:last-child {
+	color: var(--home-muted);
+	font-size: 1.25rem;
+}
+
+.personal-index__shelf-link {
+	color: var(--home-muted);
+	font-size: var(--type-meta-size);
+}
+
+@media (max-width: 720px) {
+	.personal-index__intro {
+		margin-top: 6rem;
 	}
 
-	.living-index__orientation {
+	.personal-index__copy {
 		display: block;
-		padding: 3.8rem 0 3rem;
-		border-right: 0;
-		border-bottom: 0;
+		margin-top: 2.75rem;
 	}
 
-	.living-index__intro {
-		margin-top: 3rem;
+	.personal-index__copy p + p {
+		margin-top: 1.1rem;
 	}
 
-	.living-index__groups {
+	.personal-index__now {
 		grid-template-columns: 1fr;
+		gap: 1.5rem;
 	}
 
-	/* Must also reset the inline padding the wider block sets on this same
-	   selector — the single-class version loses the specificity contest. */
-	.index-group--writing {
-		padding-inline: 0;
-		border-top: 1px solid var(--home-rule);
-		border-left: 0;
+	.personal-index__section-heading {
+		align-items: flex-start;
+		flex-direction: column;
+		gap: 0.55rem;
 	}
 
-	.art-stage {
-		order: 2;
-		height: min(42svh, 24rem);
-		min-height: 18rem;
-		position: sticky;
-		top: 0;
-		z-index: 3;
-	}
-
-	.living-index__groups {
-		order: 3;
-		position: relative;
-		z-index: 2;
-		background: var(--home-paper);
-	}
-
-	/* Tightened toward the shared rule so it reads as a boundary, not a gap. */
-	.index-group {
-		padding: 2.25rem 0;
-	}
-
-	.art-stage figcaption {
-		grid-template-columns: 1fr;
-		gap: 0.2rem;
-	}
-
-	.art-stage figcaption small {
-		display: none;
-	}
-
-	/* The stage floor is 18rem on short phones; a long title must not run past it. */
-	.art-stage figcaption strong {
-		font-size: 1.15rem;
-		line-height: 1.15;
+	.personal-index__list li > a,
+	.personal-index__shelf-link {
+		gap: 1rem;
 	}
 }
 
-/* Movement goes, state stays. */
 @media (prefers-reduced-motion: reduce) {
-	/* The stage cuts between frames instead of crossfading. */
-	.art-stage figure:not([data-active="true"]) {
-		display: none;
-	}
-
-	.art-stage img {
-		transform: none;
+	.personal-index__section-heading a,
+	.personal-index__list li > a,
+	.personal-index__shelf-link {
 		transition: none;
 	}
 
-	.index-group li > a {
-		transition: color 220ms ease;
-		transform: none;
-	}
-
-	.index-group li > a[data-active="true"],
-	.index-group li > a:hover,
-	.index-group li > a:focus-visible {
+	.personal-index__list li > a:hover,
+	.personal-index__list li > a:focus-visible,
+	.personal-index__shelf-link:hover,
+	.personal-index__shelf-link:focus-visible {
 		transform: none;
 	}
 }

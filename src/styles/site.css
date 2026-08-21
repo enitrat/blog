@@ -1,16 +1,8 @@
-/*
- * Living Index — shared foundation.
- *
- * Owns the tokens, the base material, and the primitives that appear on more
- * than one surface (shell, header, footer, ledger rows, section heads).
- * Homepage-only composition stays in home.css; per-surface composition stays
- * with its own page.
- */
+/* Shared foundation for the quiet personal index. Page-specific composition
+   belongs in its own stylesheet; these primitives are the migration seam. */
 
-/* Declared beside the token that names it. Split the two and the token silently
-   resolves only for visitors who happen to have the family installed. */
 @font-face {
-	font-family: "Roboto Mono";
+	font-family: "Roboto Mono"; /* impeccable-disable-line overused-font -- code-only face */
 	src: url("/fonts/roboto-mono-regular.woff2") format("woff2");
 	font-weight: 400;
 	font-style: normal;
@@ -18,30 +10,21 @@
 }
 
 :root {
-	/* Intent aliases over the generated reference tokens (src/styles/tokens.css).
-	   New aliases must point at a --color/--font/--space/--type token, never a literal. */
 	--home-paper: var(--color-cool-paper);
 	--home-ink: var(--color-near-black-ink);
 	--home-muted: var(--color-muted-ink);
 	--home-cobalt: var(--color-cobalt-structure);
 	--home-orange: var(--color-orange-event);
 	--home-rule: var(--color-cobalt-rule);
-	/* The eight-point star that marks the active entry, wherever one exists. */
-	--home-star: polygon(50% 0, 64% 36%, 100% 50%, 64% 64%, 50% 100%, 36% 64%, 0 50%, 36% 36%);
 	--home-display: var(--font-serif);
 	--home-sans: var(--font-sans);
 	--home-mono: var(--font-mono);
-	--home-max: 112rem;
-	/* A ledger or shelf row wider than this separates its right-hand anchor
-	   (arrow, rating) so far from the title that the eye loses the row. */
-	--home-row-max: 74rem;
-	--home-gutter: clamp(1.25rem, 4vw, 4.5rem);
+	--home-max: 76rem;
+	--home-row-max: 60rem;
+	--home-gutter: var(--space-page-gutter);
 }
 
 html.site {
-	/* The world is uncoated paper in one light state by design; declaring it
-	   keeps form controls, scrollbars, and the pre-paint canvas from rendering
-	   in the visitor's OS dark theme against a paper page. */
 	color-scheme: light;
 	font-size: 100%;
 	background: var(--home-paper);
@@ -50,14 +33,11 @@ html.site {
 
 html.site body {
 	margin: 0;
-	background-color: var(--home-paper);
-	background-image: var(--paper-texture);
-	background-repeat: repeat;
-	background-size: 64rem 64rem;
+	background: var(--home-paper);
 	color: var(--home-ink);
 	font-family: var(--home-sans);
-	font-size: 1rem;
-	line-height: 1.55;
+	font-size: var(--type-body-size);
+	line-height: var(--type-body-leading);
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
@@ -68,9 +48,6 @@ html.site body {
 	box-sizing: border-box;
 }
 
-/* Zero specificity on purpose: this is the floor of the cascade. Any rule that
-   states a link colour — however small its selector — must win over this reset,
-   or the palette's "cobalt means clickable" contract silently breaks. */
 :where(.site) a {
 	color: inherit;
 	text-decoration: none;
@@ -79,13 +56,18 @@ html.site body {
 .site a:focus-visible,
 .site button:focus-visible,
 .site summary:focus-visible {
-	/* Cobalt, not the orange event colour: orange on this paper is 2.96:1,
-	   under the 3:1 floor a focus ring has to clear. Cobalt is 7.18:1. */
 	outline: 2px solid var(--home-cobalt);
 	outline-offset: 4px;
 }
 
-/* Visually hidden, still announced. */
+.site svg {
+	fill: none;
+	stroke: currentColor;
+	stroke-linecap: square;
+	stroke-linejoin: miter;
+	stroke-width: 1.5;
+}
+
 .sr-only {
 	position: absolute;
 	width: 1px;
@@ -106,23 +88,13 @@ html.site body {
 	padding: 0.6rem 0.9rem;
 	background: var(--home-paper);
 	color: var(--home-cobalt);
-	font-size: 0.7rem;
-	font-weight: 680;
-	letter-spacing: 0.07em;
-	text-transform: uppercase;
+	font-size: var(--type-label-size);
+	font-weight: var(--type-label-weight);
 	transform: translateY(-200%);
 }
 
 .skip-link:focus-visible {
 	transform: none;
-}
-
-.site svg {
-	fill: none;
-	stroke: currentColor;
-	stroke-linecap: square;
-	stroke-linejoin: miter;
-	stroke-width: 1.5;
 }
 
 .site-shell {
@@ -131,206 +103,123 @@ html.site body {
 	padding-inline: var(--home-gutter);
 }
 
-/* ---------- Header ---------- */
-
+/* Header and footer are intentionally quiet. They should frame a page, not
+   compete with its first piece of content. */
 .site-header {
-	min-height: 4.75rem;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	gap: 2rem;
-	border-bottom: 1px solid var(--home-ink);
+	min-height: 5.5rem;
+	padding-block: 1.5rem;
 }
 
 .site-header__identity {
 	font-family: var(--home-display);
-	font-size: clamp(1.2rem, 2vw, 1.65rem);
-	font-weight: 560;
-	letter-spacing: -0.025em;
+	font-size: var(--type-identity-size);
+	font-weight: var(--type-identity-weight);
+	letter-spacing: var(--type-identity-tracking);
+}
+
+.site-header nav,
+.site-footer nav {
+	display: flex;
+	align-items: center;
+	gap: clamp(1rem, 3vw, 2.75rem);
 }
 
 .site-header nav {
-	display: flex;
-	align-items: center;
-	gap: clamp(1.1rem, 3vw, 3.2rem);
-	font-size: 0.82rem;
-	font-weight: 560;
+	font-size: var(--type-meta-size);
+	font-weight: 520;
 }
 
-.site-header nav a {
-	position: relative;
-	padding-block: 1.75rem;
-}
-
-.site-header nav a::after {
-	content: "";
-	position: absolute;
-	left: 0;
-	right: 100%;
-	bottom: -1px;
-	height: 2px;
-	background: var(--home-orange);
-	transition: right 260ms cubic-bezier(0.2, 0.75, 0.2, 1);
-}
-
-.site-header nav a:hover::after,
-.site-header nav a:focus-visible::after,
-.site-header nav a[aria-current="page"]::after {
-	right: 0;
-}
-
-/* ---------- Footer ---------- */
-
-.site-footer {
-	min-height: 6rem;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 1.5rem;
-	color: var(--home-muted);
-	font-size: 0.7rem;
-}
-
-.site-footer nav {
-	display: flex;
-	gap: 1.25rem;
-}
-
-/* Footer navigation is set at the data size, a ~21px tall line. Invisible
-   padding lifts every destination past the 44px pointer floor; the matching
-   negative margin gives the padding back to the layout, so the row keeps its
-   height and its printed spacing. The inline padding stays under half the
-   1.25rem gap, so two neighbouring targets never overlap. */
+.site-header nav a,
 .site-footer nav a {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	padding: 0.85rem 0.75rem;
-	margin: -0.85rem -0.75rem;
+	transition: color 180ms ease;
 }
 
-.site-footer a:hover {
+.site-header nav a:hover,
+.site-header nav a:focus-visible,
+.site-header nav a[aria-current="page"],
+.site-footer nav a:hover,
+.site-footer nav a:focus-visible {
 	color: var(--home-cobalt);
 }
 
-/* ---------- The conversation trio (ContactLinks.astro) ---------- */
+.site-footer {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 1.5rem;
+	min-height: 7rem;
+	padding-block: 2rem;
+	color: var(--home-muted);
+	font-size: var(--type-meta-size);
+}
 
-/* Solid border means the destination exists; dashed means it is still owed. */
+.site-footer .contact-links {
+	margin-left: auto;
+}
 
+/* ContactLinks: links stay textual, with a generous pointer target. */
 .contact-links {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 1rem 1.25rem;
+	gap: 0.75rem 1.25rem;
 }
 
-.contact-links a,
-.contact-links span[role="note"] {
+.contact-links a {
 	color: var(--home-cobalt);
-	font-size: 0.7rem;
-	font-weight: 620;
+	font-size: var(--type-action-link-size);
+	font-weight: var(--type-action-link-weight);
 }
 
-.contact-links--underline a > span,
-.contact-links--underline span[role="note"] {
-	border-bottom: 1px dashed var(--home-cobalt);
-	padding-bottom: 0.15rem;
-	letter-spacing: 0.04em;
+.contact-links a > span {
+	border-bottom: 1px solid var(--home-cobalt);
+	padding-bottom: 0.12rem;
 }
 
-.contact-links--underline a > span {
-	border-bottom-style: solid;
-	/* The rule hangs below the line box, as it did when it sat on the anchor
-	   itself — otherwise it grows the row and lifts the words off the baseline
-	   the footer's other items share. Cancels the padding and border above. */
-	margin-bottom: calc(-0.15rem - 1px);
-}
-
-/* Same invisible-padding treatment as the footer navigation: the rule stays on
-   the word (it rides the inner span) while the anchor grows to the 44px floor
-   and hands the space back with a negative margin. */
-.contact-links--underline a {
+.contact-links a {
 	display: inline-flex;
 	align-items: center;
-	justify-content: center;
-	padding: 0.85rem 0.15rem;
-	margin: -0.85rem -0.15rem;
+	min-height: 2.75rem;
 }
 
-/* A one-glyph destination is ~7px wide, so padding sized for words leaves it
-   short in the inline direction and it needs its own reach. */
-.contact-links--underline .contact-links__glyph {
-	padding-inline: 1.2rem;
-	margin-inline: -1.2rem;
+/* Shared archive primitives. */
+.measure {
+	max-width: var(--home-row-max);
+	margin-inline: auto;
 }
-
-.contact-links--chips {
-	gap: 0.7rem;
-}
-
-.contact-links--chips a,
-.contact-links--chips span[role="note"] {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	/* The chip's own padding leaves a one-glyph label under the 44px floor in
-	   both directions; the minimums finish the square. */
-	min-width: 44px;
-	min-height: 44px;
-	padding: 0.75rem 1rem;
-	border: 1px dashed var(--home-cobalt);
-}
-
-.contact-links--chips a {
-	border-style: solid;
-}
-
-.contact-links--chips a:hover,
-.contact-links--chips a:focus-visible {
-	background: var(--home-cobalt);
-	color: var(--home-paper);
-}
-
-/* ---------- Shared editorial primitives ---------- */
 
 .label {
-	color: var(--home-cobalt);
-	font-size: 0.65rem;
-	font-weight: 680;
-	letter-spacing: 0.07em;
+	margin: 0;
+	color: var(--home-muted);
+	font-size: var(--type-label-size);
+	font-weight: var(--type-label-weight);
+	letter-spacing: var(--type-label-tracking);
 	text-transform: uppercase;
 }
 
 .page-head {
-	padding-block: clamp(3rem, 6vw, 5.5rem) clamp(1.75rem, 3.5vw, 3rem);
-	border-bottom: 1px solid var(--home-ink);
+	padding-block: var(--space-surface-head-block) clamp(2rem, 4vw, 3rem);
 }
 
 .page-head h1 {
 	max-width: 18ch;
 	margin: 0;
-	font-family: var(--home-display);
-	font-size: clamp(3.3rem, 7vw, 6rem);
-	font-weight: 560;
-	line-height: 0.95;
-	letter-spacing: -0.03em;
+	font-family: var(--home-sans);
+	font-size: var(--type-headline-size);
+	font-weight: var(--type-headline-weight);
+	line-height: var(--type-headline-leading);
+	letter-spacing: var(--type-headline-tracking);
 }
 
-/* A 6rem Literata descender reaches well below its line box, so the standfirst
-   needs more clearance than a normal paragraph gap. */
 .page-head p {
-	max-width: 52ch;
-	margin: 2.4rem 0 0;
+	max-width: 58ch;
+	margin: 1.5rem 0 0;
 	color: var(--home-muted);
-	font-size: clamp(0.95rem, 1.4vw, 1.05rem);
-	line-height: 1.5;
-}
-
-/* One right edge per surface: the masthead rule, the group rules, and the rows
-   are capped together here rather than row by row, so no rule outruns the
-   content it belongs to. The header and footer keep the full shell width. */
-.measure {
-	max-width: var(--home-row-max);
-	margin-inline: auto;
+	font-size: var(--type-standfirst-size);
+	line-height: var(--type-standfirst-leading);
 }
 
 .writing-ledger {
@@ -341,23 +230,20 @@ html.site body {
 	border-bottom: 1px solid var(--home-rule);
 }
 
-/* The whole row is the link — one destination must not occupy two tab stops.
-   Hover and focus recolour and translate only: padding or inset changes would
-   move the row out from under the pointer aiming at it. */
 .writing-ledger__row {
 	display: grid;
-	grid-template-columns: 9rem minmax(0, 1fr) 2.75rem;
+	grid-template-columns: 8rem minmax(0, 1fr) 2.75rem;
 	align-items: start;
-	gap: clamp(1.2rem, 4vw, 4rem);
-	padding: clamp(1.4rem, 3vw, 2.4rem) 0;
+	gap: clamp(1rem, 4vw, 3.5rem);
+	padding: var(--space-ledger-row) 0;
 	transition:
-		color 220ms ease,
-		transform 260ms cubic-bezier(0.2, 0.75, 0.2, 1);
+		color 180ms ease,
+		transform 220ms ease;
 }
 
 .writing-ledger__row:hover,
 .writing-ledger__row:focus-visible {
-	transform: translateX(0.4rem);
+	transform: translateX(0.45rem);
 }
 
 .writing-ledger__row:hover h3,
@@ -367,102 +253,89 @@ html.site body {
 
 .writing-ledger time,
 .writing-ledger__meta {
-	padding-top: 0.3rem;
-	color: var(--home-cobalt);
-	font-size: 0.7rem;
-	font-weight: 620;
-	letter-spacing: 0.04em;
+	color: var(--home-muted);
+	font-size: var(--type-meta-size);
+	line-height: var(--type-meta-leading);
 }
 
 .writing-ledger h3 {
 	margin: 0;
-	font-family: var(--home-display);
-	font-size: clamp(1.5rem, 3vw, 2.55rem);
-	font-weight: 550;
-	line-height: 1.08;
-	letter-spacing: -0.025em;
+	font-family: var(--home-sans);
+	font-size: var(--type-title-ledger-size);
+	font-weight: var(--type-title-ledger-weight);
+	line-height: var(--type-title-ledger-leading);
+	letter-spacing: var(--type-title-ledger-tracking);
 }
 
 .writing-ledger p {
 	max-width: 70ch;
-	margin: 0.55rem 0 0;
+	margin: 0.45rem 0 0;
 	color: var(--home-muted);
-	font-size: 0.82rem;
+	font-size: var(--type-meta-size);
 }
 
 .writing-ledger__arrow {
 	display: grid;
 	place-items: center;
-	/* 44px: this is the tappable thing that looks tappable on both ledgers. */
 	width: 2.75rem;
 	height: 2.75rem;
-	color: var(--home-cobalt);
+	color: var(--home-muted);
 }
 
 .writing-ledger__arrow svg {
-	width: 1.1rem;
-	height: 1.1rem;
+	width: 1.05rem;
+	height: 1.05rem;
 }
 
 @media (max-width: 760px) {
 	:root {
-		--home-gutter: 1rem;
+		--home-gutter: var(--space-page-gutter-narrow);
 	}
 
 	.site-header {
 		align-items: flex-start;
 		flex-direction: column;
-		gap: 0.85rem;
-		min-height: 4.25rem;
-		padding-top: 1rem;
+		gap: 1rem;
+		padding-block: 1.5rem 1rem;
 	}
 
 	.site-header nav {
 		justify-content: space-between;
-		gap: 0.6rem;
-		font-size: 0.7rem;
 		width: 100%;
-	}
-
-	.site-header nav a {
-		padding-block: 1rem;
+		gap: 0.6rem;
+		font-size: 0.78rem;
 	}
 
 	.site-footer {
 		align-items: flex-start;
 		flex-direction: column;
-		gap: 0.75rem;
-		padding-block: 2rem;
+		gap: 0.8rem;
+		padding-block: 3rem 2rem;
+	}
+
+	.site-footer .contact-links {
+		margin-left: 0;
 	}
 
 	.writing-ledger__row {
-		grid-template-columns: 1fr 2.75rem;
-		gap: 1rem;
+		grid-template-columns: minmax(0, 1fr) 2.75rem;
+		gap: 0.75rem 1rem;
 	}
 
-	.writing-ledger time,
 	.writing-ledger__meta {
 		grid-column: 1 / -1;
 	}
 }
 
-/* Movement goes, state stays. A blanket `transition-duration: 0` here would also
-   kill the colour changes that are this site's only interactive feedback, so
-   each stylesheet opts out its own moving parts instead. */
 @media (prefers-reduced-motion: reduce) {
 	html.site {
 		scroll-behavior: auto;
 	}
 
-	/* The nav underline grows from the left; under reduced motion it appears. */
-	.site-header nav a::after {
-		transition: none;
-	}
-
-	/* The row's colour change stays; only its slide goes. */
+	.site-header nav a,
+	.site-footer nav a,
 	.writing-ledger__row {
-		transition: color 220ms ease;
-		transform: none;
+		transition: none;
 	}
 
 	.writing-ledger__row:hover,
