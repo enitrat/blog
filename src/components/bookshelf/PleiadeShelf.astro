@@ -9,14 +9,9 @@ interface Props {
 	href?: string;
 	size?: 'showcase' | 'extended';
 	pageRange: PageRange;
-	booksPerLevel?: number;
 }
 
-const { shelfBooks, label, href, size = 'showcase', pageRange, booksPerLevel = 10 } = Astro.props;
-
-const levels = Array.from({ length: Math.ceil(shelfBooks.length / booksPerLevel) }, (_, level) =>
-	shelfBooks.slice(level * booksPerLevel, (level + 1) * booksPerLevel),
-);
+const { shelfBooks, label, href, size = 'showcase', pageRange } = Astro.props;
 
 const tilts = [
 	...Array(3).fill(-0.16),
@@ -28,27 +23,22 @@ const tilts = [
 
 
 <div class="pleiade-shelf__viewport" role="region" aria-label={label}>
-	<div class="pleiade-shelf__levels">
-		{levels.map((level, levelIndex) => (
-			<div class:list={['pleiade-shelf', { 'pleiade-shelf--compact': level.length < 6 }]}>
-				{level.map((book, index) => {
-					const style = pleiadeStyleFor(book.author);
-					const bookIndex = levelIndex * booksPerLevel + index;
-					return (
-						<PleiadeSpine
-							title={book.title.replace(/\s*\(.*/, '')}
-							author={style.label}
-							color={style.color}
-							pageCount={book.edition.pageCount}
-							width={spineWidthFor(book.edition.pageCount, pageRange, size)}
-							size={size}
-							tilt={tilts[bookIndex % tilts.length]}
-							href={book.writingSlug ? `/writing/${book.writingSlug}/` : href}
-						/>
-					);
-				})}
-			</div>
-		))}
+	<div class:list={['pleiade-shelf', `pleiade-shelf--${size}`]}>
+		{shelfBooks.map((book, index) => {
+			const style = pleiadeStyleFor(book.author);
+			return (
+				<PleiadeSpine
+					title={book.title.replace(/\s*\(.*/, '')}
+					author={style.label}
+					color={style.color}
+					pageCount={book.edition.pageCount}
+					width={spineWidthFor(book.edition.pageCount, pageRange, size)}
+					size={size}
+					tilt={tilts[index % tilts.length]}
+					href={book.writingSlug ? `/writing/${book.writingSlug}/` : href}
+				/>
+			);
+		})}
 	</div>
 </div>
 
@@ -59,25 +49,33 @@ const tilts = [
 		outline-offset: 4px;
 	}
 
-	.pleiade-shelf__levels {
-		display: grid;
-		gap: 1.25rem;
-	}
-
 	.pleiade-shelf {
+		--shelf-book-height: 270px;
+		--shelf-row-gap: 1.25rem;
 		display: flex;
+		flex-wrap: wrap;
 		align-items: flex-end;
-		justify-content: space-between;
-		gap: 1px;
+		column-gap: 0;
+		row-gap: var(--shelf-row-gap);
 		width: 100%;
 		min-width: 0;
 		margin-inline: auto;
 		padding: 18px 10px 10px;
-		border-bottom: 8px solid var(--home-ink);
+		background-image:
+			linear-gradient(var(--home-paper) 0 18px, transparent 18px),
+			linear-gradient(
+				to bottom,
+				transparent 0 var(--shelf-book-height),
+				var(--home-ink) var(--shelf-book-height) calc(var(--shelf-book-height) + 8px),
+				transparent calc(var(--shelf-book-height) + 8px)
+			);
+		background-position: 0 0, 0 18px;
+		background-size: 100% 100%, 100% calc(var(--shelf-book-height) + var(--shelf-row-gap));
+		background-repeat: no-repeat, repeat-y;
 	}
 
-	.pleiade-shelf--compact {
-		justify-content: center;
+	.pleiade-shelf--extended {
+		--shelf-book-height: 330px;
 	}
 
 	@media (max-width: 720px) {
