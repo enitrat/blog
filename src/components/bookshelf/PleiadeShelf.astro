@@ -1,0 +1,84 @@
+---
+import type { Book } from '../../booksData';
+import { type PageRange, pleiadeStyleFor, spineWidthFor } from '../../utils/pleiade';
+import PleiadeSpine from './PleiadeSpine.astro';
+
+interface Props {
+	shelfBooks: Book[];
+	label: string;
+	href?: string;
+	size?: 'showcase' | 'extended';
+	pageRange: PageRange;
+}
+
+const { shelfBooks, label, href, size = 'showcase', pageRange } = Astro.props;
+
+const tilts = [
+	...Array(3).fill(-0.16),
+	...Array(5).fill(0.12),
+	...Array(3).fill(-0.08),
+	...Array(5).fill(0.18),
+];
+---
+
+<div class="pleiade-shelf__viewport" role="region" tabindex="0" aria-label={label}>
+	<div class="pleiade-shelf">
+		{shelfBooks.map((book, index) => {
+			const style = pleiadeStyleFor(book.author);
+			return (
+				<PleiadeSpine
+					title={book.title.replace(/\s*\(.*/, '')}
+					author={style.label}
+					period={style.period}
+					pageCount={book.edition.pageCount}
+					width={spineWidthFor(book.edition.pageCount, pageRange, size)}
+					size={size}
+					tilt={tilts[index % tilts.length]}
+					href={book.writingSlug ? `/writing/${book.writingSlug}/` : href}
+				/>
+			);
+		})}
+	</div>
+</div>
+
+<style>
+	.pleiade-shelf__viewport {
+		margin-top: 1.5rem;
+		overflow-x: auto;
+		overscroll-behavior-inline: contain;
+		padding: 12px 8px 0;
+		outline-offset: 4px;
+		scrollbar-color: #76533e var(--home-rule);
+		scrollbar-width: thin;
+	}
+
+	.pleiade-shelf {
+		display: flex;
+		align-items: flex-end;
+		justify-content: center;
+		gap: 1px;
+		width: max-content;
+		min-width: 100%;
+		padding: 18px 10px 10px;
+		border-bottom: 8px solid var(--home-ink);
+	}
+
+	@media (max-width: 720px) {
+		.pleiade-shelf__viewport {
+			position: relative;
+			margin-inline: -1rem;
+			padding-inline: 1rem;
+		}
+
+		.pleiade-shelf__viewport::after {
+			position: absolute;
+			top: 12px;
+			right: 0;
+			bottom: 8px;
+			width: 1.5rem;
+			background: linear-gradient(90deg, transparent, var(--home-paper));
+			content: '';
+			pointer-events: none;
+		}
+	}
+</style>

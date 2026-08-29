@@ -1,4 +1,8 @@
 ---
+import type { Book } from '../../booksData';
+import type { PageRange } from '../../utils/pleiade';
+import PleiadeShelf from '../bookshelf/PleiadeShelf.astro';
+
 interface Item {
 	id: string;
 	title: string;
@@ -10,9 +14,11 @@ interface Props {
 	work: Item[];
 	projects: Item[];
 	writing: Item[];
+	bookshelf: Book[];
+	pageRange: PageRange;
 }
 
-const { work, projects, writing } = Astro.props;
+const { work, projects, writing, bookshelf, pageRange } = Astro.props;
 
 const sections = [
 	{ id: 'work', label: 'Work', href: '/work', items: work },
@@ -59,10 +65,7 @@ const sections = [
 				<h2 id="personal-index-bookshelf">Bookshelf</h2>
 				<a href="/bookshelf">View all&nbsp; ↗</a>
 			</div>
-			<a class="personal-index__shelf-link" href="/bookshelf">
-				<span>A personal reading archive.</span>
-				<span aria-hidden="true">↗</span>
-			</a>
+			<PleiadeShelf shelfBooks={bookshelf} label="Books read" href="/bookshelf" {pageRange} />
 		</section>
 	</div>
 </div>

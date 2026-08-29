@@ -1,0 +1,190 @@
+---
+import type { PleiadePeriod } from '../../utils/pleiade';
+
+interface Props {
+	title: string;
+	author: string;
+	period: PleiadePeriod;
+	href?: string;
+	width?: number;
+	pageCount?: number;
+	size?: 'showcase' | 'extended';
+	tilt?: number;
+}
+
+const {
+	title,
+	author,
+	period,
+	href,
+	width = 54,
+	pageCount,
+	size = 'showcase',
+	tilt = 0,
+} = Astro.props;
+
+const Spine = href ? 'a' : 'div';
+---
+
+<Spine
+	class:list={[
+		'pleiade-spine',
+		`pleiade-spine--${period}`,
+		`pleiade-spine--${size}`,
+		{ 'pleiade-spine--linked': href },
+	]}
+	href={href}
+	style={`--spine-width: ${width}px; --spine-tilt: ${tilt}deg`}
+	aria-label={`${title}, ${author}${pageCount ? `, ${pageCount} pages` : ''}`}
+>
+	<span class="pleiade-spine__panel">
+		<strong>{author}</strong>
+		<span>{title}</span>
+		<i aria-hidden="true"></i>
+	</span>
+</Spine>
+
+<style>
+	.pleiade-spine {
+		--leather: #76533e;
+		--leather-dark: color-mix(in srgb, var(--leather) 68%, #17120f);
+		--leather-light: color-mix(in srgb, var(--leather) 84%, white);
+		--gold: #f0d98d;
+		position: relative;
+		display: block;
+		flex: 0 0 var(--spine-width);
+		width: var(--spine-width);
+		height: 270px;
+		overflow: hidden;
+		border-radius: 4px 4px 2px 2px;
+		background-color: var(--leather);
+		background-image:
+			linear-gradient(90deg, var(--leather-dark), transparent 28%, rgb(255 255 255 / 0.12) 60%, var(--leather-dark)),
+			repeating-linear-gradient(to bottom, transparent 0 3px, rgb(240 217 141 / 0.68) 3px 4px);
+		box-shadow:
+			inset 1px 0 rgb(255 255 255 / 0.18),
+			inset -1px 0 rgb(0 0 0 / 0.32),
+			1px 3px 4px rgb(31 22 15 / 0.16);
+		color: var(--gold);
+		text-decoration: none;
+		transform-origin: bottom center;
+		transform: rotate(var(--spine-tilt));
+		transition: transform 180ms ease-out, filter 180ms ease-out;
+	}
+
+	.pleiade-spine::after {
+		position: absolute;
+		inset: 4px 3px;
+		border: 1px solid rgb(225 195 117 / 0.58);
+		border-radius: 5px 5px 3px 3px;
+		content: '';
+		pointer-events: none;
+	}
+
+	.pleiade-spine--linked:hover,
+	.pleiade-spine--linked:focus-visible {
+		filter: brightness(1.08);
+		transform: translateY(-10px) rotate(var(--spine-tilt));
+	}
+
+	.pleiade-spine--linked:focus-visible {
+		outline: 3px solid #3567d8;
+		outline-offset: 4px;
+	}
+
+	.pleiade-spine__panel {
+		position: absolute;
+		top: 27%;
+		left: 3px;
+		z-index: 1;
+		display: flex;
+		align-items: center;
+		flex-direction: column;
+		justify-content: center;
+		width: calc(100% - 6px);
+		min-height: 44%;
+		padding: 8px 4px;
+		border-block: 1px solid rgb(225 195 117 / 0.78);
+		background: linear-gradient(90deg, var(--leather-dark), var(--leather) 24%, var(--leather-light) 58%, var(--leather-dark));
+		font-family: var(--home-display);
+		text-align: center;
+		text-shadow: 0 1px 1px rgb(31 22 15 / 0.65);
+		text-transform: uppercase;
+	}
+
+	.pleiade-spine__panel strong,
+	.pleiade-spine__panel > span {
+		display: block;
+		width: 100%;
+		overflow-wrap: normal;
+		word-break: normal;
+	}
+
+	.pleiade-spine__panel strong {
+		font-size: clamp(0.39rem, calc(var(--spine-width) / 8.5), 0.49rem);
+		font-weight: 720;
+		line-height: 1.12;
+		letter-spacing: 0;
+		hyphens: none;
+	}
+
+	.pleiade-spine__panel > span {
+		margin-top: 6px;
+		font-size: clamp(0.4rem, calc(var(--spine-width) / 8.2), 0.51rem);
+		font-weight: 620;
+		line-height: 1.16;
+		letter-spacing: 0;
+		hyphens: none;
+	}
+
+	.pleiade-spine__panel small {
+		margin-top: 5px;
+		font-size: 0.39rem;
+		letter-spacing: 0.08em;
+	}
+
+	.pleiade-spine__panel i {
+		width: 3px;
+		height: 3px;
+		margin-top: 7px;
+		border: 1px solid currentColor;
+		border-radius: 50%;
+		box-shadow: 6px 0 0 -1px var(--leather), 6px 0 0 0 currentColor;
+	}
+
+	.pleiade-spine--antiquity { --leather: #416653; }
+	.pleiade-spine--medieval { --leather: #574363; }
+	.pleiade-spine--sixteenth { --leather: #70483f; }
+	.pleiade-spine--seventeenth { --leather: #813b34; }
+	.pleiade-spine--eighteenth { --leather: #315a78; }
+	.pleiade-spine--nineteenth { --leather: #2f6652; }
+	.pleiade-spine--modern { --leather: #76533e; }
+	.pleiade-spine--spiritual { --leather: #62615d; }
+
+	.pleiade-spine--extended {
+		height: 330px;
+	}
+
+	.pleiade-spine--extended .pleiade-spine__panel strong {
+		font-size: clamp(0.5rem, calc(var(--spine-width) / 8.5), 0.68rem);
+	}
+
+	.pleiade-spine--extended .pleiade-spine__panel > span {
+		font-size: clamp(0.51rem, calc(var(--spine-width) / 8.2), 0.7rem);
+	}
+
+	.pleiade-spine--extended .pleiade-spine__panel small {
+		font-size: 0.48rem;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.pleiade-spine {
+			transition: none;
+		}
+
+		.pleiade-spine--linked:hover,
+		.pleiade-spine--linked:focus-visible {
+			transform: rotate(var(--spine-tilt));
+		}
+	}
+</style>

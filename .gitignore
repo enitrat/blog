@@ -26,6 +26,8 @@ pnpm-debug.log*
 
 # Impeccable QA screenshots — regenerable from the dev server, ~16MB
 .impeccable/screenshots/
+.impeccable/review/
+.impeccable/design-review-*.jpeg
 
 # Generation originals for the placeholder artwork (~18MB of PNG that nothing
 # imports). The shipped .webp, their sidecars, and PLACEHOLDERS.md carry the

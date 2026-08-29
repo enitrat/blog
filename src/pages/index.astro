@@ -1,9 +1,11 @@
 ---
 import '../styles/home.css';
 
+import { books } from '../booksData';
 import PersonalIndex from '../components/home/PersonalIndex.astro';
 import { SITE_DESCRIPTION } from '../consts';
 import Page from '../layouts/Page.astro';
+import { pageRangeFor } from '../utils/pleiade';
 import { getWorkIndex, workUrl } from '../utils/work';
 import { getWritingIndex, postUrl } from '../utils/writing';
 
@@ -26,8 +28,13 @@ const writing = recentPosts.map((post) => ({
 	href: postUrl(post),
 	description: post.data.description,
 }));
+
+const bookshelf = books
+	.filter((book) => book.status === 'finished')
+	.sort((a, b) => (b.dateFinished?.valueOf() ?? 0) - (a.dateFinished?.valueOf() ?? 0));
+const pageRange = pageRangeFor(books);
 ---
 
 <Page title="Mathieu Saugier" description={SITE_DESCRIPTION}>
-	<PersonalIndex work={work} projects={projects} writing={writing} />
+	<PersonalIndex work={work} projects={projects} writing={writing} {bookshelf} {pageRange} />
 </Page>
