@@ -1,4 +1,4 @@
 // Place any global data in this file.
 // You can import this data from anywhere in your site by using the `import` keyword.
 
-export const SITE_DESCRIPTION = 'Mathieu Saugier — personal website.';
+export const SITE_DESCRIPTION = 'I build systems and products, and write about what I learn.';

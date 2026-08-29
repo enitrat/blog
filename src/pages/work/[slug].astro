@@ -38,10 +38,10 @@ const siblings = (await getWorkIndex()).filter((r) => r.id !== report.id).slice(
 		)}
 		{site && (
 			<div>
-				<dt>Project</dt>
+				<dt>Website</dt>
 				<dd>
 					<a href={site} rel="noreferrer" target="_blank">
-						Visit {title}
+						Visit website
 						<span class="sr-only">(opens in a new tab)</span>
 					</a>
 				</dd>
@@ -56,7 +56,7 @@ const siblings = (await getWorkIndex()).filter((r) => r.id !== report.id).slice(
 			<nav class="sheet__onward" aria-label="More work">
 				{siblings.map((sibling) => (
 					<a class="sheet__onward-item" href={workUrl(sibling)}>
-						<span>Also in work</span>
+						<span>More work</span>
 						<strong>{sibling.data.title}</strong>
 					</a>
 				))}

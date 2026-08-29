@@ -8,7 +8,7 @@ import { Content as AboutContent } from '../content/about.md';
 import Page from '../layouts/Page.astro';
 ---
 
-<Page title="About — Mathieu Saugier" description="A short orientation: who Mathieu Saugier is and what he works on.">
+<Page title="About" description="I build software, read books, and keep a few projects of my own alive.">
 	{/* No standfirst: the prose opens with its own greeting, and a line above
 	    it would say the same thing twice. */}
 	<div class="measure">
@@ -66,13 +66,6 @@ import Page from '../layouts/Page.astro';
 		gap: var(--about-gap);
 		align-items: start;
 		padding-block: clamp(2.5rem, 5vw, 4rem) clamp(4rem, 8vw, 7rem);
-	}
-
-	/* about.md opens with its own "About Me" heading; the page head already
-	   names the surface, so the duplicate is hidden from sight and from
-	   assistive technology rather than deleted from Mathieu's file. */
-	.about :global(.article-body > h1) {
-		display: none;
 	}
 
 	.about__margin {

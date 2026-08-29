@@ -28,8 +28,8 @@ const readShelves = finishedShelfKeys
 ---
 
 <Page
-	title="Bookshelf — Mathieu Saugier"
-	description="A reading archive: what Mathieu Saugier is reading and has read."
+	title="Bookshelf"
+	description="My personal library."
 >
 	<div class="measure bookshelf-page">
 		<header class="page-head">
@@ -50,13 +50,13 @@ const readShelves = finishedShelfKeys
 			<section class="bookshelf-section" aria-labelledby={`shelf-${shelf.key}`}>
 				<div class="shelf__heading">
 					<h2 id={`shelf-${shelf.key}`}>
-						{shelf.key === 'before-2020' ? 'Before 2020' : 'After 2020'}
+						{shelf.key === 'before-2020' ? 'Read before 2020' : 'Read since 2020'}
 					</h2>
 					<span>{shelf.books.length} {shelf.books.length === 1 ? 'book' : 'books'}</span>
 				</div>
 				<PleiadeShelf
 					shelfBooks={shelf.books}
-					label={shelf.key === 'before-2020' ? 'Books read before 2020' : 'Books read after 2020'}
+					label={shelf.key === 'before-2020' ? 'Books read before 2020' : 'Books read since 2020'}
 					size="extended"
 					{pageRange}
 				/>

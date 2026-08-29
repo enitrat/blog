@@ -15,8 +15,8 @@ const groups = [
 ---
 
 <Page
-	title="Work — Mathieu Saugier"
-	description="Field reports from the projects Mathieu Saugier has built and led."
+	title="Work"
+	description="What I have built and worked on."
 >
 	<div class="measure">
 		<header class="page-head">
@@ -31,7 +31,7 @@ const groups = [
 						<article>
 							<a class="writing-ledger__row" href={workUrl(report)}>
 								<span class="writing-ledger__meta">
-									{[report.data.role, report.data.period].filter(Boolean).join(' · ') || 'Field report'}
+									{[report.data.role, report.data.period].filter(Boolean).join(' · ') || 'Project'}
 								</span>
 								<div>
 									<h3>{report.data.title}</h3>
