@@ -31,7 +31,8 @@ const writing = recentPosts.map((post) => ({
 
 const bookshelf = books
 	.filter((book) => book.status === 'finished')
-	.sort((a, b) => (b.dateFinished?.valueOf() ?? 0) - (a.dateFinished?.valueOf() ?? 0));
+	.sort((a, b) => (b.dateFinished?.valueOf() ?? 0) - (a.dateFinished?.valueOf() ?? 0))
+	.slice(0, 16);
 const pageRange = pageRangeFor(books);
 ---
 

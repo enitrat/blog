@@ -1,31 +1,50 @@
-export type PleiadePeriod =
-	| 'antiquity'
-	| 'medieval'
-	| 'sixteenth'
-	| 'seventeenth'
-	| 'eighteenth'
-	| 'nineteenth'
-	| 'modern'
-	| 'spiritual';
+export type PleiadeColor =
+	| 'green'
+	| 'violet'
+	| 'corinthe'
+	| 'red'
+	| 'blue'
+	| 'emerald'
+	| 'havane'
+	| 'grey';
 
 export interface PleiadeAuthorStyle {
 	label: string;
-	period: PleiadePeriod;
+	color: PleiadeColor;
 }
 
-const authorStyles: Record<string, PleiadeAuthorStyle> = {
-	'Aldous Huxley': { label: 'Aldous Huxley', period: 'seventeenth' },
-	'Boris Vian': { label: 'Boris Vian', period: 'sixteenth' },
-	'Fyodor Dostoevsky': { label: 'Dostoïevski', period: 'nineteenth' },
-	'Haruki Murakami': { label: 'Murakami', period: 'antiquity' },
-	'John Steinbeck': { label: 'John Steinbeck', period: 'modern' },
-	'Maurice Druon': { label: 'Maurice Druon', period: 'modern' },
-	'Milan Kundera': { label: 'Kundera', period: 'medieval' },
-	'Nassim Nicholas Taleb': { label: 'Taleb', period: 'eighteenth' },
-	'Niccolò Machiavelli': { label: 'Machiavel', period: 'sixteenth' },
-	'Pope Leo XIV': { label: 'Léon XIV', period: 'spiritual' },
-	'Ray Dalio': { label: 'Ray Dalio', period: 'modern' },
-	Stendhal: { label: 'Stendhal', period: 'nineteenth' },
+export const PLEIADE_AUTHOR_COLORS: Record<string, PleiadeAuthorStyle> = {
+	'Aldous Huxley': { label: 'Aldous Huxley', color: 'red' },
+	'Boris Vian': { label: 'Boris Vian', color: 'corinthe' },
+	'Fyodor Dostoevsky': { label: 'Dostoïevski', color: 'emerald' },
+	'Haruki Murakami': { label: 'Murakami', color: 'green' },
+	'John Steinbeck': { label: 'John Steinbeck', color: 'havane' },
+	'Maurice Druon': { label: 'Maurice Druon', color: 'havane' },
+	'Milan Kundera': { label: 'Kundera', color: 'violet' },
+	'Nassim Nicholas Taleb': { label: 'Taleb', color: 'blue' },
+	'Niccolò Machiavelli': { label: 'Machiavel', color: 'corinthe' },
+	'Pope Leo XIV': { label: 'Léon XIV', color: 'grey' },
+	'Ray Dalio': { label: 'Ray Dalio', color: 'havane' },
+	Stendhal: { label: 'Stendhal', color: 'emerald' },
+	'George R. R. Martin': { label: 'George R. R. Martin', color: 'violet' },
+	'Alexandre Dumas': { label: 'Alexandre Dumas', color: 'green' },
+	'Frank Herbert': { label: 'Frank Herbert', color: 'corinthe' },
+	'Isaac Asimov': { label: 'Isaac Asimov', color: 'red' },
+	'Alain Damasio': { label: 'Alain Damasio', color: 'blue' },
+	'Albert Camus': { label: 'Albert Camus', color: 'emerald' },
+	'Franz Kafka': { label: 'Franz Kafka', color: 'havane' },
+	'J. R. R. Tolkien': { label: 'J. R. R. Tolkien', color: 'grey' },
+	'Honoré de Balzac': { label: 'Honoré de Balzac', color: 'green' },
+	'Émile Zola': { label: 'Émile Zola', color: 'emerald' },
+	'Wajdi Mouawad': { label: 'Wajdi Mouawad', color: 'corinthe' },
+	'George Orwell': { label: 'George Orwell', color: 'blue' },
+	'J. K. Rowling': { label: 'J. K. Rowling', color: 'violet' },
+	'Liu Cixin': { label: 'Liu Cixin', color: 'red' },
+	'Suzanne Collins': { label: 'Suzanne Collins', color: 'grey' },
+	'Stefan Zweig': { label: 'Stefan Zweig', color: 'corinthe' },
+	'Pierre Lemaitre': { label: 'Pierre Lemaitre', color: 'red' },
+	Vercors: { label: 'Vercors', color: 'grey' },
+	'Stephen King': { label: 'Stephen King', color: 'violet' },
 };
 
 export interface PageRange {
@@ -40,7 +59,7 @@ export const pageRangeFor = (books: { edition: { pageCount: number } }[]): PageR
 };
 
 export const pleiadeStyleFor = (author: string): PleiadeAuthorStyle => {
-	const style = authorStyles[author];
+	const style = PLEIADE_AUTHOR_COLORS[author];
 	if (!style) throw new Error(`Missing Pléiade spine style for author: ${author}`);
 	return style;
 };

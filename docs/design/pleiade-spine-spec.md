@@ -31,20 +31,23 @@ complète la photographie pour la nomenclature de la collection.
   série.
 - Peu de variation de hauteur entre volumes. La largeur varie davantage.
 
-## Couleurs de collection
+## Palette de couleurs
 
-Gallimard associe la reliure à l'époque de l'œuvre ou de l'auteur :
+Le rendu utilise une palette de huit cuirs inspirée de la collection. La
+couleur n'est pas une classification historique stricte : elle est attribuée
+une fois par auteur dans `PLEIADE_AUTHOR_COLORS`, afin qu'une étagère conserve
+une vraie variété tout en gardant tous les livres d'un auteur cohérents.
 
-| Période | Couleur de départ du rendu |
+| Emplacement de palette | Couleur de départ du rendu |
 | --- | --- |
-| Antiquité | vert `#416653` |
-| Moyen Âge | violet `#574363` |
-| XVIe siècle | corinthe `#70483f` |
-| XVIIe siècle | rouge vénitien `#813b34` |
-| XVIIIe siècle | bleu `#315a78` |
-| XIXe siècle | vert émeraude `#2f6652` |
-| XXe et XXIe siècles | havane `#76533e` |
-| Spiritualité | gris `#62615d` |
+| Vert | `#416653` |
+| Violet | `#574363` |
+| Corinthe | `#70483f` |
+| Rouge vénitien | `#813b34` |
+| Bleu | `#315a78` |
+| Vert émeraude | `#2f6652` |
+| Havane | `#76533e` |
+| Gris | `#62615d` |
 
 La dorure commence à `#c8aa62`. Ces valeurs sont des points de départ ajustés
 pour l'écran, pas des mesures colorimétriques des cuirs.
@@ -55,8 +58,10 @@ pour l'écran, pas des mesures colorimétriques des cuirs.
   texte.
 - Hauteur cible desktop : 300 à 330 px. Largeur : 42 à 90 px selon la
   composition du titre.
-- Une seule anatomie. La période, la largeur, le titre et l'auteur sont les
+- Une seule anatomie. La couleur, la largeur, le titre et l'auteur sont les
   seules données variables.
+- Une rangée physique contient au plus dix livres et se replie sur plusieurs
+  rangées sans défilement horizontal.
 - Le relief reste discret. Aucun livre ne flotte et aucun mouvement n'est
   nécessaire pour comprendre le contenu.
 - Le focus clavier identifie clairement le livre. Le texte complet est aussi
@@ -69,7 +74,7 @@ pour l'écran, pas des mesures colorimétriques des cuirs.
 2. Une rangée doit ressembler à une collection éditoriale cohérente, pas à un
    assortiment de couvertures.
 3. Un titre long doit rester contenu sans déborder.
-4. Les variantes d'époque doivent rester distinctes sous une lumière d'écran
+4. Les huit couleurs doivent rester distinctes sous une lumière d'écran
    normale.
 5. Le rendu doit tenir à 390 px sans réduire les zones cliquables sous 44 px.
 
@@ -79,9 +84,9 @@ pour l'écran, pas des mesures colorimétriques des cuirs.
   texte réel, sélectionnable et accessible.
 - La dorure horizontale suit un cycle dense de 4 px : 3 px sans filet, puis
   1 px doré. Le panneau typographique central interrompt ce motif.
-- La palette couvre les huit périodes définies ci-dessus. La couleur est
-  déterminée par auteur, donc deux livres du même auteur ont toujours le même
-  dos.
+- La palette couvre les huit couleurs définies ci-dessus. La couleur est
+  déterminée par auteur dans `PLEIADE_AUTHOR_COLORS`, donc deux livres du même
+  auteur ont toujours le même dos sans dépendre de leur année de lecture.
 - Les livres terminés de `booksData.ts` ont une largeur normalisée de 42 à 90 px
   selon le nombre de pages de l'édition identifiée par ISBN. Le livre le plus
   court reste ainsi lisible sans prétendre reproduire une épaisseur physique à
@@ -89,6 +94,10 @@ pour l'écran, pas des mesures colorimétriques des cuirs.
 - Le composant expose deux échelles : `showcase` pour la vitrine compacte de la
   homepage, et `extended` pour les étagères annuelles. Cette dernière passe de
   58 à 118 px, monte à 330 px et centre les petits groupes.
+- `PleiadeShelf.astro` découpe les grands groupes en niveaux de dix livres au
+  maximum. Les niveaux restent entièrement visibles, y compris sur mobile.
+- Chaque niveau occupe la largeur de l'étagère ; les livres se répartissent sur
+  cette largeur, tandis que les petits groupes restent centrés et jointifs.
 - Décision de revue : **ship**. Le rendu Pléiade est intégré à la homepage et à
   la page Bookshelf via `PleiadeShelf.astro`.
 
@@ -101,7 +110,7 @@ l'étagère évoque immédiatement la Pléiade tout en restant compatible avec l
 ## Contrat de direction
 
 - Seed key : `pleiade-reference-2008`
-- THESIS : une rangée de dos codés par époque transforme l'archive de lecture
+- THESIS : une rangée de dos codés par auteur transforme l'archive de lecture
   en objet reconnaissable sans remplacer les titres par des images.
 - OWN-WORLD : le papier chaud, les espaces et la typographie éditoriale du site
   restent inchangés autour de l'étagère. Le cuir et l'or n'existent que sur les

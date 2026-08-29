@@ -1,10 +1,10 @@
 ---
-import type { PleiadePeriod } from '../../utils/pleiade';
+import type { PleiadeColor } from '../../utils/pleiade';
 
 interface Props {
 	title: string;
 	author: string;
-	period: PleiadePeriod;
+	color: PleiadeColor;
 	href?: string;
 	width?: number;
 	pageCount?: number;
@@ -15,7 +15,7 @@ interface Props {
 const {
 	title,
 	author,
-	period,
+	color,
 	href,
 	width = 54,
 	pageCount,
@@ -29,7 +29,7 @@ const Spine = href ? 'a' : 'div';
 <Spine
 	class:list={[
 		'pleiade-spine',
-		`pleiade-spine--${period}`,
+		`pleiade-spine--${color}`,
 		`pleiade-spine--${size}`,
 		{ 'pleiade-spine--linked': href },
 	]}
@@ -52,8 +52,10 @@ const Spine = href ? 'a' : 'div';
 		--gold: #f0d98d;
 		position: relative;
 		display: block;
-		flex: 0 0 var(--spine-width);
-		width: var(--spine-width);
+		flex: 0 1 var(--spine-width);
+		width: min(var(--spine-width), 100%);
+		min-width: 0;
+		max-width: 100%;
 		height: 270px;
 		overflow: hidden;
 		border-radius: 4px 4px 2px 2px;
@@ -152,14 +154,14 @@ const Spine = href ? 'a' : 'div';
 		box-shadow: 6px 0 0 -1px var(--leather), 6px 0 0 0 currentColor;
 	}
 
-	.pleiade-spine--antiquity { --leather: #416653; }
-	.pleiade-spine--medieval { --leather: #574363; }
-	.pleiade-spine--sixteenth { --leather: #70483f; }
-	.pleiade-spine--seventeenth { --leather: #813b34; }
-	.pleiade-spine--eighteenth { --leather: #315a78; }
-	.pleiade-spine--nineteenth { --leather: #2f6652; }
-	.pleiade-spine--modern { --leather: #76533e; }
-	.pleiade-spine--spiritual { --leather: #62615d; }
+	.pleiade-spine--green { --leather: #416653; }
+	.pleiade-spine--violet { --leather: #574363; }
+	.pleiade-spine--corinthe { --leather: #70483f; }
+	.pleiade-spine--red { --leather: #813b34; }
+	.pleiade-spine--blue { --leather: #315a78; }
+	.pleiade-spine--emerald { --leather: #2f6652; }
+	.pleiade-spine--havane { --leather: #76533e; }
+	.pleiade-spine--grey { --leather: #62615d; }
 
 	.pleiade-spine--extended {
 		height: 330px;

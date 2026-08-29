@@ -11,13 +11,20 @@ const reading = books.filter((book) => book.status === 'reading').sort(sortByDat
 const finished = books.filter((book) => book.status === 'finished');
 const wantToRead = books.filter((book) => book.status === 'want-to-read').sort(sortByDate);
 const pageRange = pageRangeFor(books);
-const finishedYears = [
-	...new Set(finished.map((book) => book.dateFinished?.getFullYear()).filter(Boolean)),
-].sort((a, b) => b - a);
-const readShelves = finishedYears.map((year) => ({
-	year,
-	books: finished.filter((book) => book.dateFinished?.getFullYear() === year).sort(sortByDate),
-}));
+type ShelfKey = 'before-2020' | 'after-2020';
+const shelfKeyFor = (book: Book): ShelfKey | null => {
+	if (book.readingPeriod === 'before-2020') return 'before-2020';
+	const year = book.dateFinished?.getFullYear();
+	if (!year) return null;
+	return year < 2020 ? 'before-2020' : 'after-2020';
+};
+const finishedShelfKeys: ShelfKey[] = ['after-2020', 'before-2020'];
+const readShelves = finishedShelfKeys
+	.map((key) => ({
+		key,
+		books: finished.filter((book) => shelfKeyFor(book) === key).sort(sortByDate),
+	}))
+	.filter((shelf) => shelf.books.length > 0);
 ---
 
 <Page
@@ -40,12 +47,19 @@ const readShelves = finishedYears.map((year) => ({
 		)}
 
 		{readShelves.map((shelf) => (
-			<section class="bookshelf-section" aria-labelledby={`shelf-${shelf.year}`}>
+			<section class="bookshelf-section" aria-labelledby={`shelf-${shelf.key}`}>
 				<div class="shelf__heading">
-					<h2 id={`shelf-${shelf.year}`}>{shelf.year}</h2>
+					<h2 id={`shelf-${shelf.key}`}>
+						{shelf.key === 'before-2020' ? 'Before 2020' : 'After 2020'}
+					</h2>
 					<span>{shelf.books.length} {shelf.books.length === 1 ? 'book' : 'books'}</span>
 				</div>
-				<PleiadeShelf shelfBooks={shelf.books} label={`Books read in ${shelf.year}`} size="extended" {pageRange} />
+				<PleiadeShelf
+					shelfBooks={shelf.books}
+					label={shelf.key === 'before-2020' ? 'Books read before 2020' : 'Books read after 2020'}
+					size="extended"
+					{pageRange}
+				/>
 			</section>
 		))}
 
