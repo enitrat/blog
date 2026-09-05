@@ -33,7 +33,17 @@ for (const engine of [chromium, webkit]) {
 				await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
 				false,
 			);
+			assert.equal(
+				await page.evaluate(() => document.documentElement.scrollHeight > innerHeight + 80),
+				true,
+				'The oak case continues below the first viewport',
+			);
 			await page.screenshot({ path: `${output}/${engine.name()}-${width}-shelf.png` });
+			await page.getByRole('button', { name: /Open Marche ou crève/ }).scrollIntoViewIfNeeded();
+			await page.waitForTimeout(250);
+			await page.screenshot({ path: `${output}/${engine.name()}-${width}-shelf-end.png` });
+			await page.evaluate(() => scrollTo(0, 0));
+			await page.waitForTimeout(200);
 			const book = page.getByRole('button', { name: /Open White Nights/ });
 			await book.focus();
 			await page.keyboard.press('Enter');

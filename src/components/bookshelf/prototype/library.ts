@@ -1,17 +1,7 @@
 import * as THREE from 'three';
 import { type Book, books } from '../../../booksData';
-import { type PleiadeColor, pleiadeStyleFor } from '../../../utils/pleiade';
-
-const colors: Record<PleiadeColor, string> = {
-	green: '#416653',
-	violet: '#574363',
-	corinthe: '#70483f',
-	red: '#813b34',
-	blue: '#315a78',
-	emerald: '#2f6652',
-	havane: '#76533e',
-	grey: '#62615d',
-};
+import { pageRangeFor, pleiadeStyleFor, spineWidthFor } from '../../../utils/pleiade';
+import { PLEIADE_HEX, paintBackCover, paintCover, paintGilt, paintSpine } from './pleiade-paint';
 
 type Volume = {
 	book: Book;
@@ -21,7 +11,8 @@ type Volume = {
 	width: number;
 	height: number;
 	color: string;
-	cover: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
+	coverMaterial: THREE.MeshBasicMaterial;
+	shelfCover: THREE.CanvasTexture;
 };
 
 type Motion = {
@@ -37,7 +28,16 @@ type Motion = {
 	done: () => void;
 };
 
-function texture(width: number, height: number, draw: (ctx: CanvasRenderingContext2D) => void) {
+const PITCH = 2.36;
+const DEPTH = 1.28;
+const BREAKPOINT = 720;
+
+function texture(
+	width: number,
+	height: number,
+	draw: (ctx: CanvasRenderingContext2D) => void,
+	sharp = false,
+) {
 	const canvas = document.createElement('canvas');
 	canvas.width = width;
 	canvas.height = height;
@@ -46,51 +46,18 @@ function texture(width: number, height: number, draw: (ctx: CanvasRenderingConte
 	draw(ctx);
 	const result = new THREE.CanvasTexture(canvas);
 	result.colorSpace = THREE.SRGBColorSpace;
+	if (sharp) {
+		result.generateMipmaps = false;
+		result.minFilter = THREE.LinearFilter;
+		result.magFilter = THREE.LinearFilter;
+	} else result.anisotropy = 4;
 	return result;
-}
-
-function lettering(
-	ctx: CanvasRenderingContext2D,
-	text: string,
-	x: number,
-	y: number,
-	width: number,
-	line: number,
-) {
-	const words = text.split(/\s+/);
-	let current = '';
-	for (const word of words) {
-		const next = current ? `${current} ${word}` : word;
-		if (ctx.measureText(next).width > width && current) {
-			ctx.fillText(current, x, y, width);
-			y += line;
-			current = word;
-		} else current = next;
-	}
-	ctx.fillText(current, x, y, width);
-}
-
-function coverTexture(book: Book, color: string) {
-	return texture(512, 768, (ctx) => {
-		ctx.fillStyle = color;
-		ctx.fillRect(0, 0, 512, 768);
-		ctx.strokeStyle = '#baa46b';
-		ctx.lineWidth = 2;
-		ctx.strokeRect(18, 18, 476, 732);
-		ctx.fillStyle = '#e6cf8e';
-		ctx.textAlign = 'center';
-		ctx.font = '20px "Literata Variable", Georgia';
-		lettering(ctx, book.author.toUpperCase(), 256, 250, 410, 30);
-		ctx.font = '42px "Literata Variable", Georgia';
-		lettering(ctx, book.title, 256, 340, 405, 54);
-		ctx.font = '20px "Literata Variable", Georgia';
-		ctx.fillText('Bibliothèque personnelle', 256, 575);
-	});
 }
 
 /** Mount the disposable library study. The scene renders only while a book moves. */
 export async function startLibrary() {
 	const stage = document.getElementById('library-stage');
+	const viewport = document.getElementById('library-viewport');
 	const canvas = document.getElementById('library-canvas');
 	const targets = document.getElementById('book-targets');
 	const caption = document.getElementById('book-caption');
@@ -106,6 +73,7 @@ export async function startLibrary() {
 		!(canvas instanceof HTMLCanvasElement) ||
 		!(dialog instanceof HTMLDialogElement) ||
 		!stage ||
+		!viewport ||
 		!targets ||
 		!caption ||
 		!loading ||
@@ -134,33 +102,35 @@ export async function startLibrary() {
 	const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 	const hover = matchMedia('(hover: hover) and (pointer: fine)');
 	const scene = new THREE.Scene();
-	const camera = new THREE.OrthographicCamera(-10, 10, 8, -8, 0.1, 100);
+	const camera = new THREE.OrthographicCamera(-10, 10, 8, -8, 0.1, 80);
+	const layoutCamera = new THREE.OrthographicCamera(-10, 10, 8, -8, 0.1, 80);
 	scene.add(new THREE.HemisphereLight('#fff0ce', '#493b2c', 2.1));
 	const sun = new THREE.DirectionalLight('#ffe3af', 2.8);
-	sun.position.set(-8, 14, 12);
 	scene.add(sun);
 	const fill = new THREE.DirectionalLight('#eee8dd', 0.7);
-	fill.position.set(8, 5, 3);
 	scene.add(fill);
 
-	const oakTexture = texture(512, 512, (ctx) => {
+	const oakSize = 1024;
+	const oakTexture = texture(oakSize, oakSize, (ctx) => {
 		ctx.fillStyle = '#65482f';
-		ctx.fillRect(0, 0, 512, 512);
-		for (let i = 0; i < 900; i++) {
+		ctx.fillRect(0, 0, oakSize, oakSize);
+		for (let i = 0; i < 1200; i++) {
 			const seed = Math.sin(i * 127.1) * 43758.5453;
 			const noise = seed - Math.floor(seed);
 			ctx.strokeStyle =
-				i % 3 ? `rgba(34,18,6,${0.03 + noise * 0.13})` : `rgba(230,177,103,${noise * 0.2})`;
-			ctx.lineWidth = 0.4 + noise * 1.6;
+				i % 3 ? `rgba(34,18,6,${0.03 + noise * 0.13})` : `rgba(230,177,103,${noise * 0.18})`;
+			ctx.lineWidth = 0.4 + noise * 1.8;
 			ctx.beginPath();
-			for (let x = 0; x <= 512; x += 8) {
-				const y = noise * 512 + Math.sin(x / 88 + i * 0.6) * 2.8 + Math.sin(x / 220 + i) * 5;
+			for (let x = 0; x <= oakSize; x += 8) {
+				const y = noise * oakSize + Math.sin(x / 88 + i * 0.6) * 3.2 + Math.sin(x / 220 + i) * 6;
 				if (x === 0) ctx.moveTo(x, y);
 				else ctx.lineTo(x, y);
 			}
 			ctx.stroke();
 		}
 	});
+	oakTexture.wrapS = THREE.RepeatWrapping;
+	oakTexture.wrapT = THREE.RepeatWrapping;
 	const oak = new THREE.MeshStandardMaterial({ map: oakTexture, roughness: 0.8 });
 	const verticalGrain = oakTexture.clone();
 	verticalGrain.center.set(0.5, 0.5);
@@ -177,6 +147,12 @@ export async function startLibrary() {
 		ctx.fillRect(0, 0, 64, 256);
 	});
 	const backMaterial = new THREE.MeshBasicMaterial({ map: backTexture });
+	const giltMap = texture(256, 64, paintGilt);
+	const giltMat = new THREE.MeshBasicMaterial({ map: giltMap });
+	const boardMat = new THREE.MeshBasicMaterial({ color: '#241910' });
+	const backByColor = new Map<string, THREE.MeshBasicMaterial>();
+	const pageRange = pageRangeFor(books);
+
 	const caseGroup = new THREE.Group();
 	scene.add(caseGroup);
 	const volumes: Volume[] = [];
@@ -191,8 +167,14 @@ export async function startLibrary() {
 		| undefined;
 	let readerTimeout = 0;
 	let generation = 0;
-	let mobile = stage.clientWidth < 600;
+	let mobile = false;
 	let viewHeight = 12;
+	let viewWidth = 12;
+	let caseWidth = 6;
+	let caseHeight = 12;
+	let eyeX = 1.9;
+	let eyeY = 1.7;
+	let eyeZ = 15;
 
 	const box = (
 		width: number,
@@ -209,59 +191,44 @@ export async function startLibrary() {
 		return mesh;
 	};
 
+	const lookAtY = (cam: THREE.OrthographicCamera, targetY: number) => {
+		cam.position.set(eyeX, targetY + eyeY, eyeZ);
+		cam.lookAt(0, targetY, 0);
+	};
+
 	for (const [index, book] of books.entries()) {
 		const style = pleiadeStyleFor(book.author);
-		const color = colors[style.color];
-		const width = 0.47 + Math.min(book.edition.pageCount, 1200) / 6000;
-		const height = 1.85 + (index % 3) * 0.06;
+		const color = PLEIADE_HEX[style.color];
+		const px = spineWidthFor(book.edition.pageCount, pageRange, 'extended');
+		const width = 0.5 + ((px - 58) / 60) * 0.3;
+		const height = 2.08 + (index % 3) * 0.03;
 		const group = new THREE.Group();
-		const body = new THREE.Mesh(
-			new THREE.BoxGeometry(width, height, 1.2),
-			new THREE.MeshStandardMaterial({ color, roughness: 0.85 }),
+		const painted = { author: style.label, title: book.title, color };
+		const spineMap = texture(256, 1024, (ctx) => paintSpine(ctx, painted), true);
+		const shelfCover = texture(
+			256,
+			384,
+			(ctx) => paintCover(ctx, { author: book.author, title: book.title, color }),
+			true,
 		);
+		let backMat = backByColor.get(color);
+		if (!backMat) {
+			backMat = new THREE.MeshBasicMaterial({
+				map: texture(192, 288, (ctx) => paintBackCover(ctx, color), true),
+			});
+			backByColor.set(color, backMat);
+		}
+		const spineMat = new THREE.MeshBasicMaterial({ map: spineMap });
+		const coverMaterial = new THREE.MeshBasicMaterial({ map: shelfCover });
+		const body = new THREE.Mesh(new THREE.BoxGeometry(width, height, DEPTH), [
+			coverMaterial,
+			backMat,
+			giltMat,
+			giltMat,
+			spineMat,
+			boardMat,
+		]);
 		group.add(body);
-		const spineTexture = texture(128, 512, (ctx) => {
-			ctx.fillStyle = color;
-			ctx.fillRect(0, 0, 128, 512);
-			const shade = ctx.createLinearGradient(0, 0, 128, 0);
-			shade.addColorStop(0, '#00000066');
-			shade.addColorStop(0.3, '#ffffff10');
-			shade.addColorStop(0.65, '#ffffff00');
-			shade.addColorStop(1, '#00000066');
-			ctx.fillStyle = shade;
-			ctx.fillRect(0, 0, 128, 512);
-			ctx.strokeStyle = '#ddc78b';
-			ctx.lineWidth = 1;
-			for (const y of [24, 32, 98, 105, 386, 393, 477, 485]) {
-				ctx.beginPath();
-				ctx.moveTo(7, y);
-				ctx.lineTo(121, y);
-				ctx.stroke();
-			}
-			ctx.strokeRect(7, 10, 114, 492);
-			ctx.fillStyle = '#f0dfa5';
-			ctx.textAlign = 'center';
-			ctx.font = '18px "Literata Variable", Georgia';
-			lettering(ctx, style.label.toUpperCase(), 64, 150, 104, 25);
-			ctx.font = '17px "Literata Variable", Georgia';
-			lettering(ctx, book.title.replace(/\s*\(.*/, ''), 64, 250, 103, 23);
-			ctx.font = '12px Georgia';
-			ctx.fillText('PLÉIADE', 64, 438);
-		});
-		const spine = new THREE.Mesh(
-			new THREE.PlaneGeometry(width, height),
-			new THREE.MeshBasicMaterial({ map: spineTexture }),
-		);
-		spine.position.z = 0.605;
-		group.add(spine);
-
-		const cover = new THREE.Mesh(
-			new THREE.PlaneGeometry(1.2, height),
-			new THREE.MeshBasicMaterial({ color }),
-		);
-		cover.rotation.y = Math.PI / 2;
-		cover.position.x = width / 2 + 0.005;
-		group.add(cover);
 		const button = document.createElement('button');
 		button.type = 'button';
 		button.className = 'book-target';
@@ -276,7 +243,8 @@ export async function startLibrary() {
 			width,
 			height,
 			color,
-			cover,
+			coverMaterial,
+			shelfCover,
 		};
 		volumes.push(volume);
 		scene.add(group);
@@ -302,76 +270,122 @@ export async function startLibrary() {
 		requestRender();
 	};
 
+	const frameCamera = () => {
+		const canvasH = viewport.clientHeight;
+		const travel = Math.max(0, caseHeight - viewHeight);
+		const maxScroll = Math.max(1, stage.offsetHeight - canvasH);
+		const progress = Math.min(1, Math.max(0, -stage.getBoundingClientRect().top / maxScroll));
+		const lookY = travel > 0 ? caseHeight - viewHeight / 2 - progress * travel : caseHeight / 2;
+		camera.left = -viewWidth / 2;
+		camera.right = viewWidth / 2;
+		camera.top = viewHeight / 2;
+		camera.bottom = -viewHeight / 2;
+		lookAtY(camera, lookY);
+		camera.updateProjectionMatrix();
+		camera.updateMatrixWorld();
+		sun.position.set(-6, lookY + 11, 12);
+		fill.position.set(7, lookY + 4, 3);
+		drawShelf = true;
+	};
+
 	const layout = () => {
 		drawShelf = true;
-		mobile = stage.clientWidth < 600;
-		const columns = mobile ? 5 : 14;
+		mobile = viewport.clientWidth < BREAKPOINT;
+		const columns = mobile ? 4 : 8;
 		const rows = Math.ceil(volumes.length / columns);
-		const width = mobile ? 4.55 : 12.15;
-		const height = rows * 2.4 + 0.55;
-		stage.style.height = mobile
-			? `${Math.round(((stage.clientWidth * height) / width) * 0.95)}px`
-			: '';
+		const gap = mobile ? 0.02 : 0.022;
+		let packedWidth = 0;
+		for (let row = 0; row < rows; row++) {
+			const rowVolumes = volumes.slice(row * columns, row * columns + columns);
+			const packed = rowVolumes.reduce((sum, volume) => sum + volume.width, 0);
+			packedWidth = Math.max(packedWidth, packed + gap * Math.max(0, rowVolumes.length - 1));
+		}
+		caseWidth = packedWidth + 0.7;
+		caseHeight = rows * PITCH + 0.62;
+		eyeX = mobile ? 0.95 : 1.45;
+		eyeY = mobile ? 1.05 : 1.35;
+		eyeZ = mobile ? 11 : 14;
+		const inner = packedWidth + 0.08;
+		const innerLeft = -inner / 2;
+		const innerRight = inner / 2;
 		for (const child of [...caseGroup.children]) {
 			if (child instanceof THREE.Mesh) child.geometry.dispose();
 			caseGroup.remove(child);
 		}
-		box(width, height, 0.14, 0, height / 2, -0.8, darkOak);
+		box(caseWidth, caseHeight, 0.14, 0, caseHeight / 2, -0.8, darkOak);
 		for (let row = 0; row < rows; row++) {
-			box(width - 0.3, 2.2, 0.03, 0, row * 2.4 + 1.28, -0.7, backMaterial);
+			box(caseWidth - 0.3, PITCH - 0.28, 0.03, 0, row * PITCH + 1.32, -0.7, backMaterial);
 		}
 		for (let row = 0; row <= rows; row++) {
-			box(width + 0.1, 0.2, 1.85, 0, row * 2.4 + 0.25, 0.05, oak);
-			box(width + 0.16, 0.055, 0.07, 0, row * 2.4 + 0.32, 1.005, trim);
-			box(width, 0.08, 0.1, 0, row * 2.4 + 0.15, 0.98, darkOak);
+			box(caseWidth + 0.1, 0.2, 1.92, 0, row * PITCH + 0.25, 0.05, oak);
+			box(caseWidth + 0.16, 0.055, 0.07, 0, row * PITCH + 0.32, 1.04, trim);
+			box(caseWidth, 0.08, 0.1, 0, row * PITCH + 0.15, 1.01, darkOak);
 		}
-		for (const x of [-width / 2, width / 2, ...(mobile ? [] : [0])]) {
-			box(0.22, height, 1.9, x, height / 2, 0.05, verticalOak);
-			box(0.08, height - 0.1, 0.055, x, height / 2, 1.02, trim);
+		for (const x of [-caseWidth / 2, caseWidth / 2]) {
+			box(0.24, caseHeight, 1.98, x, caseHeight / 2, 0.05, verticalOak);
+			box(0.08, caseHeight - 0.1, 0.055, x, caseHeight / 2, 1.06, trim);
 		}
-		box(width + 0.45, 0.18, 2.04, 0, height + 0.025, 0.03, oak);
-		box(width + 0.3, 0.1, 1.98, 0, height - 0.13, 0.03, trim);
-		box(width + 0.3, 0.3, 2, 0, 0.01, 0.03, oak);
-		for (const [i, volume] of volumes.entries()) {
-			const column = i % columns;
-			const x = mobile ? -1.6 + column * 0.79 : -5.48 + column * 0.79 + (column >= 7 ? 0.65 : 0);
-			volume.home.set(
-				x,
-				(rows - 1 - Math.floor(i / columns)) * 2.4 + 0.36 + volume.height / 2,
-				0.16,
-			);
-			volume.group.position.copy(volume.home);
-			volume.group.quaternion.identity();
-			volume.group.scale.setScalar(1);
+		box(caseWidth + 0.45, 0.2, 2.1, 0, caseHeight + 0.04, 0.03, oak);
+		box(caseWidth + 0.3, 0.1, 2.02, 0, caseHeight - 0.12, 0.03, trim);
+		box(caseWidth + 0.3, 0.32, 2.06, 0, 0.02, 0.03, oak);
+
+		for (let row = 0; row < rows; row++) {
+			const rowVolumes = volumes.slice(row * columns, row * columns + columns);
+			const packed = rowVolumes.reduce((sum, volume) => sum + volume.width, 0);
+			const total = packed + gap * Math.max(0, rowVolumes.length - 1);
+			let x = (innerLeft + innerRight) / 2 - total / 2;
+			const shelfY = (rows - 1 - row) * PITCH;
+			for (const volume of rowVolumes) {
+				x += volume.width / 2;
+				volume.home.set(x, shelfY + 0.36 + volume.height / 2, 0.18);
+				volume.group.position.copy(volume.home);
+				volume.group.quaternion.identity();
+				volume.group.scale.setScalar(1);
+				x += volume.width / 2 + gap;
+			}
 		}
-		const aspect = stage.clientWidth / stage.clientHeight;
-		viewHeight = Math.max(
-			height * (mobile ? 1.02 : 1.09),
-			(width + (mobile ? 0.15 : 1.4)) / aspect,
-		);
-		camera.left = (-viewHeight * aspect) / 2;
-		camera.right = (viewHeight * aspect) / 2;
-		camera.top = viewHeight / 2;
-		camera.bottom = -viewHeight / 2;
-		camera.position.set(mobile ? 3.2 : 5.5, height / 2 + 3.1, 26);
-		camera.lookAt(0, height / 2, 0);
-		camera.updateProjectionMatrix();
-		camera.updateMatrixWorld();
-		renderer.setSize(stage.clientWidth, stage.clientHeight, false);
+
+		const aspect = viewport.clientWidth / Math.max(1, viewport.clientHeight);
+		viewWidth = caseWidth + (mobile ? 0.28 : 0.52);
+		viewHeight = viewWidth / aspect;
+		const minHeight = PITCH * (mobile ? 1.28 : 1.38) + 0.28;
+		if (viewHeight < minHeight) {
+			viewHeight = minHeight;
+			viewWidth = viewHeight * aspect;
+		}
+		const minWidth = caseWidth + (mobile ? 0.22 : 0.4);
+		if (viewWidth < minWidth) {
+			viewWidth = minWidth;
+			viewHeight = viewWidth / aspect;
+		}
+
+		const canvasH = viewport.clientHeight;
+		stage.style.height = `${Math.max(canvasH, Math.round(canvasH * (caseHeight / viewHeight)))}px`;
+		renderer.setSize(viewport.clientWidth, viewport.clientHeight, false);
+
+		layoutCamera.left = -viewWidth / 2;
+		layoutCamera.right = viewWidth / 2;
+		layoutCamera.top = caseHeight / 2;
+		layoutCamera.bottom = -caseHeight / 2;
+		lookAtY(layoutCamera, caseHeight / 2);
+		layoutCamera.updateProjectionMatrix();
+		layoutCamera.updateMatrixWorld();
+
+		const stageW = stage.clientWidth;
+		const stageH = stage.clientHeight;
+		const spine = new THREE.Vector3();
 		for (const volume of volumes) {
-			const center = volume.home
-				.clone()
-				.add(new THREE.Vector3(0, 0, 0.62))
-				.project(camera);
-			const w = (volume.width / (camera.right - camera.left)) * stage.clientWidth;
-			const h = (volume.height / viewHeight) * stage.clientHeight;
+			spine.set(volume.home.x, volume.home.y, volume.home.z + DEPTH / 2).project(layoutCamera);
+			const w = (volume.width / viewWidth) * stageW;
+			const h = (volume.height / caseHeight) * stageH;
 			Object.assign(volume.button.style, {
-				left: `${((center.x + 1) / 2) * stage.clientWidth - w / 2}px`,
-				top: `${((1 - center.y) / 2) * stage.clientHeight - h / 2}px`,
-				width: `${Math.max(w, 22)}px`,
+				left: `${((spine.x + 1) / 2) * stageW - w / 2}px`,
+				top: `${((1 - spine.y) / 2) * stageH - h / 2}px`,
+				width: `${Math.max(w, 44)}px`,
 				height: `${h}px`,
 			});
 		}
+		frameCamera();
 		requestRender();
 	};
 
@@ -395,7 +409,6 @@ export async function startLibrary() {
 		if (motion) {
 			const current = motion;
 			const t = Math.min(1, (now - current.start) / current.duration);
-			// Cubic ease-out gives immediate extraction feedback without a spring overshoot.
 			const eased = 1 - (1 - t) ** 3;
 			current.volume.group.position.lerpVectors(current.from, current.to, eased);
 			current.volume.group.quaternion.slerpQuaternions(
@@ -457,9 +470,18 @@ export async function startLibrary() {
 			caption.textContent = 'The book could not open. Please try again.';
 			return;
 		}
-		volume.cover.material.map = coverTexture(volume.book, volume.color);
-		volume.cover.material.color.set('#ffffff');
-		volume.cover.material.needsUpdate = true;
+		volume.coverMaterial.map = texture(
+			512,
+			768,
+			(ctx) =>
+				paintCover(ctx, {
+					author: volume.book.author,
+					title: volume.book.title,
+					color: volume.color,
+				}),
+			true,
+		);
+		volume.coverMaterial.needsUpdate = true;
 		drawShelf = true;
 		flightRenderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
 		flightRenderer.setSize(innerWidth, innerHeight);
@@ -500,10 +522,10 @@ export async function startLibrary() {
 
 	const releaseFlight = () => {
 		if (selected) {
-			selected.cover.material.map?.dispose();
-			selected.cover.material.map = null;
-			selected.cover.material.color.set(selected.color);
-			selected.cover.material.needsUpdate = true;
+			const map = selected.coverMaterial.map;
+			if (map && map !== selected.shelfCover) map.dispose();
+			selected.coverMaterial.map = selected.shelfCover;
+			selected.coverMaterial.needsUpdate = true;
 		}
 		flight?.renderer.domElement.remove();
 		flight?.renderer.dispose();
@@ -605,7 +627,6 @@ export async function startLibrary() {
 			.clone()
 			.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2));
 		const scale = ((data.height / canvasRect.height) * viewHeight) / volume.height;
-		// Align the outer cover plane, rather than the center of the book's thickness.
 		destination.addScaledVector(
 			new THREE.Vector3(0, 0, 1).applyQuaternion(camera.quaternion),
 			(-volume.width / 2) * scale,
@@ -643,8 +664,8 @@ export async function startLibrary() {
 		}
 	});
 	let lastSize = '';
-	const resize = new ResizeObserver(() => {
-		const size = `${stage.clientWidth}x${stage.clientHeight}`;
+	const relayout = () => {
+		const size = `${viewport.clientWidth}x${viewport.clientHeight}`;
 		if (lastSize === size) return;
 		lastSize = size;
 		if (selected) {
@@ -660,17 +681,26 @@ export async function startLibrary() {
 			dialog.close();
 		}
 		layout();
-	});
-	resize.observe(stage);
+	};
+	const resize = new ResizeObserver(relayout);
+	resize.observe(viewport);
+	const onScroll = () => {
+		frameCamera();
+		requestRender();
+	};
+	addEventListener('scroll', onScroll, { passive: true });
+	visualViewport?.addEventListener('resize', relayout);
 	reduced.addEventListener('change', requestRender);
 	loading.hidden = true;
-	layout();
+	relayout();
 	addEventListener(
 		'pagehide',
 		() => {
 			cancelAnimationFrame(frame);
 			clearTimeout(readerTimeout);
 			resize.disconnect();
+			removeEventListener('scroll', onScroll);
+			visualViewport?.removeEventListener('resize', relayout);
 			iframe?.remove();
 			releaseFlight();
 			renderer.dispose();

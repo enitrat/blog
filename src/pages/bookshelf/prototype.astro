@@ -6,16 +6,18 @@ import '../../components/bookshelf/prototype/library.css';
 <Page title="Library prototype" description="A study for the bookshelf." footerContact={false}>
 	<meta slot="head" name="robots" content="noindex, nofollow" />
 	<section class="library-prototype" aria-labelledby="library-title">
-		<header class="library-heading">
-			<div><p class="library-eyebrow">THE PERSONAL LIBRARY</p><h1 id="library-title">Between the pages.</h1></div>
-			<p>Books kept close.<br />Take one from the shelf.</p>
-		</header>
 		<div id="library-stage" aria-label="Interactive oak bookcase">
-			<canvas id="library-canvas" aria-hidden="true"></canvas>
+			<div id="library-viewport">
+				<canvas id="library-canvas" aria-hidden="true"></canvas>
+				<div class="library-caption"><span id="book-caption" aria-live="polite">Hover to explore · Select to open</span><span>OAK / PLÉIADE</span></div>
+				<p id="library-loading">Preparing the shelves…</p>
+			</div>
+			<header class="library-heading">
+				<div><p class="library-eyebrow">THE PERSONAL LIBRARY</p><h1 id="library-title">Between the pages.</h1></div>
+				<p>Books kept close.<br />Take one from the shelf.</p>
+			</header>
 			<div id="book-targets" aria-label="Choose a book"></div>
-			<p id="library-loading">Preparing the shelves…</p>
 		</div>
-		<div class="library-caption"><span id="book-caption" aria-live="polite">Hover to explore · Select to open</span><span>OAK / PLÉIADE</span></div>
 		<p class="prototype-note">Prototype · Sample pages, not personal book notes. <a href="/bookshelf/">View the reading archive ↗</a></p>
 		<noscript><p>The interactive bookcase needs JavaScript. <a href="/bookshelf/">Browse the reading archive</a>.</p></noscript>
 	</section>
