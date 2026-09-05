@@ -11,7 +11,9 @@
 		"astro": "astro",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",
-		"format": "biome format --write ."
+		"format": "biome format --write .",
+		"prototype": "astro dev --host 127.0.0.1 --open /bookshelf/prototype/",
+		"prototype:check": "node scripts/check-library-prototype.mjs"
 	},
 	"dependencies": {
 		"@astrojs/markdown-remark": "^6.3.11",
@@ -22,11 +24,14 @@
 		"@fontsource-variable/literata": "^5.3.0",
 		"@vercel/analytics": "^1.5.0",
 		"astro": "^5.14.1",
+		"page-flip": "^2.0.7",
 		"rehype-mermaid": "^3.0.0",
-		"sharp": "^0.34.3"
+		"sharp": "^0.34.3",
+		"three": "^0.185.1"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.2.4",
+		"@types/three": "^0.185.4",
 		"playwright": "^1.55.1",
 		"yaml": "^2.9.0"
 	}

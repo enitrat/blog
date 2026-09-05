@@ -1,0 +1,78 @@
+---
+// The iframe owns StPageFlip's perpetual animation loop; removing it stops the loop.
+import '@fontsource-variable/commissioner/wght.css';
+import '@fontsource-variable/literata/wght.css';
+import '../../components/bookshelf/prototype/library.css';
+---
+<!doctype html>
+<html lang="en">
+	<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><meta name="robots" content="noindex, nofollow" /><title>Sample book pages</title></head>
+	<body>
+		<div id="pages">
+			<section class="reader-page reader-cover" data-density="hard"><div class="page-inner"><p class="page-kicker" id="cover-author"></p><h2 id="cover-title"></h2><p>Bibliothèque personnelle</p><p aria-hidden="true">✧</p></div></section>
+			<section class="reader-page"><div class="page-inner"><p class="page-kicker">Inside the book</p><h2>A place for a note.</h2><p>This is a sample spread for trying the bookshelf. No personal reflection has been added yet.</p><p>The finished book will hold Mathieu’s own words about his reading.</p><span class="page-number">1</span></div></section>
+			<section class="reader-page"><div class="page-inner"><p class="page-kicker">Reading record</p><h2 id="record-title"></h2><p id="record-author"></p><p id="record-pages"></p><p id="record-status"></p><span class="page-number">2</span></div></section>
+			<section class="reader-page"><div class="page-inner"><p class="page-kicker">Sample page</p><h2>Room to linger.</h2><p>A longer note can continue across several pages. Turn the corner, swipe, or use the arrows below.</p><p>These pages demonstrate the reading experience. They are not a review of this book.</p><span class="page-number">3</span></div></section>
+			<section class="reader-page"><div class="page-inner"><p class="page-kicker">Sample page</p><h2>Back to the shelves.</h2><p>The library stays behind the open book. When you are finished, return the volume to its place.</p><span class="page-number">4</span></div></section>
+			<section class="reader-page reader-cover" data-density="hard"><div class="page-inner"><p>Bibliothèque personnelle</p><p aria-hidden="true">✧</p></div></section>
+		</div>
+		<script>
+			import { PageFlip } from 'page-flip/dist/js/page-flip.module.js';
+			import { books } from '../../booksData';
+			const book = books.find((item) => item.edition.isbn13 === new URLSearchParams(location.search).get('book'));
+			const pages = document.getElementById('pages');
+			if (book && pages) {
+				const setText = (id: string, text: string) => { const node = document.getElementById(id); if (node) node.textContent = text; };
+				setText('cover-title', book.title);
+				setText('cover-author', book.author);
+				setText('record-title', book.title);
+				setText('record-author', book.author);
+				setText('record-pages', `${book.edition.pageCount} pages`);
+				setText('record-status', book.status === 'finished' ? 'Finished reading' : book.status === 'reading' ? 'Currently reading' : 'On the reading list');
+				const color = new URLSearchParams(location.search).get('color');
+				if (color && /^#[0-9a-f]{6}$/i.test(color)) pages.style.setProperty('--book-color', color);
+				await document.fonts.ready;
+				const portrait = innerWidth < 650;
+				const width = Math.floor(Math.min(360, (innerHeight - 8) * 2 / 3, (innerWidth - 16) / (portrait ? 1 : 2)));
+				const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+				// ponytail: fixed sample page breaks; measure and paginate authored notes before production.
+				const flip = new PageFlip(pages, { width, height: width * 1.5, size: 'fixed', showCover: true, usePortrait: portrait, flippingTime: reduced ? 1 : 500, maxShadowOpacity: .25, mobileScrollSupport: true, showPageCorners: !reduced });
+				const announce = () => parent.postMessage({ type: 'reader-page', page: flip.getCurrentPageIndex(), count: flip.getPageCount(), portrait: flip.getOrientation() === 'portrait' }, location.origin);
+				const turn = (next: boolean) => {
+					if (reduced) { if (next) flip.turnToNextPage(); else flip.turnToPrevPage(); }
+					else if (next) flip.flipNext(); else flip.flipPrev();
+				};
+				flip.on('init', () => {
+					requestAnimationFrame(() => {
+						const cover = pages.querySelector('.reader-cover')?.getBoundingClientRect();
+						if (cover) parent.postMessage({ type: 'reader-ready', x: cover.x, y: cover.y, width: cover.width, height: cover.height }, location.origin);
+						announce();
+					});
+				});
+				flip.on('flip', announce);
+				flip.loadFromHTML(document.querySelectorAll<HTMLElement>('.reader-page'));
+				addEventListener('message', (event) => {
+					// WebKit can report this window as the source of a parent-to-iframe message.
+					if (event.origin !== location.origin || (event.source !== parent && event.source !== window)) return;
+					if (event.data === 'next' || event.data === 'open') turn(true);
+					if (event.data === 'previous') turn(false);
+					if (event.data === 'close') {
+						if (reduced) flip.turnToPage(0); else flip.flip(0);
+						setTimeout(() => parent.postMessage({ type: 'reader-closed' }, location.origin), reduced ? 0 : 550);
+					}
+				});
+				addEventListener('keydown', (event) => {
+					if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') { event.preventDefault(); turn(event.key === 'ArrowRight'); }
+					if (event.key === 'Escape') parent.postMessage({ type: 'reader-close' }, location.origin);
+				});
+			}
+		</script>
+	</body>
+</html>
+<style is:global>
+	:root { --home-display: 'Literata Variable', Georgia, serif; --home-sans: 'Commissioner Variable', sans-serif; }
+	* { box-sizing: border-box; }
+	html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+	body { display: grid; place-items: center; }
+	#pages { filter: drop-shadow(0 8px 12px rgb(0 0 0 / .2)); }
+</style>
