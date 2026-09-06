@@ -1,4 +1,4 @@
-/** Narrow declaration for the untyped, published ESM build used by the prototype. */
+/** Narrow declaration for the untyped, published ESM build. */
 declare module 'page-flip/dist/js/page-flip.module.js' {
 	export class PageFlip {
 		constructor(

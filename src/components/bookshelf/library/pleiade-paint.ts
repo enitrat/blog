@@ -7,8 +7,8 @@ export const PLEIADE_HEX: Record<PleiadeColor, string> = {
 	red: '#813b34',
 	blue: '#315a78',
 	emerald: '#2f6652',
-	havane: '#76533e',
-	grey: '#62615d',
+	havane: '#6a4a35',
+	grey: '#54534f',
 };
 
 const GOLD = '#f0d98d';
@@ -95,35 +95,55 @@ function fitLines(
 }
 
 function grain(ctx: CanvasRenderingContext2D, width: number, height: number, seed: number) {
-	const count = Math.floor((width * height) / 90);
+	const count = Math.floor((width * height) / 260);
 	for (let i = 0; i < count; i++) {
 		const n = Math.sin((i + 1) * 127.1 + seed) * 43758.5453;
 		const noise = n - Math.floor(n);
 		const n2 = Math.sin((i + 1) * 269.3 + seed) * 19672.84;
 		const noise2 = n2 - Math.floor(n2);
 		ctx.fillStyle =
-			noise > 0.5
-				? `rgba(255,255,255,${0.015 + noise * 0.03})`
-				: `rgba(0,0,0,${0.02 + noise * 0.04})`;
+			noise > 0.62
+				? `rgba(255,255,255,${0.01 + noise * 0.015})`
+				: `rgba(0,0,0,${0.015 + noise * 0.03})`;
 		ctx.fillRect(noise * width, noise2 * height, 1.2, 1.2);
 	}
 }
 
+/* Mirrors the CSS spine's 90deg leather gradient: opaque dark at both edges,
+   clear by 28%, a narrow highlight at 60%. Fading to `${dark}00` rather than
+   `transparent` keeps canvas from interpolating through transparent black. */
 function cylinderShade(ctx: CanvasRenderingContext2D, width: number, height: number, dark: string) {
 	const shade = ctx.createLinearGradient(0, 0, width, 0);
-	shade.addColorStop(0, `${dark}a8`);
-	shade.addColorStop(0.28, 'rgba(255,255,255,0)');
-	shade.addColorStop(0.58, 'rgba(255,255,255,0.14)');
-	shade.addColorStop(1, `${dark}a8`);
+	shade.addColorStop(0, dark);
+	shade.addColorStop(0.28, `${dark}00`);
+	shade.addColorStop(0.6, 'rgba(255,255,255,0.12)');
+	shade.addColorStop(0.86, `${dark}00`);
+	shade.addColorStop(1, dark);
 	ctx.fillStyle = shade;
 	ctx.fillRect(0, 0, width, height);
+	ctx.fillStyle = 'rgba(255,255,255,0.18)';
+	ctx.fillRect(0, 0, Math.max(1, width * 0.008), height);
+	ctx.fillStyle = 'rgba(0,0,0,0.32)';
+	ctx.fillRect(width - Math.max(1, width * 0.008), 0, Math.max(1, width * 0.008), height);
 }
 
+/* Gilt filets. The pitch and coverage are the CSS spine's: an 82-band ladder
+   with the gold line at a quarter of each cycle. Heavier lines wash the leather
+   out into a pale stripe at shelf distance. */
+const FILET_BANDS = 82;
+
 function filets(ctx: CanvasRenderingContext2D, width: number, height: number) {
-	const cycle = height / 68;
-	const gold = Math.max(1.5, cycle * 0.32);
-	ctx.fillStyle = 'rgba(240, 217, 141, 0.82)';
-	for (let y = 0; y < height; y += cycle) ctx.fillRect(0, y + cycle - gold, width, gold);
+	const cycle = height / FILET_BANDS;
+	const gold = Math.max(1, cycle * 0.25);
+	ctx.fillStyle = 'rgba(240, 217, 141, 0.68)';
+	for (let band = 1; band <= FILET_BANDS; band++) ctx.fillRect(0, band * cycle - gold, width, gold);
+}
+
+function giltText(ctx: CanvasRenderingContext2D, height: number) {
+	ctx.fillStyle = GOLD;
+	ctx.shadowColor = 'rgba(31, 22, 15, 0.65)';
+	ctx.shadowBlur = Math.max(1, height * 0.0012);
+	ctx.shadowOffsetY = Math.max(1, height * 0.0009);
 }
 
 export function paintSpine(ctx: CanvasRenderingContext2D, book: PaintedBook) {
@@ -133,17 +153,16 @@ export function paintSpine(ctx: CanvasRenderingContext2D, book: PaintedBook) {
 	ctx.fillRect(0, 0, width, height);
 	filets(ctx, width, height);
 	cylinderShade(ctx, width, height, tone.dark);
-	grain(ctx, width, height, book.title.length);
 
-	const insetX = Math.max(3, width * 0.06);
-	const insetY = Math.max(4, height * 0.02);
+	const insetX = Math.max(3, width * 0.055);
+	const insetY = Math.max(4, height * 0.014);
 	ctx.strokeStyle = GOLD_EDGE;
-	ctx.lineWidth = Math.max(1, width * 0.012);
+	ctx.lineWidth = Math.max(1, width * 0.01);
 	ctx.strokeRect(insetX, insetY, width - insetX * 2, height - insetY * 2);
 
 	const panelTop = height * 0.27;
 	const panelHeight = height * 0.44;
-	const panelX = Math.max(3, width * 0.05);
+	const panelX = Math.max(3, width * 0.045);
 	const panelW = width - panelX * 2;
 	const panel = ctx.createLinearGradient(panelX, 0, panelX + panelW, 0);
 	panel.addColorStop(0, tone.dark);
@@ -153,7 +172,7 @@ export function paintSpine(ctx: CanvasRenderingContext2D, book: PaintedBook) {
 	ctx.fillStyle = panel;
 	ctx.fillRect(panelX, panelTop, panelW, panelHeight);
 	ctx.strokeStyle = GOLD_PANEL;
-	ctx.lineWidth = Math.max(1, height * 0.002);
+	ctx.lineWidth = Math.max(1, height * 0.0016);
 	ctx.beginPath();
 	ctx.moveTo(panelX, panelTop);
 	ctx.lineTo(panelX + panelW, panelTop);
@@ -161,11 +180,11 @@ export function paintSpine(ctx: CanvasRenderingContext2D, book: PaintedBook) {
 	ctx.lineTo(panelX + panelW, panelTop + panelHeight);
 	ctx.stroke();
 
-	ctx.fillStyle = GOLD;
+	giltText(ctx, height);
 	ctx.textAlign = 'center';
 	ctx.textBaseline = 'top';
 	const textX = width / 2;
-	const textW = panelW - width * 0.08;
+	const textW = panelW - width * 0.09;
 	const author = fitLines(
 		ctx,
 		book.author.toUpperCase(),
@@ -192,12 +211,15 @@ export function paintSpine(ctx: CanvasRenderingContext2D, book: PaintedBook) {
 	);
 	ctx.font = `620 ${title.size}px "Literata Variable", Georgia`;
 	fillLines(ctx, title.lines, textX, titleTop, textW, title.line);
+	ctx.shadowColor = 'transparent';
+	ctx.shadowBlur = 0;
+	ctx.shadowOffsetY = 0;
 
 	const markY = panelTop + panelHeight * 0.88;
-	const markR = Math.max(1.6, width * 0.035);
+	const markR = Math.max(1.6, width * 0.03);
 	const gap = markR * 3.2;
 	ctx.strokeStyle = GOLD;
-	ctx.lineWidth = Math.max(1, width * 0.02);
+	ctx.lineWidth = Math.max(1, width * 0.016);
 	for (const x of [textX - gap / 2, textX + gap / 2]) {
 		ctx.beginPath();
 		ctx.arc(x, markY, markR, 0, Math.PI * 2);

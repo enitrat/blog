@@ -1,0 +1,146 @@
+---
+import { type Book, books } from '../../booksData';
+import PleiadeShelf from '../../components/bookshelf/PleiadeShelf.astro';
+import Page from '../../layouts/Page.astro';
+import { pageRangeFor } from '../../utils/pleiade';
+
+const dateOf = (book: Book) => book.dateFinished ?? book.dateStarted;
+const sortByDate = (a: Book, b: Book) => (dateOf(b)?.valueOf() ?? 0) - (dateOf(a)?.valueOf() ?? 0);
+
+const reading = books.filter((book) => book.status === 'reading').sort(sortByDate);
+const finished = books.filter((book) => book.status === 'finished');
+const wantToRead = books.filter((book) => book.status === 'want-to-read').sort(sortByDate);
+const pageRange = pageRangeFor(books);
+type ShelfKey = 'before-2020' | 'after-2020';
+const shelfKeyFor = (book: Book): ShelfKey | null => {
+	if (book.readingPeriod === 'before-2020') return 'before-2020';
+	const year = book.dateFinished?.getFullYear();
+	if (!year) return null;
+	return year < 2020 ? 'before-2020' : 'after-2020';
+};
+const finishedShelfKeys: ShelfKey[] = ['after-2020', 'before-2020'];
+const readShelves = finishedShelfKeys
+	.map((key) => ({
+		key,
+		books: finished.filter((book) => shelfKeyFor(book) === key).sort(sortByDate),
+	}))
+	.filter((shelf) => shelf.books.length > 0);
+---
+
+<Page
+	title="Reading archive"
+	description="Every book on the shelves, as a list."
+>
+	<div class="measure bookshelf-page">
+		<header class="page-head">
+			<h1>Reading archive</h1>
+			<p class="page-head__back"><a href="/bookshelf/">← Back to the bookcase</a></p>
+		</header>
+
+		{reading.length > 0 && (
+			<section class="bookshelf-section" aria-labelledby="shelf-reading">
+				<div class="shelf__heading">
+					<h2 id="shelf-reading">Reading now</h2>
+					<span>{reading.length} {reading.length === 1 ? 'book' : 'books'}</span>
+				</div>
+				<PleiadeShelf shelfBooks={reading} label="Books currently being read" size="extended" {pageRange} />
+			</section>
+		)}
+
+		{readShelves.map((shelf) => (
+			<section class="bookshelf-section" aria-labelledby={`shelf-${shelf.key}`}>
+				<div class="shelf__heading">
+					<h2 id={`shelf-${shelf.key}`}>
+						{shelf.key === 'before-2020' ? 'Read before 2020' : 'Read since 2020'}
+					</h2>
+					<span>{shelf.books.length} {shelf.books.length === 1 ? 'book' : 'books'}</span>
+				</div>
+				<PleiadeShelf
+					shelfBooks={shelf.books}
+					label={shelf.key === 'before-2020' ? 'Books read before 2020' : 'Books read since 2020'}
+					size="extended"
+					{pageRange}
+				/>
+			</section>
+		))}
+
+		{wantToRead.length > 0 && (
+			<section class="bookshelf-section" aria-labelledby="shelf-want-to-read">
+				<div class="shelf__heading">
+					<h2 id="shelf-want-to-read">Want to read</h2>
+					<span>{wantToRead.length} {wantToRead.length === 1 ? 'book' : 'books'}</span>
+				</div>
+				<PleiadeShelf shelfBooks={wantToRead} label="Books to read" size="extended" {pageRange} />
+			</section>
+		)}
+
+		<nav class="shelf__onward" aria-label="Continue">
+			<a href="/bookshelf/">Bookcase</a>
+			<a href="/writing">Writing</a>
+			<a href="/about">About</a>
+		</nav>
+	</div>
+</Page>
+
+<style>
+	.bookshelf-section {
+		padding-top: clamp(2rem, 3.5vw, 3rem);
+	}
+
+	.bookshelf-section + .bookshelf-section {
+		margin-top: clamp(3rem, 6vw, 5rem);
+		padding-top: clamp(2rem, 3.5vw, 3rem);
+		border-top: 1px solid var(--home-rule);
+	}
+
+	.shelf__onward {
+		display: flex;
+		gap: clamp(1.5rem, 4vw, 3rem);
+		margin-top: clamp(3rem, 6vw, 5rem);
+		padding: clamp(1.1rem, 2.2vw, 1.7rem) 0 clamp(4rem, 8vw, 7rem);
+		border-top: 1px solid var(--home-ink);
+		color: var(--home-cobalt);
+		font-size: 0.78rem;
+		font-weight: 650;
+	}
+
+	.page-head__back {
+		margin: 0.6rem 0 0;
+		color: var(--home-cobalt);
+		font-size: var(--type-meta-size);
+		font-weight: 600;
+	}
+
+	.shelf__heading {
+		display: flex;
+		align-items: baseline;
+		gap: 1rem;
+		margin-bottom: 1.1rem;
+	}
+
+	.shelf__heading h2 {
+		margin: 0;
+		font-family: var(--home-display);
+		font-size: var(--type-title-size);
+		font-weight: var(--type-title-weight);
+		line-height: 1;
+		font-style: italic;
+		letter-spacing: var(--type-title-tracking);
+	}
+
+	.shelf__heading span {
+		color: var(--home-muted);
+		font-size: var(--type-label-size);
+		font-weight: var(--type-label-weight);
+		letter-spacing: var(--type-label-tracking);
+		text-transform: uppercase;
+	}
+
+	@media (max-width: 560px) {
+		.shelf__heading {
+			align-items: flex-start;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+	}
+</style>

@@ -13,6 +13,8 @@ type Volume = {
 	color: string;
 	coverMaterial: THREE.MeshBasicMaterial;
 	shelfCover: THREE.CanvasTexture;
+	/** 0 shelved, 1 fully drawn out under the pointer. */
+	lift: number;
 };
 
 type Motion = {
@@ -28,16 +30,16 @@ type Motion = {
 	done: () => void;
 };
 
-const PITCH = 2.36;
+const PITCH = 2.3;
+const HOVER_OUT = 0.55;
+const HOVER_TILT = 0.06;
+const CORNICE_OVERHANG = 0.55;
 const DEPTH = 1.28;
 const BREAKPOINT = 720;
 
-function texture(
-	width: number,
-	height: number,
-	draw: (ctx: CanvasRenderingContext2D) => void,
-	sharp = false,
-) {
+let maxAnisotropy = 4;
+
+function texture(width: number, height: number, draw: (ctx: CanvasRenderingContext2D) => void) {
 	const canvas = document.createElement('canvas');
 	canvas.width = width;
 	canvas.height = height;
@@ -46,15 +48,13 @@ function texture(
 	draw(ctx);
 	const result = new THREE.CanvasTexture(canvas);
 	result.colorSpace = THREE.SRGBColorSpace;
-	if (sharp) {
-		result.generateMipmaps = false;
-		result.minFilter = THREE.LinearFilter;
-		result.magFilter = THREE.LinearFilter;
-	} else result.anisotropy = 4;
+	result.anisotropy = maxAnisotropy;
+	result.minFilter = THREE.LinearMipmapLinearFilter;
+	result.magFilter = THREE.LinearFilter;
 	return result;
 }
 
-/** Mount the disposable library study. The scene renders only while a book moves. */
+/** Mount the library. The scene renders only while something moves. */
 export async function startLibrary() {
 	const stage = document.getElementById('library-stage');
 	const viewport = document.getElementById('library-viewport');
@@ -93,10 +93,14 @@ export async function startLibrary() {
 		loading.textContent = 'The 3D view is unavailable. The reading archive is linked below.';
 		return;
 	}
-	renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+	maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+	// The spines are unlit MeshBasicMaterial; ACES only desaturated the leather
+	// and lifted the gilt into a wash. Render them as painted.
 	renderer.outputColorSpace = THREE.SRGBColorSpace;
-	renderer.toneMapping = THREE.ACESFilmicToneMapping;
-	renderer.toneMappingExposure = 1.1;
+	renderer.toneMapping = THREE.NoToneMapping;
+	renderer.setClearAlpha(0);
+	const applyPixelRatio = () => renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+	applyPixelRatio();
 	await document.fonts.ready;
 
 	const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -201,20 +205,17 @@ export async function startLibrary() {
 		const color = PLEIADE_HEX[style.color];
 		const px = spineWidthFor(book.edition.pageCount, pageRange, 'extended');
 		const width = 0.5 + ((px - 58) / 60) * 0.3;
-		const height = 2.08 + (index % 3) * 0.03;
+		const height = 2.12 + (index % 3) * 0.025;
 		const group = new THREE.Group();
 		const painted = { author: style.label, title: book.title, color };
-		const spineMap = texture(256, 1024, (ctx) => paintSpine(ctx, painted), true);
-		const shelfCover = texture(
-			256,
-			384,
-			(ctx) => paintCover(ctx, { author: book.author, title: book.title, color }),
-			true,
+		const spineMap = texture(512, 2048, (ctx) => paintSpine(ctx, painted));
+		const shelfCover = texture(512, 768, (ctx) =>
+			paintCover(ctx, { author: book.author, title: book.title, color }),
 		);
 		let backMat = backByColor.get(color);
 		if (!backMat) {
 			backMat = new THREE.MeshBasicMaterial({
-				map: texture(192, 288, (ctx) => paintBackCover(ctx, color), true),
+				map: texture(384, 576, (ctx) => paintBackCover(ctx, color)),
 			});
 			backByColor.set(color, backMat);
 		}
@@ -245,6 +246,7 @@ export async function startLibrary() {
 			color,
 			coverMaterial,
 			shelfCover,
+			lift: 0,
 		};
 		volumes.push(volume);
 		scene.add(group);
@@ -264,9 +266,7 @@ export async function startLibrary() {
 	const pointAt = (volume: Volume | undefined) => {
 		if (selected) return;
 		hovered = volume;
-		caption.textContent = volume
-			? `${volume.book.title} · ${volume.book.author}`
-			: 'Hover to explore · Select to open';
+		caption.textContent = volume ? `${volume.book.title} · ${volume.book.author}` : '';
 		requestRender();
 	};
 
@@ -290,72 +290,124 @@ export async function startLibrary() {
 
 	const layout = () => {
 		drawShelf = true;
+		applyPixelRatio();
 		mobile = viewport.clientWidth < BREAKPOINT;
-		const columns = mobile ? 4 : 8;
-		const rows = Math.ceil(volumes.length / columns);
+		// Aim for a spine around 130px wide: wide enough to read the gilt, narrow
+		// enough that the case is wider than it is tall and two shelves stay in view.
+		const perRow = mobile ? 3 : Math.max(6, Math.round(viewport.clientWidth / 132));
+		const rows = Math.ceil(volumes.length / perRow);
 		const gap = mobile ? 0.02 : 0.022;
-		let packedWidth = 0;
-		for (let row = 0; row < rows; row++) {
-			const rowVolumes = volumes.slice(row * columns, row * columns + columns);
-			const packed = rowVolumes.reduce((sum, volume) => sum + volume.width, 0);
-			packedWidth = Math.max(packedWidth, packed + gap * Math.max(0, rowVolumes.length - 1));
+		// Balance by width, not by count: spines are as thick as the book, so eight
+		// thin volumes leave a shelf visibly short. Binary-search the narrowest
+		// shelf every book still fits into, then pack to it — that is the partition
+		// with the least width left over on any one shelf.
+		const span = (volume: Volume) => volume.width + gap;
+		const spans = volumes.map(span);
+		const widest = Math.max(...spans);
+		const totalSpan = spans.reduce((sum, value) => sum + value, 0);
+		const shelvesNeeded = (limit: number) => {
+			let used = 1;
+			let filled = 0;
+			for (const value of spans) {
+				if (filled + value > limit + 1e-9) {
+					used++;
+					filled = 0;
+				}
+				filled += value;
+			}
+			return used;
+		};
+		let low = Math.max(widest, totalSpan / rows);
+		let high = totalSpan;
+		for (let step = 0; step < 40; step++) {
+			const mid = (low + high) / 2;
+			if (shelvesNeeded(mid) <= rows) high = mid;
+			else low = mid;
 		}
-		caseWidth = packedWidth + 0.7;
+		const limit = high;
+		const shelves: Volume[][] = [];
+		let current: Volume[] = [];
+		let filled = 0;
+		for (const [index, volume] of volumes.entries()) {
+			const left = volumes.length - index;
+			const shelvesLeft = rows - shelves.length;
+			// Break when the shelf is full, or early when the books left would not
+			// otherwise reach every remaining shelf — no stub row at the bottom.
+			const full = current.length > 0 && filled + spans[index] > limit + 1e-9;
+			const rationing = current.length > 0 && left < shelvesLeft;
+			if (full || rationing) {
+				shelves.push(current);
+				current = [];
+				filled = 0;
+			}
+			current.push(volume);
+			filled += spans[index];
+		}
+		if (current.length > 0) shelves.push(current);
+		const packedWidth = shelves.reduce((max, rowVolumes) => {
+			const packed = rowVolumes.reduce((sum, volume) => sum + volume.width, 0);
+			return Math.max(max, packed + gap * Math.max(0, rowVolumes.length - 1));
+		}, 0);
+		caseWidth = packedWidth + 0.68;
 		caseHeight = rows * PITCH + 0.62;
 		eyeX = mobile ? 0.95 : 1.45;
 		eyeY = mobile ? 1.05 : 1.35;
 		eyeZ = mobile ? 11 : 14;
-		const inner = packedWidth + 0.08;
+		const inner = packedWidth + 0.1;
 		const innerLeft = -inner / 2;
 		const innerRight = inner / 2;
 		for (const child of [...caseGroup.children]) {
 			if (child instanceof THREE.Mesh) child.geometry.dispose();
 			caseGroup.remove(child);
 		}
-		box(caseWidth, caseHeight, 0.14, 0, caseHeight / 2, -0.8, darkOak);
+		box(caseWidth, caseHeight, 0.16, 0, caseHeight / 2, -0.82, darkOak);
 		for (let row = 0; row < rows; row++) {
-			box(caseWidth - 0.3, PITCH - 0.28, 0.03, 0, row * PITCH + 1.32, -0.7, backMaterial);
+			box(caseWidth - 0.36, PITCH - 0.3, 0.04, 0, row * PITCH + 1.32, -0.72, backMaterial);
 		}
 		for (let row = 0; row <= rows; row++) {
-			box(caseWidth + 0.1, 0.2, 1.92, 0, row * PITCH + 0.25, 0.05, oak);
-			box(caseWidth + 0.16, 0.055, 0.07, 0, row * PITCH + 0.32, 1.04, trim);
-			box(caseWidth, 0.08, 0.1, 0, row * PITCH + 0.15, 1.01, darkOak);
+			box(caseWidth + 0.14, 0.22, 1.98, 0, row * PITCH + 0.24, 0.06, oak);
+			box(caseWidth + 0.2, 0.06, 0.08, 0, row * PITCH + 0.33, 1.08, trim);
+			box(caseWidth + 0.04, 0.09, 0.12, 0, row * PITCH + 0.14, 1.04, darkOak);
 		}
 		for (const x of [-caseWidth / 2, caseWidth / 2]) {
-			box(0.24, caseHeight, 1.98, x, caseHeight / 2, 0.05, verticalOak);
-			box(0.08, caseHeight - 0.1, 0.055, x, caseHeight / 2, 1.06, trim);
+			box(0.3, caseHeight, 2.08, x, caseHeight / 2, 0.06, verticalOak);
+			box(0.1, caseHeight - 0.12, 0.06, x, caseHeight / 2, 1.12, trim);
 		}
-		box(caseWidth + 0.45, 0.2, 2.1, 0, caseHeight + 0.04, 0.03, oak);
-		box(caseWidth + 0.3, 0.1, 2.02, 0, caseHeight - 0.12, 0.03, trim);
-		box(caseWidth + 0.3, 0.32, 2.06, 0, 0.02, 0.03, oak);
+		box(caseWidth + CORNICE_OVERHANG, 0.24, 2.2, 0, caseHeight + 0.06, 0.04, oak);
+		box(caseWidth + 0.38, 0.12, 2.12, 0, caseHeight - 0.1, 0.04, trim);
+		box(caseWidth + 0.4, 0.36, 2.16, 0, 0.02, 0.04, oak);
 
-		for (let row = 0; row < rows; row++) {
-			const rowVolumes = volumes.slice(row * columns, row * columns + columns);
+		for (const [row, rowVolumes] of shelves.entries()) {
 			const packed = rowVolumes.reduce((sum, volume) => sum + volume.width, 0);
-			const total = packed + gap * Math.max(0, rowVolumes.length - 1);
+			const seams = Math.max(1, rowVolumes.length - 1);
+			const spread = gap + Math.min(0.03, Math.max(0, (packedWidth - packed) / seams));
+			const total = packed + spread * (rowVolumes.length - 1);
 			let x = (innerLeft + innerRight) / 2 - total / 2;
 			const shelfY = (rows - 1 - row) * PITCH;
 			for (const volume of rowVolumes) {
 				x += volume.width / 2;
 				volume.home.set(x, shelfY + 0.36 + volume.height / 2, 0.18);
+				volume.lift = 0;
 				volume.group.position.copy(volume.home);
 				volume.group.quaternion.identity();
 				volume.group.scale.setScalar(1);
-				x += volume.width / 2 + gap;
+				x += volume.width / 2 + spread;
 			}
 		}
 
 		const aspect = viewport.clientWidth / Math.max(1, viewport.clientHeight);
-		viewWidth = caseWidth + (mobile ? 0.28 : 0.52);
+		// The cornice overhangs the carcass, so fit the widest board, not caseWidth,
+		// or the crown and the stiles get clipped by the viewport edges.
+		const outerWidth = caseWidth + CORNICE_OVERHANG;
+		viewWidth = outerWidth + (mobile ? 0.1 : 0.28);
 		viewHeight = viewWidth / aspect;
-		const minHeight = PITCH * (mobile ? 1.28 : 1.38) + 0.28;
+		const minHeight = PITCH * (mobile ? 1.3 : 2.05) + 0.3;
 		if (viewHeight < minHeight) {
 			viewHeight = minHeight;
 			viewWidth = viewHeight * aspect;
 		}
-		const minWidth = caseWidth + (mobile ? 0.22 : 0.4);
-		if (viewWidth < minWidth) {
-			viewWidth = minWidth;
+		if (viewWidth < outerWidth) {
+			viewWidth = outerWidth;
 			viewHeight = viewWidth / aspect;
 		}
 
@@ -365,22 +417,22 @@ export async function startLibrary() {
 
 		layoutCamera.left = -viewWidth / 2;
 		layoutCamera.right = viewWidth / 2;
-		layoutCamera.top = caseHeight / 2;
-		layoutCamera.bottom = -caseHeight / 2;
-		lookAtY(layoutCamera, caseHeight / 2);
-		layoutCamera.updateProjectionMatrix();
-		layoutCamera.updateMatrixWorld();
+		layoutCamera.top = viewHeight / 2;
+		layoutCamera.bottom = -viewHeight / 2;
 
 		const stageW = stage.clientWidth;
 		const stageH = stage.clientHeight;
 		const spine = new THREE.Vector3();
 		for (const volume of volumes) {
+			lookAtY(layoutCamera, volume.home.y);
+			layoutCamera.updateProjectionMatrix();
+			layoutCamera.updateMatrixWorld();
 			spine.set(volume.home.x, volume.home.y, volume.home.z + DEPTH / 2).project(layoutCamera);
 			const w = (volume.width / viewWidth) * stageW;
-			const h = (volume.height / caseHeight) * stageH;
+			const h = (volume.height / viewHeight) * canvasH;
 			Object.assign(volume.button.style, {
 				left: `${((spine.x + 1) / 2) * stageW - w / 2}px`,
-				top: `${((1 - spine.y) / 2) * stageH - h / 2}px`,
+				top: `${((caseHeight - volume.home.y) / caseHeight) * stageH - h / 2}px`,
 				width: `${Math.max(w, 44)}px`,
 				height: `${h}px`,
 			});
@@ -392,19 +444,30 @@ export async function startLibrary() {
 	const requestRender = () => {
 		if (!frame) frame = requestAnimationFrame(render);
 	};
+	let lastFrame = 0;
 	const render = (now: number) => {
 		frame = 0;
+		// Clamped so a backgrounded tab does not snap every book on return.
+		const dt = lastFrame ? Math.min(0.05, (now - lastFrame) / 1000) : 0.016;
+		lastFrame = now;
+		const settle = 1 - Math.exp(-dt * 13);
 		let moving = false;
 		for (const volume of volumes) {
 			if (volume === selected) continue;
-			const target = volume.home.z + (volume === hovered && !reduced.matches ? 0.5 : 0);
-			const difference = target - volume.group.position.z;
-			volume.group.position.z =
-				Math.abs(difference) < 0.002 || reduced.matches
+			const target = volume === hovered && !reduced.matches ? 1 : 0;
+			const difference = target - volume.lift;
+			volume.lift =
+				Math.abs(difference) < 0.0015 || reduced.matches
 					? target
-					: volume.group.position.z + difference * 0.24;
-			if (difference !== 0) drawShelf = true;
-			if (Math.abs(difference) >= 0.002) moving = true;
+					: volume.lift + difference * settle;
+			if (difference !== 0) {
+				// Slides out of the shelf and tips its head toward the reader.
+				volume.group.position.z = volume.home.z + volume.lift * HOVER_OUT;
+				volume.group.position.y = volume.home.y + volume.lift * 0.05;
+				volume.group.rotation.x = volume.lift * HOVER_TILT;
+				drawShelf = true;
+			}
+			if (Math.abs(difference) >= 0.0015) moving = true;
 		}
 		if (motion) {
 			const current = motion;
@@ -470,23 +533,19 @@ export async function startLibrary() {
 			caption.textContent = 'The book could not open. Please try again.';
 			return;
 		}
-		volume.coverMaterial.map = texture(
-			512,
-			768,
-			(ctx) =>
-				paintCover(ctx, {
-					author: volume.book.author,
-					title: volume.book.title,
-					color: volume.color,
-				}),
-			true,
+		volume.coverMaterial.map = texture(1024, 1536, (ctx) =>
+			paintCover(ctx, {
+				author: volume.book.author,
+				title: volume.book.title,
+				color: volume.color,
+			}),
 		);
 		volume.coverMaterial.needsUpdate = true;
 		drawShelf = true;
-		flightRenderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+		flightRenderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 		flightRenderer.setSize(innerWidth, innerHeight);
+		flightRenderer.outputColorSpace = THREE.SRGBColorSpace;
 		flightRenderer.toneMapping = renderer.toneMapping;
-		flightRenderer.toneMappingExposure = renderer.toneMappingExposure;
 		flightRenderer.domElement.className = 'book-flight';
 		dialog.prepend(flightRenderer.domElement);
 		const flightCamera = camera.clone();
@@ -510,7 +569,7 @@ export async function startLibrary() {
 		title.textContent = volume.book.title;
 		iframe = document.createElement('iframe');
 		iframe.title = `Sample pages for ${volume.book.title}`;
-		iframe.src = `/bookshelf/prototype-reader/?${new URLSearchParams({ book: volume.book.edition.isbn13, color: volume.color })}`;
+		iframe.src = `/bookshelf/reader/?${new URLSearchParams({ book: volume.book.edition.isbn13, color: volume.color })}`;
 		mount.replaceChildren(iframe);
 		const token = ++generation;
 		readerTimeout = window.setTimeout(() => {
@@ -684,6 +743,20 @@ export async function startLibrary() {
 	};
 	const resize = new ResizeObserver(relayout);
 	resize.observe(viewport);
+	let pixelRatioQuery: MediaQueryList | undefined;
+	const onPixelRatioChange = () => {
+		applyPixelRatio();
+		renderer.setSize(viewport.clientWidth, viewport.clientHeight, false);
+		drawShelf = true;
+		watchPixelRatio();
+		requestRender();
+	};
+	function watchPixelRatio() {
+		pixelRatioQuery?.removeEventListener('change', onPixelRatioChange);
+		pixelRatioQuery = matchMedia(`(resolution: ${devicePixelRatio}dppx)`);
+		pixelRatioQuery.addEventListener('change', onPixelRatioChange, { once: true });
+	}
+	watchPixelRatio();
 	const onScroll = () => {
 		frameCamera();
 		requestRender();
@@ -699,6 +772,7 @@ export async function startLibrary() {
 			cancelAnimationFrame(frame);
 			clearTimeout(readerTimeout);
 			resize.disconnect();
+			pixelRatioQuery?.removeEventListener('change', onPixelRatioChange);
 			removeEventListener('scroll', onScroll);
 			visualViewport?.removeEventListener('resize', relayout);
 			iframe?.remove();

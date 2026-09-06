@@ -2,11 +2,10 @@
 // The iframe owns StPageFlip's perpetual animation loop; removing it stops the loop.
 import '@fontsource-variable/commissioner/wght.css';
 import '@fontsource-variable/literata/wght.css';
-import '../../components/bookshelf/prototype/library.css';
+import '../../components/bookshelf/library/library.css';
 ---
 <!doctype html>
 <html lang="en">
-	<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><meta name="robots" content="noindex, nofollow" /><title>Sample book pages</title></head>
 	<body>
 		<div id="pages">
 			<section class="reader-page reader-cover" data-density="hard"><div class="page-inner"><p class="page-kicker" id="cover-author"></p><h2 id="cover-title"></h2><p>Bibliothèque personnelle</p><p aria-hidden="true">✧</p></div></section>
@@ -33,7 +32,7 @@ import '../../components/bookshelf/prototype/library.css';
 				if (color && /^#[0-9a-f]{6}$/i.test(color)) pages.style.setProperty('--book-color', color);
 				await document.fonts.ready;
 				const portrait = innerWidth < 650;
-				const width = Math.floor(Math.min(360, (innerHeight - 8) * 2 / 3, (innerWidth - 16) / (portrait ? 1 : 2)));
+				const width = Math.floor(Math.min(470, (innerHeight - 8) * 2 / 3, (innerWidth - 16) / (portrait ? 1 : 2)));
 				const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 				// ponytail: fixed sample page breaks; measure and paginate authored notes before production.
 				const flip = new PageFlip(pages, { width, height: width * 1.5, size: 'fixed', showCover: true, usePortrait: portrait, flippingTime: reduced ? 1 : 500, maxShadowOpacity: .25, mobileScrollSupport: true, showPageCorners: !reduced });

@@ -12,8 +12,8 @@
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",
 		"format": "biome format --write .",
-		"prototype": "astro dev --host 127.0.0.1 --open /bookshelf/prototype/",
-		"prototype:check": "node scripts/check-library-prototype.mjs"
+		"library": "astro dev --host 127.0.0.1 --open /bookshelf/",
+		"library:check": "node scripts/check-library.mjs"
 	},
 	"dependencies": {
 		"@astrojs/markdown-remark": "^6.3.11",

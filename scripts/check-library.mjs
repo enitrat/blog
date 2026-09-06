@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { chromium, webkit } from 'playwright';
 
-// Run against `bun run prototype`; screenshots remain outside the repository.
+// Run against `pnpm dev`; screenshots remain outside the repository.
 const base = process.env.PROTOTYPE_URL ?? 'http://127.0.0.1:4321';
-const output = '/tmp/cozy-library-check';
+const output = '/tmp/library-check';
 await mkdir(output, { recursive: true });
 for (const engine of [chromium, webkit]) {
 	const browser = await engine.launch();
@@ -26,7 +26,7 @@ for (const engine of [chromium, webkit]) {
 			const page = await browser.newPage({ viewport: { width, height }, hasTouch: width < 600 });
 			const errors = [];
 			page.on('pageerror', (error) => errors.push(error.message));
-			await page.goto(`${base}/bookshelf/prototype/`);
+			await page.goto(`${base}/bookshelf/`);
 			await page.waitForSelector('#library-loading[hidden]', { state: 'attached' });
 			assert.equal(await page.locator('.book-target').count(), 55);
 			assert.equal(
@@ -52,7 +52,7 @@ for (const engine of [chromium, webkit]) {
 				document.getElementById('page-status')?.textContent?.startsWith('Page 1'),
 			);
 			await page.waitForTimeout(550);
-			const reader = page.frames().find((frame) => frame.url().includes('prototype-reader'));
+			const reader = page.frames().find((frame) => frame.url().includes('/bookshelf/reader'));
 			assert.ok(reader, 'Reader has its own lifetime');
 			assert.equal(
 				await reader
@@ -103,10 +103,13 @@ for (const engine of [chromium, webkit]) {
 			await page.close();
 		}
 		const plain = await browser.newPage({ javaScriptEnabled: false });
-		await plain.goto(`${base}/bookshelf/prototype/`);
+		await plain.goto(`${base}/bookshelf/`);
 		await plain.getByRole('link', { name: 'Browse the reading archive', exact: true }).click();
-		assert.match(plain.url(), /\/bookshelf\/?$/);
-		assert.equal(await plain.getByRole('heading', { name: 'Bookshelf', exact: true }).count(), 1);
+		assert.match(plain.url(), /\/bookshelf\/archive\/?$/);
+		assert.equal(
+			await plain.getByRole('heading', { name: 'Reading archive', exact: true }).count(),
+			1,
+		);
 		await plain.close();
 	} finally {
 		await browser.close();
