@@ -1,5 +1,6 @@
 ---
 import type { Book } from '../../booksData';
+import { notedIsbns } from '../../utils/notes';
 import { type PageRange, pleiadeStyleFor, spineWidthFor } from '../../utils/pleiade';
 import PleiadeSpine from './PleiadeSpine.astro';
 
@@ -12,6 +13,8 @@ interface Props {
 }
 
 const { shelfBooks, label, href, size = 'showcase', pageRange } = Astro.props;
+
+const noted = await notedIsbns();
 
 const tilts = [
 	...Array(3).fill(-0.16),
@@ -36,6 +39,7 @@ const tilts = [
 					size={size}
 					tilt={tilts[index % tilts.length]}
 					href={book.writingSlug ? `/writing/${book.writingSlug}/` : href}
+					hasNote={noted.has(book.edition.isbn13)}
 				/>
 			);
 		})}

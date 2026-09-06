@@ -1,0 +1,188 @@
+---
+// The iframe owns StPageFlip's perpetual animation loop; removing it stops the loop.
+import '@fontsource-variable/commissioner/wght.css';
+import '@fontsource-variable/literata/wght.css';
+import { getEntry, render } from 'astro:content';
+import '../../../components/bookshelf/library/library.css';
+import { books } from '../../../booksData';
+import { recordFacts } from '../../../utils/bookRecord';
+import { notedIsbns } from '../../../utils/notes';
+import { PLEIADE_HEX, pleiadeStyleFor } from '../../../utils/pleiade';
+
+/* Only annotated volumes have a reader. The route existing at all is the same
+   fact as the ribbon on the shelf, so the two cannot drift apart. */
+export async function getStaticPaths() {
+	const noted = await notedIsbns();
+	return books
+		.filter((book) => noted.has(book.edition.isbn13))
+		.map((book) => ({ params: { isbn: book.edition.isbn13 }, props: { book } }));
+}
+
+const { book } = Astro.props;
+const note = await getEntry('notes', book.edition.isbn13);
+if (!note) throw new Error(`No note for ${book.title} (${book.edition.isbn13}).`);
+const { Content } = await render(note);
+const leather = PLEIADE_HEX[pleiadeStyleFor(book.author).color];
+---
+<!doctype html>
+<html lang="en">
+	<body style={`--book-color: ${leather}`}>
+		<div id="note-source"><Content /></div>
+		<div id="pages">
+			<section class="reader-page reader-cover" data-density="hard">
+				<div class="page-inner">
+					<p class="page-kicker">{book.author}</p>
+					<h2>{book.title}</h2>
+					<p>Bibliothèque personnelle</p>
+					<p aria-hidden="true">✧</p>
+				</div>
+			</section>
+		</div>
+		<template id="note-leaf">
+			<section class="reader-page">
+				<div class="page-inner">
+					<div class="note-window" aria-hidden="true"><div class="note-column"></div></div>
+					<span class="page-number"></span>
+				</div>
+			</section>
+		</template>
+		<template id="record-leaf">
+			<section class="reader-page">
+				<div class="page-inner page-record">
+					<h2>{book.title}</h2>
+					<p>{book.author}</p>
+					<p>{recordFacts(book)}</p>
+					{book.writingSlug && (
+						<p><a href={`/writing/${book.writingSlug}/`} target="_top">Read the piece ↗</a></p>
+					)}
+					<span class="page-number"></span>
+				</div>
+			</section>
+		</template>
+		<template id="blank-leaf">
+			<section class="reader-page"><div class="page-inner"></div></section>
+		</template>
+		<template id="back-leaf">
+			<section class="reader-page reader-cover" data-density="hard">
+				<div class="page-inner"><p>Bibliothèque personnelle</p><p aria-hidden="true">✧</p></div>
+			</section>
+		</template>
+		<script>
+			import { PageFlip } from 'page-flip/dist/js/page-flip.module.js';
+
+			const source = document.getElementById('note-source');
+			const pages = document.getElementById('pages');
+			const leafOf = (id: string) => {
+				const template = document.getElementById(id);
+				if (!(template instanceof HTMLTemplateElement)) throw new Error(`Missing leaf: ${id}`);
+				const leaf = template.content.firstElementChild?.cloneNode(true);
+				if (!(leaf instanceof HTMLElement)) throw new Error(`Empty leaf: ${id}`);
+				return leaf;
+			};
+
+			if (source && pages) {
+				await document.fonts.ready;
+				const portrait = innerWidth < 650;
+				const width = Math.floor(
+					Math.min(470, ((innerHeight - 8) * 2) / 3, (innerWidth - 16) / (portrait ? 1 : 2)),
+				);
+				const height = width * 1.5;
+				const sized = (leaf: HTMLElement) => {
+					leaf.style.width = `${width}px`;
+					leaf.style.height = `${height}px`;
+					return leaf;
+				};
+				sized(pages.firstElementChild as HTMLElement);
+
+				/* Measure a real leaf rather than guessing: the text box is whatever
+				   the page's padding and its page number leave behind. */
+				const probe = sized(leafOf('note-leaf'));
+				pages.append(probe);
+				const box = probe.querySelector('.note-window');
+				const textWidth = box?.clientWidth ?? 0;
+				const textHeight = box?.clientHeight ?? 0;
+				probe.remove();
+
+				/* Let the browser break the note: laid out as columns exactly one
+				   text box wide and tall, each column IS a page, hyphenation, widows
+				   and unbreakable headings included. Each leaf then shows one column
+				   through its own window. */
+				const GAP = 64;
+				Object.assign(source.style, {
+					width: `${textWidth}px`,
+					height: `${textHeight}px`,
+					columnWidth: `${textWidth}px`,
+					columnGap: `${GAP}px`,
+				});
+				const columns = Math.max(
+					1,
+					Math.round((source.scrollWidth + GAP) / (textWidth + GAP)),
+				);
+				for (let index = 0; index < columns; index++) {
+					const leaf = sized(leafOf('note-leaf'));
+					const column = leaf.querySelector('.note-column');
+					const number = leaf.querySelector('.page-number');
+					if (column instanceof HTMLElement) {
+						const clone = source.cloneNode(true) as HTMLElement;
+						clone.removeAttribute('id');
+						column.append(clone);
+						column.style.transform = `translateX(${-index * (textWidth + GAP)}px)`;
+					}
+					if (number) number.textContent = String(index + 1);
+					pages.append(leaf);
+				}
+				source.removeAttribute('style');
+				source.className = 'note-spoken';
+
+				const record = sized(leafOf('record-leaf'));
+				const number = record.querySelector('.page-number');
+				if (number) number.textContent = String(columns + 1);
+				pages.append(record);
+				pages.append(sized(leafOf('back-leaf')));
+				// StPageFlip pairs leaves into spreads around the two covers, so an
+				// odd count would land the back cover on the wrong side. A real book
+				// answers this with a blank verso.
+				if (pages.children.length % 2)
+					pages.insertBefore(sized(leafOf('blank-leaf')), pages.lastElementChild);
+
+				const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+				const flip = new PageFlip(pages, { width, height, size: 'fixed', showCover: true, usePortrait: portrait, flippingTime: reduced ? 1 : 500, maxShadowOpacity: .25, mobileScrollSupport: true, showPageCorners: !reduced });
+				const announce = () => parent.postMessage({ type: 'reader-page', page: flip.getCurrentPageIndex(), count: flip.getPageCount(), portrait: flip.getOrientation() === 'portrait' }, location.origin);
+				const turn = (next: boolean) => {
+					if (reduced) { if (next) flip.turnToNextPage(); else flip.turnToPrevPage(); }
+					else if (next) flip.flipNext(); else flip.flipPrev();
+				};
+				flip.on('init', () => {
+					requestAnimationFrame(() => {
+						const cover = pages.querySelector('.reader-cover')?.getBoundingClientRect();
+						if (cover) parent.postMessage({ type: 'reader-ready', x: cover.x, y: cover.y, width: cover.width, height: cover.height }, location.origin);
+						announce();
+					});
+				});
+				flip.on('flip', announce);
+				flip.loadFromHTML(document.querySelectorAll<HTMLElement>('.reader-page'));
+				addEventListener('message', (event) => {
+					// WebKit can report this window as the source of a parent-to-iframe message.
+					if (event.origin !== location.origin || (event.source !== parent && event.source !== window)) return;
+					if (event.data === 'next' || event.data === 'open') turn(true);
+					if (event.data === 'previous') turn(false);
+					if (event.data === 'close') {
+						if (reduced) flip.turnToPage(0); else flip.flip(0);
+						setTimeout(() => parent.postMessage({ type: 'reader-closed' }, location.origin), reduced ? 0 : 550);
+					}
+				});
+				addEventListener('keydown', (event) => {
+					if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') { event.preventDefault(); turn(event.key === 'ArrowRight'); }
+					if (event.key === 'Escape') parent.postMessage({ type: 'reader-close' }, location.origin);
+				});
+			}
+		</script>
+	</body>
+</html>
+<style is:global>
+	:root { --home-display: 'Literata Variable', Georgia, serif; --home-sans: 'Commissioner Variable', sans-serif; }
+	* { box-sizing: border-box; }
+	html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+	body { display: grid; place-items: center; }
+	#pages { filter: drop-shadow(0 8px 12px rgb(0 0 0 / .2)); }
+</style>

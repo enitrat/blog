@@ -1,12 +1,13 @@
 import * as THREE from 'three';
 import { type Book, books } from '../../../booksData';
+import { recordFacts } from '../../../utils/bookRecord';
 import {
 	PLEIADE_HEX,
 	pageRangeFor,
 	pleiadeStyleFor,
 	thicknessRatioFor,
 } from '../../../utils/pleiade';
-import { paintBackCover, paintCover, paintGilt, paintSpine } from './pleiade-paint';
+import { paintBackCover, paintCover, paintGilt, paintSignet, paintSpine } from './pleiade-paint';
 import { packShelves } from './shelf-layout';
 
 type Volume = {
@@ -19,6 +20,8 @@ type Volume = {
 	color: string;
 	coverMaterial: THREE.MeshBasicMaterial;
 	shelfCover: THREE.CanvasTexture;
+	/** Set when this volume carries a note: it stands proud and wears a signet. */
+	ribbon?: THREE.Group;
 	/** 0 shelved, 1 fully drawn out under the pointer. */
 	lift: number;
 };
@@ -68,6 +71,14 @@ const HOVER_HEADROOM = 0.24;
    thickness still varies with page count, which is the real difference. */
 const BOOK_HEIGHT = SHELF_INTERIOR - HOVER_HEADROOM;
 const HOVER_OUT = 0.55;
+/* An annotated volume never sits flush. Every book is the same Pléiade format,
+   so the flat shelf face is the collection's signature — breaking it is the
+   whole signal, readable across the case without dimming anything. A tenth of
+   the hover travel: proud, not half-drawn. */
+const PROUD_OUT = 0.14;
+/* Mobile looks at the case almost straight on, so the offset returns less
+   parallax and needs the extra depth to survive. */
+const PROUD_OUT_MOBILE = 0.18;
 const HOVER_TILT = 0.06;
 const CORNICE_OVERHANG = 0.55;
 const DEPTH = 1.28;
@@ -110,9 +121,21 @@ export async function startLibrary() {
 	const close = document.getElementById('return-book');
 	const previous = document.getElementById('previous-page');
 	const next = document.getElementById('next-page');
+	const record = document.getElementById('book-record');
+	const recordTitle = document.getElementById('record-title');
+	const recordAuthor = document.getElementById('record-author');
+	const recordFactsNode = document.getElementById('record-facts');
+	const recordLink = document.getElementById('record-link');
+	const list = document.getElementById('reading-list');
 	if (
 		!(canvas instanceof HTMLCanvasElement) ||
 		!(dialog instanceof HTMLDialogElement) ||
+		!(record instanceof HTMLElement) ||
+		!(recordLink instanceof HTMLAnchorElement) ||
+		!recordTitle ||
+		!recordAuthor ||
+		!recordFactsNode ||
+		!list ||
 		!stage ||
 		!viewport ||
 		!targets ||
@@ -127,11 +150,25 @@ export async function startLibrary() {
 	)
 		return;
 
+	/* Which volumes carry a note. Content collections are server-side, so the
+	   page hands the set over on the stage element. */
+	const parsed: unknown = JSON.parse(stage.dataset.noted ?? '[]');
+	const noted = new Set(Array.isArray(parsed) ? parsed.filter((id) => typeof id === 'string') : []);
+
 	let renderer: THREE.WebGLRenderer;
 	try {
 		renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
 	} catch {
-		loading.textContent = 'The 3D view is unavailable. The reading archive is linked below.';
+		/* No WebGL: the case cannot be drawn at all, so the viewport goes to the
+		   plain list rather than to an apology above an empty stage. */
+		stage.hidden = true;
+		// Nothing here has a ribbon or a spine any more, so the hint stops being true.
+		document.querySelector('.library-note')?.remove();
+		list.hidden = false;
+		const why = document.createElement('p');
+		why.className = 'library-note';
+		why.textContent = 'This browser cannot draw the bookcase. Every book is listed below.';
+		list.before(why);
 		return;
 	}
 	maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -196,6 +233,16 @@ export async function startLibrary() {
 	const giltMat = new THREE.MeshBasicMaterial({ map: giltMap });
 	const boardMat = new THREE.MeshBasicMaterial({ color: '#241910' });
 	const backByColor = new Map<string, THREE.MeshBasicMaterial>();
+	/* One silk, shared. The signet marks the note, not the book. `alphaTest`
+	   rather than blending, so the cut tail needs no depth sorting. */
+	const signetHang = new THREE.MeshBasicMaterial({
+		map: texture(32, 128, (ctx) => paintSignet(ctx, true)),
+		transparent: true,
+		alphaTest: 0.5,
+	});
+	const signetDrape = new THREE.MeshBasicMaterial({
+		map: texture(32, 96, (ctx) => paintSignet(ctx, false)),
+	});
 	const pageRange = pageRangeFor(books);
 
 	const caseGroup = new THREE.Group();
@@ -203,6 +250,8 @@ export async function startLibrary() {
 	const volumes: Volume[] = [];
 	let selected: Volume | undefined;
 	let hovered: Volume | undefined;
+	/** Held out of the shelf while its record slip is open. */
+	let pinned: Volume | undefined;
 	let motion: Motion | undefined;
 	let frame = 0;
 	let drawShelf = true;
@@ -271,10 +320,32 @@ export async function startLibrary() {
 			boardMat,
 		]);
 		group.add(body);
+		const hasNote = noted.has(book.edition.isbn13);
+		let ribbon: THREE.Group | undefined;
+		if (hasNote) {
+			/* A silk marker left in the book: draped over the head, where this
+			   camera looks down and sees it, and hanging a little down the spine,
+			   which is the face a visitor actually reads. */
+			ribbon = new THREE.Group();
+			const silkWidth = Math.min(0.075, width * 0.32);
+			const drape = new THREE.Mesh(new THREE.PlaneGeometry(silkWidth, 0.3), signetDrape);
+			drape.rotation.x = -Math.PI / 2;
+			drape.position.set(0, BOOK_HEIGHT / 2 + 0.005, DEPTH / 2 - 0.15);
+			const hang = new THREE.Mesh(new THREE.PlaneGeometry(silkWidth, 0.34), signetHang);
+			hang.position.set(0, BOOK_HEIGHT / 2 - 0.17, DEPTH / 2 + 0.006);
+			ribbon.add(drape, hang);
+			group.add(ribbon);
+		}
 		const button = document.createElement('button');
 		button.type = 'button';
 		button.className = 'book-target';
-		button.setAttribute('aria-label', `Open ${book.title}, ${book.author}`);
+		// The ribbon is visual; the accessible name has to carry the same news.
+		button.setAttribute(
+			'aria-label',
+			hasNote
+				? `Open ${book.title}, ${book.author} — with a note`
+				: `${book.title}, ${book.author} — reading record`,
+		);
 		button.setAttribute('aria-haspopup', 'dialog');
 		targets.append(button);
 		const volume: Volume = {
@@ -287,6 +358,7 @@ export async function startLibrary() {
 			color,
 			coverMaterial,
 			shelfCover,
+			ribbon,
 			lift: 0,
 		};
 		volumes.push(volume);
@@ -301,13 +373,18 @@ export async function startLibrary() {
 		button.addEventListener('blur', () => {
 			if (hovered === volume) pointAt(undefined);
 		});
-		button.addEventListener('click', () => openBook(volume));
+		// The ribbon promised a book to open; a flush spine promises its record.
+		button.addEventListener('click', () => (hasNote ? openBook(volume) : showRecord(volume)));
 	}
 
 	const pointAt = (volume: Volume | undefined) => {
 		if (selected) return;
 		hovered = volume;
-		caption.textContent = volume ? `${volume.book.title} · ${volume.book.author}` : '';
+		caption.textContent = volume
+			? [volume.book.title, volume.book.author, volume.ribbon ? 'note inside' : undefined]
+					.filter(Boolean)
+					.join(' · ')
+			: '';
 		requestRender();
 	};
 
@@ -361,9 +438,12 @@ export async function startLibrary() {
 			const spread = gap + Math.min(0.03, Math.max(0, (packedWidth - packed) / seams));
 			let x = -(packed + spread * (rowVolumes.length - 1)) / 2;
 			const shelfY = (shelves.length - 1 - row) * PITCH;
+			const proud = mobile ? PROUD_OUT_MOBILE : PROUD_OUT;
 			for (const volume of rowVolumes) {
 				x += volume.width / 2;
-				volume.home.set(x, shelfY + 0.36 + volume.height / 2, 0.18);
+				/* Folded into `home`, so hit-testing, the hover travel and the
+				   return flight all inherit the offset without new state. */
+				volume.home.set(x, shelfY + 0.36 + volume.height / 2, volume.ribbon ? 0.18 + proud : 0.18);
 				volume.lift = 0;
 				volume.group.position.copy(volume.home);
 				volume.group.quaternion.identity();
@@ -473,7 +553,9 @@ export async function startLibrary() {
 		let moving = false;
 		for (const volume of volumes) {
 			if (volume === selected) continue;
-			const target = volume === hovered && !reduced.matches ? 1 : 0;
+			// A pinned volume is out because someone took it down, so it stays out
+			// under reduced motion too — it just gets there without travelling.
+			const target = volume === pinned || (volume === hovered && !reduced.matches) ? 1 : 0;
 			const difference = target - volume.lift;
 			volume.lift =
 				Math.abs(difference) < 0.0015 || reduced.matches
@@ -537,12 +619,55 @@ export async function startLibrary() {
 		requestRender();
 	};
 
+	/** Keep the slip under the spine it belongs to, and inside the viewport. */
+	const placeRecord = (volume: Volume) => {
+		const spine = volume.button.getBoundingClientRect();
+		const slip = record.getBoundingClientRect();
+		const left = Math.min(
+			Math.max(8, spine.left + spine.width / 2 - slip.width / 2),
+			Math.max(8, innerWidth - slip.width - 8),
+		);
+		const below = spine.bottom + 14;
+		const top =
+			below + slip.height > innerHeight - 8 ? Math.max(8, spine.top - slip.height - 14) : below;
+		record.style.left = `${left}px`;
+		record.style.top = `${top}px`;
+	};
+
+	/**
+	 * A volume without a note is never opened — it is taken down and hands over
+	 * its reading record. Everything the archive knows, nothing invented.
+	 */
+	const showRecord = (volume: Volume) => {
+		if (selected) return;
+		const { book } = volume;
+		record.setAttribute('aria-label', `Reading record, ${book.title}`);
+		recordTitle.textContent = book.title;
+		recordAuthor.textContent = book.author;
+		recordFactsNode.textContent = recordFacts(book);
+		recordLink.hidden = !book.writingSlug;
+		if (book.writingSlug) {
+			recordLink.href = `/writing/${book.writingSlug}/`;
+			recordLink.textContent = 'Read the piece ↗';
+		}
+		pinned = volume;
+		hovered = undefined;
+		caption.textContent = '';
+		record.showPopover();
+		placeRecord(volume);
+		// Non-modal, so nothing is trapped; focusing it is what announces the slip.
+		record.focus();
+		requestRender();
+	};
+
 	const openBook = (volume: Volume) => {
 		if (selected) return;
 		selected = volume;
 		hovered = undefined;
 		dialog.dataset.phase = 'extracting';
 		dialog.showModal();
+		// The signet belongs to a shelved book; it has no place on a flying cover.
+		if (volume.ribbon) volume.ribbon.visible = false;
 		let flightRenderer: THREE.WebGLRenderer;
 		try {
 			flightRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -587,8 +712,8 @@ export async function startLibrary() {
 		close.focus();
 		title.textContent = volume.book.title;
 		iframe = document.createElement('iframe');
-		iframe.title = `Sample pages for ${volume.book.title}`;
-		iframe.src = `/bookshelf/reader/?${new URLSearchParams({ book: volume.book.edition.isbn13, color: volume.color })}`;
+		iframe.title = `Note on ${volume.book.title}`;
+		iframe.src = `/bookshelf/reader/${volume.book.edition.isbn13}/`;
 		mount.replaceChildren(iframe);
 		const token = ++generation;
 		readerTimeout = window.setTimeout(() => {
@@ -625,6 +750,7 @@ export async function startLibrary() {
 		move(volume, outside, new THREE.Quaternion(), 1, 300, () => {
 			move(volume, volume.home.clone(), new THREE.Quaternion(), 1, 200, () => {
 				scene.add(volume.group);
+				if (volume.ribbon) volume.ribbon.visible = true;
 				releaseFlight();
 				drawShelf = true;
 				selected = undefined;
@@ -683,11 +809,7 @@ export async function startLibrary() {
 
 	const showPage = (page: number, count: number) => {
 		pageStatus.textContent =
-			page === 0
-				? 'Cover · Sample book'
-				: page === count - 1
-					? 'Back cover'
-					: `Page ${page} · Sample book`;
+			page === 0 ? 'Cover' : page >= count - 1 ? 'Back cover' : `Page ${page} of ${count - 2}`;
 		previous.disabled = page === 0;
 		next.disabled = page >= count - 1;
 	};
@@ -701,6 +823,19 @@ export async function startLibrary() {
 		else if (message.type === 'reader-close') returnBook();
 		else if (message.type === 'reader-page') showPage(message.page, message.count);
 		else if (dialog.dataset.phase === 'extracting') flyToReader(selected, message.cover);
+	});
+	record.addEventListener('toggle', (event) => {
+		// Duck-typed: ToggleEvent is not a global everywhere popovers work.
+		if ((event as { newState?: string }).newState !== 'closed') return;
+		const shelved = pinned;
+		pinned = undefined;
+		/* WebKit does not restore focus from a popover that script opened, so
+		   the spine takes it back here — unless something else already claimed
+		   it, which is the case when the visitor went straight to another book. */
+		const stray = document.activeElement;
+		if (shelved && (!stray || stray === document.body || record.contains(stray)))
+			shelved.button.focus({ preventScroll: true });
+		requestRender();
 	});
 	close.addEventListener('click', returnBook);
 	dialog.addEventListener('cancel', (event) => {
@@ -725,6 +860,8 @@ export async function startLibrary() {
 		const size = `${viewport.clientWidth}x${viewport.clientHeight}`;
 		if (lastSize === size) return;
 		lastSize = size;
+		// Every button rect the slip was anchored to is about to move.
+		if (pinned) record.hidePopover();
 		if (selected) {
 			generation++;
 			clearTimeout(readerTimeout);
@@ -757,6 +894,7 @@ export async function startLibrary() {
 	watchPixelRatio();
 	const onScroll = () => {
 		frameCamera();
+		if (pinned) placeRecord(pinned);
 		requestRender();
 	};
 	addEventListener('scroll', onScroll, { passive: true });

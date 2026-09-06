@@ -1,11 +1,16 @@
 ---
 import Page from '../../layouts/Page.astro';
 import '../../components/bookshelf/library/library.css';
+import { books } from '../../booksData';
+import { recordFacts } from '../../utils/bookRecord';
+import { notedIsbns } from '../../utils/notes';
+
+const noted = [...(await notedIsbns())];
 ---
 <Page title="Bookshelf" description="My personal library — pull a volume off the shelf and read the notes inside." footerContact={false}>
 	<section class="library" aria-label="Personal library">
 		<h1 class="sr-only">Bookshelf</h1>
-		<div id="library-stage" aria-label="Interactive oak bookcase">
+		<div id="library-stage" aria-label="Interactive oak bookcase" data-noted={JSON.stringify(noted)}>
 			<div id="library-viewport">
 				<canvas id="library-canvas" aria-hidden="true"></canvas>
 				<p id="book-caption" aria-live="polite"></p>
@@ -13,9 +18,39 @@ import '../../components/bookshelf/library/library.css';
 			</div>
 			<div id="book-targets" aria-label="Choose a book"></div>
 		</div>
-		<p class="library-note">Pick a spine to take the volume down. <a href="/bookshelf/archive/">Reading archive ↗</a></p>
-		<noscript><p class="library-note">The interactive bookcase needs JavaScript. <a href="/bookshelf/archive/">Browse the reading archive</a>.</p></noscript>
+		<p class="library-note">
+			{noted.length > 0
+				? 'A ribbon means I wrote something down. Pick any spine for its record.'
+				: 'Pick any spine for its record.'}
+		</p>
+		{/* Stands in for the case wherever it cannot be drawn. Hidden by default
+		    rather than hidden on mount, so 55 rows never flash before the oak:
+		    the noscript stylesheet reveals it when scripting is off, and the
+		    library reveals it itself when WebGL is missing. */}
+		<noscript><style>
+			#library-stage,
+			.library-note { display: none; }
+			#reading-list[hidden] { display: block !important; }
+		</style></noscript>
+		<div id="reading-list" hidden>
+			<h2>Every book on the shelves</h2>
+			<ul>
+				{books.map((book) => (
+					<li>
+						<span class="reading-list__title">{book.title}</span>
+						<span class="reading-list__author">{book.author}</span>
+						<span class="reading-list__facts">{recordFacts(book)}</span>
+					</li>
+				))}
+			</ul>
+		</div>
 	</section>
+	<div id="book-record" popover role="dialog" tabindex="-1">
+		<p id="record-title"></p>
+		<p id="record-author"></p>
+		<p id="record-facts"></p>
+		<a id="record-link" hidden></a>
+	</div>
 	<dialog id="book-reader" aria-labelledby="reader-title">
 		<div class="reader-toolbar"><span id="reader-title">Book</span><button id="return-book" type="button">Return to shelf <span aria-hidden="true">↗</span></button></div>
 		<div id="reader-mount"></div>

@@ -61,17 +61,29 @@ body:has(.library) {
 	pointer-events: auto;
 	touch-action: manipulation;
 }
-.book-target:focus-visible {
+/* Gold, not the site's cobalt: this ring is seen against oak and leather.
+   Scoped through the container to outrank the global `.site button` default. */
+#book-targets .book-target:focus-visible {
 	outline: 2px solid #f7e2a4;
 	outline-offset: 3px;
 	box-shadow: 0 0 0 5px rgb(26 17 8 / 0.75);
 }
+/* The case mounts in about a tenth of a second, so this line exists only for
+   the cold cache or the slow phone that needs it. Held back long enough that a
+   normal load never flashes it. */
 #library-loading {
 	position: absolute;
 	inset: 45% 0 auto;
 	text-align: center;
 	color: var(--home-muted);
 	font-size: var(--type-meta-size);
+	opacity: 0;
+	animation: loading-in 240ms ease-out 500ms forwards;
+}
+@keyframes loading-in {
+	to {
+		opacity: 1;
+	}
 }
 #book-caption {
 	position: absolute;
@@ -111,6 +123,73 @@ body:has(.library) {
 #book-caption:empty {
 	display: none;
 }
+/* The reading record of a volume with nothing written in it. A slip of paper
+   under the spine you took down — quiet enough that it never reads as a modal,
+   and never as the thing you came for. */
+#book-record {
+	position: fixed;
+	inset: auto;
+	margin: 0;
+	width: min(19rem, calc(100vw - 2rem));
+	padding: 15px 17px 14px;
+	border: 1px solid var(--home-rule);
+	border-radius: 3px;
+	background: var(--home-paper);
+	box-shadow:
+		0 12px 26px -10px rgb(26 17 8 / 0.42),
+		0 2px 4px rgb(26 17 8 / 0.14);
+	color: var(--home-ink);
+	overflow: visible;
+}
+#book-record:focus-visible {
+	outline: 2px solid var(--home-cobalt);
+	outline-offset: 3px;
+}
+#book-record:popover-open {
+	animation: slip-in 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes slip-in {
+	from {
+		opacity: 0;
+		transform: translateY(-7px);
+	}
+}
+#record-title {
+	margin: 0;
+	font-family: var(--home-display);
+	font-size: 1.05rem;
+	font-weight: 550;
+	line-height: 1.25;
+	letter-spacing: -0.02em;
+}
+#record-author {
+	margin: 5px 0 0;
+	font-size: var(--type-meta-size);
+}
+#record-facts {
+	margin: 11px 0 0;
+	font-size: var(--type-meta-size);
+	line-height: 1.45;
+	color: var(--home-muted);
+	font-variant-numeric: tabular-nums;
+}
+#record-link[hidden] {
+	display: none;
+}
+#record-link {
+	display: inline-block;
+	margin-top: 13px;
+	color: var(--home-cobalt);
+	font-size: var(--type-meta-size);
+	font-weight: 600;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+	#book-record:popover-open {
+		animation: none;
+	}
+}
 .library-note {
 	margin: 16px var(--home-gutter) 28px;
 	font-size: var(--type-meta-size);
@@ -121,6 +200,47 @@ body:has(.library) {
 	color: var(--home-cobalt);
 	font-weight: 600;
 	text-decoration: underline;
+}
+/* The shelves as a plain list, for whoever cannot be shown the oak. */
+#reading-list {
+	margin: 0 var(--home-gutter) 4rem;
+	max-width: 42rem;
+}
+#reading-list h2 {
+	margin: 0 0 1.5rem;
+	font-family: var(--home-display);
+	font-size: var(--type-title-size, 1.5rem);
+	font-weight: 540;
+	letter-spacing: -0.03em;
+}
+#reading-list ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+#reading-list li {
+	display: grid;
+	gap: 2px;
+	padding: 0.85rem 0;
+	border-top: 1px solid var(--home-rule);
+}
+#reading-list li:last-child {
+	border-bottom: 1px solid var(--home-rule);
+}
+.reading-list__title {
+	font-family: var(--home-display);
+	font-size: 1.02rem;
+	font-weight: 550;
+	line-height: 1.3;
+	letter-spacing: -0.02em;
+}
+.reading-list__author {
+	font-size: var(--type-meta-size);
+}
+.reading-list__facts {
+	font-size: var(--type-meta-size);
+	color: var(--home-muted);
+	font-variant-numeric: tabular-nums;
 }
 #book-reader {
 	position: fixed;
@@ -266,10 +386,99 @@ body:has(.library) {
 	gap: 24px;
 	font-size: 12px;
 }
+/* The note is laid out once as columns exactly one text box wide and tall, and
+   each leaf shows one column through its own window. The browser does the
+   breaking — widows, orphans and unbreakable headings included. */
+#note-source {
+	position: absolute;
+	top: 0;
+	left: -20000px;
+	column-fill: auto;
+	orphans: 2;
+	widows: 2;
+}
+.note-window {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow: hidden;
+}
+.note-column > div {
+	column-fill: auto;
+}
+/* One linear copy of the note, for anything that reads rather than looks. */
+.note-spoken {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+.page-inner :is(h2, h3, h4) {
+	break-after: avoid;
+}
+.page-inner :is(h3, h4) {
+	margin: 20px 0 10px;
+	font-family: var(--home-display);
+	font-size: 16px;
+	font-weight: 560;
+	line-height: 1.25;
+}
+.page-inner :is(ul, ol) {
+	margin: 0 0 16px;
+	padding-left: 1.1em;
+	font-family: var(--home-display);
+	font-size: 15px;
+	line-height: 1.65;
+}
+.page-inner li {
+	margin-bottom: 6px;
+}
+.page-inner blockquote {
+	margin: 0 0 16px;
+	padding-left: 14px;
+	border-left: 1px solid rgb(96 67 31 / 0.4);
+	font-style: italic;
+}
+.page-inner a {
+	color: inherit;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	text-decoration-color: rgb(96 67 31 / 0.5);
+}
+.page-inner hr {
+	margin: 20px auto;
+	width: 34%;
+	border: 0;
+	border-top: 1px solid rgb(96 67 31 / 0.32);
+}
+.note-column > div > :first-child {
+	margin-top: 0;
+}
+/* The record leaf of a book that also holds a note: the same facts as the
+   shelf slip. Set as a colophon — centred, low, small — so the space around it
+   reads as composition rather than as a page someone failed to finish. */
+.page-record {
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+}
+.page-record h2 {
+	margin: auto 0 18px;
+	font-size: clamp(19px, 2.2vw, 25px);
+}
+.page-record p {
+	margin-bottom: 6px;
+	font-size: 14px;
+}
+.page-record .page-number {
+	width: 100%;
+}
+
 /* While the volume is flying between the shelf and the reader, the paper pages
    underneath it must not show. `closing` still needs its toolbar. */
 #book-reader:is([data-phase="extracting"], [data-phase="returning"])
-	:is(#reader-mount, .reader-controls),
+:is(#reader-mount, .reader-controls),
 #book-reader[data-phase="closing"] .reader-controls {
 	visibility: hidden;
 }
@@ -312,4 +521,13 @@ body:has(#book-reader[open]) .site-header,
 body:has(#book-reader[open]) #book-caption,
 body:has(#book-reader[open]) .library-note {
 	visibility: hidden;
+}
+/* Browser defaults belong to no design system. */
+::selection {
+	background: color-mix(in srgb, var(--home-cobalt) 24%, transparent);
+	color: var(--home-ink);
+}
+.reader-page ::selection {
+	background: rgb(96 67 31 / 0.26);
+	color: #2f2820;
 }

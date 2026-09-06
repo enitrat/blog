@@ -22,6 +22,7 @@ export default defineConfig({
 		'/blog': '/writing',
 		'/blog/[...slug]': '/writing/[...slug]',
 		'/reads': '/bookshelf',
+		'/bookshelf/archive': '/bookshelf',
 	},
 
 	markdown: {

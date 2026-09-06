@@ -15,9 +15,37 @@
  */
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 import { chromium, webkit } from 'playwright';
 import { books } from '../src/booksData.ts';
+
+/* Both halves of the shelf need a book to stand for them, and today no note is
+   written. So the checks own one: a fixture note, written before the server
+   starts and removed after, that makes exactly one volume annotated. */
+const NOTES = 'src/content/notes';
+const NOTED = '9780241252086'; // White Nights
+const FLUSH = 'East of Eden';
+const FIXTURE = `${NOTES}/${NOTED}.md`;
+const FIXTURE_BODY = `---
+---
+
+## A fixture, not a note
+
+Dostoevsky's narrator talks himself into a life over four nights and loses it
+on the fifth. The check needs enough prose to break across leaves, so here is
+a second paragraph doing exactly that and no more.
+
+The reader has to paginate this, fit it inside the page box, and land the back
+cover on the right-hand side.
+`;
+
+/** Take the shelf as it is if a real note already exists; otherwise plant one. */
+async function fixtureNote() {
+	const existing = await readdir(NOTES).catch(() => []);
+	if (existing.some((name) => name.startsWith(NOTED))) return { planted: false, clean: () => {} };
+	await writeFile(FIXTURE, FIXTURE_BODY);
+	return { planted: true, clean: () => rm(FIXTURE, { force: true }) };
+}
 
 const OUTPUT = '/tmp/library-check';
 /* Two at a time. Each case drives real WebGL, and at three the machine starves
@@ -119,6 +147,16 @@ async function check({ engine, width, height }, base) {
 		await page.goto(`${base}/bookshelf/`);
 		await page.waitForSelector('#library-loading[hidden]', { state: 'attached' });
 
+		at('see the note the fixture planted');
+		assert.deepEqual(
+			await page.locator('#library-stage').evaluate((node) => JSON.parse(node.dataset.noted)),
+			[NOTED],
+			'The server is not serving the fixture note — a stale dev server on this port?',
+		);
+
+		at('put the plain list away once the oak is up');
+		assert.equal(await page.locator('#reading-list').isVisible(), false);
+
 		at('shelve every book without overflowing sideways');
 		assert.equal(await page.locator('.book-target').count(), books.length);
 		assert.equal(
@@ -133,9 +171,31 @@ async function check({ engine, width, height }, base) {
 		await page.screenshot({ path: `${OUTPUT}/${tag}-shelf.png` });
 
 		at('scroll to the last shelf');
-		await page.getByRole('button', { name: /Open Marche ou crève/ }).scrollIntoViewIfNeeded();
+		await page.getByRole('button', { name: /Marche ou crève/ }).scrollIntoViewIfNeeded();
 		await page.waitForTimeout(250);
 		await page.screenshot({ path: `${OUTPUT}/${tag}-shelf-end.png` });
+		await page.evaluate(() => scrollTo(0, 0));
+
+		at('hand over a reading record for a book with no note');
+		const flush = page.getByRole('button', { name: new RegExp(`${FLUSH}.*reading record`) });
+		await flush.scrollIntoViewIfNeeded();
+		await flush.click();
+		await page.waitForSelector('#book-record:popover-open');
+		assert.match(await page.locator('#record-title').textContent(), new RegExp(FLUSH));
+		assert.match(await page.locator('#record-facts').textContent(), /\d+ pages/);
+		assert.equal(
+			await page.locator('#book-reader').evaluate((node) => node.open),
+			false,
+			'A book with no note must never open',
+		);
+		await page.screenshot({ path: `${OUTPUT}/${tag}-record.png` });
+		await page.keyboard.press('Escape');
+		await page.waitForSelector('#book-record:popover-open', { state: 'detached' });
+		assert.equal(
+			await flush.evaluate((node) => document.activeElement === node),
+			true,
+			'Dismissing the record returns focus to the spine',
+		);
 		await page.evaluate(() => scrollTo(0, 0));
 
 		at('open a book from the keyboard');
@@ -157,8 +217,14 @@ async function check({ engine, width, height }, base) {
 					nodes.some((node) => node.clientHeight > 0 && node.scrollHeight > node.clientHeight + 2),
 				),
 			false,
-			'Sample text fits the page',
+			'The note fits its page',
 		);
+		assert.equal(
+			await reader.locator('.page-inner').filter({ hasText: 'place for a note' }).count(),
+			0,
+			'No placeholder copy survives in the reader',
+		);
+		assert.match(await page.locator('#page-status').textContent(), /^Page 1 of \d+$/);
 		await page.screenshot({ path: `${OUTPUT}/${tag}-open.png` });
 
 		at('turn a page forward, then back');
@@ -221,21 +287,39 @@ async function check({ engine, width, height }, base) {
 	}
 }
 
-/** The archive has to work with JavaScript switched off. */
+/**
+ * Vite optimises three.js on the first real browser load, and on a cleared dep
+ * cache that can outlast a step timeout — which then looks like a shelf that
+ * never mounts. Pay it once, before the cases start competing for the server.
+ */
+async function warm(base) {
+	const browser = await chromium.launch();
+	try {
+		const page = await browser.newPage();
+		await page.goto(`${base}/bookshelf/`);
+		await page.waitForSelector('#library-loading[hidden]', {
+			state: 'attached',
+			timeout: 90_000,
+		});
+	} finally {
+		await browser.close();
+	}
+}
+
+/** With JavaScript off there is no oak, so the plain list has to carry it. */
 async function checkWithoutScript(base) {
 	const browser = await chromium.launch();
 	try {
 		const page = await browser.newPage({ javaScriptEnabled: false });
 		await page.goto(`${base}/bookshelf/`);
-		await page.getByRole('link', { name: 'Browse the reading archive', exact: true }).click();
-		assert.match(page.url(), /\/bookshelf\/archive\/?$/);
 		assert.equal(
-			await page.getByRole('heading', { name: 'Reading archive', exact: true }).count(),
-			1,
+			await page.getByRole('heading', { name: 'Every book on the shelves' }).isVisible(),
+			true,
 		);
-		console.log('  ✓ no-JavaScript archive path');
+		assert.equal(await page.locator('#reading-list li').count(), books.length);
+		console.log('  ✓ no-JavaScript reading list');
 	} catch (error) {
-		error.message = `no-JavaScript archive path — ${error.message}`;
+		error.message = `no-JavaScript reading list — ${error.message}`;
 		throw error;
 	} finally {
 		await browser.close();
@@ -269,7 +353,10 @@ const selected = CASES.filter(
 assert.ok(selected.length > 0, `No cases match: ${filters.join(' ')}`);
 
 await mkdir(OUTPUT, { recursive: true });
+const fixture = await fixtureNote();
+if (fixture.planted) console.log(`fixture note planted at ${FIXTURE}`);
 const { base, stop } = await serve();
+await warm(base);
 console.log(`${selected.length} case(s), ${CONCURRENCY} at a time\n`);
 const started = Date.now();
 let failures;
@@ -284,12 +371,13 @@ try {
 						`${item.engine.name()} ${item.width}×${item.height}`,
 					),
 			),
-			() => withTimeout(checkWithoutScript(base), CASE_TIMEOUT, 'no-JavaScript archive path'),
+			() => withTimeout(checkWithoutScript(base), CASE_TIMEOUT, 'no-JavaScript reading list'),
 		],
 		CONCURRENCY,
 	);
 } finally {
 	stop();
+	await fixture.clean();
 }
 
 console.log(`\n${((Date.now() - started) / 1000).toFixed(0)}s · screenshots in ${OUTPUT}`);

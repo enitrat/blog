@@ -326,3 +326,41 @@ export function paintGilt(ctx: CanvasRenderingContext2D) {
 	ctx.fillStyle = bind;
 	ctx.fillRect(0, 0, width, height);
 }
+
+/* The signet a note leaves behind. One silk for every annotated volume: the
+   mark has to read as a system repeated across the case, not as trim on each
+   leather. Deep enough to stay legible against both the gilt head and every
+   one of the eight leathers. */
+const SILK = { edge: '#4a0a15', core: '#7d1526', sheen: '#a8323f' };
+
+/**
+ * A ribbon, running texture-top (bound in the gutter) to texture-bottom (the
+ * cut tail). `notched` cuts the V of a real signet out of the tail, so the
+ * hanging length ends in a cut rather than a hem.
+ */
+export function paintSignet(ctx: CanvasRenderingContext2D, notched: boolean) {
+	const { width, height } = ctx.canvas;
+	ctx.clearRect(0, 0, width, height);
+	const across = ctx.createLinearGradient(0, 0, width, 0);
+	across.addColorStop(0, SILK.edge);
+	across.addColorStop(0.34, SILK.core);
+	across.addColorStop(0.58, SILK.sheen);
+	across.addColorStop(1, SILK.edge);
+	ctx.fillStyle = across;
+	ctx.fillRect(0, 0, width, height);
+	const gutter = ctx.createLinearGradient(0, 0, 0, height);
+	gutter.addColorStop(0, 'rgba(0,0,0,0.45)');
+	gutter.addColorStop(0.32, 'rgba(0,0,0,0)');
+	ctx.fillStyle = gutter;
+	ctx.fillRect(0, 0, width, height);
+	if (!notched) return;
+	ctx.globalCompositeOperation = 'destination-out';
+	ctx.fillStyle = '#000';
+	ctx.beginPath();
+	ctx.moveTo(0, height);
+	ctx.lineTo(width / 2, height - width * 0.8);
+	ctx.lineTo(width, height);
+	ctx.closePath();
+	ctx.fill();
+	ctx.globalCompositeOperation = 'source-over';
+}

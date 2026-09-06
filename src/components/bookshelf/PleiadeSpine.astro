@@ -10,6 +10,8 @@ interface Props {
 	pageCount?: number;
 	size?: 'showcase' | 'extended';
 	tilt?: number;
+	/** Wears a signet, like the volume on the bookcase does. */
+	hasNote?: boolean;
 }
 
 const {
@@ -21,6 +23,7 @@ const {
 	pageCount,
 	size = 'showcase',
 	tilt = 0,
+	hasNote = false,
 } = Astro.props;
 
 const Spine = href ? 'a' : 'div';
@@ -30,12 +33,13 @@ const Spine = href ? 'a' : 'div';
 	class:list={[
 		'pleiade-spine',
 		`pleiade-spine--${size}`,
-		{ 'pleiade-spine--linked': href },
+		{ 'pleiade-spine--linked': href, 'pleiade-spine--noted': hasNote },
 	]}
 	href={href}
 	style={`--leather: ${PLEIADE_HEX[color]}; --spine-width: ${width}px; --spine-tilt: ${tilt}deg`}
-	aria-label={`${title}, ${author}${pageCount ? `, ${pageCount} pages` : ''}`}
+	aria-label={`${title}, ${author}${pageCount ? `, ${pageCount} pages` : ''}${hasNote ? ', note on the bookcase' : ''}`}
 >
+	{hasNote && <span class="pleiade-spine__signet" aria-hidden="true"></span>}
 	<span class="pleiade-spine__panel">
 		<strong>{author}</strong>
 		<span>{title}</span>
@@ -79,6 +83,23 @@ const Spine = href ? 'a' : 'div';
 		border-radius: 5px 5px 3px 3px;
 		content: '';
 		pointer-events: none;
+	}
+
+	/* The same silk marker as the bookcase, seen from the only face a flat
+	   shelf shows: over the head and a little way down the spine. */
+
+	.pleiade-spine__signet {
+		position: absolute;
+		top: 0;
+		left: 50%;
+		z-index: 2;
+		width: 7px;
+		height: 34px;
+		margin-left: -3.5px;
+		background:
+			linear-gradient(180deg, rgb(0 0 0 / 0.45), transparent 34%),
+			linear-gradient(90deg, #4a0a15, #7d1526 34%, #a8323f 58%, #4a0a15);
+		clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 76%, 0 100%);
 	}
 
 	.pleiade-spine--linked:hover,

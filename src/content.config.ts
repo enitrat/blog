@@ -33,4 +33,15 @@ const work = defineCollection({
 	}),
 });
 
-export const collections = { blog, work };
+/**
+ * A shelf-side reflection on one book. The filename IS the book's ISBN-13, so
+ * a file existing here is the whole "this volume is annotated" signal — there
+ * is no flag to keep in sync in `booksData.ts`. Substantial commentary on a
+ * book belongs in `blog` and is reached through the book's `writingSlug`.
+ */
+const notes = defineCollection({
+	loader: glob({ base: './src/content/notes', pattern: '**/*.{md,mdx}' }),
+	schema: z.object({}),
+});
+
+export const collections = { blog, work, notes };
