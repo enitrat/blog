@@ -1,7 +1,13 @@
 import * as THREE from 'three';
 import { type Book, books } from '../../../booksData';
-import { pageRangeFor, pleiadeStyleFor, spineWidthFor } from '../../../utils/pleiade';
-import { PLEIADE_HEX, paintBackCover, paintCover, paintGilt, paintSpine } from './pleiade-paint';
+import {
+	PLEIADE_HEX,
+	pageRangeFor,
+	pleiadeStyleFor,
+	thicknessRatioFor,
+} from '../../../utils/pleiade';
+import { paintBackCover, paintCover, paintGilt, paintSpine } from './pleiade-paint';
+import { packShelves } from './shelf-layout';
 
 type Volume = {
 	book: Book;
@@ -30,12 +36,47 @@ type Motion = {
 	done: () => void;
 };
 
-const PITCH = 2.3;
+/** Everything the reader iframe is allowed to say. */
+type ReaderMessage =
+	| { type: 'reader-closed' }
+	| { type: 'reader-close' }
+	| { type: 'reader-page'; page: number; count: number }
+	| { type: 'reader-ready'; cover: DOMRectReadOnly };
+
+const isNumber = (value: unknown): value is number => typeof value === 'number';
+
+/** Validate a postMessage payload at the trust boundary. Unknown shapes are dropped. */
+function readerMessage(data: unknown): ReaderMessage | undefined {
+	if (typeof data !== 'object' || data === null) return;
+	const { type, page, count, x, y, width, height } = data as Record<string, unknown>;
+	if (type === 'reader-closed' || type === 'reader-close') return { type };
+	if (type === 'reader-page' && isNumber(page) && isNumber(count)) return { type, page, count };
+	if (type === 'reader-ready' && isNumber(x) && isNumber(y) && isNumber(width) && isNumber(height))
+		return { type, cover: new DOMRectReadOnly(x, y, width, height) };
+}
+
+const PITCH = 2.64;
+/* A shelf board is 0.22 thick centred 0.24 above its shelf line, and a book's
+   base sits at 0.36 — leaving this much clear height under the board above. */
+const SHELF_INTERIOR = PITCH - 0.23;
+/* Air left above the spines. A hovered book rises 0.05 and tips its head
+   forward, lifting its back top corner ~0.07; without this it drove straight
+   into the board above, and the top of the book was never visible. */
+const HOVER_HEADROOM = 0.24;
+/* Every volume is the same height. The Bibliothèque de la Pléiade is a single
+   standardised format — a flat top line is the collection's signature. Spine
+   thickness still varies with page count, which is the real difference. */
+const BOOK_HEIGHT = SHELF_INTERIOR - HOVER_HEADROOM;
 const HOVER_OUT = 0.55;
 const HOVER_TILT = 0.06;
 const CORNICE_OVERHANG = 0.55;
 const DEPTH = 1.28;
 const BREAKPOINT = 720;
+/* Sized to how large these actually draw: a spine occupies ~130 CSS px, so at a
+   pixel ratio of 2 anything past 256 is oversampling — 55 books' worth of it. */
+const SPINE_TEXTURE = { width: 256, height: 1024 };
+const SHELF_COVER_TEXTURE = { width: 256, height: 384 };
+const OPEN_COVER_TEXTURE = { width: 1024, height: 1536 };
 
 let maxAnisotropy = 4;
 
@@ -200,16 +241,16 @@ export async function startLibrary() {
 		cam.lookAt(0, targetY, 0);
 	};
 
-	for (const [index, book] of books.entries()) {
+	for (const book of books) {
 		const style = pleiadeStyleFor(book.author);
 		const color = PLEIADE_HEX[style.color];
-		const px = spineWidthFor(book.edition.pageCount, pageRange, 'extended');
-		const width = 0.5 + ((px - 58) / 60) * 0.3;
-		const height = 2.12 + (index % 3) * 0.025;
+		const width = 0.5 + thicknessRatioFor(book.edition.pageCount, pageRange) * 0.3;
 		const group = new THREE.Group();
 		const painted = { author: style.label, title: book.title, color };
-		const spineMap = texture(512, 2048, (ctx) => paintSpine(ctx, painted));
-		const shelfCover = texture(512, 768, (ctx) =>
+		const spineMap = texture(SPINE_TEXTURE.width, SPINE_TEXTURE.height, (ctx) =>
+			paintSpine(ctx, painted),
+		);
+		const shelfCover = texture(SHELF_COVER_TEXTURE.width, SHELF_COVER_TEXTURE.height, (ctx) =>
 			paintCover(ctx, { author: book.author, title: book.title, color }),
 		);
 		let backMat = backByColor.get(color);
@@ -221,7 +262,7 @@ export async function startLibrary() {
 		}
 		const spineMat = new THREE.MeshBasicMaterial({ map: spineMap });
 		const coverMaterial = new THREE.MeshBasicMaterial({ map: shelfCover });
-		const body = new THREE.Mesh(new THREE.BoxGeometry(width, height, DEPTH), [
+		const body = new THREE.Mesh(new THREE.BoxGeometry(width, BOOK_HEIGHT, DEPTH), [
 			coverMaterial,
 			backMat,
 			giltMat,
@@ -242,7 +283,7 @@ export async function startLibrary() {
 			home: new THREE.Vector3(),
 			button,
 			width,
-			height,
+			height: BOOK_HEIGHT,
 			color,
 			coverMaterial,
 			shelfCover,
@@ -288,74 +329,8 @@ export async function startLibrary() {
 		drawShelf = true;
 	};
 
-	const layout = () => {
-		drawShelf = true;
-		applyPixelRatio();
-		mobile = viewport.clientWidth < BREAKPOINT;
-		// Aim for a spine around 130px wide: wide enough to read the gilt, narrow
-		// enough that the case is wider than it is tall and two shelves stay in view.
-		const perRow = mobile ? 3 : Math.max(6, Math.round(viewport.clientWidth / 132));
-		const rows = Math.ceil(volumes.length / perRow);
-		const gap = mobile ? 0.02 : 0.022;
-		// Balance by width, not by count: spines are as thick as the book, so eight
-		// thin volumes leave a shelf visibly short. Binary-search the narrowest
-		// shelf every book still fits into, then pack to it — that is the partition
-		// with the least width left over on any one shelf.
-		const span = (volume: Volume) => volume.width + gap;
-		const spans = volumes.map(span);
-		const widest = Math.max(...spans);
-		const totalSpan = spans.reduce((sum, value) => sum + value, 0);
-		const shelvesNeeded = (limit: number) => {
-			let used = 1;
-			let filled = 0;
-			for (const value of spans) {
-				if (filled + value > limit + 1e-9) {
-					used++;
-					filled = 0;
-				}
-				filled += value;
-			}
-			return used;
-		};
-		let low = Math.max(widest, totalSpan / rows);
-		let high = totalSpan;
-		for (let step = 0; step < 40; step++) {
-			const mid = (low + high) / 2;
-			if (shelvesNeeded(mid) <= rows) high = mid;
-			else low = mid;
-		}
-		const limit = high;
-		const shelves: Volume[][] = [];
-		let current: Volume[] = [];
-		let filled = 0;
-		for (const [index, volume] of volumes.entries()) {
-			const left = volumes.length - index;
-			const shelvesLeft = rows - shelves.length;
-			// Break when the shelf is full, or early when the books left would not
-			// otherwise reach every remaining shelf — no stub row at the bottom.
-			const full = current.length > 0 && filled + spans[index] > limit + 1e-9;
-			const rationing = current.length > 0 && left < shelvesLeft;
-			if (full || rationing) {
-				shelves.push(current);
-				current = [];
-				filled = 0;
-			}
-			current.push(volume);
-			filled += spans[index];
-		}
-		if (current.length > 0) shelves.push(current);
-		const packedWidth = shelves.reduce((max, rowVolumes) => {
-			const packed = rowVolumes.reduce((sum, volume) => sum + volume.width, 0);
-			return Math.max(max, packed + gap * Math.max(0, rowVolumes.length - 1));
-		}, 0);
-		caseWidth = packedWidth + 0.68;
-		caseHeight = rows * PITCH + 0.62;
-		eyeX = mobile ? 0.95 : 1.45;
-		eyeY = mobile ? 1.05 : 1.35;
-		eyeZ = mobile ? 11 : 14;
-		const inner = packedWidth + 0.1;
-		const innerLeft = -inner / 2;
-		const innerRight = inner / 2;
+	/** Rebuild the oak carcass for a given number of shelves. */
+	const buildCase = (rows: number) => {
 		for (const child of [...caseGroup.children]) {
 			if (child instanceof THREE.Mesh) child.geometry.dispose();
 			caseGroup.remove(child);
@@ -376,14 +351,16 @@ export async function startLibrary() {
 		box(caseWidth + CORNICE_OVERHANG, 0.24, 2.2, 0, caseHeight + 0.06, 0.04, oak);
 		box(caseWidth + 0.38, 0.12, 2.12, 0, caseHeight - 0.1, 0.04, trim);
 		box(caseWidth + 0.4, 0.36, 2.16, 0, 0.02, 0.04, oak);
+	};
 
+	/** Centre each shelf's run of books, spreading the slack across its seams. */
+	const placeVolumes = (shelves: Volume[][], packedWidth: number, gap: number) => {
 		for (const [row, rowVolumes] of shelves.entries()) {
 			const packed = rowVolumes.reduce((sum, volume) => sum + volume.width, 0);
 			const seams = Math.max(1, rowVolumes.length - 1);
 			const spread = gap + Math.min(0.03, Math.max(0, (packedWidth - packed) / seams));
-			const total = packed + spread * (rowVolumes.length - 1);
-			let x = (innerLeft + innerRight) / 2 - total / 2;
-			const shelfY = (rows - 1 - row) * PITCH;
+			let x = -(packed + spread * (rowVolumes.length - 1)) / 2;
+			const shelfY = (shelves.length - 1 - row) * PITCH;
 			for (const volume of rowVolumes) {
 				x += volume.width / 2;
 				volume.home.set(x, shelfY + 0.36 + volume.height / 2, 0.18);
@@ -394,7 +371,10 @@ export async function startLibrary() {
 				x += volume.width / 2 + spread;
 			}
 		}
+	};
 
+	/** Size the orthographic view so the whole carcass, cornice included, fits. */
+	const fitView = () => {
 		const aspect = viewport.clientWidth / Math.max(1, viewport.clientHeight);
 		// The cornice overhangs the carcass, so fit the widest board, not caseWidth,
 		// or the crown and the stiles get clipped by the viewport edges.
@@ -414,12 +394,20 @@ export async function startLibrary() {
 		const canvasH = viewport.clientHeight;
 		stage.style.height = `${Math.max(canvasH, Math.round(canvasH * (caseHeight / viewHeight)))}px`;
 		renderer.setSize(viewport.clientWidth, viewport.clientHeight, false);
+	};
 
+	/**
+	 * Park each book's hit target over its spine. The buttons are the keyboard and
+	 * pointer surface; `layoutCamera` projects at the scroll position that will
+	 * bring each shelf into view, so a target lands on its spine at any scroll.
+	 */
+	const placeButtons = () => {
 		layoutCamera.left = -viewWidth / 2;
 		layoutCamera.right = viewWidth / 2;
 		layoutCamera.top = viewHeight / 2;
 		layoutCamera.bottom = -viewHeight / 2;
 
+		const canvasH = viewport.clientHeight;
 		const stageW = stage.clientWidth;
 		const stageH = stage.clientHeight;
 		const spine = new THREE.Vector3();
@@ -437,6 +425,37 @@ export async function startLibrary() {
 				height: `${h}px`,
 			});
 		}
+	};
+
+	const layout = () => {
+		drawShelf = true;
+		applyPixelRatio();
+		mobile = viewport.clientWidth < BREAKPOINT;
+		// Aim for a spine around 130px wide: wide enough to read the gilt, narrow
+		// enough that the case is wider than it is tall and two shelves stay in view.
+		const perRow = mobile ? 3 : Math.max(6, Math.round(viewport.clientWidth / 132));
+		const gap = mobile ? 0.02 : 0.022;
+		const shelves = packShelves(
+			volumes,
+			(volume) => volume.width + gap,
+			Math.ceil(volumes.length / perRow),
+		);
+		// The packed result, not the request, decides how tall the carcass is.
+		const rows = shelves.length;
+		const packedWidth = shelves.reduce((max, rowVolumes) => {
+			const packed = rowVolumes.reduce((sum, volume) => sum + volume.width, 0);
+			return Math.max(max, packed + gap * Math.max(0, rowVolumes.length - 1));
+		}, 0);
+		caseWidth = packedWidth + 0.68;
+		caseHeight = rows * PITCH + 0.62;
+		eyeX = mobile ? 0.95 : 1.45;
+		eyeY = mobile ? 1.05 : 1.35;
+		eyeZ = mobile ? 11 : 14;
+
+		buildCase(rows);
+		placeVolumes(shelves, packedWidth, gap);
+		fitView();
+		placeButtons();
 		frameCamera();
 		requestRender();
 	};
@@ -533,7 +552,7 @@ export async function startLibrary() {
 			caption.textContent = 'The book could not open. Please try again.';
 			return;
 		}
-		volume.coverMaterial.map = texture(1024, 1536, (ctx) =>
+		volume.coverMaterial.map = texture(OPEN_COVER_TEXTURE.width, OPEN_COVER_TEXTURE.height, (ctx) =>
 			paintCover(ctx, {
 				author: volume.book.author,
 				title: volume.book.title,
@@ -625,57 +644,14 @@ export async function startLibrary() {
 		} else finishReturn();
 	};
 
-	addEventListener('message', (event: MessageEvent<unknown>) => {
-		if (
-			event.origin !== location.origin ||
-			event.source !== iframe?.contentWindow ||
-			!selected ||
-			typeof event.data !== 'object' ||
-			event.data === null
-		)
-			return;
-		const data = event.data;
-		if (!('type' in data)) return;
-		if (data.type === 'reader-closed') {
-			finishReturn();
-			return;
-		}
-		if (data.type === 'reader-close') {
-			returnBook();
-			return;
-		}
-		if (
-			data.type === 'reader-page' &&
-			'page' in data &&
-			typeof data.page === 'number' &&
-			'count' in data &&
-			typeof data.count === 'number'
-		) {
-			pageStatus.textContent =
-				data.page === 0
-					? 'Cover · Sample book'
-					: data.page === data.count - 1
-						? 'Back cover'
-						: `Page ${data.page} · Sample book`;
-			previous.disabled = data.page === 0;
-			next.disabled = data.page >= data.count - 1;
-		}
-		if (
-			data.type !== 'reader-ready' ||
-			dialog.dataset.phase !== 'extracting' ||
-			!('x' in data && 'y' in data && 'width' in data && 'height' in data) ||
-			typeof data.x !== 'number' ||
-			typeof data.y !== 'number' ||
-			typeof data.width !== 'number' ||
-			typeof data.height !== 'number'
-		)
-			return;
+	/** Fly the extracted volume onto the cover the reader iframe just laid out. */
+	const flyToReader = (volume: Volume, cover: DOMRectReadOnly) => {
+		if (!iframe) return;
 		clearTimeout(readerTimeout);
-		const volume = selected;
 		const frameRect = iframe.getBoundingClientRect();
 		const canvasRect = canvas.getBoundingClientRect();
-		const centerX = frameRect.x + data.x + data.width / 2;
-		const centerY = frameRect.y + data.y + data.height / 2;
+		const centerX = frameRect.x + cover.x + cover.width / 2;
+		const centerY = frameRect.y + cover.y + cover.height / 2;
 		const depth = new THREE.Vector3(0, volume.home.y, 7).project(camera).z;
 		const destination = new THREE.Vector3(
 			((centerX - canvasRect.x) / canvasRect.width) * 2 - 1,
@@ -685,7 +661,7 @@ export async function startLibrary() {
 		const orientation = camera.quaternion
 			.clone()
 			.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2));
-		const scale = ((data.height / canvasRect.height) * viewHeight) / volume.height;
+		const scale = ((cover.height / canvasRect.height) * viewHeight) / volume.height;
 		destination.addScaledVector(
 			new THREE.Vector3(0, 0, 1).applyQuaternion(camera.quaternion),
 			(-volume.width / 2) * scale,
@@ -703,6 +679,28 @@ export async function startLibrary() {
 				requestRender();
 			});
 		});
+	};
+
+	const showPage = (page: number, count: number) => {
+		pageStatus.textContent =
+			page === 0
+				? 'Cover · Sample book'
+				: page === count - 1
+					? 'Back cover'
+					: `Page ${page} · Sample book`;
+		previous.disabled = page === 0;
+		next.disabled = page >= count - 1;
+	};
+
+	addEventListener('message', (event: MessageEvent<unknown>) => {
+		if (event.origin !== location.origin || event.source !== iframe?.contentWindow || !selected)
+			return;
+		const message = readerMessage(event.data);
+		if (!message) return;
+		if (message.type === 'reader-closed') finishReturn();
+		else if (message.type === 'reader-close') returnBook();
+		else if (message.type === 'reader-page') showPage(message.page, message.count);
+		else if (dialog.dataset.phase === 'extracting') flyToReader(selected, message.cover);
 	});
 	close.addEventListener('click', returnBook);
 	dialog.addEventListener('cancel', (event) => {

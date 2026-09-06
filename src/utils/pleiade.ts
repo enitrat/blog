@@ -8,6 +8,19 @@ export type PleiadeColor =
 	| 'havane'
 	| 'grey';
 
+/** The eight Pléiade leather colours. Canonical: the CSS spines and the
+    canvas-painted 3D spines must not drift apart. */
+export const PLEIADE_HEX: Record<PleiadeColor, string> = {
+	green: '#416653',
+	violet: '#574363',
+	corinthe: '#70483f',
+	red: '#813b34',
+	blue: '#315a78',
+	emerald: '#2f6652',
+	havane: '#6a4a35',
+	grey: '#54534f',
+};
+
 export interface PleiadeAuthorStyle {
 	label: string;
 	color: PleiadeColor;
@@ -64,6 +77,12 @@ export const pleiadeStyleFor = (author: string): PleiadeAuthorStyle => {
 	return style;
 };
 
+/** Where this book sits between the thinnest and the thickest on the shelves, 0..1. */
+export const thicknessRatioFor = (pageCount: number, pageRange: PageRange): number =>
+	pageRange.max <= pageRange.min
+		? 0.5
+		: (pageCount - pageRange.min) / (pageRange.max - pageRange.min);
+
 export const spineWidthFor = (
 	pageCount: number,
 	pageRange: PageRange,
@@ -71,8 +90,5 @@ export const spineWidthFor = (
 ): number => {
 	const minWidth = variant === 'extended' ? 58 : 42;
 	const widthRange = variant === 'extended' ? 60 : 48;
-	if (pageRange.max <= pageRange.min) return minWidth + Math.round(widthRange / 2);
-	return Math.round(
-		minWidth + ((pageCount - pageRange.min) / (pageRange.max - pageRange.min)) * widthRange,
-	);
+	return Math.round(minWidth + thicknessRatioFor(pageCount, pageRange) * widthRange);
 };

@@ -117,12 +117,10 @@ body:has(.library) {
 	color: var(--home-muted);
 }
 .library-note a {
+	margin-left: 12px;
 	color: var(--home-cobalt);
 	font-weight: 600;
-}
-.library-note a {
 	text-decoration: underline;
-	margin-left: 12px;
 }
 #book-reader {
 	position: fixed;
@@ -158,8 +156,12 @@ body:has(.library) {
 	gap: 16px;
 }
 .reader-toolbar > span {
+	min-width: 0;
+	overflow: hidden;
 	font-family: var(--home-display);
 	font-size: 18px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 #book-reader button {
 	font: inherit;
@@ -179,9 +181,6 @@ body:has(.library) {
 	inset: 84px 16px 72px;
 	display: grid;
 	place-items: center;
-}
-.reader-book {
-	filter: drop-shadow(0 22px 24px rgb(0 0 0 / 0.28));
 }
 .reader-page {
 	background: #f4ecd9;
@@ -267,8 +266,11 @@ body:has(.library) {
 	gap: 24px;
 	font-size: 12px;
 }
-#book-reader[data-phase="extracting"] #reader-mount,
-#book-reader[data-phase="extracting"] .reader-controls {
+/* While the volume is flying between the shelf and the reader, the paper pages
+   underneath it must not show. `closing` still needs its toolbar. */
+#book-reader:is([data-phase="extracting"], [data-phase="returning"])
+	:is(#reader-mount, .reader-controls),
+#book-reader[data-phase="closing"] .reader-controls {
 	visibility: hidden;
 }
 @media (max-width: 720px) {
@@ -294,11 +296,6 @@ body:has(.library) {
 		margin: 8px 0 0;
 	}
 }
-@media (prefers-reduced-motion: reduce) {
-	.reader-book {
-		filter: none;
-	}
-}
 #reader-mount iframe {
 	border: 0;
 	width: 100%;
@@ -310,23 +307,9 @@ body:has(.library) {
 	inset: 0;
 	pointer-events: none;
 }
-#book-reader[data-phase="returning"] #reader-mount,
-#book-reader[data-phase="returning"] .reader-controls {
-	visibility: hidden;
-}
 
 body:has(#book-reader[open]) .site-header,
 body:has(#book-reader[open]) #book-caption,
 body:has(#book-reader[open]) .library-note {
 	visibility: hidden;
-}
-#book-reader[data-phase="closing"] .reader-controls {
-	visibility: hidden;
-}
-
-.reader-toolbar > span {
-	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
 }

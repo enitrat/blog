@@ -1,16 +1,3 @@
-import type { PleiadeColor } from '../../../utils/pleiade';
-
-export const PLEIADE_HEX: Record<PleiadeColor, string> = {
-	green: '#416653',
-	violet: '#574363',
-	corinthe: '#70483f',
-	red: '#813b34',
-	blue: '#315a78',
-	emerald: '#2f6652',
-	havane: '#6a4a35',
-	grey: '#54534f',
-};
-
 const GOLD = '#f0d98d';
 const GOLD_EDGE = 'rgba(225, 195, 117, 0.58)';
 const GOLD_PANEL = 'rgba(225, 195, 117, 0.78)';
@@ -21,7 +8,7 @@ export type PaintedBook = {
 	color: string;
 };
 
-export function shortTitle(title: string) {
+function shortTitle(title: string) {
 	return title.replace(/\s*\(.*/, '');
 }
 

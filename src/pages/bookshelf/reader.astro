@@ -18,7 +18,8 @@ import '../../components/bookshelf/library/library.css';
 		<script>
 			import { PageFlip } from 'page-flip/dist/js/page-flip.module.js';
 			import { books } from '../../booksData';
-			const book = books.find((item) => item.edition.isbn13 === new URLSearchParams(location.search).get('book'));
+			const params = new URLSearchParams(location.search);
+			const book = books.find((item) => item.edition.isbn13 === params.get('book'));
 			const pages = document.getElementById('pages');
 			if (book && pages) {
 				const setText = (id: string, text: string) => { const node = document.getElementById(id); if (node) node.textContent = text; };
@@ -28,7 +29,7 @@ import '../../components/bookshelf/library/library.css';
 				setText('record-author', book.author);
 				setText('record-pages', `${book.edition.pageCount} pages`);
 				setText('record-status', book.status === 'finished' ? 'Finished reading' : book.status === 'reading' ? 'Currently reading' : 'On the reading list');
-				const color = new URLSearchParams(location.search).get('color');
+				const color = params.get('color');
 				if (color && /^#[0-9a-f]{6}$/i.test(color)) pages.style.setProperty('--book-color', color);
 				await document.fonts.ready;
 				const portrait = innerWidth < 650;

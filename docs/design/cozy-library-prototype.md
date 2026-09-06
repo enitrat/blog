@@ -1,70 +1,64 @@
-# Cozy library prototype
+# The bookcase at /bookshelf/
 
-Status: working experiment, awaiting Mathieu's visual and interaction review.
-Branch: `prototype/cozy-library`.
-
-## Question
-
-Does a substantial oak bookcase, with books that pull out and open into turning pages,
-make the bookshelf feel like a cozy personal library?
-
-The agreed direction is a nearly full-screen bookcase, several levels, warm light,
-Pléiade spines, and a slightly angled view. The room is suggested around the case.
-A hover partly extracts a book. Selection clears the shelf, presents the cover in the
-foreground, and opens it. The library remains behind the reader. Closing returns the
-book to its place. Notes belong on the pages, including page turns for longer notes.
+An oak case of Pléiade volumes. Hovering draws a book part-way out; selecting it
+rotates the cover forward and opens it into turning pages, with the library still
+behind. Closing returns it to its slot. `/bookshelf/archive/` is the same catalogue
+as an ordinary list, and is the whole experience without JavaScript.
 
 ## Try it
 
 ```sh
 bun install
-bun run prototype
+bun run library                      # opens /bookshelf/
+bun test                             # shelf packing
+bun run library:check                # 7 engine/viewport cases, ~30s
+bun run library:check webkit 390     # just one, while iterating
 ```
 
-Open `/bookshelf/prototype/`. The existing `/bookshelf/` remains the reading archive.
-Every book uses existing catalog metadata and clearly labeled sample pages. No personal
-reflections have been invented. The prototype routes have `noindex` metadata.
+`bunx playwright install chromium webkit` first. `library:check` starts and stops
+its own dev server; set `LIBRARY_URL` to point it at one you are already running.
+Failures name the engine, the viewport and the step, and leave a `FAIL-*.png`.
 
-With that server running, check the interaction with:
+`playwright` is pinned exactly, not to a caret range: its browser binaries are
+revision-locked to the library version, so a floating minor silently invalidates
+the browsers you have downloaded.
 
-```sh
-bun run prototype:check
-```
+## Decisions worth remembering
 
-Use `PROTOTYPE_URL=http://127.0.0.1:PORT bun run prototype:check` if the dev server
-selected another port. Playwright requires its Chromium and WebKit browsers:
-`bunx playwright install chromium webkit`.
+- **Two renderers.** The selected book flies across a second, transparent canvas
+  over the dialog so it is not clipped by the shelf canvas's bounds.
+- **The reader is an iframe.** StPageFlip 2.0.7 keeps scheduling animation frames
+  after its documented `destroy()`. Removing the iframe is what actually stops it.
+- **The shelf renders on demand**, not every frame. Only motion schedules a draw.
+- **Spines are painted, not lit.** They are `MeshBasicMaterial` with canvas
+  textures; tone mapping only desaturated the leather and washed out the gilt.
+- **Texture sizes track display size.** A spine draws ~130 CSS px wide, so its
+  texture is 256 px — 55 books at 512 was four times the GPU memory for no gain.
+- **One palette.** `PLEIADE_HEX` in `src/utils/pleiade.ts` feeds both the CSS
+  spines and the painted 3D ones. They drifted when it was duplicated.
 
-## What this tests
+## Verification notes
 
-- Plain Three.js for a stationary case and book extraction; no React integration.
-- Procedural wood and spine textures; no copied demo assets or models.
-- A separate foreground canvas keeps the book visible outside the shelf's bounds.
-- StPageFlip for hard covers, HTML pages, touch gestures, and page turning.
-- An iframe owns the reader's lifetime. StPageFlip 2.0.7 keeps scheduling frames after
-  its documented destroy method, so removing the iframe stops its loop completely.
-- The shelf renders when its geometry changes. Foreground animation redraws the
-  selected book. Large cover textures exist only while that book is selected.
-- Keyboard book selection, dialog focus, Escape, reduced motion, and an ordinary
-  archive link when JavaScript is unavailable.
+- **One browser per case.** Sharing one per engine piled ~28 WebGL contexts into
+  a single process. Past WebKit's per-process limit it does not error, it blocks:
+  20+ minute stalls with no request leaving the page.
+- **Two cases at a time.** At three, the machine starves a page enough that
+  WebKit throttles its rAF, stalling the return animation before the dialog
+  reaches its terminal phase. Starvation, not a defect — motion runs off
+  absolute timestamps, so a real backgrounded tab catches up on resume.
+- **Every case is bounded**, per action and overall. A check that can hang
+  forever is not a check.
 
-## Still to decide
+## Still open
 
-- Whether the wood, lighting, viewing angle, and extraction feel right. These are
-  provisional, not a new site-wide design system.
-- How authored Markdown is divided into pages. The prototype uses short fixed sample
-  pages. Automatic pagination and real book notes are not implemented.
-- Mobile layout: this experiment arranges the case into a tall, scrollable single bay.
-- Resizing the shelf while reading returns the book immediately and reframes the case.
-- Actual phone GPU performance still needs a physical-device check. Browser viewport
-  emulation does not establish mobile frame rate.
-
-When the direction is accepted, update PRODUCT.md, CONTEXT.md, and DESIGN.md to reflect
-notes inside Bookshelf and the library's motion. Do not promote placeholder prose.
+- Real authored notes. The pages are labelled samples with fixed breaks; paginating
+  arbitrary Markdown is not solved.
+- Phone GPU performance. Viewport emulation does not establish frame rate.
+- Resizing while reading closes the book and reframes the case.
 
 ## References
 
-- [The Complete Shelf](https://mengto.github.io/complete-shelf/) inspired the selection
-  sequence. Its code and assets were not copied; no explicit reuse license was found.
-- [StPageFlip](https://github.com/Nodlik/StPageFlip), MIT, supplies page mechanics.
+- [StPageFlip](https://github.com/Nodlik/StPageFlip), MIT, supplies the page mechanics.
 - [Three.js rendering on demand](https://threejs.org/manual/en/rendering-on-demand.html).
+- [The Complete Shelf](https://mengto.github.io/complete-shelf/) inspired the selection
+  sequence. No code or assets were copied; no reuse licence was found.

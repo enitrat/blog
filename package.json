@@ -13,7 +13,8 @@
 		"lint:fix": "biome check --write .",
 		"format": "biome format --write .",
 		"library": "astro dev --host 127.0.0.1 --open /bookshelf/",
-		"library:check": "node scripts/check-library.mjs"
+		"library:check": "bun scripts/check-library.mjs",
+		"test": "bun test"
 	},
 	"dependencies": {
 		"@astrojs/markdown-remark": "^6.3.11",
@@ -32,7 +33,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "^2.2.4",
 		"@types/three": "^0.185.4",
-		"playwright": "^1.55.1",
+		"playwright": "1.62.1",
 		"yaml": "^2.9.0"
 	}
 }
