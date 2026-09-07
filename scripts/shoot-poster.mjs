@@ -56,7 +56,7 @@ try {
 	// clip; the poster has to be the room and nothing else.
 	await page.addStyleTag({
 		content:
-			'astro-dev-toolbar, .living-room__views, .living-room__hotspots { visibility: hidden !important; }',
+			'astro-dev-toolbar, .living-room__views, .living-room__hotspots, .living-room__caption { visibility: hidden !important; }',
 	});
 	// One more frame after the fade, so the capture is the canvas and not a
 	// half-opaque canvas over the previous poster.

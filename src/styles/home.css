@@ -284,6 +284,63 @@
 	outline-offset: 3px;
 }
 
+@media (hover: hover) and (min-width: 40.0625rem) {
+	.living-room__hotspot:not(.living-room__mix) {
+		width: 2.5rem;
+		height: 2.5rem;
+		padding: 0;
+		background: none;
+		opacity: 1;
+		overflow: hidden;
+		text-indent: 110%;
+	}
+
+	/* Small ivory ring, dark-rimmed so it reads on oak as well as on shadow. */
+	.living-room__hotspot:not(.living-room__mix)::before {
+		content: "";
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		width: 0.6rem;
+		height: 0.6rem;
+		translate: -50% -50%;
+		border: 1px solid rgb(255 247 231 / 0.7);
+		border-radius: 50%;
+		background: rgb(255 247 231 / 0.1);
+		box-shadow: 0 0 0 1px rgb(33 29 23 / 0.3);
+		transition:
+			background-color 160ms ease,
+			scale 160ms ease;
+	}
+
+	.living-room__hotspot:not(.living-room__mix):hover::before,
+	.living-room__hotspot:not(.living-room__mix):focus-visible::before {
+		border-color: #fff7e7;
+		background: rgb(255 247 231 / 0.85);
+		scale: 1.15;
+	}
+}
+
+.living-room__caption {
+	position: absolute;
+	bottom: 1rem;
+	left: 50%;
+	translate: -50%;
+	margin: 0;
+	padding: 0.5rem 0.75rem;
+	border-radius: 3px;
+	background: rgb(33 29 23 / 0.92);
+	color: #fff7e7;
+	font-size: 0.8125rem;
+	white-space: nowrap;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 140ms ease;
+}
+.living-room__caption:not(:empty) {
+	opacity: 1;
+}
+
 .living-room__mix {
 	transform: translate(-50%, -260%);
 	visibility: hidden;
@@ -331,7 +388,9 @@
 
 @media (prefers-reduced-motion: reduce) {
 	.living-room__canvas,
-	.living-room__hotspot {
+	.living-room__hotspot,
+	.living-room__hotspot::before,
+	.living-room__caption {
 		transition: none;
 	}
 }

@@ -50,8 +50,12 @@ scene.render.resolution_x = 1920
 scene.render.resolution_y = 1080
 scene.render.resolution_percentage = 100
 
-groups = {'shell': [], 'furniture': [], 'objects': []}
+groups = {'shell': {}, 'furniture': {}, 'objects': {}, 'moving': {}}
 group = 'shell'
+# Parts of `moving` keep their own transform so the runtime can turn them, and
+# their origin sits on the axis they turn about.
+part = None
+pivots = {}
 
 def linear(hex_color):
     c = [int(hex_color[i:i+2], 16) / 255 for i in (1, 3, 5)]
@@ -121,7 +125,7 @@ def finish(obj, name, mat, bevel=0):
         mod.harden_normals = True
         mod = obj.modifiers.new('Weighted corner normals', 'WEIGHTED_NORMAL')
         mod.keep_sharp = True
-    groups[group].append(obj)
+    groups[group].setdefault(part or group, []).append(obj)
     return obj
 
 def box(name, at, dims, mat, bevel=.008, rotation=0):
@@ -273,21 +277,30 @@ record_colors = [cream, rug_red, rug_blue, black, linen, terra]
 for i in range(39):
     box('Record sleeve in shelf', (-1.6+i*.012, 1.21, .352), (.009, .308, .32), record_colors[i%6], .001)
 
-# Turntable. A separate platter can eventually animate without moving the room.
+# Turntable. The platter and tonearm are exported as their own movable nodes.
 tx, ty, tz = .26, 1.16, .712
 box('Turntable walnut plinth', (tx, ty, tz), (.50, .38, .052), walnut, .014)
 box('Turntable aluminium deck', (tx, ty, tz+.030), (.473, .356, .013), metal, .005)
+cylinder('Spindle', (tx-.052, ty, tz+.067), .0025, .018, metal, 12)
+
+# The platter and the arm are the two things that move, so they leave the room's
+# single mesh and turn about their own axis instead.
+group, part = 'moving', 'Platter'
+pivots[part] = (tx-.052, ty, tz)
 cylinder('Platter edge', (tx-.052, ty, tz+.045), .151, .018, metal, 96)
 cylinder('Vinyl LP', (tx-.052, ty, tz+.056), .147, .004, black, 96)
 label = material('Record label brick red', '#a54e36', .8)
 cylinder('Record paper label', (tx-.052, ty, tz+.059), .043, .001, label)
-cylinder('Spindle', (tx-.052, ty, tz+.067), .0025, .018, metal, 12)
 for radius in [.065, .078, .091, .108, .12, .134, .143]:
     bpy.ops.mesh.primitive_torus_add(major_segments=96, minor_segments=4, location=(tx-.052, ty, tz+.058), major_radius=radius, minor_radius=.00045)
     finish(bpy.context.object, 'Pressed vinyl groove', metal)
+
+part = 'Tonearm'
+pivots[part] = (tx+.183, ty+.125, tz)
 cylinder('Tonearm bearing', (tx+.183, ty+.125, tz+.073), .019, .05, metal, 24)
 tube('S shaped tonearm', [(tx+.183, ty+.125, tz+.10), (tx+.17, ty+.04, tz+.105), (tx+.13, ty-.085, tz+.105), (tx+.085, ty-.12, tz+.10)], .0045, metal)
 box('Headshell', (tx+.083, ty-.13, tz+.096), (.018, .034, .014), black, .002, -.25)
+group, part = 'objects', None
 box('Start switch', (tx-.203, ty-.14, tz+.044), (.036, .026, .008), black, .002)
 # Smoked open lid is modelled with a frame; no opaque card hiding the record.
 for x in [tx-.246, tx+.246]:
@@ -424,16 +437,23 @@ scene.render.film_transparent = True
 out.mkdir(parents=True, exist_ok=True)
 
 # Convert and apply in object space before UV unwrapping; retain all viewing sides.
-for objects in groups.values():
-    bpy.ops.object.select_all(action='DESELECT')
-    for obj in objects:
-        obj.select_set(True)
-    bpy.context.view_layer.objects.active = objects[0]
-    bpy.ops.object.convert(target='MESH')
-    bpy.ops.object.join()
-    joined = bpy.context.object
-    objects[:] = [joined]
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+for parts in groups.values():
+    for name, objects in parts.items():
+        bpy.ops.object.select_all(action='DESELECT')
+        for obj in objects:
+            obj.select_set(True)
+        bpy.context.view_layer.objects.active = objects[0]
+        bpy.ops.object.convert(target='MESH')
+        bpy.ops.object.join()
+        joined = bpy.context.object
+        joined.name = name
+        objects[:] = [joined]
+        bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+        # A movable part turns about its origin, so put the origin on that axis
+        # while the geometry stays where it was modelled and baked.
+        if name in pivots:
+            scene.cursor.location = pivots[name]
+            bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
 
 bpy.ops.wm.save_as_mainfile(filepath=str(work/'living-room.blend'))
 if preview_only:
@@ -441,32 +461,36 @@ if preview_only:
     bpy.ops.render.render(write_still=True)
     sys.exit(0)
 
-for name, objects in groups.items():
-    obj = objects[0]
+for name, parts in groups.items():
+    meshes = [objects[0] for objects in parts.values()]
     bpy.ops.object.select_all(action='DESELECT')
-    obj.select_set(True)
-    bpy.context.view_layer.objects.active = obj
+    for obj in meshes:
+        obj.select_set(True)
+    bpy.context.view_layer.objects.active = meshes[0]
     # The source UVs carry print artwork; smart-project writes a second UV layer.
-    source_uv = obj.data.uv_layers.active
-    for mat in obj.data.materials:
-        for node in list(mat.node_tree.nodes):
-            if node.type == 'TEX_IMAGE' and not node.inputs['Vector'].is_linked:
-                uv = mat.node_tree.nodes.new('ShaderNodeUVMap')
-                uv.uv_map = source_uv.name
-                mat.node_tree.links.new(uv.outputs[0],node.inputs['Vector'])
-    obj.data.uv_layers.new(name='BakeUV')
-    obj.data.uv_layers.active_index = len(obj.data.uv_layers)-1
-    obj.data.uv_layers.active.active_render = True
+    # Several parts unwrap together, so one group is still one atlas.
+    for obj in meshes:
+        source_uv = obj.data.uv_layers.active
+        for mat in obj.data.materials:
+            for node in list(mat.node_tree.nodes):
+                if node.type == 'TEX_IMAGE' and not node.inputs['Vector'].is_linked:
+                    uv = mat.node_tree.nodes.new('ShaderNodeUVMap')
+                    uv.uv_map = source_uv.name
+                    mat.node_tree.links.new(uv.outputs[0],node.inputs['Vector'])
+        obj.data.uv_layers.new(name='BakeUV')
+        obj.data.uv_layers.active_index = len(obj.data.uv_layers)-1
+        obj.data.uv_layers.active.active_render = True
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.uv.smart_project(angle_limit=math.radians(66), island_margin=.006)
     bpy.ops.object.mode_set(mode='OBJECT')
-    resolution = size * 2 if name == 'objects' else size
+    resolution = size * 2 if name == 'objects' else size // 2 if name == 'moving' else size
     image = bpy.data.images.new(name+' baked',width=resolution,height=resolution,float_buffer=True)
-    for mat in obj.data.materials:
-        node = mat.node_tree.nodes.new('ShaderNodeTexImage')
-        node.image = image
-        mat.node_tree.nodes.active = node
+    for obj in meshes:
+        for mat in obj.data.materials:
+            node = mat.node_tree.nodes.new('ShaderNodeTexImage')
+            node.image = image
+            mat.node_tree.nodes.active = node
     scene.render.bake.use_pass_direct = True
     scene.render.bake.use_pass_indirect = True
     scene.render.bake.use_pass_color = True
@@ -491,20 +515,22 @@ for name, objects in groups.items():
     # A color connected directly to Surface is Blender's glTF unlit convention.
     mat.node_tree.links.new(tex.outputs['Color'],output.inputs[0])
     # Do not change the other groups' source materials until every bake is done.
-    obj['baked_material'] = mat.name
+    for obj in meshes:
+        obj['baked_material'] = mat.name
 
-for name, objects in groups.items():
-    obj = objects[0]
-    obj.data.materials.clear()
-    obj.data.materials.append(bpy.data.materials[obj['baked_material']])
-    for p in obj.data.polygons:
-        p.material_index = 0
-    while len(obj.data.uv_layers)>1:
-        obj.data.uv_layers.remove(obj.data.uv_layers[0])
-    obj.data.uv_layers.active_index = 0
+for name, parts in groups.items():
+    meshes = [objects[0] for objects in parts.values()]
     bpy.ops.object.select_all(action='DESELECT')
-    obj.select_set(True)
-    bpy.context.view_layer.objects.active = obj
+    for obj in meshes:
+        obj.data.materials.clear()
+        obj.data.materials.append(bpy.data.materials[obj['baked_material']])
+        for p in obj.data.polygons:
+            p.material_index = 0
+        while len(obj.data.uv_layers)>1:
+            obj.data.uv_layers.remove(obj.data.uv_layers[0])
+        obj.data.uv_layers.active_index = 0
+        obj.select_set(True)
+    bpy.context.view_layer.objects.active = meshes[0]
     bpy.ops.export_scene.gltf(filepath=str(out/(name+'.glb')),export_format='GLB',use_selection=True,
                               export_texcoords=True,export_normals=False,export_materials='EXPORT',
                               export_image_format='JPEG',export_jpeg_quality=95)

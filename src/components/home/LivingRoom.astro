@@ -40,6 +40,8 @@ import poster from '../../assets/living-room.png';
 			Latest mix from my SoundCloud&nbsp;<span aria-hidden="true">↗</span>
 		</a>
 	</div>
+
+	<p class="living-room__caption" aria-hidden="true"></p>
 </div>
 
 <script>
@@ -47,6 +49,21 @@ import poster from '../../assets/living-room.png';
 	const canvas = room?.querySelector<HTMLCanvasElement>('.living-room__canvas');
 
 	const player = room?.querySelector<HTMLButtonElement>('[data-anchor="record"]');
+
+	// The rings carry no text; the caption at the lower edge names whatever the
+	// pointer or keyboard has reached, one at a time.
+	const caption = room?.querySelector<HTMLElement>('.living-room__caption');
+	const hotspots = room?.querySelector<HTMLElement>('.living-room__hotspots');
+	const name = (event: Event) => {
+		const spot = (event.target as Element).closest?.('.living-room__hotspot');
+		const ring = spot && !spot.classList.contains('living-room__mix');
+		if (caption) caption.textContent = ring ? (spot.textContent ?? '').trim() : '';
+	};
+	const clear = () => caption && (caption.textContent = '');
+	hotspots?.addEventListener('pointerover', name);
+	hotspots?.addEventListener('pointerout', clear);
+	hotspots?.addEventListener('focusin', name);
+	hotspots?.addEventListener('focusout', clear);
 	let audio: { context: AudioContext; stop: () => void; bed: () => void } | null = null;
 
 	function crackle() {
@@ -101,6 +118,8 @@ import poster from '../../assets/living-room.png';
 		playing = on;
 		player?.setAttribute('aria-pressed', String(on));
 		if (player) player.textContent = on ? 'Stop the record' : 'Play the record';
+		if (caption?.textContent && player?.matches(':hover, :focus-visible'))
+			caption.textContent = player.textContent;
 
 		if (on) room?.setAttribute('data-playing', '');
 		else room?.removeAttribute('data-playing');

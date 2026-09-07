@@ -1,15 +1,24 @@
 /** Baked glTF assets, two composed camera views, and DOM controls projected into the room. */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import shellUrl from '../../../assets/room/shell.glb?url';
 import furnitureUrl from '../../../assets/room/furniture.glb?url';
+import movingUrl from '../../../assets/room/moving.glb?url';
 import objectsUrl from '../../../assets/room/objects.glb?url';
+import shellUrl from '../../../assets/room/shell.glb?url';
 
 const VIEWS = {
 	room: { position: new THREE.Vector3(6.4, 6.5, 9.9), target: new THREE.Vector3(0, 1, -0.2) },
 	listening: {
 		position: new THREE.Vector3(0.9, 2.4, 4.8),
 		target: new THREE.Vector3(0, 0.94, -1.05),
+	},
+	bookshelf: {
+		position: new THREE.Vector3(0.28, 2.05, 2.87),
+		target: new THREE.Vector3(-1.12, 0.87, -1.24),
+	},
+	record: {
+		position: new THREE.Vector3(0.98, 1.48, 0.55),
+		target: new THREE.Vector3(0.21, 0.8, -1.16),
 	},
 };
 const ANCHORS = {
@@ -41,7 +50,7 @@ export async function mountRoom(
 	};
 	// Await all loads even after failure so a late success cannot leak GPU resources.
 	const results = await Promise.allSettled(
-		[shellUrl, furnitureUrl, objectsUrl].map(async (url) => {
+		[shellUrl, furnitureUrl, objectsUrl, movingUrl].map(async (url) => {
 			const gltf = await loader.loadAsync(url);
 			gltf.scene.traverse((object) => {
 				if (!(object instanceof THREE.Mesh)) return;
@@ -100,6 +109,37 @@ export async function mountRoom(
 	let transitionStart: number | null = null;
 	let lastTime = 0;
 
+	// The platter and the arm are their own nodes in moving.glb, turning about
+	// their own axis. Blender's Z became the node's Y in the glTF conversion.
+	const platter = scene.getObjectByName('Platter');
+	const tonearm = scene.getObjectByName('Tonearm');
+	const SPEED = (100 * Math.PI) / 90; // 33 1/3 rpm
+	const CUED = -0.1846; // the headshell reaches the lead-in groove
+	const DROP = 0.1; // and noses down onto it
+	let cueing = false;
+	let cue = 0; // 0 parked, 1 on the record
+	let spin = 0; // rad/s, spinning up and down like a real platter
+
+	function turntable(dt: number) {
+		const wanted = cueing ? 1 : 0;
+		if (motion.matches) {
+			// A record turning forever is exactly what reduced motion asks to stop.
+			cue = wanted;
+			spin = 0;
+		} else {
+			cue = THREE.MathUtils.damp(cue, wanted, 4, dt);
+			if (Math.abs(cue - wanted) < 0.001) cue = wanted;
+			spin = THREE.MathUtils.damp(spin, cueing ? SPEED : 0, 2.5, dt);
+			if (Math.abs(spin - (cueing ? SPEED : 0)) < 0.01) spin = cueing ? SPEED : 0;
+			if (platter) platter.rotation.y -= spin * dt;
+		}
+		if (tonearm) {
+			tonearm.rotation.y = CUED * cue;
+			tonearm.rotation.x = DROP * cue;
+		}
+		return spin !== 0 || cue !== wanted;
+	}
+
 	function draw() {
 		camera.position.copy(position);
 		camera.position.x += offset.x;
@@ -111,6 +151,12 @@ export async function mountRoom(
 			const name = hotspot.dataset.anchor;
 			if (name !== 'bookshelf' && name !== 'record') continue;
 			projected.copy(ANCHORS[name]).project(camera);
+			// A close view leaves the other object off frame: take its ring out of
+			// the picture and out of the tab order rather than parking it outside.
+			// The wide mix credit needs more room than a ring before it fits.
+			const slack = hotspot.classList.contains('living-room__mix') ? 0.6 : 0.98;
+			hotspot.hidden =
+				projected.z > 1 || Math.abs(projected.x) > slack || Math.abs(projected.y) > slack;
 			hotspot.style.left = `${(projected.x * 0.5 + 0.5) * 100}%`;
 			hotspot.style.top = `${(-projected.y * 0.5 + 0.5) * 100}%`;
 		}
@@ -131,8 +177,9 @@ export async function mountRoom(
 		}
 		offset.lerp(wantedOffset, motion.matches ? 1 : 1 - Math.exp(-8 * dt));
 		if (offset.distanceToSquared(wantedOffset) < 0.000001) offset.copy(wantedOffset);
+		const moving = turntable(dt);
 		draw();
-		if (transitionStart !== null || !offset.equals(wantedOffset)) requestDraw();
+		if (transitionStart !== null || moving || !offset.equals(wantedOffset)) requestDraw();
 	}
 
 	function requestDraw() {
@@ -149,8 +196,42 @@ export async function mountRoom(
 		wantedOffset.set(0, 0);
 		for (const button of controls)
 			button.setAttribute('aria-pressed', String(button.dataset.roomView === view));
+		if (shelf) {
+			shelf.textContent = view === 'bookshelf' ? 'Open the bookshelf' : 'Browse the bookshelf';
+			// Refresh the caption if the pointer or keyboard is already on it.
+			if (shelf.matches(':hover, :focus-visible'))
+				shelf.dispatchEvent(new Event('pointerover', { bubbles: true }));
+		}
 		requestDraw();
 	}
+
+	// Clicking an object travels to it. A link travels first and navigates on the
+	// second press, so the trip somewhere else is never a surprise.
+	const shelf = hotspots.find(
+		(hotspot) => hotspot.dataset.anchor === 'bookshelf' && hotspot instanceof HTMLAnchorElement,
+	);
+	for (const hotspot of hotspots) {
+		if (hotspot.classList.contains('living-room__mix')) continue;
+		const anchor = hotspot.dataset.anchor;
+		if (anchor !== 'bookshelf' && anchor !== 'record') continue;
+		hotspot.addEventListener(
+			'click',
+			(event) => {
+				const plain = event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey;
+				if (hotspot === shelf && view !== 'bookshelf' && plain) event.preventDefault();
+				changeView(anchor);
+			},
+			{ signal: events.signal },
+		);
+	}
+
+	// The DOM owns playback; the room follows the state it publishes.
+	const playing = new MutationObserver(() => {
+		cueing = host.hasAttribute('data-playing');
+		lastTime = performance.now();
+		requestDraw();
+	});
+	playing.observe(host, { attributeFilter: ['data-playing'] });
 
 	for (const button of controls) {
 		button.addEventListener(
@@ -229,6 +310,7 @@ export async function mountRoom(
 			delete host.dataset.live;
 			delete host.dataset.placed;
 			for (const hotspot of hotspots) {
+				hotspot.hidden = false;
 				hotspot.style.left = '';
 				hotspot.style.top = '';
 			}
@@ -254,6 +336,7 @@ export async function mountRoom(
 		events.abort();
 		resize.disconnect();
 		intersection.disconnect();
+		playing.disconnect();
 		releaseAssets();
 		renderer.dispose();
 		renderer.forceContextLoss();
