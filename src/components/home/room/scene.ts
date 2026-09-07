@@ -76,40 +76,48 @@ export async function mountRoom(
 		return null;
 	}
 
-	/* One volume at a time comes forward when it is reached for. The bake joins
-	   the printed planes so Cycles bakes once and the browser draws once; the
-	   pull needs them apart again, so they are sliced back up here against the
-	   same manifest Blender placed them from. Only the jacket moves: the leather
-	   body behind it stays in the row, and covers what the jacket leaves. */
-	const jackets = new Map<string, THREE.Mesh>();
-	const atlas = scene.getObjectByName('spines');
-	if (atlas instanceof THREE.Mesh) {
-		atlas.updateWorldMatrix(true, false);
-		const flat = atlas.geometry.clone().toNonIndexed().applyMatrix4(atlas.matrixWorld);
+	/* A volume tips out of the row on its own, the way a finger on the top of a
+	   book tips it: so it has to be its own object, both halves of it. The bake
+	   joins the printed jackets into one atlas mesh and the leather bodies into
+	   the room's objects, one bake and one draw each. Cut both back out against
+	   the manifest Blender placed them from, and hang each pair on a pivot at
+	   its bottom front edge, the edge a leaning book turns on. */
+	const books = new Map<string, THREE.Group>();
+
+	/** Split one baked mesh into the geometry each book owns and the rest of it.
+	 *  `depth` is how far back from the spine face a book reaches: the jacket is
+	 *  flat against that face, the body stands behind it. */
+	function slice(mesh: THREE.Mesh, depth: number) {
+		mesh.updateWorldMatrix(true, false);
+		const flat = mesh.geometry.clone().toNonIndexed().applyMatrix4(mesh.matrixWorld);
 		const position = flat.getAttribute('position');
 		const uv = flat.getAttribute('uv');
-		const triangles = new Map<string, number[]>();
+		const mine = new Map<string, number[]>();
+		const rest: number[] = [];
 		for (let first = 0; first < position.count; first += 3) {
 			let x = 0;
 			let y = 0;
+			let z = 0;
 			for (let corner = 0; corner < 3; corner += 1) {
 				x += position.getX(first + corner) / 3;
 				y += position.getY(first + corner) / 3;
+				z += position.getZ(first + corner) / 3;
 			}
-			// A jacket is a quad standing in its slot, so the slot it stands in
-			// names it. Rows share the run of x, hence the height as well.
+			// A book stands in its slot, so the slot it stands in names it. Rows
+			// share the run of x, hence the height as well; the shelf and what
+			// else the room leaves on it are behind or below every slot.
 			const slot = ordered.find(
 				(candidate) =>
 					Math.abs(x - candidate.x) <= candidate.width / 2 &&
-					y >= candidate.y &&
-					y <= candidate.y + candidate.height,
+					y >= candidate.y - 0.004 &&
+					y <= candidate.y + candidate.height + 0.004 &&
+					z <= candidate.z + 0.005 &&
+					z >= candidate.z - depth,
 			);
-			if (!slot) continue;
-			const found = triangles.get(slot.isbn) ?? [];
-			found.push(first);
-			triangles.set(slot.isbn, found);
+			if (!slot) rest.push(first);
+			else mine.set(slot.isbn, [...(mine.get(slot.isbn) ?? []), first]);
 		}
-		for (const [isbn, corners] of triangles) {
+		const build = (corners: number[]) => {
 			const geometry = new THREE.BufferGeometry();
 			const points = new Float32Array(corners.length * 9);
 			const texture = new Float32Array(corners.length * 6);
@@ -124,15 +132,63 @@ export async function mountRoom(
 				}
 			geometry.setAttribute('position', new THREE.BufferAttribute(points, 3));
 			geometry.setAttribute('uv', new THREE.BufferAttribute(texture, 2));
-			geometries.add(geometry);
-			const jacket = new THREE.Mesh(geometry, atlas.material);
-			scene.add(jacket);
-			jackets.set(isbn, jacket);
-		}
+			return geometry;
+		};
+		const owned = new Map([...mine].map(([isbn, corners]) => [isbn, build(corners)] as const));
+		const left = build(rest);
 		flat.dispose();
-		// Every jacket it carried is now drawn by its own mesh.
-		if (jackets.size === ordered.length) atlas.visible = false;
-		else for (const jacket of jackets.values()) jacket.visible = false;
+		return { owned, left };
+	}
+
+	const atlas = scene.getObjectByName('spines');
+	const room = scene.getObjectByName('objects');
+	if (atlas instanceof THREE.Mesh && room instanceof THREE.Mesh) {
+		// Deep enough to take the whole body with the jacket, shallow enough to
+		// leave the shelf it stands on and the records behind it where they are.
+		const printed = slice(atlas, 0.006);
+		const carcass = slice(room, 0.16);
+		for (const slot of ordered) {
+			const jacket = printed.owned.get(slot.isbn);
+			const body = carcass.owned.get(slot.isbn);
+			if (!jacket || !body) continue;
+			const book = new THREE.Group();
+			book.position.set(slot.x, slot.y, slot.z);
+			for (const [geometry, material] of [
+				[jacket, atlas.material],
+				[body, room.material],
+			] as const) {
+				geometry.translate(-slot.x, -slot.y, -slot.z);
+				geometries.add(geometry);
+				book.add(new THREE.Mesh(geometry, material));
+			}
+			scene.add(book);
+			books.set(slot.isbn, book);
+		}
+		// All of them or none: half a shelf of loose books over a shelf that still
+		// draws them is worse than a row that cannot lean.
+		if (books.size === ordered.length) {
+			atlas.visible = false;
+			// What the room keeps is drawn as its own mesh, not handed back to the
+			// baked node: these vertices have that node's transform in them
+			// already, and it would be applied to them a second time.
+			room.visible = false;
+			geometries.add(carcass.left);
+			scene.add(new THREE.Mesh(carcass.left, room.material));
+		} else {
+			for (const book of books.values()) {
+				scene.remove(book);
+				for (const part of book.children)
+					if (part instanceof THREE.Mesh) {
+						geometries.delete(part.geometry);
+						part.geometry.dispose();
+					}
+			}
+			books.clear();
+			carcass.left.dispose();
+		}
+		printed.left.dispose();
+		for (const [isbn, geometry] of printed.owned) if (!books.has(isbn)) geometry.dispose();
+		for (const [isbn, geometry] of carcass.owned) if (!books.has(isbn)) geometry.dispose();
 	}
 
 	let renderer: THREE.WebGLRenderer;
@@ -193,20 +249,20 @@ export async function mountRoom(
 	let cue = 0; // 0 parked, 1 on the record
 	let spin = 0; // rad/s, spinning up and down like a real platter
 
-	/** How far a volume eases out of the row when it is reached for: a fifth of
-	 *  its own depth, the same gesture as the flat shelf's ten pixels. */
-	const PULL = 0.02;
+	/** How far a volume leans out when it is reached for. A finger on the top of
+	 *  a book tips it about this far before it comes free of the row. */
+	const TILT = THREE.MathUtils.degToRad(12);
 	let reached: string | null = null;
 
 	function pull(dt: number) {
 		let moving = false;
-		for (const [isbn, jacket] of jackets) {
-			const wanted = isbn === reached ? PULL : 0;
-			if (jacket.position.z === wanted) continue;
+		for (const [isbn, book] of books) {
+			const wanted = isbn === reached ? TILT : 0;
+			if (book.rotation.x === wanted) continue;
 			const eased = motion.matches
 				? wanted
-				: jacket.position.z + (wanted - jacket.position.z) * (1 - Math.exp(-14 * dt));
-			jacket.position.z = Math.abs(wanted - eased) < 0.0002 ? wanted : eased;
+				: book.rotation.x + (wanted - book.rotation.x) * (1 - Math.exp(-12 * dt));
+			book.rotation.x = Math.abs(wanted - eased) < 0.0004 ? wanted : eased;
 			moving = true;
 		}
 		return moving;
