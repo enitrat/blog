@@ -8,7 +8,7 @@ import shellUrl from '../../../assets/room/shell.glb?url';
 
 const VIEWS = {
 	room: { position: new THREE.Vector3(6.4, 6.5, 9.9), target: new THREE.Vector3(0, 1, -0.2) },
-	listening: {
+	closer: {
 		position: new THREE.Vector3(0.9, 2.4, 4.8),
 		target: new THREE.Vector3(0, 0.94, -1.05),
 	},
@@ -99,7 +99,6 @@ export async function mountRoom(
 	const projected = new THREE.Vector3();
 	const motion = matchMedia('(prefers-reduced-motion: reduce)');
 	const events = new AbortController();
-	const controls = [...host.querySelectorAll<HTMLButtonElement>('[data-room-view]')];
 	const hotspots = [...host.querySelectorAll<HTMLElement>('[data-anchor]')];
 	let view: View = 'room';
 	let alive = true;
@@ -194,8 +193,7 @@ export async function mountRoom(
 		view = next;
 		transitionStart = performance.now();
 		wantedOffset.set(0, 0);
-		for (const button of controls)
-			button.setAttribute('aria-pressed', String(button.dataset.roomView === view));
+		publish(view);
 		if (shelf) {
 			shelf.textContent = view === 'bookshelf' ? 'Open the bookshelf' : 'Browse the bookshelf';
 			// Refresh the caption if the pointer or keyboard is already on it.
@@ -233,16 +231,51 @@ export async function mountRoom(
 	});
 	playing.observe(host, { attributeFilter: ['data-playing'] });
 
-	for (const button of controls) {
-		button.addEventListener(
-			'click',
-			() => {
-				const next = button.dataset.roomView;
-				if (next === 'room' || next === 'listening') changeView(next);
-			},
-			{ signal: events.signal },
+	function publish(current: View) {
+		host.dataset.view = current;
+		canvas.setAttribute(
+			'aria-label',
+			current === 'room' ? 'Step closer into the room' : 'Step back to the whole room',
 		);
 	}
+
+	// Clicking the room itself steps in, and steps back out from any close view.
+	// The canvas is the control, so the keyboard reaches it without any chrome.
+	const step = () => changeView(view === 'room' ? 'closer' : 'room');
+	// Focusable only while the scene is actually there to steer: an invisible
+	// canvas must not keep a tab stop.
+	function arm(on: boolean) {
+		if (on) {
+			canvas.setAttribute('tabindex', '0');
+			canvas.setAttribute('role', 'button');
+			canvas.removeAttribute('aria-hidden');
+		} else {
+			canvas.removeAttribute('tabindex');
+			canvas.removeAttribute('role');
+			canvas.setAttribute('aria-hidden', 'true');
+		}
+	}
+	arm(true);
+	canvas.addEventListener('click', step, { signal: events.signal });
+	canvas.addEventListener(
+		'keydown',
+		(event) => {
+			if (event.key === 'Enter' || event.key === ' ') {
+				event.preventDefault();
+				step();
+			}
+		},
+		{ signal: events.signal },
+	);
+	// Escape backs out while the room is the thing on screen, wherever focus is.
+	document.addEventListener(
+		'keydown',
+		(event) => {
+			if (event.key !== 'Escape' || view === 'room' || !visible) return;
+			changeView('room');
+		},
+		{ signal: events.signal },
+	);
 	host.addEventListener(
 		'pointermove',
 		(event) => {
@@ -307,6 +340,7 @@ export async function mountRoom(
 		(event) => {
 			event.preventDefault();
 			lost = true;
+			arm(false);
 			delete host.dataset.live;
 			delete host.dataset.placed;
 			for (const hotspot of hotspots) {
@@ -323,6 +357,7 @@ export async function mountRoom(
 		'webglcontextrestored',
 		() => {
 			lost = false;
+			arm(true);
 			requestDraw();
 			host.dataset.live = '';
 		},
@@ -340,6 +375,7 @@ export async function mountRoom(
 		releaseAssets();
 		renderer.dispose();
 		renderer.forceContextLoss();
+		arm(false);
 		delete host.dataset.live;
 	}
 
@@ -351,6 +387,7 @@ export async function mountRoom(
 		{ signal: events.signal },
 	);
 	renderer.setSize(host.clientWidth, canvas.clientHeight, false);
+	publish('room');
 	draw();
 	return dispose;
 }

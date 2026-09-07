@@ -17,11 +17,9 @@ import poster from '../../assets/living-room.png';
 		fetchpriority="high"
 		decoding="sync"
 	/>
+	<!-- The scene itself is the camera control once it is live: scene.ts names it
+	     and makes it focusable, so there is no chrome over the artwork. -->
 	<canvas class="living-room__canvas" aria-hidden="true"></canvas>
-	<div class="living-room__views" role="group" aria-label="Room camera">
-		<button type="button" data-room-view="room" aria-pressed="true">Room</button>
-		<button type="button" data-room-view="listening" aria-pressed="false">A closer look</button>
-	</div>
 
 	<div class="living-room__hotspots">
 		<a class="living-room__hotspot" href="/bookshelf/" data-anchor="bookshelf">

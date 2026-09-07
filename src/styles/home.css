@@ -208,36 +208,15 @@
 	opacity: 1;
 }
 
-.living-room__views {
-	position: absolute;
-	bottom: 1rem;
-	left: 1rem;
-	display: flex;
-	gap: 0.25rem;
-	visibility: hidden;
+/* No camera chrome: the cursor carries the state, and clicking the room steps
+   in or back. Only live scenes are clickable. */
+.living-room[data-live] .living-room__canvas {
+	cursor: zoom-in;
 }
-
-.living-room[data-live] .living-room__views {
-	visibility: visible;
-}
-
-.living-room__views button {
-	padding: 0.65rem 0.8rem;
-	border: 0;
-	background: #e3dfd6;
-	color: #514b42;
-	font: inherit;
-	font-size: 0.75rem;
-	cursor: pointer;
-}
-
-.living-room__views button[aria-pressed="true"] {
-	background: #36342e;
-	color: #fffaf0;
-}
-.living-room__views button:hover {
-	background: #ccc6bb;
-	color: #29261f;
+.living-room[data-live][data-view="closer"] .living-room__canvas,
+.living-room[data-live][data-view="bookshelf"] .living-room__canvas,
+.living-room[data-live][data-view="record"] .living-room__canvas {
+	cursor: zoom-out;
 }
 
 .living-room__hotspots {
@@ -279,7 +258,7 @@
 }
 
 .living-room__hotspot:focus-visible,
-.living-room__views button:focus-visible {
+.living-room__canvas:focus-visible {
 	outline: 3px solid var(--home-cobalt);
 	outline-offset: 3px;
 }
@@ -352,9 +331,6 @@
 
 /* Touch controls sit below the image so labels cannot cover each other or the objects. */
 @media (hover: none), (max-width: 40rem) {
-	.living-room__views {
-		bottom: 4rem;
-	}
 	.living-room {
 		box-sizing: content-box;
 		padding-bottom: 3.3rem;
