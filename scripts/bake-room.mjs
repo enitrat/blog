@@ -1,11 +1,11 @@
 /** Bake original room assets with Blender 4.5; Blender is an offline tool only. */
 import { spawn } from 'node:child_process';
-import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { books } from '../src/booksData.ts';
-import { pleiadeStyleFor, PLEIADE_HEX } from '../src/utils/pleiade.ts';
+import { PLEIADE_HEX, pleiadeStyleFor } from '../src/utils/pleiade.ts';
 
 const option = (name, fallback) => {
 	const index = process.argv.indexOf(name);
@@ -15,11 +15,39 @@ const work = process.env.ROOM_WORK ?? (await mkdtemp(join(tmpdir(), 'living-room
 const out = resolve(option('--out', 'src/assets/room'));
 await mkdir(work, { recursive: true });
 const library = books.map((book) => ({
+	isbn: book.edition.isbn13,
 	title: book.title,
 	author: pleiadeStyleFor(book.author).label,
 	color: PLEIADE_HEX[pleiadeStyleFor(book.author).color],
 	pages: book.edition.pageCount ?? 500,
 }));
+// These slots are consumed by Blender and shipped with its assets. The browser
+// never reconstructs positions from the current order of booksData.
+const perShelf = Math.ceil(library.length / 3);
+const slots = library.map((book, index) => {
+	const row = Math.floor(index / perShelf);
+	const start = row * perShelf;
+	const widthOf = (entry) => 0.022 + (Math.min(entry.pages, 2200) / 2200) * 0.021;
+	const width = widthOf(book);
+	const left =
+		-1.61 + library.slice(start, index).reduce((x, entry) => x + widthOf(entry) + 0.0015, 0);
+	if (left + width > -0.63)
+		throw new Error('The room bookcase is full. Add shelf space before baking more books.');
+	return {
+		isbn: book.isbn,
+		row,
+		x: left + width / 2,
+		y: [0.55, 0.91, 1.27][row],
+		z: -1.068,
+		width,
+		height: 0.237 + (index % 4) * 0.002,
+	};
+});
+await writeFile(join(work, 'book-slots.json'), JSON.stringify(slots));
+if (process.argv.includes('--layout-only')) {
+	await writeFile(join(out, 'book-slots.json'), JSON.stringify(slots, null, 2) + '\n');
+	process.exit(0);
+}
 await writeFile(join(work, 'books.json'), JSON.stringify(library));
 const escape = (text) =>
 	text.replace(
@@ -43,7 +71,10 @@ for (const [index, book] of library.entries()) {
 		.join(
 			'',
 		)}<text x="64" y="640" font-size="12">PLÉIADE</text><text x="64" y="675" font-size="10">GALLIMARD</text></g><g stroke="#c8ac6b" stroke-width="3">${[54, 61, 171, 178, 581, 588, 718, 725].map((y) => `<path d="M8 ${y}h112"/>`).join('')}</g></svg>`;
-	await sharp(Buffer.from(svg))
+	/* Rendered well above the 128x768 the SVG is authored at: these jackets are
+	   the only type in the room a visitor is meant to actually read, and the
+	   bake cannot invent detail the source does not have. */
+	await sharp(Buffer.from(svg), { density: 288 })
 		.png()
 		.toFile(join(work, `book-${index}.png`));
 }
@@ -71,6 +102,7 @@ const child = spawn(
 		option('--samples', '256'),
 		option('--size', '2048'),
 		...(process.argv.includes('--preview') ? ['--preview'] : []),
+		...(process.argv.includes('--spines-only') ? ['--spines-only'] : []),
 	],
 	{ stdio: 'inherit' },
 );

@@ -178,9 +178,12 @@
 
 /* The poster and live canvas share a frame, including on devices without WebGL. */
 .living-room {
+	margin-top: clamp(1.5rem, 4vw, 3rem);
+}
+
+.living-room__stage {
 	position: relative;
 	aspect-ratio: 16 / 9;
-	margin-top: clamp(1.5rem, 4vw, 3rem);
 	overflow: hidden;
 	background: #edeae3;
 	contain: layout paint;
@@ -214,7 +217,6 @@
 	cursor: zoom-in;
 }
 .living-room[data-live][data-view="closer"] .living-room__canvas,
-.living-room[data-live][data-view="bookshelf"] .living-room__canvas,
 .living-room[data-live][data-view="record"] .living-room__canvas {
 	cursor: zoom-out;
 }
@@ -273,31 +275,168 @@
 		overflow: hidden;
 		text-indent: 110%;
 	}
+}
 
-	/* Small ivory ring, dark-rimmed so it reads on oak as well as on shadow. */
-	.living-room__hotspot:not(.living-room__mix)::before {
-		content: "";
-		position: absolute;
-		left: 50%;
-		top: 50%;
-		width: 0.6rem;
-		height: 0.6rem;
-		translate: -50% -50%;
-		border: 1px solid rgb(255 247 231 / 0.7);
-		border-radius: 50%;
-		background: rgb(255 247 231 / 0.1);
-		box-shadow: 0 0 0 1px rgb(33 29 23 / 0.3);
-		transition:
-			background-color 160ms ease,
-			scale 160ms ease;
-	}
+/* One ivory ring marks every reachable thing in the room — the hi-fi, the
+   cabinet, a shelf, a single spine — and fills when it is under the pointer.
+   Dark-rimmed so it reads on oak as well as in shadow. Defined once here
+   because the room owns its own chrome; bookshelf.css owns the reader. */
+.living-room__hotspot:not(.living-room__mix)::before,
+.room-library__row::before,
+.room-library__spine::before {
+	content: "";
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 0.6rem;
+	height: 0.6rem;
+	translate: -50% -50%;
+	border: 1px solid rgb(255 247 231 / 0.7);
+	border-radius: 50%;
+	background: rgb(255 247 231 / 0.1);
+	box-shadow: 0 0 0 1px rgb(33 29 23 / 0.3);
+	pointer-events: none;
+	transition:
+		background-color 160ms ease,
+		border-color 160ms ease,
+		opacity 160ms ease,
+		scale 160ms ease;
+}
 
-	.living-room__hotspot:not(.living-room__mix):hover::before,
-	.living-room__hotspot:not(.living-room__mix):focus-visible::before {
-		border-color: #fff7e7;
-		background: rgb(255 247 231 / 0.85);
-		scale: 1.15;
-	}
+.living-room__hotspot:not(.living-room__mix):is(:hover, :focus-visible)::before,
+.room-library__row:is(:hover, :focus-visible)::before,
+.room-library__spine:is(:hover, :focus-visible)::before {
+	border-color: #fff7e7;
+	background: rgb(255 247 231 / 0.85);
+	scale: 1.15;
+}
+
+/* A whole row of standing rings would read as noise, so a spine only shows
+   its own once it is reached. */
+.room-library__spine::before {
+	opacity: 0;
+}
+.room-library__spine:is(:hover, :focus-visible)::before {
+	opacity: 1;
+}
+
+/* Keyboard focus is the site's one cobalt outline (site.css); the ring only
+   has to fill, exactly as it does under the pointer. */
+
+/* In-frame camera chrome: one way out, one pair of arrows per axis. */
+.room-controls {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	font-size: 0.8125rem;
+}
+
+.room-controls > :is(button, p) {
+	position: absolute;
+	margin: 0;
+	padding: 0.5rem 0.75rem;
+	border: 0;
+	border-radius: 3px;
+	background: rgb(33 29 23 / 0.92);
+	color: #fff7e7;
+	font: inherit;
+	pointer-events: auto;
+	cursor: pointer;
+	transition: background-color 160ms ease;
+}
+
+.room-controls > button:hover {
+	background: rgb(33 29 23 / 1);
+}
+
+.room-controls > button:focus-visible {
+	outline: 3px solid var(--home-cobalt);
+	outline-offset: 3px;
+}
+
+.room-controls > button:disabled {
+	opacity: 0.35;
+	cursor: default;
+}
+
+.room-controls svg {
+	display: block;
+	width: 1rem;
+	height: 1rem;
+}
+
+.room-controls__back {
+	display: flex;
+	align-items: center;
+	gap: 0.35rem;
+	top: 1rem;
+	left: 1rem;
+}
+
+.room-controls__audio {
+	top: 1rem;
+	right: 1rem;
+}
+
+/* The chevron asset points left; each direction is that one glyph turned. */
+.room-controls__step,
+.room-controls__pan {
+	padding: 0.6rem;
+	line-height: 0;
+}
+.room-controls__step {
+	left: 50%;
+	translate: -50%;
+}
+.room-controls__pan {
+	top: 50%;
+	translate: 0 -50%;
+}
+[data-row-previous] {
+	top: 1rem;
+}
+[data-row-previous] svg {
+	rotate: 90deg;
+}
+[data-row-next] {
+	bottom: 1rem;
+}
+[data-row-next] svg {
+	rotate: -90deg;
+}
+[data-shelf-previous] {
+	left: 1rem;
+}
+[data-shelf-next] {
+	right: 1rem;
+}
+[data-shelf-next] svg {
+	rotate: 180deg;
+}
+
+/* Announced, not drawn: the caption already carries this visually. */
+.room-controls__status {
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	background: none;
+}
+
+/* The way out only exists once there is somewhere to go back to. */
+.living-room:not([data-live]) .room-controls,
+.living-room[data-live][data-view="room"] .room-controls__back {
+	display: none;
+}
+.living-room[data-view="room"] .room-controls__audio {
+	display: none;
+}
+
+/* With a live room the list is redundant; without one it is the bookshelf. */
+.living-room[data-live] :is(.room-library__catalog, .room-library__legend) {
+	display: none;
 }
 
 .living-room__caption {
@@ -331,7 +470,7 @@
 
 /* Touch controls sit below the image so labels cannot cover each other or the objects. */
 @media (hover: none), (max-width: 40rem) {
-	.living-room {
+	.living-room__stage {
 		box-sizing: content-box;
 		padding-bottom: 3.3rem;
 	}
@@ -353,6 +492,10 @@
 		opacity: 1;
 		font-size: 0.75rem;
 	}
+	/* Below the frame the hotspots are named buttons, so they drop the ring. */
+	.living-room__hotspot::before {
+		content: none;
+	}
 	.living-room__mix {
 		position: absolute;
 		bottom: 3.6rem;
@@ -360,6 +503,50 @@
 		top: auto !important;
 		transform: translateX(-50%);
 	}
+}
+
+/* A narrow frame has no room for a label beside the top arrow, nor for a
+   caption beneath the bottom one. */
+@media (max-width: 40rem) {
+	.room-controls__back {
+		padding: 0.6rem;
+	}
+	.room-controls__back span {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+	}
+	.living-room[data-browsing] .living-room__caption {
+		bottom: 4.25rem;
+	}
+}
+
+.living-room[data-browsing][data-live] .living-room__stage {
+	aspect-ratio: auto;
+	height: var(--shelf-stage-height, 36rem);
+	padding-bottom: 0;
+}
+.living-room[data-browsing][data-live] .living-room__canvas,
+.living-room[data-browsing][data-live] .living-room__poster {
+	height: 100%;
+}
+.living-room[data-browsing][data-live] .living-room__canvas {
+	cursor: zoom-out;
+	touch-action: pan-y;
+}
+.living-room[data-browsing] .living-room__hotspots {
+	display: none;
+}
+/* Browsing, the caption is a standing label for what is under the pointer, so
+   it sits in the corner rather than over the spines it is naming. */
+.living-room[data-browsing] .living-room__caption {
+	left: 1rem;
+	translate: none;
+	max-width: calc(100% - 2rem);
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 @media (prefers-reduced-motion: reduce) {

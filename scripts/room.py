@@ -50,7 +50,7 @@ scene.render.resolution_x = 1920
 scene.render.resolution_y = 1080
 scene.render.resolution_percentage = 100
 
-groups = {'shell': {}, 'furniture': {}, 'objects': {}, 'moving': {}}
+groups = {'shell': {}, 'furniture': {}, 'objects': {}, 'moving': {}, 'spines': {}}
 group = 'shell'
 # Parts of `moving` keep their own transform so the runtime can turn them, and
 # their origin sits on the axis they turn about.
@@ -256,20 +256,25 @@ for x in [-1.23, 1.43]:
         tube('Kilim fringe', [(x, -1.14+i*.029, .026), (x+(.04 if x>0 else -.04), -1.14+i*.029, .02)], .002, rug_cream)
 
 books = json.loads((work/'books.json').read_text())
+slots = json.loads((work/'book-slots.json').read_text())
 for bay in range(3):
-    run = books[bay*19:(bay+1)*19]
-    widths = [.022 + min(b['pages'], 2200)/2200*.021 for b in run]
-    x = cx-.49
-    for i, (book, width) in enumerate(zip(run, widths)):
-        idx = bay*19+i
-        z = shelves[bay+1]
-        h = .237 + (idx%4)*.002
+    z = shelves[bay+1]
+    for idx, (book, slot) in enumerate(zip(books, slots)):
+        if slot['row'] != bay:
+            continue
+        width, h, z = slot['width'], slot['height'], slot['y']
+        x = slot['x']-width/2
         cover = material('Leather '+str(idx), book['color'], .7)
         box('Pleiade leather binding', (x+width/2, 1.145, z+h/2), (width, .15, h), cover, .003)
         box('Bible paper edges', (x+width/2, 1.15, z+h/2+.001), (width-.004, .135, h-.006), cream, .001)
-        plane_image('Pleiade '+book['author'], (x+width/2, 1.068, z+h/2), width-.001, h-.003, work/f'book-{idx}.png')
-        x += width + .0015
-    if bay != 1:
+        group = 'spines'
+        part = 'Book_'+book['isbn']
+        jacket = plane_image(part, (slot['x'], -slot['z'], z+h/2), width-.001, h-.003, work/f'book-{idx}.png')
+        jacket['isbn'] = book['isbn']
+        part = None
+        group = 'objects'
+    used_right = max((s['x']+s['width']/2 for s in slots if s['row'] == bay), default=cx-.49)
+    if bay != 1 and used_right < cx+.295:
         for i in range(3):
             box('Books laid flat', (cx+.39, 1.19, z+.015+i*.031), (.16, .23, .028), cream, .002, .03*i)
 # Vinyl spines sit below the books.
@@ -444,7 +449,8 @@ for parts in groups.values():
             obj.select_set(True)
         bpy.context.view_layer.objects.active = objects[0]
         bpy.ops.object.convert(target='MESH')
-        bpy.ops.object.join()
+        if len(objects) > 1:
+            bpy.ops.object.join()
         joined = bpy.context.object
         joined.name = name
         objects[:] = [joined]
@@ -462,6 +468,8 @@ if preview_only:
     sys.exit(0)
 
 for name, parts in groups.items():
+    if '--spines-only' in args and name != 'spines':
+        continue
     meshes = [objects[0] for objects in parts.values()]
     bpy.ops.object.select_all(action='DESELECT')
     for obj in meshes:
@@ -484,7 +492,29 @@ for name, parts in groups.items():
     bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.uv.smart_project(angle_limit=math.radians(66), island_margin=.006)
     bpy.ops.object.mode_set(mode='OBJECT')
-    resolution = size * 2 if name == 'objects' else size // 2 if name == 'moving' else size
+    if name == 'spines':
+        # A regular print atlas spends its pixels on lettering rather than the
+        # empty bands produced by packing tall, narrow islands automatically.
+        columns = math.ceil(math.sqrt(len(meshes)*3))
+        rows = math.ceil(len(meshes)/columns)
+        padding = 20/(size*2)
+        for index, obj in enumerate(meshes):
+            for source, baked_uv in zip(obj.data.uv_layers[0].data, obj.data.uv_layers[-1].data):
+                baked_uv.uv = (
+                    (index % columns)/columns + padding + source.uv.x*(1/columns-2*padding),
+                    (index // columns)/rows + padding + source.uv.y*(1/rows-2*padding),
+                )
+        # The ISBN manifest owns picking. Join the printed planes after packing
+        # so Cycles bakes once and the browser draws this atlas once.
+        bpy.ops.object.join()
+        joined = bpy.context.object
+        joined.name = 'spines'
+        meshes = [joined]
+        parts.clear()
+        parts['spines'] = meshes
+    resolution = (
+        size * 2 if name in ('objects', 'spines') else size // 2 if name == 'moving' else size
+    )
     image = bpy.data.images.new(name+' baked',width=resolution,height=resolution,float_buffer=True)
     for obj in meshes:
         for mat in obj.data.materials:
@@ -519,6 +549,8 @@ for name, parts in groups.items():
         obj['baked_material'] = mat.name
 
 for name, parts in groups.items():
+    if '--spines-only' in args and name != 'spines':
+        continue
     meshes = [objects[0] for objects in parts.values()]
     bpy.ops.object.select_all(action='DESELECT')
     for obj in meshes:
@@ -534,4 +566,5 @@ for name, parts in groups.items():
     bpy.ops.export_scene.gltf(filepath=str(out/(name+'.glb')),export_format='GLB',use_selection=True,
                               export_texcoords=True,export_normals=False,export_materials='EXPORT',
                               export_image_format='JPEG',export_jpeg_quality=95)
+(out/'book-slots.json').write_text(json.dumps(slots, indent=2)+'\n')
 print('Room assets exported',flush=True)

@@ -1,20 +1,20 @@
-/** Baked glTF assets, two composed camera views, and DOM controls projected into the room. */
+/** Display the baked room and frame its navigable bookshelf. */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import furnitureUrl from '../../../assets/room/furniture.glb?url';
 import movingUrl from '../../../assets/room/moving.glb?url';
 import objectsUrl from '../../../assets/room/objects.glb?url';
 import shellUrl from '../../../assets/room/shell.glb?url';
+// The printed jackets carry the only type in the room meant to be read, so they
+// own an atlas instead of sharing one with nine square metres of leather.
+import spinesUrl from '../../../assets/room/spines.glb?url';
+import type { Bookshelf, ShelfFrame } from './bookshelf';
 
 const VIEWS = {
 	room: { position: new THREE.Vector3(6.4, 6.5, 9.9), target: new THREE.Vector3(0, 1, -0.2) },
 	closer: {
 		position: new THREE.Vector3(0.9, 2.4, 4.8),
 		target: new THREE.Vector3(0, 0.94, -1.05),
-	},
-	bookshelf: {
-		position: new THREE.Vector3(0.28, 2.05, 2.87),
-		target: new THREE.Vector3(-1.12, 0.87, -1.24),
 	},
 	record: {
 		position: new THREE.Vector3(0.98, 1.48, 0.55),
@@ -26,12 +26,13 @@ const ANCHORS = {
 	record: new THREE.Vector3(0.21, 0.78, -1.16),
 };
 
-type View = keyof typeof VIEWS;
+type View = keyof typeof VIEWS | 'cabinet' | 'shelf';
 
 /** Mount a room, or leave its poster in place if an asset or WebGL fails. */
 export async function mountRoom(
 	host: HTMLElement,
 	canvas: HTMLCanvasElement,
+	bookshelf: Bookshelf,
 ): Promise<(() => void) | null> {
 	const scene = new THREE.Scene();
 	const materials = new Set<THREE.Material>();
@@ -50,7 +51,7 @@ export async function mountRoom(
 	};
 	// Await all loads even after failure so a late success cannot leak GPU resources.
 	const results = await Promise.allSettled(
-		[shellUrl, furnitureUrl, objectsUrl, movingUrl].map(async (url) => {
+		[shellUrl, furnitureUrl, objectsUrl, movingUrl, spinesUrl].map(async (url) => {
 			const gltf = await loader.loadAsync(url);
 			gltf.scene.traverse((object) => {
 				if (!(object instanceof THREE.Mesh)) return;
@@ -94,6 +95,8 @@ export async function mountRoom(
 	const target = VIEWS.room.target.clone();
 	const fromPosition = position.clone();
 	const fromTarget = target.clone();
+	const destination = position.clone();
+	const destinationTarget = target.clone();
 	const offset = new THREE.Vector2();
 	const wantedOffset = new THREE.Vector2();
 	const projected = new THREE.Vector3();
@@ -106,7 +109,15 @@ export async function mountRoom(
 	let lost = false;
 	let frame = 0;
 	let transitionStart: number | null = null;
+	let transitionDuration = 750;
+	let shelfFrame: ShelfFrame | null = null;
 	let lastTime = 0;
+	const raycaster = new THREE.Raycaster();
+	const pointer = new THREE.Vector2();
+	const cabinet = new THREE.Box3(
+		new THREE.Vector3(-1.69, 0, -1.46),
+		new THREE.Vector3(-0.55, 1.73, -1.025),
+	);
 
 	// The platter and the arm are their own nodes in moving.glb, turning about
 	// their own axis. Blender's Z became the node's Y in the glTF conversion.
@@ -115,7 +126,7 @@ export async function mountRoom(
 	const SPEED = (100 * Math.PI) / 90; // 33 1/3 rpm
 	const CUED = -0.1846; // the headshell reaches the lead-in groove
 	const DROP = 0.1; // and noses down onto it
-	let cueing = false;
+	let cueing = host.hasAttribute('data-playing');
 	let cue = 0; // 0 parked, 1 on the record
 	let spin = 0; // rad/s, spinning up and down like a real platter
 
@@ -154,12 +165,21 @@ export async function mountRoom(
 			// the picture and out of the tab order rather than parking it outside.
 			// The wide mix credit needs more room than a ring before it fits.
 			const slack = hotspot.classList.contains('living-room__mix') ? 0.6 : 0.98;
+			// At reading distance the ring has nothing left to offer, so it steps aside.
 			hotspot.hidden =
-				projected.z > 1 || Math.abs(projected.x) > slack || Math.abs(projected.y) > slack;
+				bookshelf.active ||
+				projected.z < -1 ||
+				projected.z > 1 ||
+				Math.abs(projected.x) > slack ||
+				Math.abs(projected.y) > slack;
 			hotspot.style.left = `${(projected.x * 0.5 + 0.5) * 100}%`;
 			hotspot.style.top = `${(-projected.y * 0.5 + 0.5) * 100}%`;
 		}
 		host.dataset.placed = '';
+		bookshelf.draw((x, y, z) => {
+			projected.set(x, y, z).project(camera);
+			return { x: projected.x, y: projected.y, z: projected.z };
+		}, transitionStart === null);
 	}
 
 	function tick(now: number) {
@@ -168,10 +188,10 @@ export async function mountRoom(
 		const dt = Math.min((now - lastTime) / 1000, 0.05);
 		lastTime = now;
 		if (transitionStart !== null) {
-			const t = motion.matches ? 1 : Math.min((now - transitionStart) / 1200, 1);
-			const eased = t < 0.5 ? 16 * t ** 5 : 1 - (-2 * t + 2) ** 5 / 2;
-			position.lerpVectors(fromPosition, VIEWS[view].position, eased);
-			target.lerpVectors(fromTarget, VIEWS[view].target, eased);
+			const t = motion.matches ? 1 : Math.min((now - transitionStart) / transitionDuration, 1);
+			const eased = 1 - (1 - t) ** 3;
+			position.lerpVectors(fromPosition, destination, eased);
+			target.lerpVectors(fromTarget, destinationTarget, eased);
 			if (t === 1) transitionStart = null;
 		}
 		offset.lerp(wantedOffset, motion.matches ? 1 : 1 - Math.exp(-8 * dt));
@@ -186,42 +206,70 @@ export async function mountRoom(
 			frame = requestAnimationFrame(tick);
 	}
 
-	function changeView(next: View) {
-		if (next === view) return;
+	function travel(next: View, nextPosition: THREE.Vector3, nextTarget: THREE.Vector3) {
+		if (next === view && destination.equals(nextPosition) && destinationTarget.equals(nextTarget)) {
+			requestDraw();
+			return;
+		}
 		fromPosition.copy(position);
 		fromTarget.copy(target);
+		destination.copy(nextPosition);
+		destinationTarget.copy(nextTarget);
+		transitionDuration = view === 'shelf' && next === 'shelf' ? 320 : 750;
 		view = next;
+		canvas.style.cursor = '';
 		transitionStart = performance.now();
 		wantedOffset.set(0, 0);
+		offset.set(0, 0);
 		publish(view);
-		if (shelf) {
-			shelf.textContent = view === 'bookshelf' ? 'Open the bookshelf' : 'Browse the bookshelf';
-			// Refresh the caption if the pointer or keyboard is already on it.
-			if (shelf.matches(':hover, :focus-visible'))
-				shelf.dispatchEvent(new Event('pointerover', { bubbles: true }));
-		}
+		arm(next !== 'shelf' && next !== 'cabinet');
 		requestDraw();
 	}
 
-	// Clicking an object travels to it. A link travels first and navigates on the
-	// second press, so the trip somewhere else is never a surprise.
-	const shelf = hotspots.find(
-		(hotspot) => hotspot.dataset.anchor === 'bookshelf' && hotspot instanceof HTMLAnchorElement,
-	);
+	function changeView(next: keyof typeof VIEWS) {
+		travel(next, VIEWS[next].position, VIEWS[next].target);
+	}
+
+	function frameShelf(frame: ShelfFrame | null) {
+		shelfFrame = frame;
+		if (!frame) {
+			if (view === 'shelf' || view === 'cabinet') changeView('room');
+			return;
+		}
+		camera.aspect = canvas.clientWidth / Math.max(1, canvas.clientHeight);
+		camera.updateProjectionMatrix();
+		const distance =
+			Math.max(frame.height, frame.width / camera.aspect) /
+			(2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+		travel(
+			frame.view === 'cabinet' ? 'cabinet' : 'shelf',
+			new THREE.Vector3(frame.x, frame.y, frame.z + distance),
+			new THREE.Vector3(frame.x, frame.y, frame.z),
+		);
+	}
+
 	for (const hotspot of hotspots) {
 		if (hotspot.classList.contains('living-room__mix')) continue;
 		const anchor = hotspot.dataset.anchor;
-		if (anchor !== 'bookshelf' && anchor !== 'record') continue;
+		if (anchor !== 'record') continue;
 		hotspot.addEventListener(
 			'click',
-			(event) => {
-				const plain = event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey;
-				if (hotspot === shelf && view !== 'bookshelf' && plain) event.preventDefault();
-				changeView(anchor);
+			() => {
+				if (!bookshelf.active) changeView('record');
 			},
 			{ signal: events.signal },
 		);
 	}
+
+	// The same visible control backs out of a close view and out of the shelves:
+	// the bookshelf owns it while browsing, the camera owns it otherwise.
+	host.querySelector<HTMLButtonElement>('[data-shelf-exit]')?.addEventListener(
+		'click',
+		() => {
+			if (!bookshelf.active) changeView('room');
+		},
+		{ signal: events.signal },
+	);
 
 	// The DOM owns playback; the room follows the state it publishes.
 	const playing = new MutationObserver(() => {
@@ -241,7 +289,19 @@ export async function mountRoom(
 
 	// Clicking the room itself steps in, and steps back out from any close view.
 	// The canvas is the control, so the keyboard reaches it without any chrome.
-	const step = () => changeView(view === 'room' ? 'closer' : 'room');
+	const step = () => {
+		if (!bookshelf.active) changeView(view === 'room' ? 'closer' : 'room');
+	};
+	function pointsAtCabinet(event: MouseEvent) {
+		const bounds = canvas.getBoundingClientRect();
+		pointer.set(
+			((event.clientX - bounds.left) / bounds.width) * 2 - 1,
+			1 - ((event.clientY - bounds.top) / bounds.height) * 2,
+		);
+		raycaster.setFromCamera(pointer, camera);
+		const hit = raycaster.intersectObjects(scene.children, true)[0];
+		return hit !== undefined && cabinet.containsPoint(hit.point);
+	}
 	// Focusable only while the scene is actually there to steer: an invisible
 	// canvas must not keep a tab stop.
 	function arm(on: boolean) {
@@ -256,7 +316,18 @@ export async function mountRoom(
 		}
 	}
 	arm(true);
-	canvas.addEventListener('click', step, { signal: events.signal });
+	canvas.addEventListener(
+		'click',
+		(event) => {
+			if (bookshelf.active) {
+				bookshelf.background();
+				return;
+			}
+			if (pointsAtCabinet(event)) bookshelf.enter();
+			else step();
+		},
+		{ signal: events.signal },
+	);
 	canvas.addEventListener(
 		'keydown',
 		(event) => {
@@ -268,19 +339,28 @@ export async function mountRoom(
 		{ signal: events.signal },
 	);
 	// Escape backs out while the room is the thing on screen, wherever focus is.
-	document.addEventListener(
+	host.addEventListener(
 		'keydown',
 		(event) => {
-			if (event.key !== 'Escape' || view === 'room' || !visible) return;
+			if (
+				event.defaultPrevented ||
+				bookshelf.active ||
+				event.key !== 'Escape' ||
+				view === 'room' ||
+				!visible
+			)
+				return;
 			changeView('room');
 		},
 		{ signal: events.signal },
 	);
-	host.addEventListener(
+	canvas.addEventListener(
 		'pointermove',
 		(event) => {
-			if (motion.matches || event.pointerType !== 'mouse') return;
-			const bounds = host.getBoundingClientRect();
+			if (bookshelf.active || event.pointerType !== 'mouse') return;
+			canvas.style.cursor = pointsAtCabinet(event) ? 'pointer' : '';
+			if (motion.matches) return;
+			const bounds = canvas.getBoundingClientRect();
 			wantedOffset.set(
 				((event.clientX - bounds.left) / bounds.width - 0.5) * 0.12,
 				(0.5 - (event.clientY - bounds.top) / bounds.height) * 0.06,
@@ -313,9 +393,10 @@ export async function mountRoom(
 		renderer.setSize(width, height, false);
 		camera.aspect = width / height;
 		camera.updateProjectionMatrix();
+		if (shelfFrame) frameShelf(shelfFrame);
 		requestDraw();
 	});
-	resize.observe(host);
+	resize.observe(canvas);
 	const intersection = new IntersectionObserver(([entry]) => {
 		visible = entry?.isIntersecting ?? false;
 		if (visible) requestDraw();
@@ -324,7 +405,7 @@ export async function mountRoom(
 			frame = 0;
 		}
 	});
-	intersection.observe(host);
+	intersection.observe(canvas);
 	document.addEventListener(
 		'visibilitychange',
 		() => {
@@ -340,6 +421,7 @@ export async function mountRoom(
 		(event) => {
 			event.preventDefault();
 			lost = true;
+			bookshelf.fallback();
 			arm(false);
 			delete host.dataset.live;
 			delete host.dataset.placed;
@@ -360,6 +442,7 @@ export async function mountRoom(
 			arm(true);
 			requestDraw();
 			host.dataset.live = '';
+			bookshelf.connect(frameShelf);
 		},
 		{ signal: events.signal },
 	);
@@ -376,6 +459,7 @@ export async function mountRoom(
 		renderer.dispose();
 		renderer.forceContextLoss();
 		arm(false);
+		bookshelf.fallback();
 		delete host.dataset.live;
 	}
 
@@ -387,7 +471,11 @@ export async function mountRoom(
 		{ signal: events.signal },
 	);
 	renderer.setSize(host.clientWidth, canvas.clientHeight, false);
+	camera.aspect = canvas.clientWidth / Math.max(1, canvas.clientHeight);
+	camera.updateProjectionMatrix();
 	publish('room');
+	host.dataset.live = '';
+	bookshelf.connect(frameShelf);
 	draw();
 	return dispose;
 }
