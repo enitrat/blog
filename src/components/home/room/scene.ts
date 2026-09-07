@@ -9,7 +9,7 @@ import shellUrl from '../../../assets/room/shell.glb?url';
 // own an atlas instead of sharing one with nine square metres of leather.
 import spinesUrl from '../../../assets/room/spines.glb?url';
 import type { Bookshelf } from './bookshelf';
-import { BOOKSHELF_ANCHOR, CABINET_BOX, type ShelfFrame } from './shelves';
+import { BOOKSHELF_ANCHOR, CABINET_BOX, ordered, type ShelfFrame } from './shelves';
 
 const VIEWS = {
 	room: { position: new THREE.Vector3(6.4, 6.5, 9.9), target: new THREE.Vector3(0, 1, -0.2) },
@@ -76,6 +76,65 @@ export async function mountRoom(
 		return null;
 	}
 
+	/* One volume at a time comes forward when it is reached for. The bake joins
+	   the printed planes so Cycles bakes once and the browser draws once; the
+	   pull needs them apart again, so they are sliced back up here against the
+	   same manifest Blender placed them from. Only the jacket moves: the leather
+	   body behind it stays in the row, and covers what the jacket leaves. */
+	const jackets = new Map<string, THREE.Mesh>();
+	const atlas = scene.getObjectByName('spines');
+	if (atlas instanceof THREE.Mesh) {
+		atlas.updateWorldMatrix(true, false);
+		const flat = atlas.geometry.clone().toNonIndexed().applyMatrix4(atlas.matrixWorld);
+		const position = flat.getAttribute('position');
+		const uv = flat.getAttribute('uv');
+		const triangles = new Map<string, number[]>();
+		for (let first = 0; first < position.count; first += 3) {
+			let x = 0;
+			let y = 0;
+			for (let corner = 0; corner < 3; corner += 1) {
+				x += position.getX(first + corner) / 3;
+				y += position.getY(first + corner) / 3;
+			}
+			// A jacket is a quad standing in its slot, so the slot it stands in
+			// names it. Rows share the run of x, hence the height as well.
+			const slot = ordered.find(
+				(candidate) =>
+					Math.abs(x - candidate.x) <= candidate.width / 2 &&
+					y >= candidate.y &&
+					y <= candidate.y + candidate.height,
+			);
+			if (!slot) continue;
+			const found = triangles.get(slot.isbn) ?? [];
+			found.push(first);
+			triangles.set(slot.isbn, found);
+		}
+		for (const [isbn, corners] of triangles) {
+			const geometry = new THREE.BufferGeometry();
+			const points = new Float32Array(corners.length * 9);
+			const texture = new Float32Array(corners.length * 6);
+			let vertex = 0;
+			for (const first of corners)
+				for (let corner = 0; corner < 3; corner += 1, vertex += 1) {
+					points[vertex * 3] = position.getX(first + corner);
+					points[vertex * 3 + 1] = position.getY(first + corner);
+					points[vertex * 3 + 2] = position.getZ(first + corner);
+					texture[vertex * 2] = uv.getX(first + corner);
+					texture[vertex * 2 + 1] = uv.getY(first + corner);
+				}
+			geometry.setAttribute('position', new THREE.BufferAttribute(points, 3));
+			geometry.setAttribute('uv', new THREE.BufferAttribute(texture, 2));
+			geometries.add(geometry);
+			const jacket = new THREE.Mesh(geometry, atlas.material);
+			scene.add(jacket);
+			jackets.set(isbn, jacket);
+		}
+		flat.dispose();
+		// Every jacket it carried is now drawn by its own mesh.
+		if (jackets.size === ordered.length) atlas.visible = false;
+		else for (const jacket of jackets.values()) jacket.visible = false;
+	}
+
 	let renderer: THREE.WebGLRenderer;
 	try {
 		renderer = new THREE.WebGLRenderer({
@@ -133,6 +192,25 @@ export async function mountRoom(
 	let cueing = host.hasAttribute('data-playing');
 	let cue = 0; // 0 parked, 1 on the record
 	let spin = 0; // rad/s, spinning up and down like a real platter
+
+	/** How far a volume eases out of the row when it is reached for: a fifth of
+	 *  its own depth, the same gesture as the flat shelf's ten pixels. */
+	const PULL = 0.02;
+	let reached: string | null = null;
+
+	function pull(dt: number) {
+		let moving = false;
+		for (const [isbn, jacket] of jackets) {
+			const wanted = isbn === reached ? PULL : 0;
+			if (jacket.position.z === wanted) continue;
+			const eased = motion.matches
+				? wanted
+				: jacket.position.z + (wanted - jacket.position.z) * (1 - Math.exp(-14 * dt));
+			jacket.position.z = Math.abs(wanted - eased) < 0.0002 ? wanted : eased;
+			moving = true;
+		}
+		return moving;
+	}
 
 	function turntable(dt: number) {
 		const wanted = cueing ? 1 : 0;
@@ -198,9 +276,11 @@ export async function mountRoom(
 		}
 		offset.lerp(wantedOffset, motion.matches ? 1 : 1 - Math.exp(-8 * dt));
 		if (offset.distanceToSquared(wantedOffset) < 0.000001) offset.copy(wantedOffset);
-		const moving = turntable(dt);
+		const turning = turntable(dt);
+		const pulling = pull(dt);
 		draw();
-		if (transitionStart !== null || moving || !offset.equals(wantedOffset)) requestDraw();
+		if (transitionStart !== null || turning || pulling || !offset.equals(wantedOffset))
+			requestDraw();
 	}
 
 	function requestDraw() {
@@ -547,6 +627,11 @@ export async function mountRoom(
 	camera.updateProjectionMatrix();
 	publish('room');
 	host.dataset.live = '';
+	bookshelf.pulls((isbn) => {
+		if (isbn === reached) return;
+		reached = isbn;
+		requestDraw();
+	});
 	bookshelf.connect(frameShelf);
 	draw();
 	return dispose;

@@ -59,6 +59,8 @@ export function mountBookshelf(host: HTMLElement) {
 	let disposed = false;
 	// The renderer's listener doubles as the answer to "is the room live?".
 	let frameChanged: ((frame: ShelfFrame | null) => void) | undefined;
+	/** Which volume is under the pointer. The shelves know; the room draws it. */
+	let pullChanged: ((isbn: string | null) => void) | undefined;
 	// Which record is currently on loan to the dialog. A DOM bookkeeping detail:
 	// the level is `location.kind`, never this.
 	let mounted: { slot: Slot; source: HTMLDetailsElement; content: HTMLElement } | undefined;
@@ -312,6 +314,8 @@ export function mountBookshelf(host: HTMLElement) {
 		// `place()` reads this when the camera settles, so it is set first.
 		if (shown && shown.kind !== 'cabinet') rowAnchors.set(shown.anchor.row, shown.anchor);
 		applyChrome(chromeFor(shown));
+		// Arriving at a row reaches for nothing yet; arriving at a book took it out.
+		pullChanged?.(shown?.kind === 'book' ? shown.book.isbn : null);
 		if (frameChanged) {
 			frameChanged(frameFor(shown));
 			// The way out is display:none until the camera publishes its view, so
@@ -394,8 +398,17 @@ export function mountBookshelf(host: HTMLElement) {
 			`${record.dataset.title}, ${record.dataset.author}. ${record.hasAttribute('data-noted') ? 'Read notes' : 'View record'}`,
 		);
 		link.toggleAttribute('data-noted', record.hasAttribute('data-noted'));
-		link.addEventListener('pointerenter', () => describe(slot), { signal: events.signal });
-		link.addEventListener('focus', () => describe(slot), { signal: events.signal });
+		const reach = () => {
+			describe(slot);
+			pullChanged?.(slot.isbn);
+		};
+		// A volume you are no longer reaching for goes back, unless it is the one
+		// you already took down: an open record keeps its book out of the row.
+		const release = () => pullChanged?.(location?.kind === 'book' ? location.book.isbn : null);
+		link.addEventListener('pointerenter', reach, { signal: events.signal });
+		link.addEventListener('focus', reach, { signal: events.signal });
+		link.addEventListener('pointerleave', release, { signal: events.signal });
+		link.addEventListener('blur', release, { signal: events.signal });
 		link.addEventListener(
 			'click',
 			(event) => {
@@ -564,6 +577,10 @@ export function mountBookshelf(host: HTMLElement) {
 		 *  has a single owner: while browsing, the shelves keep it. */
 		label(text: string) {
 			if (!location) write(caption, text);
+		},
+		/** The room comes to collect the volume being reached for. */
+		pulls(listener: (isbn: string | null) => void) {
+			pullChanged = listener;
 		},
 		connect(listener: (frame: ShelfFrame | null) => void) {
 			frameChanged = listener;
