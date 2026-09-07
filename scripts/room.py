@@ -502,9 +502,12 @@ for name, parts in groups.items():
     if name == 'spines':
         # A regular print atlas spends its pixels on lettering rather than the
         # empty bands produced by packing tall, narrow islands automatically.
-        columns = math.ceil(math.sqrt(len(meshes)*3))
+        # Cells are shaped roughly like a spine, about one to twelve: cap height
+        # runs along the tall axis, so a squarer cell starves the only type in
+        # the room a visitor is meant to read.
+        columns = math.ceil(math.sqrt(len(meshes)*12))
         rows = math.ceil(len(meshes)/columns)
-        padding = 20/(size*2)
+        padding = 10/(size*2)
         for index, obj in enumerate(meshes):
             for source, baked_uv in zip(obj.data.uv_layers[0].data, obj.data.uv_layers[-1].data):
                 baked_uv.uv = (

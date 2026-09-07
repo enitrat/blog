@@ -6,6 +6,7 @@ import { join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { books } from '../src/booksData.ts';
 import { PLEIADE_HEX, pleiadeStyleFor } from '../src/utils/pleiade.ts';
+import { ART_HEIGHT, spineSvg } from './spine-art.mjs';
 
 const option = (name, fallback) => {
 	const index = process.argv.indexOf(name);
@@ -38,6 +39,10 @@ const CABINET = {
 	shelves: [0.18, 0.55, 0.91, 1.27],
 	bays: [0.55, 0.91, 1.27], // the shelves the library stands on; 0.18 holds records
 };
+// A Pléiade volume is one height, whatever it holds; only its thickness varies,
+// with the number of leaves. Both are the same numbers Blender builds from.
+const SPINE_HEIGHT = 0.237;
+const widthOf = (entry) => 0.017 + (Math.min(entry.pages, 1400) / 1400) * 0.03;
 const leftmost = CABINET.x - CABINET.usable / 2;
 const rightmost = CABINET.x + CABINET.usable / 2;
 
@@ -47,7 +52,6 @@ const perShelf = Math.ceil(library.length / CABINET.bays.length);
 const slots = library.map((book, index) => {
 	const row = Math.floor(index / perShelf);
 	const start = row * perShelf;
-	const widthOf = (entry) => 0.022 + (Math.min(entry.pages, 2200) / 2200) * 0.021;
 	const width = widthOf(book);
 	const left =
 		leftmost + library.slice(start, index).reduce((x, entry) => x + widthOf(entry) + 0.0015, 0);
@@ -60,7 +64,7 @@ const slots = library.map((book, index) => {
 		y: CABINET.bays[row],
 		z: CABINET.front,
 		width,
-		height: 0.237 + (index % 4) * 0.002,
+		height: SPINE_HEIGHT,
 	};
 });
 // Blender reads these from the work directory; the browser imports the pair
@@ -80,32 +84,17 @@ await mkdir(out, { recursive: true });
 await publish(out, true);
 if (process.argv.includes('--layout-only')) process.exit(0);
 await writeFile(join(work, 'books.json'), JSON.stringify(library));
-const escape = (text) =>
-	text.replace(
-		/[&<>"']/g,
-		(c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[c],
-	);
 for (const [index, book] of library.entries()) {
-	const words = book.title.toUpperCase().split(/\s+/);
-	const lines = [];
-	for (const word of words) {
-		if (lines.length && (lines.at(-1) + ' ' + word).length <= 12)
-			lines[lines.length - 1] += ' ' + word;
-		else lines.push(word);
-	}
-	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="768"><rect width="128" height="768" fill="${book.color}"/><path d="M5 0v768M123 0v768" stroke="#10100e" opacity=".35" stroke-width="5"/><g fill="#d4bd7d" text-anchor="middle" font-family="Georgia,serif"><text x="64" y="135" font-size="20" textLength="108" lengthAdjust="spacingAndGlyphs">${escape(book.author)}</text>${lines
-		.slice(0, 7)
-		.map(
-			(line, i) =>
-				`<text x="64" y="${225 + i * 33}" font-size="14" textLength="${Math.min(108, line.length * 9)}" lengthAdjust="spacingAndGlyphs">${escape(line)}</text>`,
-		)
-		.join(
-			'',
-		)}<text x="64" y="640" font-size="12">PLÉIADE</text><text x="64" y="675" font-size="10">GALLIMARD</text></g><g stroke="#c8ac6b" stroke-width="3">${[54, 61, 171, 178, 581, 588, 718, 725].map((y) => `<path d="M8 ${y}h112"/>`).join('')}</g></svg>`;
-	/* Rendered well above the 128x768 the SVG is authored at: these jackets are
-	   the only type in the room a visitor is meant to actually read, and the
-	   bake cannot invent detail the source does not have. */
-	await sharp(Buffer.from(svg), { density: 288 })
+	const slot = slots[index];
+	/* The jacket plane Blender builds is `width - .001` by `height - .003`, so
+	   the drawing is authored at that exact aspect and nothing on it is
+	   squeezed. Rasterised well above its nominal size: these jackets are the
+	   only type in the room a visitor is meant to actually read, and neither the
+	   bake nor the browser can invent detail the source does not have. */
+	const svg = spineSvg(book, (slot.width - 0.001) / (slot.height - 0.003));
+	const density =
+		96 * Math.max(2, 320 / (ART_HEIGHT * ((slot.width - 0.001) / (slot.height - 0.003))));
+	await sharp(Buffer.from(svg), { density })
 		.png()
 		.toFile(join(work, `book-${index}.png`));
 }

@@ -22,11 +22,21 @@ directory. `--preview` renders a Cycles still without exporting assets.
 atlas because a group's parts unwrap together, and they are baked in place, so
 their own contact shadows read correctly at rest.
 
-`spines.glb` holds the printed jackets on a separate 4096px atlas. Source SVGs
-are rasterized at 512×3072, without first rasterizing at a smaller size and
-upscaling. The bake assigns each jacket a regular atlas cell with a 20px gutter.
-For 56 books this is a 13×5 grid, about 275×779 usable pixels per jacket.
-The planes are joined after UV packing for one bake and one runtime draw call.
+`spines.glb` holds the printed jackets on a separate 4096px atlas. `spine-art.mjs`
+draws each one: gold ribbing over the leather, a label plate at the same height on
+every volume, author and title in gold capitals fitted to the plate rather than
+condensed into it — the renderer behind `sharp` ignores `textLength`, so lettering
+that does not fit runs off the leather instead of being squeezed. Each drawing is
+authored at its own spine's aspect and rasterized from that, never at a fixed size
+and stretched onto the plane.
+
+The bake assigns each jacket a regular atlas cell with a 10px gutter, shaped like
+a spine at about one to twelve: cap height runs along the tall axis. For 55 books
+this is a 26×3 grid, about 158×1365 pixels per jacket. The planes are joined after
+UV packing for one bake and one runtime draw call.
+
+A Pléiade volume is one height whatever it holds, so every slot is 237mm tall;
+only thickness varies, with the page count, from 19mm to 45mm.
 
 `book-slots.json` records ISBN, shelf row, spine bounds, and position in Three.js
 coordinates. `bake-room.mjs` generates these slots; Blender consumes them to
