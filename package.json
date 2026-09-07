@@ -6,7 +6,7 @@
 		"dev": "astro dev",
 		"tokens": "node scripts/generate-tokens.mjs",
 		"tokens:check": "node scripts/generate-tokens.mjs --check",
-		"build": "node scripts/generate-tokens.mjs --check && astro build",
+		"build": "node scripts/generate-tokens.mjs --check && astro build && node scripts/check-bundle.mjs",
 		"preview": "astro preview",
 		"astro": "astro",
 		"lint": "biome check .",
@@ -14,7 +14,12 @@
 		"format": "biome format --write .",
 		"library": "astro dev --host 127.0.0.1 --open /bookshelf/",
 		"library:check": "bun scripts/check-library.mjs",
-		"test": "bun test"
+		"test": "bun test",
+		"room": "astro dev --host 127.0.0.1 --open /",
+		"room:bake": "bun scripts/bake-room.mjs",
+		"room:check": "bun scripts/check-room.mjs",
+		"record:check": "bun scripts/check-record.mjs",
+		"room:poster": "bun scripts/shoot-poster.mjs"
 	},
 	"dependencies": {
 		"@astrojs/markdown-remark": "^6.3.11",

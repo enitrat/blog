@@ -175,3 +175,173 @@
 		transform: none;
 	}
 }
+
+/* The poster and live canvas share a frame, including on devices without WebGL. */
+.living-room {
+	position: relative;
+	aspect-ratio: 16 / 9;
+	margin-top: clamp(1.5rem, 4vw, 3rem);
+	overflow: hidden;
+	background: #edeae3;
+	contain: layout paint;
+}
+
+.living-room picture {
+	display: contents;
+}
+
+.living-room__poster,
+.living-room__canvas {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.living-room__canvas {
+	opacity: 0;
+	transition: opacity 400ms ease;
+}
+.living-room[data-live] .living-room__canvas {
+	opacity: 1;
+}
+
+.living-room__views {
+	position: absolute;
+	bottom: 1rem;
+	left: 1rem;
+	display: flex;
+	gap: 0.25rem;
+	visibility: hidden;
+}
+
+.living-room[data-live] .living-room__views {
+	visibility: visible;
+}
+
+.living-room__views button {
+	padding: 0.65rem 0.8rem;
+	border: 0;
+	background: #e3dfd6;
+	color: #514b42;
+	font: inherit;
+	font-size: 0.75rem;
+	cursor: pointer;
+}
+
+.living-room__views button[aria-pressed="true"] {
+	background: #36342e;
+	color: #fffaf0;
+}
+.living-room__views button:hover {
+	background: #ccc6bb;
+	color: #29261f;
+}
+
+.living-room__hotspots {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+.living-room__hotspot {
+	position: absolute;
+	transform: translate(-50%, -50%);
+	padding: 0.6rem 0.8rem;
+	border: 0;
+	border-radius: 3px;
+	background: rgb(33 29 23 / 0.94);
+	color: #fff7e7;
+	font: inherit;
+	font-size: 0.8125rem;
+	text-decoration: none;
+	white-space: nowrap;
+	cursor: pointer;
+	opacity: 0;
+	pointer-events: auto;
+	transition: opacity 160ms ease;
+}
+
+.living-room__hotspot[data-anchor="bookshelf"] {
+	left: 45.49%;
+	top: 40.40%;
+}
+.living-room__hotspot[data-anchor="record"] {
+	left: 56.63%;
+	top: 48.43%;
+}
+.living-room:hover .living-room__hotspot,
+.living-room__hotspot:focus-visible,
+.living-room[data-playing] button.living-room__hotspot {
+	opacity: 1;
+}
+
+.living-room__hotspot:focus-visible,
+.living-room__views button:focus-visible {
+	outline: 3px solid var(--home-cobalt);
+	outline-offset: 3px;
+}
+
+.living-room__mix {
+	transform: translate(-50%, -260%);
+	visibility: hidden;
+}
+.living-room[data-mix] .living-room__mix {
+	visibility: visible;
+	opacity: 1;
+}
+
+/* Touch controls sit below the image so labels cannot cover each other or the objects. */
+@media (hover: none), (max-width: 40rem) {
+	.living-room__views {
+		bottom: 4rem;
+	}
+	.living-room {
+		box-sizing: content-box;
+		padding-bottom: 3.3rem;
+	}
+	.living-room__poster,
+	.living-room__canvas {
+		height: calc(100% - 3.3rem);
+	}
+	.living-room__hotspots {
+		inset: auto 0 0;
+		height: 3.3rem;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 0.5rem;
+	}
+	.living-room__hotspot {
+		position: static;
+		transform: none;
+		opacity: 1;
+		font-size: 0.75rem;
+	}
+	.living-room__mix {
+		position: absolute;
+		bottom: 3.6rem;
+		left: 50% !important;
+		top: auto !important;
+		transform: translateX(-50%);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.living-room__canvas,
+	.living-room__hotspot {
+		transition: none;
+	}
+}
+
+/* Rendered, reachable by the Widget API, and out of the layout: the hero's
+   record player is the visible control, and the link above is the credit. Not display:none — a hidden frame is free not to load. */
+.living-room__widget {
+	position: absolute;
+	left: -9999px;
+	width: 320px;
+	height: 120px;
+	border: 0;
+}

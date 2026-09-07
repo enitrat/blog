@@ -1,0 +1,226 @@
+---
+import { Picture } from 'astro:assets';
+import poster from '../../assets/living-room.png';
+---
+
+<div class="living-room" data-room>
+
+	<Picture
+		class="living-room__poster"
+		src={poster}
+		alt="A miniature eighties living room: Pléiade books and records, a walnut hi-fi with a turntable, a pleated floor lamp, and a leather reading chair on a patterned rug."
+		widths={[640, 960, 1440]}
+		sizes="(max-width: 64rem) 100vw, 64rem"
+		formats={['avif']}
+		fallbackFormat="webp"
+		loading="eager"
+		fetchpriority="high"
+		decoding="sync"
+	/>
+	<canvas class="living-room__canvas" aria-hidden="true"></canvas>
+	<div class="living-room__views" role="group" aria-label="Room camera">
+		<button type="button" data-room-view="room" aria-pressed="true">Room</button>
+		<button type="button" data-room-view="listening" aria-pressed="false">A closer look</button>
+	</div>
+
+	<div class="living-room__hotspots">
+		<a class="living-room__hotspot" href="/bookshelf/" data-anchor="bookshelf">
+			Browse the bookshelf
+		</a>
+		<button class="living-room__hotspot" type="button" data-anchor="record" aria-pressed="false">
+			Play the record
+		</button>
+
+		<a
+			class="living-room__hotspot living-room__mix"
+			href="https://soundcloud.com/user2211512"
+			data-anchor="record"
+			rel="noopener"
+		>
+			Latest mix from my SoundCloud&nbsp;<span aria-hidden="true">↗</span>
+		</a>
+	</div>
+</div>
+
+<script>
+	const room = document.querySelector<HTMLElement>('[data-room]');
+	const canvas = room?.querySelector<HTMLCanvasElement>('.living-room__canvas');
+
+	const player = room?.querySelector<HTMLButtonElement>('[data-anchor="record"]');
+	let audio: { context: AudioContext; stop: () => void; bed: () => void } | null = null;
+
+	function crackle() {
+		const context = new AudioContext();
+
+		const buffer = context.createBuffer(1, context.sampleRate * 2, context.sampleRate);
+		const samples = buffer.getChannelData(0);
+		for (let i = 0; i < samples.length; i++) {
+
+			samples[i] = (Math.random() - 0.5) * 0.06 + (Math.random() < 0.0008 ? (Math.random() - 0.5) * 0.7 : 0);
+		}
+		const source = context.createBufferSource();
+		source.buffer = buffer;
+		source.loop = true;
+
+		const low = context.createBiquadFilter();
+		low.type = 'highpass';
+		low.frequency.value = 700;
+		const high = context.createBiquadFilter();
+		high.type = 'lowpass';
+		high.frequency.value = 6000;
+		const gain = context.createGain();
+		gain.gain.setValueAtTime(0, context.currentTime);
+		gain.gain.linearRampToValueAtTime(0.5, context.currentTime + 0.35);
+		source.connect(low).connect(high).connect(gain).connect(context.destination);
+		source.start();
+		return {
+			context,
+
+			bed() {
+				gain.gain.linearRampToValueAtTime(0.09, context.currentTime + 0.6);
+			},
+			stop() {
+				gain.gain.linearRampToValueAtTime(0, context.currentTime + 0.25);
+				setTimeout(() => context.close(), 400);
+			},
+		};
+	}
+
+	type Widget = {
+		play(): void;
+		pause(): void;
+		getPosition(callback: (ms: number) => void): void;
+		bind(event: string, handler: () => void): void;
+	};
+	let widget: Widget | null = null;
+
+	let wanted = false;
+	let playing = false;
+
+	function state(on: boolean) {
+		playing = on;
+		player?.setAttribute('aria-pressed', String(on));
+		if (player) player.textContent = on ? 'Stop the record' : 'Play the record';
+
+		if (on) room?.setAttribute('data-playing', '');
+		else room?.removeAttribute('data-playing');
+	}
+
+	async function connect() {
+		const frame = document.createElement('iframe');
+		frame.className = 'living-room__widget';
+		frame.title = 'SoundCloud player: Bounce Nationale by eni';
+
+		frame.allow = 'autoplay; encrypted-media';
+		frame.src =
+			'https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/2360410595&auto_play=false&hide_related=true&show_comments=false&show_teaser=false';
+		document.body.append(frame);
+
+		await new Promise((resolve, reject) => {
+			const api = document.createElement('script');
+			api.src = 'https://w.soundcloud.com/player/api.js';
+			api.onload = resolve;
+			api.onerror = reject;
+			document.head.append(api);
+		});
+
+		const SC = (window as unknown as { SC?: { Widget: any } }).SC;
+		if (!SC) throw new Error('no SC.Widget');
+		const created: Widget = SC.Widget(frame);
+		const events = SC.Widget.Events;
+
+		created.bind(events.PLAY, () => {
+			if (!wanted) return created.pause();
+			state(true);
+			audio?.bed();
+
+			room?.setAttribute('data-mix', '');
+		});
+		created.bind(events.PAUSE, () => {
+			if (document.hidden) return;
+
+			created.getPosition((position) => {
+				if (position > 0) stop();
+				else room?.removeAttribute('data-mix');
+			});
+		});
+		created.bind(events.FINISH, stop);
+		created.bind(events.ERROR, stop);
+
+		created.bind(events.READY, () => wanted && created.play());
+		return created;
+	}
+
+	function stop() {
+		wanted = false;
+		widget?.pause();
+		audio?.stop();
+		audio = null;
+		state(false);
+		room?.removeAttribute('data-mix');
+	}
+
+	player?.addEventListener('click', () => {
+		if (playing || audio) {
+			stop();
+			return;
+		}
+
+		try {
+			audio = crackle();
+		} catch {}
+		wanted = true;
+		state(true);
+		if (widget) {
+			widget.play();
+			return;
+		}
+		connect().then(
+			(created) => {
+				widget = created;
+			},
+			() => {},
+		);
+	});
+
+	let resume = false;
+	document.addEventListener('visibilitychange', () => {
+		if (document.hidden) {
+			resume = playing;
+			if (playing) widget?.pause();
+		} else if (resume) {
+			resume = false;
+			widget?.play();
+		}
+	});
+
+	function webgl2() {
+		try {
+			return !!document.createElement('canvas').getContext('webgl2');
+		} catch {
+			return false;
+		}
+	}
+
+	const coarse = matchMedia('(pointer: coarse)').matches;
+	const memory = (navigator as { deviceMemory?: number }).deviceMemory ?? 8;
+	const saveData =
+		(navigator as { connection?: { saveData?: boolean } }).connection?.saveData === true;
+
+	if (room && canvas && !coarse && memory >= 4 && !saveData && webgl2()) {
+		const idle = window.requestIdleCallback ?? ((fn: () => void) => setTimeout(fn, 200));
+		const boot = () =>
+			idle(
+				async () => {
+					try {
+						const { mountRoom } = await import('./room/scene');
+						if (await mountRoom(room, canvas)) room.dataset.live = '';
+					} catch {}
+				},
+				{ timeout: 3000 },
+			);
+
+		if (document.readyState === 'complete') boot();
+		else addEventListener('load', boot, { once: true });
+	}
+</script>

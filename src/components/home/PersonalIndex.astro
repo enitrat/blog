@@ -2,6 +2,7 @@
 import type { Book } from '../../booksData';
 import type { PageRange } from '../../utils/pleiade';
 import PleiadeShelf from '../bookshelf/PleiadeShelf.astro';
+import LivingRoom from './LivingRoom.astro';
 
 interface Item {
 	id: string;
@@ -36,6 +37,8 @@ const sections = [
 			<p>I currently work as a Senior Protocol Engineer at <a href="/work/zama/">Zama</a>.</p>
 		</div>
 	</section>
+
+	<LivingRoom />
 
 	<div class="personal-index__sections">
 		{sections.map((section) => (
