@@ -12,7 +12,13 @@ export type ShelfFrame = {
 type Point = { x: number; y: number; z: number };
 type Project = (x: number, y: number, z: number) => Point;
 type Section = { books: Slot[]; frame: ShelfFrame };
-type Location = { kind: 'cabinet' } | { kind: 'row'; anchor: Slot; book: Slot | undefined };
+/** The four levels the visitor moves through, one arm each. A book is its own
+ *  level rather than a field on the row, so `kind` alone answers every question
+ *  the controls ask. */
+type Location =
+	| { kind: 'cabinet' }
+	| { kind: 'row'; anchor: Slot }
+	| { kind: 'book'; anchor: Slot; book: Slot };
 const CABINET: ShelfFrame = {
 	view: 'cabinet',
 	x: -1.12,
@@ -68,15 +74,14 @@ export function mountBookshelf(host: HTMLElement) {
 	targets.append(gaps);
 	let sections: Section[] = [];
 	let location: Location | null = null;
-	let sectionIndex = 0;
-	let live = false;
 	let disposed = false;
-	let openedFallback = false;
+	// The renderer's listener doubles as the answer to "is the room live?".
 	let frameChanged: ((frame: ShelfFrame | null) => void) | undefined;
-	let opened: { slot: Slot; source: HTMLDetailsElement; content: HTMLElement } | undefined;
+	// Which record is currently on loan to the dialog. A DOM bookkeeping detail:
+	// the level is `location.kind`, never this.
+	let mounted: { slot: Slot; source: HTMLDetailsElement; content: HTMLElement } | undefined;
 	let returnFocus: HTMLElement | undefined;
 	let lastHash = '';
-	let ready = false;
 	let goingBack = false;
 	let swiped = false;
 	let touch: { x: number; y: number } | undefined;
@@ -86,8 +91,10 @@ export function mountBookshelf(host: HTMLElement) {
 		if (name !== 'bookshelf' || extra !== undefined) return null;
 		if (!anchorIsbn) return bookIsbn === undefined ? { kind: 'cabinet' } : null;
 		const anchor = ordered.find((slot) => slot.isbn === anchorIsbn);
-		const book = bookIsbn ? ordered.find((slot) => slot.isbn === bookIsbn) : undefined;
-		return anchor && (!bookIsbn || book?.row === anchor.row) ? { kind: 'row', anchor, book } : null;
+		if (!anchor) return null;
+		if (!bookIsbn) return { kind: 'row', anchor };
+		const book = ordered.find((slot) => slot.isbn === bookIsbn);
+		return book && book.row === anchor.row ? { kind: 'book', anchor, book } : null;
 	}
 
 	function address(anchor: Slot, book?: Slot) {
@@ -107,30 +114,36 @@ export function mountBookshelf(host: HTMLElement) {
 	function back() {
 		if (!location || goingBack) return;
 		const parent =
-			location.kind === 'cabinet' ? '' : location.book ? address(location.anchor) : '#bookshelf';
+			location.kind === 'cabinet'
+				? ''
+				: location.kind === 'book'
+					? address(location.anchor)
+					: '#bookshelf';
 		if (history.state?.roomBookFrom === parent) {
 			goingBack = true;
 			history.back();
 		} else navigate(parent, true);
 	}
 
+	/* The record is moved, not copied: notes carry their own enhanced elements
+	   (copy buttons on code blocks), and a clone would leave those dead. */
 	function restoreBook() {
-		if (!opened) return;
-		opened.source.append(opened.content);
-		returnFocus = live
-			? links.get(opened.slot.isbn)
-			: (opened.source.querySelector('summary') ?? undefined);
-		opened = undefined;
+		if (!mounted) return;
+		mounted.source.append(mounted.content);
+		returnFocus = frameChanged
+			? links.get(mounted.slot.isbn)
+			: (mounted.source.querySelector('summary') ?? undefined);
+		mounted = undefined;
 		if (dialog.open) dialog.close();
 	}
 
 	function showBook(slot: Slot) {
-		if (opened?.slot.isbn === slot.isbn) return;
+		if (mounted?.slot.isbn === slot.isbn) return;
 		restoreBook();
 		const source = records.get(slot.isbn);
 		const content = source?.querySelector<HTMLElement>('[data-book-content]');
 		if (!source || !content) return;
-		opened = { slot, source, content };
+		mounted = { slot, source, content };
 		dialog.style.setProperty('--binding', source.style.getPropertyValue('--binding'));
 		dialog.toggleAttribute('data-noted', source.hasAttribute('data-noted'));
 		dialog.setAttribute('aria-label', `${source.dataset.title}, ${source.dataset.author}`);
@@ -181,6 +194,24 @@ export function mountBookshelf(host: HTMLElement) {
 		}
 	}
 
+	/** Which run of books is on screen. Derived, never stored: `layout()` rebuilds
+	 *  `sections` on every resize and this stays correct without being told. */
+	function currentSection() {
+		if (!location || location.kind === 'cabinet') return -1;
+		const { anchor } = location;
+		const desired = location.kind === 'book' ? location.book : anchor;
+		const exact = sections.findIndex(
+			(section) =>
+				section.books[0].isbn === anchor.isbn &&
+				section.books.some((slot) => slot.isbn === desired.isbn),
+		);
+		if (exact >= 0) return exact;
+		return Math.max(
+			0,
+			sections.findIndex((section) => section.books.some((slot) => slot.isbn === desired.isbn)),
+		);
+	}
+
 	function sync() {
 		if (disposed) return;
 		const before = location;
@@ -188,84 +219,70 @@ export function mountBookshelf(host: HTMLElement) {
 		const changed = lastHash !== window.location.hash;
 		lastHash = window.location.hash;
 		goingBack = false;
-		ready = false;
+		// Without a renderer the shelves are just the list on the page: no camera
+		// to move, no chrome to show, and nothing to be stranded inside.
+		if (!frameChanged) {
+			host.removeAttribute('data-browsing');
+			host.removeAttribute('data-shelf-level');
+			targets.hidden = true;
+			caption.textContent = '';
+			if (location?.kind === 'book') showBook(location.book);
+			else restoreBook();
+			if (returnFocus && !mounted) {
+				returnFocus.focus({ preventScroll: true });
+				returnFocus = undefined;
+			}
+			return;
+		}
 		host.toggleAttribute('data-browsing', location !== null);
-		if (location) host.dataset.shelfLevel = location.kind;
-		else delete host.dataset.shelfLevel;
-		targets.hidden = !location || !live;
+		targets.hidden = !location;
+		// CSS shows the row and spine targets per level; a book still frames its
+		// row, so the camera and the controls stay at row level behind the dialog.
+		if (location) host.dataset.shelfLevel = location.kind === 'cabinet' ? 'cabinet' : 'row';
+		else host.removeAttribute('data-shelf-level');
 		if (
+			changed &&
 			location &&
 			(targets.contains(document.activeElement) || document.activeElement === entrance)
 		) {
-			if (!changed && document.activeElement instanceof HTMLElement) {
-				returnFocus ??= document.activeElement;
-			}
 			// Park focus on the visible way out rather than on a live region.
 			leave.focus({ preventScroll: true });
 		}
-		targets.inert = true;
-		const focusedRow = location?.kind === 'row' ? location : null;
-		for (const button of [previous, next, previousRow, nextRow])
-			button.hidden = !focusedRow || !live;
-		leaveLabel.textContent = focusedRow ? 'Back to the bookshelf' : 'Back to the room';
+		// Only a row or an open book has a bookshelf to go back to.
+		leaveLabel.textContent =
+			location && location.kind !== 'cabinet' ? 'Back to the bookshelf' : 'Back to the room';
 		if (!location) {
 			caption.textContent = '';
 			restoreBook();
-			frameChanged?.(null);
+			frameChanged(null);
 			if (before) returnFocus = entrance;
-		} else {
-			if (!live && !catalog.open) {
-				catalog.open = true;
-				openedFallback = true;
-			}
-			if (live && openedFallback) {
-				catalog.open = false;
-				openedFallback = false;
-			}
-			if (location.kind === 'cabinet') {
-				restoreBook();
-				status.textContent = 'Bookshelf';
-				describe();
-				frameChanged?.(CABINET);
-				if (changed)
-					returnFocus = rowLinks.get(before?.kind === 'row' ? before.anchor.row : rows[0]?.row);
-			} else {
-				const { anchor, book } = location;
-				const desired = book ?? anchor;
-				const exact = sections.findIndex(
-					(section) =>
-						section.books[0].isbn === anchor.isbn &&
-						section.books.some((slot) => slot.isbn === desired.isbn),
+		} else if (location.kind === 'cabinet') {
+			restoreBook();
+			status.textContent = 'Bookshelf';
+			describe();
+			frameChanged(CABINET);
+			if (changed)
+				returnFocus = rowLinks.get(
+					before && before.kind !== 'cabinet' ? before.anchor.row : rows[0]?.row,
 				);
-				sectionIndex =
-					exact >= 0
-						? exact
-						: Math.max(
-								0,
-								sections.findIndex((section) =>
-									section.books.some((slot) => slot.isbn === desired.isbn),
-								),
-							);
-				const section = sections[sectionIndex];
-				rowAnchors.set(anchor.row, anchor);
-				previous.disabled = sections[sectionIndex - 1]?.books[0].row !== anchor.row;
-				next.disabled = sections[sectionIndex + 1]?.books[0].row !== anchor.row;
-				previous.hidden = !live || (previous.disabled && next.disabled);
-				next.hidden = previous.hidden;
-				const rowIndex = rows.findIndex(({ row }) => row === anchor.row);
-				previousRow.disabled = rowIndex === 0;
-				nextRow.disabled = rowIndex === rows.length - 1;
-				status.textContent = ROW_NAMES[anchor.row];
-				frameChanged?.(section.frame);
-				if (book) showBook(book);
-				else restoreBook();
-				describe(book ?? anchor);
-				if (changed && !book) returnFocus ??= links.get(anchor.isbn);
-			}
-		}
-		if (!live && returnFocus && !opened) {
-			if (!targets.contains(returnFocus)) returnFocus.focus({ preventScroll: true });
-			returnFocus = undefined;
+		} else {
+			const { anchor } = location;
+			const index = currentSection();
+			rowAnchors.set(anchor.row, anchor);
+			previous.disabled = sections[index - 1]?.books[0].row !== anchor.row;
+			next.disabled = sections[index + 1]?.books[0].row !== anchor.row;
+			// A row that fits in one frame has nowhere to pan to.
+			previous.hidden = previous.disabled && next.disabled;
+			next.hidden = previous.hidden;
+			const rowIndex = rows.findIndex(({ row }) => row === anchor.row);
+			previousRow.disabled = rowIndex === 0;
+			nextRow.disabled = rowIndex === rows.length - 1;
+			status.textContent = ROW_NAMES[anchor.row];
+			frameChanged(sections[index].frame);
+			if (location.kind === 'book') showBook(location.book);
+			else restoreBook();
+			describe(location.kind === 'book' ? location.book : anchor);
+			if (changed && location.kind === 'row') returnFocus ??= links.get(anchor.isbn);
 		}
 	}
 
@@ -275,23 +292,23 @@ export function mountBookshelf(host: HTMLElement) {
 
 	function focusRow(row: number) {
 		const anchor = rowAnchors.get(row);
-		if (!anchor || opened) return;
+		if (!anchor || location?.kind === 'book') return;
 		returnFocus = links.get(anchor.isbn);
 		navigate(address(anchor), location?.kind === 'row');
 	}
 
 	function moveRow(delta: number) {
-		if (location?.kind !== 'row' || opened) return;
-		const index = rows.findIndex(
-			({ row }) => location?.kind === 'row' && row === location.anchor.row,
-		);
+		if (location?.kind !== 'row') return;
+		const anchor = location.anchor;
+		const index = rows.findIndex(({ row }) => row === anchor.row);
 		const row = rows[index + delta];
 		if (row) focusRow(row.row);
 	}
 
 	function move(delta: number) {
-		const section = sections[sectionIndex + delta];
-		if (location?.kind !== 'row' || opened || section?.books[0].row !== location.anchor.row) return;
+		if (location?.kind !== 'row') return;
+		const section = sections[currentSection() + delta];
+		if (!section || section.books[0].row !== location.anchor.row) return;
 		returnFocus = links.get(section.books[0].isbn);
 		navigate(address(section.books[0]), true);
 	}
@@ -321,7 +338,7 @@ export function mountBookshelf(host: HTMLElement) {
 			(event) => {
 				if (!plainClick(event)) return;
 				event.preventDefault();
-				if (ready && location?.kind === 'cabinet') focusRow(row);
+				if (location?.kind === 'cabinet') focusRow(row);
 			},
 			{ signal: events.signal },
 		);
@@ -349,7 +366,7 @@ export function mountBookshelf(host: HTMLElement) {
 			(event) => {
 				if (!plainClick(event)) return;
 				event.preventDefault();
-				if (!swiped && ready && location?.kind === 'row') navigate(address(location.anchor, slot));
+				if (!swiped && location?.kind === 'row') navigate(address(location.anchor, slot));
 			},
 			{ signal: events.signal },
 		);
@@ -360,7 +377,11 @@ export function mountBookshelf(host: HTMLElement) {
 	entrance.addEventListener(
 		'click',
 		(event) => {
+			// A room that is merely still loading is a room: browsing waits for it.
+			// Only a device that cannot render one falls through to the anchor,
+			// which jumps to the list rather than to a mode with no way out.
 			if (!plainClick(event)) return;
+			if (!frameChanged && host.dataset.canRender === undefined) return;
 			event.preventDefault();
 			enter();
 		},
@@ -391,7 +412,8 @@ export function mountBookshelf(host: HTMLElement) {
 		'keydown',
 		(event) => {
 			if (event.target instanceof Node && catalog.contains(event.target)) return;
-			if (!location || opened || event.altKey || event.metaKey || event.ctrlKey) return;
+			if (!location || location.kind === 'book') return;
+			if (event.altKey || event.metaKey || event.ctrlKey) return;
 			if (event.key === 'Escape') {
 				event.preventDefault();
 				event.stopPropagation();
@@ -432,7 +454,7 @@ export function mountBookshelf(host: HTMLElement) {
 		'pointerdown',
 		(event) => {
 			swiped = false;
-			if (location?.kind === 'row' && ready && event.pointerType === 'touch')
+			if (location?.kind === 'row' && event.pointerType === 'touch')
 				touch = { x: event.clientX, y: event.clientY };
 		},
 		{ signal: events.signal },
@@ -471,18 +493,16 @@ export function mountBookshelf(host: HTMLElement) {
 	layout();
 	sync();
 
-	function place(
+	function placeBox(
 		element: HTMLElement,
 		project: Project,
-		left: number,
-		bottom: number,
-		right: number,
-		top: number,
-		z: number,
+		box: { left: number; bottom: number; right: number; top: number; z: number },
 		clip = false,
 	) {
-		const a = project(left, top, z);
-		const b = project(right, bottom, z);
+		const a = project(box.left, box.top, box.z);
+		const b = project(box.right, box.bottom, box.z);
+		// `hidden` here means one thing only: no valid position on screen. Which
+		// level a target belongs to is CSS's business, via data-shelf-level.
 		element.hidden =
 			a.z < -1 ||
 			a.z > 1 ||
@@ -500,86 +520,78 @@ export function mountBookshelf(host: HTMLElement) {
 	return {
 		enter,
 		background() {
-			if (live && ready && !swiped && !opened) back();
+			if (frameChanged && !swiped && location) back();
 		},
 		get active() {
 			return location !== null;
 		},
 		connect(listener: (frame: ShelfFrame | null) => void) {
 			frameChanged = listener;
-			live = true;
 			sync();
 		},
 		fallback() {
-			live = false;
 			frameChanged = undefined;
 			sync();
 		},
-		draw(project: Project, settled: boolean) {
-			ready = settled;
-			targets.inert = !settled || !!opened;
+		/** Project every target once, when the camera has arrived. The shelves are
+		 *  a function of where the camera is going, not of the frames it draws on
+		 *  the way: the settled view is axis-aligned and parallax is off while
+		 *  browsing, so re-running this per frame recomputed identical numbers. */
+		place(project: Project) {
 			for (const { row, books } of rows) {
 				const link = rowLinks.get(row);
 				if (!link) continue;
-				link.hidden = !live || !settled || location?.kind !== 'cabinet';
-				if (link.hidden) continue;
 				// The target is the run of books, not the whole board, so the
 				// centred dot lands on the row it stands for.
 				const first = books[0];
 				const last = books[books.length - 1];
-				place(
-					link,
-					project,
-					first.x - first.width / 2 - 0.02,
-					first.y - 0.012,
-					last.x + last.width / 2 + 0.02,
-					first.y + 0.3,
-					first.z,
-				);
+				placeBox(link, project, {
+					left: first.x - first.width / 2 - 0.02,
+					bottom: first.y - 0.012,
+					right: last.x + last.width / 2 + 0.02,
+					top: first.y + 0.3,
+					z: first.z,
+				});
 				link.href = address(rowAnchors.get(row) ?? books[0]);
 			}
-			gaps.hidden = !live || !settled || location?.kind !== 'row';
-			if (!gaps.hidden && location?.kind === 'row') {
-				const books = ordered.filter(
-					(slot) => location?.kind === 'row' && slot.row === location.anchor.row,
-				);
+			// Spines outside the framed row have no position to hold, and would
+			// otherwise keep the one they had before the camera moved.
+			const framed = location && location.kind !== 'cabinet' ? location.anchor.row : -1;
+			for (const slot of ordered)
+				if (slot.row !== framed) {
+					const link = links.get(slot.isbn);
+					if (link) link.hidden = true;
+				}
+			if (location && location.kind !== 'cabinet') {
+				const books = ordered.filter((slot) => slot.row === framed);
 				const first = books[0];
 				const last = books[books.length - 1];
-				place(
+				placeBox(
 					gaps,
 					project,
-					first.x - first.width / 2 - 0.004,
-					first.y - 0.004,
-					last.x + last.width / 2 + 0.004,
-					first.y + Math.max(...books.map((slot) => slot.height)) + 0.004,
-					first.z,
+					{
+						left: first.x - first.width / 2 - 0.004,
+						bottom: first.y - 0.004,
+						right: last.x + last.width / 2 + 0.004,
+						top: first.y + Math.max(...books.map((slot) => slot.height)) + 0.004,
+						z: first.z,
+					},
 					true,
 				);
+				for (const slot of books) {
+					const link = links.get(slot.isbn);
+					if (!link) continue;
+					placeBox(link, project, {
+						left: slot.x - slot.width / 2,
+						bottom: slot.y,
+						right: slot.x + slot.width / 2,
+						top: slot.y + slot.height,
+						z: slot.z,
+					});
+					link.href = address(location.anchor, slot);
+				}
 			}
-			for (const slot of ordered) {
-				const link = links.get(slot.isbn);
-				if (!link) continue;
-				link.hidden =
-					!live || !settled || location?.kind !== 'row' || slot.row !== location.anchor.row;
-				if (link.hidden) continue;
-				place(
-					link,
-					project,
-					slot.x - slot.width / 2,
-					slot.y,
-					slot.x + slot.width / 2,
-					slot.y + slot.height,
-					slot.z,
-				);
-				if (location?.kind === 'row') link.href = address(location.anchor, slot);
-			}
-			if (
-				settled &&
-				returnFocus &&
-				!opened &&
-				!returnFocus.hidden &&
-				!returnFocus.closest('[hidden]')
-			) {
+			if (returnFocus && !mounted && !returnFocus.hidden && !returnFocus.closest('[hidden]')) {
 				returnFocus.focus({ preventScroll: true });
 				returnFocus = undefined;
 			}

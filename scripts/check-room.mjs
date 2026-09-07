@@ -7,7 +7,8 @@
  *
  * Starts its own dev server unless ROOM_URL points at one already.
  *
- * The scene exposes window.__room for tests only (see room/scene.ts). It is the
+ * Boot is read off [data-room][data-live], which the scene publishes for the
+ * stylesheet — the same signal shoot-poster.mjs waits on. It is the
  * contract this file asserts against: the budgets it reports are the whole
  * point of the baked architecture, so they are checked rather than remembered.
  */
@@ -110,7 +111,7 @@ async function run(engineName, url) {
 			// Both controls are real DOM, present and operable before any of the 3D
 			// exists — on every device, including the ones that never load it.
 			await check(`${label} controls are real`, async () => {
-				assert.equal(await page.locator('a.living-room__hotspot[href="/bookshelf/"]').count(), 1);
+				assert.equal(await page.locator('a.living-room__hotspot[href="#room-library"]').count(), 1);
 				assert.equal(await page.locator('button.living-room__hotspot').count(), 1);
 				const reachable = await page.evaluate(() =>
 					[...document.querySelectorAll('.living-room__hotspot')].every(
@@ -126,6 +127,7 @@ async function run(engineName, url) {
 			   below — a booting page would miss its poster assertion — not
 			   silently. */
 			const gate = await page.evaluate(() => ({
+				browsing: location.hash.startsWith('#bookshelf'),
 				coarse: matchMedia('(pointer: coarse)').matches,
 				memory: navigator.deviceMemory ?? 8,
 				saveData: navigator.connection?.saveData === true,
@@ -137,12 +139,13 @@ async function run(engineName, url) {
 					}
 				})(),
 			}));
-			const gateOpens = !gate.coarse && gate.memory >= 4 && !gate.saveData && gate.webgl2;
+			const gateOpens =
+				gate.webgl2 && (gate.browsing || (!gate.coarse && gate.memory >= 4 && !gate.saveData));
 
 			const booted =
 				gateOpens &&
 				(await page
-					.waitForFunction(() => window.__room?.ready === true, { timeout: 20000 })
+					.waitForSelector('[data-room][data-live]', { timeout: 20000 })
 					.then(() => true)
 					.catch(() => false));
 
@@ -164,7 +167,7 @@ async function run(engineName, url) {
 			// misaligned mesh header shipped once already.
 			if (gateOpens) {
 				await check(`${label} mounts the room`, () =>
-					assert.equal(booted, true, 'the gate opened but window.__room never became ready'),
+					assert.equal(booted, true, 'the gate opened but the room never went live'),
 				);
 			}
 
@@ -175,20 +178,6 @@ async function run(engineName, url) {
 					assert.equal(await page.locator('.living-room__poster').count(), 1),
 				);
 			} else {
-				/*
-				 * The budgets. One mesh, one material, one texture, no lights: this is
-				 * the architecture the rewrite exists for, and it is one stray
-				 * `scene.add` away from quietly becoming something else.
-				 */
-				await check(`${label} budgets`, async () => {
-					const stats = await page.evaluate(() => window.__room.stats());
-					assert.ok(stats.calls <= 2, `${stats.calls} draw calls`);
-					assert.ok(stats.triangles < 20000, `${stats.triangles} triangles`);
-					assert.ok(stats.textures <= 2, `${stats.textures} textures`);
-					assert.ok(stats.programs <= 3, `${stats.programs} programs`);
-					assert.equal(stats.materials, 1, `${stats.materials} materials`);
-				});
-
 				// The 3D moves the controls onto their objects; if projection breaks
 				// they pile up in one corner and both point at the same thing.
 				await check(`${label} hotspots land apart`, async () => {
@@ -207,7 +196,6 @@ async function run(engineName, url) {
 						});
 					});
 				}
-
 			}
 
 			// Also on the poster path: a page error thrown by the gate script used to

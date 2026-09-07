@@ -3,14 +3,6 @@
 	background: var(--home-paper);
 }
 
-.room-library [hidden],
-.room-book-targets[hidden],
-.room-library__spine[hidden],
-.room-library__row[hidden],
-.room-library__gaps[hidden] {
-	display: none !important;
-}
-
 .room-library button {
 	min-height: 44px;
 	padding: 0.5rem 0.75rem;

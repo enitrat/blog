@@ -365,7 +365,7 @@
 	height: 1rem;
 }
 
-.room-controls__back {
+.room-controls__back:not([hidden]) {
 	display: flex;
 	align-items: center;
 	gap: 0.35rem;
@@ -536,7 +536,21 @@
 	cursor: zoom-out;
 	touch-action: pan-y;
 }
-.living-room[data-browsing] .living-room__hotspots {
+.living-room[data-live][data-browsing] .living-room__hotspots {
+	display: none;
+}
+
+/* Which level a target belongs to is decided here, once, from the attribute
+   sync() publishes. JavaScript only ever sets `hidden` to mean "no valid
+   position on screen" — the two never contend for the same fact. */
+.living-room:not([data-shelf-level="cabinet"]) .room-library__row,
+.living-room:not([data-shelf-level="row"]) :is(.room-library__spine, .room-library__gaps),
+.living-room:not([data-shelf-level="row"]) :is(.room-controls__step, .room-controls__pan) {
+	display: none;
+}
+
+/* Mid-flight the placed targets describe a view that is no longer on screen. */
+.living-room[data-traveling] .room-book-targets {
 	display: none;
 }
 /* Browsing, the caption is a standing label for what is under the pointer, so

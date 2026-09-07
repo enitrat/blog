@@ -55,11 +55,11 @@ import Bookshelf from './room/Bookshelf.astro';
 			<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#room-chevron" /></svg>
 			<span data-shelf-exit-label>Back to the room</span>
 		</button>
-		<p class="room-controls__status" role="status" tabindex="-1" data-shelf-status></p>
-		<button class="room-controls__step" type="button" data-row-previous aria-label="Look at the shelf above" hidden>
+		<p class="room-controls__status" role="status" data-shelf-status></p>
+		<button class="room-controls__step" type="button" data-row-previous aria-label="Look at the shelf above">
 			<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#room-chevron" /></svg>
 		</button>
-		<button class="room-controls__step" type="button" data-row-next aria-label="Look at the shelf below" hidden>
+		<button class="room-controls__step" type="button" data-row-next aria-label="Look at the shelf below">
 			<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#room-chevron" /></svg>
 		</button>
 		<button class="room-controls__pan" type="button" data-shelf-previous aria-label="More books to the left" hidden>
@@ -79,11 +79,9 @@ import Bookshelf from './room/Bookshelf.astro';
 
 	const room = document.querySelector<HTMLElement>('[data-room]');
 	const canvas = room?.querySelector<HTMLCanvasElement>('.living-room__canvas');
-	const bookshelf = room ? mountBookshelf(room) : undefined;
 
 	const player = room?.querySelector<HTMLButtonElement>('[data-anchor="record"]');
 	const shelfPlayer = room?.querySelector<HTMLButtonElement>('[data-shelf-audio]');
-	shelfPlayer?.addEventListener('click', () => player?.click());
 
 	// The rings carry no text; the caption at the lower edge names whatever the
 	// pointer or keyboard has reached, one at a time.
@@ -144,6 +142,9 @@ import Bookshelf from './room/Bookshelf.astro';
 		getPosition(callback: (ms: number) => void): void;
 		bind(event: string, handler: () => void): void;
 	};
+	type SoundCloud = ((frame: Element) => Widget) & {
+		Events: { PLAY: string; PAUSE: string; FINISH: string; ERROR: string; READY: string };
+	};
 	let widget: Widget | null = null;
 
 	let wanted = false;
@@ -179,9 +180,9 @@ import Bookshelf from './room/Bookshelf.astro';
 			document.head.append(api);
 		});
 
-		const SC = (window as unknown as { SC?: { Widget: any } }).SC;
+		const SC = (window as Window & { SC?: { Widget: SoundCloud } }).SC;
 		if (!SC) throw new Error('no SC.Widget');
-		const created: Widget = SC.Widget(frame);
+		const created = SC.Widget(frame);
 		const events = SC.Widget.Events;
 
 		created.bind(events.PLAY, () => {
@@ -215,7 +216,7 @@ import Bookshelf from './room/Bookshelf.astro';
 		room?.removeAttribute('data-mix');
 	}
 
-	player?.addEventListener('click', () => {
+	function toggle() {
 		if (playing || audio) {
 			stop();
 			return;
@@ -236,7 +237,10 @@ import Bookshelf from './room/Bookshelf.astro';
 			},
 			() => {},
 		);
-	});
+	}
+
+	player?.addEventListener('click', toggle);
+	shelfPlayer?.addEventListener('click', toggle);
 
 	let resume = false;
 	document.addEventListener('visibilitychange', () => {
@@ -249,11 +253,23 @@ import Bookshelf from './room/Bookshelf.astro';
 		}
 	});
 
-	const supportsWebGL = typeof WebGL2RenderingContext !== 'undefined';
+	function supportsWebGL() {
+		try {
+			return !!document.createElement('canvas').getContext('webgl2');
+		} catch {
+			return false;
+		}
+	}
 
+	const coarse = matchMedia('(pointer: coarse)').matches;
 	const memory = (navigator as { deviceMemory?: number }).deviceMemory ?? 8;
 	const saveData =
 		(navigator as { connection?: { saveData?: boolean } }).connection?.saveData === true;
+
+	// Tell the bookshelf a renderer is possible before it mounts, so an entrance
+	// click during the load still means "browse" rather than "jump to the list".
+	if (room && canvas && supportsWebGL()) room.dataset.canRender = '';
+	const bookshelf = room ? mountBookshelf(room) : undefined;
 
 	if (room && canvas && bookshelf) {
 		let loading: Promise<void> | undefined;
@@ -263,8 +279,8 @@ import Bookshelf from './room/Bookshelf.astro';
 			loading = (async () => {
 				try {
 					const { mountRoom } = await import('./room/scene');
-					if (await mountRoom(room, canvas, bookshelf)) room.dataset.live = '';
-					else bookshelf.fallback();
+					// mountRoom sets data-live itself, and registers its own pagehide.
+					if (!(await mountRoom(room, canvas, bookshelf))) bookshelf.fallback();
 				} catch (error) {
 					console.error('The room could not load.', error);
 					bookshelf.fallback();
@@ -274,12 +290,16 @@ import Bookshelf from './room/Bookshelf.astro';
 			})();
 			return loading;
 		};
+		// Explicit activation always loads; the eager path stays off touch, where
+		// the poster and the list already answer the page.
 		room.querySelector('[data-anchor="bookshelf"]')?.addEventListener('click', () => {
-			if (supportsWebGL) void load();
+			if (supportsWebGL()) void load();
 		});
-		addEventListener('hashchange', () => { if (bookshelf.active && supportsWebGL) void load(); });
+		addEventListener('hashchange', () => {
+			if (bookshelf.active && supportsWebGL()) void load();
+		});
 		const idle = window.requestIdleCallback ?? ((fn: () => void) => setTimeout(fn, 200));
-		if ((memory >= 4 && !saveData || bookshelf.active) && supportsWebGL) {
+		if ((bookshelf.active || (!coarse && memory >= 4 && !saveData)) && supportsWebGL()) {
 			const boot = () => idle(() => { void load(); }, { timeout: 3000 });
 			if (document.readyState === 'complete') boot();
 			else addEventListener('load', boot, { once: true });

@@ -26,7 +26,7 @@ const ANCHORS = {
 	record: new THREE.Vector3(0.21, 0.78, -1.16),
 };
 
-type View = keyof typeof VIEWS | 'cabinet' | 'shelf';
+type View = keyof typeof VIEWS | 'shelf';
 
 /** Mount a room, or leave its poster in place if an asset or WebGL fails. */
 export async function mountRoom(
@@ -100,6 +100,8 @@ export async function mountRoom(
 	const offset = new THREE.Vector2();
 	const wantedOffset = new THREE.Vector2();
 	const projected = new THREE.Vector3();
+	const shelfPosition = new THREE.Vector3();
+	const shelfTarget = new THREE.Vector3();
 	const motion = matchMedia('(prefers-reduced-motion: reduce)');
 	const events = new AbortController();
 	const hotspots = [...host.querySelectorAll<HTMLElement>('[data-anchor]')];
@@ -175,11 +177,6 @@ export async function mountRoom(
 			hotspot.style.left = `${(projected.x * 0.5 + 0.5) * 100}%`;
 			hotspot.style.top = `${(-projected.y * 0.5 + 0.5) * 100}%`;
 		}
-		host.dataset.placed = '';
-		bookshelf.draw((x, y, z) => {
-			projected.set(x, y, z).project(camera);
-			return { x: projected.x, y: projected.y, z: projected.z };
-		}, transitionStart === null);
 	}
 
 	function tick(now: number) {
@@ -192,7 +189,10 @@ export async function mountRoom(
 			const eased = 1 - (1 - t) ** 3;
 			position.lerpVectors(fromPosition, destination, eased);
 			target.lerpVectors(fromTarget, destinationTarget, eased);
-			if (t === 1) transitionStart = null;
+			if (t === 1) {
+				transitionStart = null;
+				settle();
+			}
 		}
 		offset.lerp(wantedOffset, motion.matches ? 1 : 1 - Math.exp(-8 * dt));
 		if (offset.distanceToSquared(wantedOffset) < 0.000001) offset.copy(wantedOffset);
@@ -206,23 +206,36 @@ export async function mountRoom(
 			frame = requestAnimationFrame(tick);
 	}
 
-	function travel(next: View, nextPosition: THREE.Vector3, nextTarget: THREE.Vector3) {
+	function travel(
+		next: View,
+		nextPosition: THREE.Vector3,
+		nextTarget: THREE.Vector3,
+		duration = 750,
+	) {
 		if (next === view && destination.equals(nextPosition) && destinationTarget.equals(nextTarget)) {
-			requestDraw();
+			// Already where we are going: the targets still need placing if a
+			// resize changed the projection under them.
+			settle();
 			return;
 		}
 		fromPosition.copy(position);
 		fromTarget.copy(target);
 		destination.copy(nextPosition);
 		destinationTarget.copy(nextTarget);
-		transitionDuration = view === 'shelf' && next === 'shelf' ? 320 : 750;
+		transitionDuration = duration;
 		view = next;
 		canvas.style.cursor = '';
-		transitionStart = performance.now();
+		transitionStart = duration > 0 ? performance.now() : null;
+		host.toggleAttribute('data-traveling', transitionStart !== null);
 		wantedOffset.set(0, 0);
 		offset.set(0, 0);
 		publish(view);
-		arm(next !== 'shelf' && next !== 'cabinet');
+		arm(next !== 'shelf');
+		if (transitionStart === null) {
+			position.copy(destination);
+			target.copy(destinationTarget);
+			settle();
+		}
 		requestDraw();
 	}
 
@@ -230,10 +243,25 @@ export async function mountRoom(
 		travel(next, VIEWS[next].position, VIEWS[next].target);
 	}
 
-	function frameShelf(frame: ShelfFrame | null) {
+	/** The camera has arrived: place the shelf targets once, against the view
+	 *  they will actually be seen in. */
+	function settle() {
+		host.removeAttribute('data-traveling');
+		camera.position.copy(position);
+		camera.position.x += offset.x;
+		camera.position.y += offset.y;
+		camera.lookAt(target);
+		camera.updateMatrixWorld();
+		bookshelf.place((x, y, z) => {
+			projected.set(x, y, z).project(camera);
+			return { x: projected.x, y: projected.y, z: projected.z };
+		});
+	}
+
+	function frameShelf(frame: ShelfFrame | null, duration?: number) {
 		shelfFrame = frame;
 		if (!frame) {
-			if (view === 'shelf' || view === 'cabinet') changeView('room');
+			if (view === 'shelf') changeView('room');
 			return;
 		}
 		camera.aspect = canvas.clientWidth / Math.max(1, canvas.clientHeight);
@@ -241,10 +269,13 @@ export async function mountRoom(
 		const distance =
 			Math.max(frame.height, frame.width / camera.aspect) /
 			(2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+		// Stepping along a row is a short pan; arriving at the shelves is a trip.
+		const lateral = view === 'shelf' && frame.view === 'row';
 		travel(
-			frame.view === 'cabinet' ? 'cabinet' : 'shelf',
-			new THREE.Vector3(frame.x, frame.y, frame.z + distance),
-			new THREE.Vector3(frame.x, frame.y, frame.z),
+			'shelf',
+			shelfPosition.set(frame.x, frame.y, frame.z + distance),
+			shelfTarget.set(frame.x, frame.y, frame.z),
+			duration ?? (lateral ? 320 : 750),
 		);
 	}
 
@@ -299,6 +330,9 @@ export async function mountRoom(
 			1 - ((event.clientY - bounds.top) / bounds.height) * 2,
 		);
 		raycaster.setFromCamera(pointer, camera);
+		// Cheap analytic reject first: most of the room is not the cabinet, and
+		// the full traversal runs on every mouse move.
+		if (!raycaster.ray.intersectsBox(cabinet)) return false;
 		const hit = raycaster.intersectObjects(scene.children, true)[0];
 		return hit !== undefined && cabinet.containsPoint(hit.point);
 	}
@@ -354,7 +388,7 @@ export async function mountRoom(
 		},
 		{ signal: events.signal },
 	);
-	canvas.addEventListener(
+	host.addEventListener(
 		'pointermove',
 		(event) => {
 			if (bookshelf.active || event.pointerType !== 'mouse') return;
@@ -393,7 +427,12 @@ export async function mountRoom(
 		renderer.setSize(width, height, false);
 		camera.aspect = width / height;
 		camera.updateProjectionMatrix();
-		if (shelfFrame) frameShelf(shelfFrame);
+		if (shelfFrame) {
+			// Re-framing for a new aspect is not a journey: flying 750ms on every
+			// resize tick would hide the shelves for the whole drag.
+			const wasTraveling = transitionStart !== null;
+			frameShelf(shelfFrame, wasTraveling ? undefined : 0);
+		}
 		requestDraw();
 	});
 	resize.observe(canvas);
@@ -439,7 +478,7 @@ export async function mountRoom(
 		'webglcontextrestored',
 		() => {
 			lost = false;
-			arm(true);
+			arm(view !== 'shelf');
 			requestDraw();
 			host.dataset.live = '';
 			bookshelf.connect(frameShelf);
