@@ -21,33 +21,64 @@ const library = books.map((book) => ({
 	color: PLEIADE_HEX[pleiadeStyleFor(book.author).color],
 	pages: book.edition.pageCount ?? 500,
 }));
+// The bookcase, in the runtime's coordinates: metres, Y up, the camera down +Z.
+// Blender is Z up and its Y is depth, so room.py negates `face` to get back to
+// its own axes. This is the only description of the cabinet anywhere: room.py
+// builds it from the copy written beside the assets, and the browser frames,
+// anchors and picks it from the same file.
+const CABINET = {
+	x: -1.12, // centre of the carcass
+	width: 1.08, // outer width, side panel to side panel
+	usable: 0.98, // clear span between the sides, where books may stand
+	depth: 0.4,
+	face: -1.04, // front plane of the carcass
+	front: -1.068, // the plane the spines stand on, recessed behind the face
+	floor: 0.02, // top of the plinth
+	ceiling: 1.713, // top of the crown
+	shelves: [0.18, 0.55, 0.91, 1.27],
+	bays: [0.55, 0.91, 1.27], // the shelves the library stands on; 0.18 holds records
+};
+const leftmost = CABINET.x - CABINET.usable / 2;
+const rightmost = CABINET.x + CABINET.usable / 2;
+
 // These slots are consumed by Blender and shipped with its assets. The browser
 // never reconstructs positions from the current order of booksData.
-const perShelf = Math.ceil(library.length / 3);
+const perShelf = Math.ceil(library.length / CABINET.bays.length);
 const slots = library.map((book, index) => {
 	const row = Math.floor(index / perShelf);
 	const start = row * perShelf;
 	const widthOf = (entry) => 0.022 + (Math.min(entry.pages, 2200) / 2200) * 0.021;
 	const width = widthOf(book);
 	const left =
-		-1.61 + library.slice(start, index).reduce((x, entry) => x + widthOf(entry) + 0.0015, 0);
-	if (left + width > -0.63)
+		leftmost + library.slice(start, index).reduce((x, entry) => x + widthOf(entry) + 0.0015, 0);
+	if (left + width > rightmost)
 		throw new Error('The room bookcase is full. Add shelf space before baking more books.');
 	return {
 		isbn: book.isbn,
 		row,
 		x: left + width / 2,
-		y: [0.55, 0.91, 1.27][row],
-		z: -1.068,
+		y: CABINET.bays[row],
+		z: CABINET.front,
 		width,
 		height: 0.237 + (index % 4) * 0.002,
 	};
 });
-await writeFile(join(work, 'book-slots.json'), JSON.stringify(slots));
-if (process.argv.includes('--layout-only')) {
-	await writeFile(join(out, 'book-slots.json'), JSON.stringify(slots, null, 2) + '\n');
-	process.exit(0);
-}
+// Blender reads these from the work directory; the browser imports the pair
+// written beside the GLBs.
+const publish = async (directory, pretty) => {
+	// Tabs, so the checked-in copies match what `bun run lint` expects.
+	const space = pretty ? '\t' : undefined;
+	const end = pretty ? '\n' : '';
+	await writeFile(join(directory, 'book-slots.json'), JSON.stringify(slots, null, space) + end);
+	await writeFile(join(directory, 'cabinet.json'), JSON.stringify(CABINET, null, space) + end);
+};
+await publish(work, false);
+// The browser imports these from the asset directory, so every run writes them
+// there, not only --layout-only: a bake that moved the cabinet must not leave
+// the runtime framing and picking the shape it had before.
+await mkdir(out, { recursive: true });
+await publish(out, true);
+if (process.argv.includes('--layout-only')) process.exit(0);
 await writeFile(join(work, 'books.json'), JSON.stringify(library));
 const escape = (text) =>
 	text.replace(

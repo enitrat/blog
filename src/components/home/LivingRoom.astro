@@ -84,29 +84,35 @@ import Bookshelf from './room/Bookshelf.astro';
 	const shelfPlayer = room?.querySelector<HTMLButtonElement>('[data-shelf-audio]');
 
 	// The rings carry no text; the caption at the lower edge names whatever the
-	// pointer or keyboard has reached, one at a time.
-	const caption = room?.querySelector<HTMLElement>('.living-room__caption');
+	// pointer or keyboard has reached, one at a time. That element has a single
+	// owner: while browsing, the bookshelf is naming rows and books with it, so
+	// the room asks through `label()` rather than writing to it.
 	const hotspots = room?.querySelector<HTMLElement>('.living-room__hotspots');
-	const name = (event: Event) => {
+	const label = (text: string) => bookshelf?.label(text);
+	const named = (event: Event) => {
 		const spot = (event.target as Element).closest?.('.living-room__hotspot');
 		const ring = spot && !spot.classList.contains('living-room__mix');
-		if (caption) caption.textContent = ring ? (spot.textContent ?? '').trim() : '';
+		label(ring ? (spot.textContent ?? '').trim() : '');
 	};
-	const clear = () => caption && (caption.textContent = '');
-	hotspots?.addEventListener('pointerover', name);
-	hotspots?.addEventListener('pointerout', clear);
-	hotspots?.addEventListener('focusin', name);
-	hotspots?.addEventListener('focusout', clear);
-	let audio: { context: AudioContext; stop: () => void; bed: () => void } | null = null;
+	const pointed = () =>
+		room?.querySelector<HTMLElement>(
+			'.living-room__hotspot:is(:hover, :focus-visible):not(.living-room__mix)',
+		);
+	hotspots?.addEventListener('pointerover', named);
+	hotspots?.addEventListener('pointerout', () => label(''));
+	hotspots?.addEventListener('focusin', named);
+	hotspots?.addEventListener('focusout', () => label(''));
 
-	function crackle() {
+	/** Surface noise, built once and left in place. Creating and closing an
+	 *  AudioContext per play raced its own teardown: a second press inside the
+	 *  fade could leave two contexts running and one of them unreachable. */
+	function surface() {
 		const context = new AudioContext();
-
 		const buffer = context.createBuffer(1, context.sampleRate * 2, context.sampleRate);
 		const samples = buffer.getChannelData(0);
 		for (let i = 0; i < samples.length; i++) {
-
-			samples[i] = (Math.random() - 0.5) * 0.06 + (Math.random() < 0.0008 ? (Math.random() - 0.5) * 0.7 : 0);
+			samples[i] =
+				(Math.random() - 0.5) * 0.06 + (Math.random() < 0.0008 ? (Math.random() - 0.5) * 0.7 : 0);
 		}
 		const source = context.createBufferSource();
 		source.buffer = buffer;
@@ -119,22 +125,31 @@ import Bookshelf from './room/Bookshelf.astro';
 		high.type = 'lowpass';
 		high.frequency.value = 6000;
 		const gain = context.createGain();
-		gain.gain.setValueAtTime(0, context.currentTime);
-		gain.gain.linearRampToValueAtTime(0.5, context.currentTime + 0.35);
+		gain.gain.value = 0;
 		source.connect(low).connect(high).connect(gain).connect(context.destination);
 		source.start();
+		let idle: ReturnType<typeof setTimeout> | undefined;
+		const ramp = (to: number, seconds: number) => {
+			gain.gain.cancelScheduledValues(context.currentTime);
+			gain.gain.setValueAtTime(gain.gain.value, context.currentTime);
+			gain.gain.linearRampToValueAtTime(to, context.currentTime + seconds);
+		};
 		return {
-			context,
-
-			bed() {
-				gain.gain.linearRampToValueAtTime(0.09, context.currentTime + 0.6);
+			needle() {
+				clearTimeout(idle);
+				void context.resume();
+				ramp(0.5, 0.35);
 			},
-			stop() {
-				gain.gain.linearRampToValueAtTime(0, context.currentTime + 0.25);
-				setTimeout(() => context.close(), 400);
+			bed() {
+				ramp(0.09, 0.6);
+			},
+			lift() {
+				ramp(0, 0.25);
+				idle = setTimeout(() => void context.suspend(), 400);
 			},
 		};
 	}
+	let noise: ReturnType<typeof surface> | null = null;
 
 	type Widget = {
 		play(): void;
@@ -146,20 +161,28 @@ import Bookshelf from './room/Bookshelf.astro';
 		Events: { PLAY: string; PAUSE: string; FINISH: string; ERROR: string; READY: string };
 	};
 	let widget: Widget | null = null;
+	let connecting: Promise<Widget> | null = null;
 
-	let wanted = false;
-	let playing = false;
+	/** One state, not two booleans that could disagree. `cueing` is the honest
+	 *  name for what the old code told the room was playing: the needle is down
+	 *  and the surface noise is audible, but the mix has not started yet. */
+	type Playback = 'stopped' | 'cueing' | 'playing';
+	let playback: Playback = 'stopped';
 
-	function state(on: boolean) {
-		playing = on;
+	function set(next: Playback) {
+		playback = next;
+		const on = next !== 'stopped';
 		player?.setAttribute('aria-pressed', String(on));
 		if (shelfPlayer) shelfPlayer.hidden = !on;
 		if (player) player.textContent = on ? 'Stop the record' : 'Play the record';
-		if (caption?.textContent && player?.matches(':hover, :focus-visible'))
-			caption.textContent = player.textContent;
-
-		if (on) room?.setAttribute('data-playing', '');
-		else room?.removeAttribute('data-playing');
+		// The platter turns from `cueing` on, because by then something really is
+		// coming out of the speaker. `data-mix` is the one that means the mix.
+		room?.toggleAttribute('data-playing', on);
+		if (next !== 'playing') room?.removeAttribute('data-mix');
+		// The button's own label just changed. If it is the thing being pointed
+		// at, the caption is naming it and has to say the new thing.
+		const spot = pointed();
+		if (spot) label((spot.textContent ?? '').trim());
 	}
 
 	async function connect() {
@@ -186,9 +209,9 @@ import Bookshelf from './room/Bookshelf.astro';
 		const events = SC.Widget.Events;
 
 		created.bind(events.PLAY, () => {
-			if (!wanted) return created.pause();
-			state(true);
-			audio?.bed();
+			if (playback === 'stopped') return created.pause();
+			set('playing');
+			noise?.bed();
 
 			room?.setAttribute('data-mix', '');
 		});
@@ -203,39 +226,42 @@ import Bookshelf from './room/Bookshelf.astro';
 		created.bind(events.FINISH, stop);
 		created.bind(events.ERROR, stop);
 
-		created.bind(events.READY, () => wanted && created.play());
+		created.bind(events.READY, () => playback !== 'stopped' && created.play());
 		return created;
 	}
 
 	function stop() {
-		wanted = false;
 		widget?.pause();
-		audio?.stop();
-		audio = null;
-		state(false);
-		room?.removeAttribute('data-mix');
+		noise?.lift();
+		set('stopped');
 	}
 
 	function toggle() {
-		if (playing || audio) {
+		if (playback !== 'stopped') {
 			stop();
 			return;
 		}
 
 		try {
-			audio = crackle();
+			noise ??= surface();
+			noise.needle();
 		} catch {}
-		wanted = true;
-		state(true);
+		set('cueing');
 		if (widget) {
 			widget.play();
 			return;
 		}
-		connect().then(
+		// One iframe and one api.js however fast the button is pressed: without
+		// this, a second press before the first resolves appends a second player
+		// that nobody holds a reference to and nothing can ever pause.
+		connecting ??= connect();
+		connecting.then(
 			(created) => {
 				widget = created;
 			},
-			() => {},
+			() => {
+				connecting = null;
+			},
 		);
 	}
 
@@ -245,8 +271,10 @@ import Bookshelf from './room/Bookshelf.astro';
 	let resume = false;
 	document.addEventListener('visibilitychange', () => {
 		if (document.hidden) {
-			resume = playing;
-			if (playing) widget?.pause();
+			// Only a mix that actually started is worth resuming: intent that
+			// never became playback should not begin on its own on the way back.
+			resume = playback === 'playing';
+			if (resume) widget?.pause();
 		} else if (resume) {
 			resume = false;
 			widget?.play();
@@ -261,6 +289,10 @@ import Bookshelf from './room/Bookshelf.astro';
 		}
 	}
 
+	// Asked once. Every call allocates a real WebGL2 context on a throwaway
+	// canvas, and browsers evict the oldest live context when there are too
+	// many -- which, asked on every hash change, would be the room's own.
+	const canRender = supportsWebGL();
 	const coarse = matchMedia('(pointer: coarse)').matches;
 	const memory = (navigator as { deviceMemory?: number }).deviceMemory ?? 8;
 	const saveData =
@@ -268,7 +300,7 @@ import Bookshelf from './room/Bookshelf.astro';
 
 	// Tell the bookshelf a renderer is possible before it mounts, so an entrance
 	// click during the load still means "browse" rather than "jump to the list".
-	if (room && canvas && supportsWebGL()) room.dataset.canRender = '';
+	if (room && canvas && canRender) room.dataset.canRender = '';
 	const bookshelf = room ? mountBookshelf(room) : undefined;
 
 	if (room && canvas && bookshelf) {
@@ -293,13 +325,13 @@ import Bookshelf from './room/Bookshelf.astro';
 		// Explicit activation always loads; the eager path stays off touch, where
 		// the poster and the list already answer the page.
 		room.querySelector('[data-anchor="bookshelf"]')?.addEventListener('click', () => {
-			if (supportsWebGL()) void load();
+			if (canRender) void load();
 		});
 		addEventListener('hashchange', () => {
-			if (bookshelf.active && supportsWebGL()) void load();
+			if (bookshelf.active && canRender) void load();
 		});
 		const idle = window.requestIdleCallback ?? ((fn: () => void) => setTimeout(fn, 200));
-		if ((bookshelf.active || (!coarse && memory >= 4 && !saveData)) && supportsWebGL()) {
+		if ((bookshelf.active || (!coarse && memory >= 4 && !saveData)) && canRender) {
 			const boot = () => idle(() => { void load(); }, { timeout: 3000 });
 			if (document.readyState === 'complete') boot();
 			else addEventListener('load', boot, { once: true });

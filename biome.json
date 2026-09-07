@@ -7,7 +7,13 @@
 	},
 	"files": {
 		"ignoreUnknown": true,
-		"includes": ["**", "!**/*.webp.json", "!.impeccable/**/*.json", "!.vercel"]
+		"includes": [
+			"**",
+			"!**/*.webp.json",
+			"!.impeccable/**/*.json",
+			"!.vercel",
+			"!src/assets/room/*.json"
+		]
 	},
 	"formatter": {
 		"enabled": true,

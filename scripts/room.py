@@ -196,14 +196,21 @@ box('Back skirting', (0, 1.452, .07), (4.18, .035, .11), oak, .005)
 box('Left skirting', (-2.041, .45, .07), (.035, 2.03, .11), oak, .005)
 
 group = 'furniture'
-# Bookcase: thinner shelves and a recessed back give each bay depth.
-cx, cy, cw, ch, cd = -1.12, 1.24, 1.08, 1.68, .40
+# Bookcase: thinner shelves and a recessed back give each bay depth. Its
+# dimensions come from bake-room.mjs, which also ships them to the browser, so
+# the frame, the anchor and the pick volume there cannot drift from this box.
+# That file uses the runtime's axes -- Y up, depth along -Z -- and this one is
+# Blender's Z up, so the front plane comes back across as +y.
+cabinet = json.loads((work / 'cabinet.json').read_text())
+cx, cw, cd = cabinet['x'], cabinet['width'], cabinet['depth']
+cy = -cabinet['face'] + cd / 2
+crown, plinth = .036, .14
 box('Bookcase inset back', (cx, cy+.18, .9), (cw-.035, .018, 1.57), darkwood, .003)
 for x in [cx-cw/2+.013, cx+cw/2-.013]:
     box('Bookcase side', (x, cy, .89), (.027, cd, 1.59), walnut)
-box('Bookcase crown', (cx, cy, 1.695), (1.10, .42, .036), walnut)
-box('Bookcase plinth', (cx, cy, .09), (.99, .34, .14), darkwood)
-shelves = [.18, .55, .91, 1.27]
+box('Bookcase crown', (cx, cy, cabinet['ceiling'] - crown/2), (1.10, .42, crown), walnut)
+box('Bookcase plinth', (cx, cy, cabinet['floor'] + plinth/2), (.99, .34, plinth), darkwood)
+shelves = cabinet['shelves']
 for z in shelves:
     box('Shelf with rounded lip', (cx, cy, z-.013), (1.03, .39, .027), walnut, .005)
 

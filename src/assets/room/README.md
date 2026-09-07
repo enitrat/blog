@@ -34,6 +34,15 @@ place the actual books and exports the manifest alongside the GLBs. Rebuild
 the room after changing the library. The generator rejects a full cabinet
 instead of silently omitting books. The page build rejects missing ISBNs.
 
+`cabinet.json` is the bookcase itself: centre, width, depth, front planes, the
+heights of the plinth and crown, and the shelves. The `CABINET` literal at the
+top of `bake-room.mjs` is the only place any of it is written down. Blender
+builds the furniture from it, the layout stands the books between its sides, and
+`shelves.ts` derives the overview frame, the hotspot anchor, the pick volume and
+the row names from it, so none of those can fall behind the geometry on screen.
+Both files are written to this directory on every run, whether or not Blender
+is invoked. They are generated, so the formatter leaves them alone.
+
 To update only printed artwork without rebaking the room:
 
 ```sh
@@ -41,8 +50,8 @@ BLENDER=/path/to/blender bun run room:bake --spines-only
 ```
 
 Only use that option when book positions and dimensions have not changed.
-`--layout-only` writes the manifest without invoking Blender; it is for
-recovering a missing manifest for matching assets, not relocating existing books.
+`--layout-only` writes both manifests without invoking Blender; it is for
+recovering them for matching assets, not for relocating existing books.
 
 The room bookshelf uses the same scene, with frontal camera sections derived
 from these slots. Its HTML links, records, notes, history, and fallback list live

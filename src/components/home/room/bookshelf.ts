@@ -1,14 +1,7 @@
-import slots from '../../../assets/room/book-slots.json';
+import { CABINET, ordered, rowName, rows, type ShelfFrame, type Slot } from './shelves';
 
-type Slot = (typeof slots)[number];
-export type ShelfFrame = {
-	view: 'cabinet' | 'row';
-	x: number;
-	y: number;
-	z: number;
-	width: number;
-	height: number;
-};
+export type { ShelfFrame } from './shelves';
+
 type Point = { x: number; y: number; z: number };
 type Project = (x: number, y: number, z: number) => Point;
 type Section = { books: Slot[]; frame: ShelfFrame };
@@ -19,15 +12,8 @@ type Location =
 	| { kind: 'cabinet' }
 	| { kind: 'row'; anchor: Slot }
 	| { kind: 'book'; anchor: Slot; book: Slot };
-const CABINET: ShelfFrame = {
-	view: 'cabinet',
-	x: -1.12,
-	y: 0.87,
-	z: -1.068,
-	width: 1.38,
-	height: 1.94,
-};
-const ROW_NAMES = ['Bottom row', 'Middle row', 'Top row'];
+/** The two levels that stand in front of a particular row. */
+type Framed = Extract<Location, { anchor: Slot }>;
 
 /** The room, cabinet, row, and book are successive levels of native navigation. */
 export function mountBookshelf(host: HTMLElement) {
@@ -45,18 +31,14 @@ export function mountBookshelf(host: HTMLElement) {
 	const leave = required<HTMLButtonElement>('[data-shelf-exit]');
 	const leaveLabel = required<HTMLElement>('[data-shelf-exit-label]');
 	const status = required<HTMLElement>('[data-shelf-status]');
-	// One caption for the whole room: the hotspots name objects with it, and
-	// browsing names rows and books with it.
+	// One caption for the whole room, and one writer: the hotspots name objects
+	// through `label()`, browsing names rows and books here.
 	const caption = required<HTMLElement>('.living-room__caption');
 	const catalog = required<HTMLDetailsElement>('[data-shelf-catalog]');
 	const dialog = required<HTMLDialogElement>('[data-room-book]');
 	const body = required<HTMLElement>('[data-open-book]');
 	const entrance = required<HTMLAnchorElement>('[data-anchor="bookshelf"]');
 	const events = new AbortController();
-	const ordered = [...slots].sort((a, b) => b.row - a.row || a.x - b.x);
-	const rows = [2, 1, 0]
-		.map((row) => ({ row, books: ordered.filter((slot) => slot.row === row) }))
-		.filter(({ books }) => books.length > 0);
 	const records = new Map(
 		[...host.querySelectorAll<HTMLDetailsElement>('[data-book]')].map((record) => [
 			record.dataset.book,
@@ -83,8 +65,18 @@ export function mountBookshelf(host: HTMLElement) {
 	let returnFocus: HTMLElement | undefined;
 	let lastHash = '';
 	let goingBack = false;
-	let swiped = false;
+	// A swipe synthesises a click on whatever it started over, and that click
+	// follows within a few hundred milliseconds. A keyboard activation minutes
+	// later must not still be suppressed, so this records a moment, not a mode.
+	let swipedAt = -1;
+	const fromSwipe = () => performance.now() - swipedAt < 500;
 	let touch: { x: number; y: number } | undefined;
+
+	/** Both of these are read back on every resize tick, and `status` is a live
+	 *  region: writing the value it already holds would announce it again. */
+	const write = (element: HTMLElement, value: string) => {
+		if (element.textContent !== value) element.textContent = value;
+	};
 
 	function readLocation(): Location | null {
 		const [name, anchorIsbn, bookIsbn, extra] = window.location.hash.slice(1).split('/');
@@ -130,9 +122,14 @@ export function mountBookshelf(host: HTMLElement) {
 	function restoreBook() {
 		if (!mounted) return;
 		mounted.source.append(mounted.content);
-		returnFocus = frameChanged
-			? links.get(mounted.slot.isbn)
-			: (mounted.source.querySelector('summary') ?? undefined);
+		if (frameChanged) returnFocus = links.get(mounted.slot.isbn);
+		else {
+			// Without a renderer the list is the bookshelf. Open it back to where
+			// the reader was: focus inside a closed <details> is dropped silently.
+			catalog.open = true;
+			mounted.source.open = true;
+			returnFocus = mounted.source.querySelector('summary') ?? undefined;
+		}
 		mounted = undefined;
 		if (dialog.open) dialog.close();
 	}
@@ -152,20 +149,24 @@ export function mountBookshelf(host: HTMLElement) {
 		dialog.scrollTop = 0;
 	}
 
-	function describe(slot?: Slot) {
+	function captionFor(slot?: Slot) {
 		const record = slot && records.get(slot.isbn);
-		caption.textContent = record
+		return record
 			? `${record.dataset.title} · ${record.dataset.author} · ${record.hasAttribute('data-noted') ? 'Read notes' : 'View record'}`
 			: 'Choose a row to look closer.';
 	}
 
+	const describe = (slot?: Slot) => write(caption, captionFor(slot));
+
+	const narrowest = Math.min(...ordered.map((slot) => slot.width));
+
 	function layout() {
-		const narrowest = Math.min(...slots.map((slot) => slot.width));
 		const width = Math.max(0.06, Math.min(0.48, (stage.clientWidth * narrowest) / 48));
-		host.style.setProperty(
-			'--shelf-stage-height',
-			`${Math.ceil((stage.clientWidth * 0.3) / width)}px`,
-		);
+		// The observer below watches the element this height applies to, so write
+		// it only when it changes: measure, write, measure has to terminate.
+		const height = `${Math.ceil((stage.clientWidth * 0.3) / width)}px`;
+		if (host.style.getPropertyValue('--shelf-stage-height') !== height)
+			host.style.setProperty('--shelf-stage-height', height);
 		sections = [];
 		for (const { books } of rows) {
 			let start = 0;
@@ -196,20 +197,97 @@ export function mountBookshelf(host: HTMLElement) {
 
 	/** Which run of books is on screen. Derived, never stored: `layout()` rebuilds
 	 *  `sections` on every resize and this stays correct without being told. */
-	function currentSection() {
-		if (!location || location.kind === 'cabinet') return -1;
-		const { anchor } = location;
-		const desired = location.kind === 'book' ? location.book : anchor;
+	function currentSection(place: Framed) {
+		const desired = place.kind === 'book' ? place.book : place.anchor;
 		const exact = sections.findIndex(
 			(section) =>
-				section.books[0].isbn === anchor.isbn &&
+				section.books[0].isbn === place.anchor.isbn &&
 				section.books.some((slot) => slot.isbn === desired.isbn),
 		);
 		if (exact >= 0) return exact;
-		return Math.max(
-			0,
-			sections.findIndex((section) => section.books.some((slot) => slot.isbn === desired.isbn)),
+		const holding = sections.findIndex((section) =>
+			section.books.some((slot) => slot.isbn === desired.isbn),
 		);
+		// Every book in `rows` falls in exactly one section. A miss means the
+		// manifest and `layout()` disagree, which must not be quietly framed as
+		// whichever row happens to be first.
+		if (holding < 0) throw new Error(`No shelf section holds ${desired.isbn}`);
+		return holding;
+	}
+
+	/** Where the camera should be looking at this level. */
+	function frameFor(place: Location | null): ShelfFrame | null {
+		if (!place) return null;
+		return place.kind === 'cabinet' ? CABINET : sections[currentSection(place)].frame;
+	}
+
+	/** What the chrome should say at this level, decided before anything is
+	 *  written, so the writing below has no branches of its own. */
+	function chromeFor(place: Location | null) {
+		if (!place)
+			return { level: null, exit: 'Back to the room', status: '', caption: '', pan: null, row: -1 };
+		if (place.kind === 'cabinet')
+			return {
+				level: 'cabinet',
+				exit: 'Back to the room',
+				status: 'Bookshelf',
+				caption: captionFor(),
+				pan: null,
+				row: -1,
+			};
+		const index = currentSection(place);
+		return {
+			level: 'row',
+			exit: 'Back to the bookshelf',
+			status: rowName(place.anchor.row),
+			caption: captionFor(place.kind === 'book' ? place.book : place.anchor),
+			pan: {
+				previous: sections[index - 1]?.books[0].row === place.anchor.row,
+				next: sections[index + 1]?.books[0].row === place.anchor.row,
+			},
+			row: rows.findIndex(({ row }) => row === place.anchor.row),
+		};
+	}
+
+	function applyChrome(chrome: ReturnType<typeof chromeFor>) {
+		host.toggleAttribute('data-browsing', chrome.level !== null);
+		targets.hidden = chrome.level === null;
+		// CSS shows the row and spine targets per level; a book still frames its
+		// row, so the camera and the controls stay at row level behind the dialog.
+		if (chrome.level) host.dataset.shelfLevel = chrome.level;
+		else host.removeAttribute('data-shelf-level');
+		write(leaveLabel, chrome.exit);
+		write(status, chrome.status);
+		write(caption, chrome.caption);
+		previous.disabled = !chrome.pan?.previous;
+		next.disabled = !chrome.pan?.next;
+		// A row that fits in one frame has nowhere to pan to.
+		previous.hidden = !chrome.pan?.previous && !chrome.pan?.next;
+		next.hidden = previous.hidden;
+		previousRow.disabled = chrome.row <= 0;
+		nextRow.disabled = chrome.row < 0 || chrome.row === rows.length - 1;
+	}
+
+	/** Focus follows the level, but has to wait for the targets to be placed,
+	 *  so it is only ever recorded here and applied by `place()`. */
+	function parkFocus(before: Location | null, changed: boolean) {
+		if (!location) {
+			if (before) returnFocus = entrance;
+			return;
+		}
+		if (!changed) return;
+		if (location.kind === 'cabinet')
+			returnFocus = rowLinks.get(
+				before && before.kind !== 'cabinet' ? before.anchor.row : rows[0]?.row,
+			);
+		else if (location.kind === 'row') returnFocus ??= links.get(location.anchor.isbn);
+	}
+
+	function applyFocus() {
+		if (!returnFocus || mounted) return;
+		if (returnFocus.hidden || returnFocus.closest('[hidden]')) return;
+		returnFocus.focus({ preventScroll: true });
+		returnFocus = undefined;
 	}
 
 	function sync() {
@@ -220,70 +298,27 @@ export function mountBookshelf(host: HTMLElement) {
 		lastHash = window.location.hash;
 		goingBack = false;
 		// Without a renderer the shelves are just the list on the page: no camera
-		// to move, no chrome to show, and nothing to be stranded inside.
-		if (!frameChanged) {
-			host.removeAttribute('data-browsing');
-			host.removeAttribute('data-shelf-level');
-			targets.hidden = true;
-			caption.textContent = '';
-			if (location?.kind === 'book') showBook(location.book);
-			else restoreBook();
-			if (returnFocus && !mounted) {
-				returnFocus.focus({ preventScroll: true });
-				returnFocus = undefined;
-			}
-			return;
-		}
-		host.toggleAttribute('data-browsing', location !== null);
-		targets.hidden = !location;
-		// CSS shows the row and spine targets per level; a book still frames its
-		// row, so the camera and the controls stay at row level behind the dialog.
-		if (location) host.dataset.shelfLevel = location.kind === 'cabinet' ? 'cabinet' : 'row';
-		else host.removeAttribute('data-shelf-level');
-		if (
+		// to move, no chrome to show, and nothing to be stranded inside. The
+		// dialog is the one thing that works either way.
+		const shown = frameChanged ? location : null;
+		// Whether focus is about to be left on a target this level hides. Read
+		// before anything moves; acted on once the chrome is actually on screen.
+		const stranded =
 			changed &&
-			location &&
-			(targets.contains(document.activeElement) || document.activeElement === entrance)
-		) {
-			// Park focus on the visible way out rather than on a live region.
-			leave.focus({ preventScroll: true });
-		}
-		// Only a row or an open book has a bookshelf to go back to.
-		leaveLabel.textContent =
-			location && location.kind !== 'cabinet' ? 'Back to the bookshelf' : 'Back to the room';
-		if (!location) {
-			caption.textContent = '';
-			restoreBook();
-			frameChanged(null);
-			if (before) returnFocus = entrance;
-		} else if (location.kind === 'cabinet') {
-			restoreBook();
-			status.textContent = 'Bookshelf';
-			describe();
-			frameChanged(CABINET);
-			if (changed)
-				returnFocus = rowLinks.get(
-					before && before.kind !== 'cabinet' ? before.anchor.row : rows[0]?.row,
-				);
-		} else {
-			const { anchor } = location;
-			const index = currentSection();
-			rowAnchors.set(anchor.row, anchor);
-			previous.disabled = sections[index - 1]?.books[0].row !== anchor.row;
-			next.disabled = sections[index + 1]?.books[0].row !== anchor.row;
-			// A row that fits in one frame has nowhere to pan to.
-			previous.hidden = previous.disabled && next.disabled;
-			next.hidden = previous.hidden;
-			const rowIndex = rows.findIndex(({ row }) => row === anchor.row);
-			previousRow.disabled = rowIndex === 0;
-			nextRow.disabled = rowIndex === rows.length - 1;
-			status.textContent = ROW_NAMES[anchor.row];
-			frameChanged(sections[index].frame);
-			if (location.kind === 'book') showBook(location.book);
-			else restoreBook();
-			describe(location.kind === 'book' ? location.book : anchor);
-			if (changed && location.kind === 'row') returnFocus ??= links.get(anchor.isbn);
-		}
+			shown !== null &&
+			(targets.contains(document.activeElement) || document.activeElement === entrance);
+		if (location?.kind === 'book') showBook(location.book);
+		else restoreBook();
+		// `place()` reads this when the camera settles, so it is set first.
+		if (shown && shown.kind !== 'cabinet') rowAnchors.set(shown.anchor.row, shown.anchor);
+		applyChrome(chromeFor(shown));
+		if (frameChanged) {
+			frameChanged(frameFor(shown));
+			// The way out is display:none until the camera publishes its view, so
+			// parking focus there any earlier puts it on the floor instead.
+			if (stranded && !mounted) leave.focus({ preventScroll: true });
+			parkFocus(before, changed);
+		} else applyFocus();
 	}
 
 	function enter() {
@@ -307,7 +342,7 @@ export function mountBookshelf(host: HTMLElement) {
 
 	function move(delta: number) {
 		if (location?.kind !== 'row') return;
-		const section = sections[currentSection() + delta];
+		const section = sections[currentSection(location) + delta];
 		if (!section || section.books[0].row !== location.anchor.row) return;
 		returnFocus = links.get(section.books[0].isbn);
 		navigate(address(section.books[0]), true);
@@ -326,10 +361,10 @@ export function mountBookshelf(host: HTMLElement) {
 		link.hidden = true;
 		link.setAttribute(
 			'aria-label',
-			`Look closer at the ${ROW_NAMES[row].toLowerCase()}, ${books.length} books`,
+			`Look closer at the ${rowName(row).toLowerCase()}, ${books.length} books`,
 		);
 		const describeRow = () => {
-			caption.textContent = `${ROW_NAMES[row]} · ${books.length} books · Look closer`;
+			write(caption, `${rowName(row)} · ${books.length} books · Look closer`);
 		};
 		link.addEventListener('pointerenter', describeRow, { signal: events.signal });
 		link.addEventListener('focus', describeRow, { signal: events.signal });
@@ -366,7 +401,7 @@ export function mountBookshelf(host: HTMLElement) {
 			(event) => {
 				if (!plainClick(event)) return;
 				event.preventDefault();
-				if (!swiped && location?.kind === 'row') navigate(address(location.anchor, slot));
+				if (!fromSwipe() && location?.kind === 'row') navigate(address(location.anchor, slot));
 			},
 			{ signal: events.signal },
 		);
@@ -453,7 +488,7 @@ export function mountBookshelf(host: HTMLElement) {
 	stage.addEventListener(
 		'pointerdown',
 		(event) => {
-			swiped = false;
+			swipedAt = -1;
 			if (location?.kind === 'row' && event.pointerType === 'touch')
 				touch = { x: event.clientX, y: event.clientY };
 		},
@@ -467,7 +502,7 @@ export function mountBookshelf(host: HTMLElement) {
 			const dy = event.clientY - touch.y;
 			touch = undefined;
 			if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-				swiped = true;
+				swipedAt = performance.now();
 				move(dx < 0 ? 1 : -1);
 			}
 		},
@@ -520,10 +555,15 @@ export function mountBookshelf(host: HTMLElement) {
 	return {
 		enter,
 		background() {
-			if (frameChanged && !swiped && location) back();
+			if (frameChanged && !fromSwipe() && location) back();
 		},
 		get active() {
 			return location !== null;
+		},
+		/** The room's own hotspots name themselves through here, so the caption
+		 *  has a single owner: while browsing, the shelves keep it. */
+		label(text: string) {
+			if (!location) write(caption, text);
 		},
 		connect(listener: (frame: ShelfFrame | null) => void) {
 			frameChanged = listener;
@@ -531,6 +571,10 @@ export function mountBookshelf(host: HTMLElement) {
 		},
 		fallback() {
 			frameChanged = undefined;
+			// The room proved it cannot render one. The entrance stops intercepting
+			// its own click, so it falls through to the list rather than to a level
+			// the URL is already on and `enter()` therefore refuses to re-enter.
+			delete host.dataset.canRender;
 			sync();
 		},
 		/** Project every target once, when the camera has arrived. The shelves are
@@ -591,10 +635,7 @@ export function mountBookshelf(host: HTMLElement) {
 					link.href = address(location.anchor, slot);
 				}
 			}
-			if (returnFocus && !mounted && !returnFocus.hidden && !returnFocus.closest('[hidden]')) {
-				returnFocus.focus({ preventScroll: true });
-				returnFocus = undefined;
-			}
+			applyFocus();
 		},
 		dispose() {
 			disposed = true;

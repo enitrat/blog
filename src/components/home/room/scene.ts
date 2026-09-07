@@ -8,7 +8,8 @@ import shellUrl from '../../../assets/room/shell.glb?url';
 // The printed jackets carry the only type in the room meant to be read, so they
 // own an atlas instead of sharing one with nine square metres of leather.
 import spinesUrl from '../../../assets/room/spines.glb?url';
-import type { Bookshelf, ShelfFrame } from './bookshelf';
+import type { Bookshelf } from './bookshelf';
+import { BOOKSHELF_ANCHOR, CABINET_BOX, type ShelfFrame } from './shelves';
 
 const VIEWS = {
 	room: { position: new THREE.Vector3(6.4, 6.5, 9.9), target: new THREE.Vector3(0, 1, -0.2) },
@@ -22,7 +23,8 @@ const VIEWS = {
 	},
 };
 const ANCHORS = {
-	bookshelf: new THREE.Vector3(-1.12, 1.03, -1.06),
+	// The cabinet's ring sits on its books, and the bake owns where those are.
+	bookshelf: new THREE.Vector3(BOOKSHELF_ANCHOR.x, BOOKSHELF_ANCHOR.y, BOOKSHELF_ANCHOR.z),
 	record: new THREE.Vector3(0.21, 0.78, -1.16),
 };
 
@@ -117,8 +119,8 @@ export async function mountRoom(
 	const raycaster = new THREE.Raycaster();
 	const pointer = new THREE.Vector2();
 	const cabinet = new THREE.Box3(
-		new THREE.Vector3(-1.69, 0, -1.46),
-		new THREE.Vector3(-0.55, 1.73, -1.025),
+		new THREE.Vector3(...CABINET_BOX.min),
+		new THREE.Vector3(...CABINET_BOX.max),
 	);
 
 	// The platter and the arm are their own nodes in moving.glb, turning about
@@ -213,9 +215,10 @@ export async function mountRoom(
 		duration = 750,
 	) {
 		if (next === view && destination.equals(nextPosition) && destinationTarget.equals(nextTarget)) {
-			// Already where we are going: the targets still need placing if a
-			// resize changed the projection under them.
-			settle();
+			// Already going where we are asked to go. Arrived, the targets still
+			// need placing in case a resize moved the projection under them; mid
+			// flight, settling here would strand them at a view we are leaving.
+			if (transitionStart === null) settle();
 			return;
 		}
 		fromPosition.copy(position);
@@ -258,39 +261,48 @@ export async function mountRoom(
 		});
 	}
 
-	function frameShelf(frame: ShelfFrame | null, duration?: number) {
-		shelfFrame = frame;
-		if (!frame) {
+	const sameShelf = (a: ShelfFrame, b: ShelfFrame) =>
+		a.view === b.view &&
+		a.x === b.x &&
+		a.y === b.y &&
+		a.z === b.z &&
+		a.width === b.width &&
+		a.height === b.height;
+
+	function frameShelf(shelf: ShelfFrame | null, duration?: number) {
+		// `layout()` rebuilds its frames on every resize, so the same shelf arrives
+		// as a new object. Framing the shelf we are already framing is a re-
+		// projection, not a journey: it must not start the flight again.
+		const reframe = shelfFrame !== null && shelf !== null && sameShelf(shelfFrame, shelf);
+		shelfFrame = shelf;
+		if (!shelf) {
 			if (view === 'shelf') changeView('room');
 			return;
 		}
 		camera.aspect = canvas.clientWidth / Math.max(1, canvas.clientHeight);
 		camera.updateProjectionMatrix();
 		const distance =
-			Math.max(frame.height, frame.width / camera.aspect) /
+			Math.max(shelf.height, shelf.width / camera.aspect) /
 			(2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
 		// Stepping along a row is a short pan; arriving at the shelves is a trip.
-		const lateral = view === 'shelf' && frame.view === 'row';
+		const lateral = view === 'shelf' && shelf.view === 'row';
 		travel(
 			'shelf',
-			shelfPosition.set(frame.x, frame.y, frame.z + distance),
-			shelfTarget.set(frame.x, frame.y, frame.z),
-			duration ?? (lateral ? 320 : 750),
+			shelfPosition.set(shelf.x, shelf.y, shelf.z + distance),
+			shelfTarget.set(shelf.x, shelf.y, shelf.z),
+			duration ?? (reframe ? 0 : lateral ? 320 : 750),
 		);
 	}
 
-	for (const hotspot of hotspots) {
-		if (hotspot.classList.contains('living-room__mix')) continue;
-		const anchor = hotspot.dataset.anchor;
-		if (anchor !== 'record') continue;
-		hotspot.addEventListener(
-			'click',
-			() => {
-				if (!bookshelf.active) changeView('record');
-			},
-			{ signal: events.signal },
-		);
-	}
+	// The mix link shares the record's anchor but leaves the page: only the
+	// button in front of the turntable moves the camera.
+	host.querySelector<HTMLButtonElement>('button[data-anchor="record"]')?.addEventListener(
+		'click',
+		() => {
+			if (!bookshelf.active) changeView('record');
+		},
+		{ signal: events.signal },
+	);
 
 	// The same visible control backs out of a close view and out of the shelves:
 	// the bookshelf owns it while browsing, the camera owns it otherwise.
@@ -323,18 +335,30 @@ export async function mountRoom(
 	const step = () => {
 		if (!bookshelf.active) changeView(view === 'room' ? 'closer' : 'room');
 	};
+	// ponytail: one traversal per frame, and only when the pointer has really
+	// moved. Pointer events arrive far faster than frames, and the traversal
+	// walks every triangle in all five GLBs. A dedicated low-poly pick mesh for
+	// the cabinet is the upgrade if the room ever grows.
+	let lastPick = { at: -1, x: 0, y: 0, hit: false };
 	function pointsAtCabinet(event: MouseEvent) {
 		const bounds = canvas.getBoundingClientRect();
-		pointer.set(
-			((event.clientX - bounds.left) / bounds.width) * 2 - 1,
-			1 - ((event.clientY - bounds.top) / bounds.height) * 2,
-		);
+		const x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
+		const y = 1 - ((event.clientY - bounds.top) / bounds.height) * 2;
+		const now = performance.now();
+		if (
+			now - lastPick.at < 16 &&
+			Math.abs(x - lastPick.x) < 0.008 &&
+			Math.abs(y - lastPick.y) < 0.008
+		)
+			return lastPick.hit;
+		pointer.set(x, y);
 		raycaster.setFromCamera(pointer, camera);
-		// Cheap analytic reject first: most of the room is not the cabinet, and
-		// the full traversal runs on every mouse move.
-		if (!raycaster.ray.intersectsBox(cabinet)) return false;
-		const hit = raycaster.intersectObjects(scene.children, true)[0];
-		return hit !== undefined && cabinet.containsPoint(hit.point);
+		// Cheap analytic reject first: most of the room is not the cabinet.
+		const hit = raycaster.ray.intersectsBox(cabinet)
+			? raycaster.intersectObjects(scene.children, true)[0]
+			: undefined;
+		lastPick = { at: now, x, y, hit: hit !== undefined && cabinet.containsPoint(hit.point) };
+		return lastPick.hit;
 	}
 	// Focusable only while the scene is actually there to steer: an invisible
 	// canvas must not keep a tab stop.
@@ -353,6 +377,10 @@ export async function mountRoom(
 	canvas.addEventListener(
 		'click',
 		(event) => {
+			// WebKit and Firefox do not focus an element on click just because it
+			// has a tabindex. The canvas is the room's control, and Escape below
+			// only hears keys dispatched inside the room, so it takes focus here.
+			canvas.focus({ preventScroll: true });
 			if (bookshelf.active) {
 				bookshelf.background();
 				return;
@@ -372,7 +400,8 @@ export async function mountRoom(
 		},
 		{ signal: events.signal },
 	);
-	// Escape backs out while the room is the thing on screen, wherever focus is.
+	// Escape backs out from anywhere inside the room. The canvas takes focus on
+	// click, so this is reachable after a pointer as well as after a tab.
 	host.addEventListener(
 		'keydown',
 		(event) => {
@@ -421,17 +450,22 @@ export async function mountRoom(
 	);
 
 	const resize = new ResizeObserver(() => {
-		const width = host.clientWidth;
+		// The canvas is what is observed and what is drawn into; the wrapper
+		// around it also holds the list, so its width is not the picture's.
+		const width = canvas.clientWidth;
 		const height = canvas.clientHeight;
 		if (!width || !height) return;
 		renderer.setSize(width, height, false);
 		camera.aspect = width / height;
 		camera.updateProjectionMatrix();
 		if (shelfFrame) {
-			// Re-framing for a new aspect is not a journey: flying 750ms on every
-			// resize tick would hide the shelves for the whole drag.
-			const wasTraveling = transitionStart !== null;
-			frameShelf(shelfFrame, wasTraveling ? undefined : 0);
+			// A trip already under way keeps the time it has left, so dragging an
+			// edge cannot keep restarting the ease and leave the camera crawling.
+			const remaining =
+				transitionStart === null
+					? 0
+					: Math.max(0, transitionDuration - (performance.now() - transitionStart));
+			frameShelf(shelfFrame, remaining);
 		}
 		requestDraw();
 	});
@@ -463,7 +497,6 @@ export async function mountRoom(
 			bookshelf.fallback();
 			arm(false);
 			delete host.dataset.live;
-			delete host.dataset.placed;
 			for (const hotspot of hotspots) {
 				hotspot.hidden = false;
 				hotspot.style.left = '';
@@ -509,7 +542,7 @@ export async function mountRoom(
 		},
 		{ signal: events.signal },
 	);
-	renderer.setSize(host.clientWidth, canvas.clientHeight, false);
+	renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
 	camera.aspect = canvas.clientWidth / Math.max(1, canvas.clientHeight);
 	camera.updateProjectionMatrix();
 	publish('room');
