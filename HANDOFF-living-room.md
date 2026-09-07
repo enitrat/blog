@@ -1,7 +1,7 @@
 # Living room handoff
 
 Updated: 2026-09-07
-Next focus: refine the bookshelf experience inside the approved Blender room.
+Next focus: a leaning book shows a black top and black flanks. The user saw it, chose to leave it, and wants it picked up next. Diagnosis is under "Remaining work and limits"; it needs a rebake, not a runtime change.
 
 ## Start here
 
