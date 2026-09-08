@@ -1,6 +1,6 @@
 /** Bake original room assets with Blender 4.5; Blender is an offline tool only. */
 import { spawn } from 'node:child_process';
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import sharp from 'sharp';
@@ -15,8 +15,17 @@ const option = (name, fallback) => {
 const work = process.env.ROOM_WORK ?? (await mkdtemp(join(tmpdir(), 'living-room-')));
 const out = resolve(option('--out', 'src/assets/room'));
 await mkdir(work, { recursive: true });
+// Only an annotated volume can be opened, so only its front cover is ever seen
+// off the shelf. Baking the other fifty-odd spends the atlas on faces nobody
+// can reach. A note's filename is its ISBN, the same contract `notedIsbns()`
+// enforces against the shelves at build time; `astro:content` is not available
+// out here, so the directory is read directly.
+const noted = new Set(
+	(await readdir('src/content/notes')).map((file) => file.replace(/\.mdx?$/, '')),
+);
 const library = books.map((book) => ({
 	isbn: book.edition.isbn13,
+	noted: noted.has(book.edition.isbn13),
 	title: book.title,
 	author: pleiadeStyleFor(book.author).label,
 	color: PLEIADE_HEX[pleiadeStyleFor(book.author).color],

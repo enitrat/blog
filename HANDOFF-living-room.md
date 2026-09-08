@@ -11,6 +11,14 @@ lights and now carry that atlas: the previous `books.glb` had been exported
 before its bake and shipped 55 untextured bodies. Both assets are in place and
 consistent with each other.
 
+The front covers are baked only for annotated volumes. All 55 shared one
+4096px sheet, so the one cover a reader can actually open was lettered at eight
+pixels per centimetre and looked pixelated on screen; it is now forty-four, and
+`covers.glb` fell from 1.8MB to 439KB. The cost is that adding a note needs a
+`--books-only` rebake to give that volume a cover. `scene.ts` treats a missing
+cover as normal for an unannotated book and only falls back when an annotated
+one has none.
+
 The final working tree includes three runtime assets beyond the room:
 `books.glb` with 55 book-body nodes, `covers.glb` with 55 hinged front covers,
 and `bookmark.glb` with one reusable bookmark node. The poster was regenerated

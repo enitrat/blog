@@ -283,13 +283,17 @@ for bay in range(3):
         box('Pleiade back cover', (x+.00075, 1.145, z+h/2), (.0015, .15, h), cover, .0005)
         box('Pleiade leather spine', (x+width/2, 1.072, z+h/2), (width, .004, h), cover, .001)
         box('Bible paper edges', (x+width/2, 1.145, z+h/2), (width-.003, .142, h-.004), cream, .0005)
-        group = 'covers'
-        part = 'Cover_'+book['isbn']
-        pivots[part] = (x+width-.00075, 1.070, z)
-        box('Hinged leather cover', (x+width-.00075, 1.145, z+h/2), (.0015, .15, h), cover, .0005)
-        box('Ivory front endpaper', (x+width-.00155, 1.145, z+h/2), (.0001, .145, h-.006), cream, .00004)
-        artwork = plane_image('Front cover lettering', (x+width+.00006, 1.145, z+h/2), .15, h, work/f'cover-{idx}.png')
-        artwork.rotation_euler.z = math.pi/2
+        # A cover only ever leaves the row on an annotated volume. The rest would
+        # divide this atlas fifty ways for faces the reader cannot reach, which
+        # is what once left the openable one lettered at eight pixels per centimetre.
+        if book.get('noted'):
+            group = 'covers'
+            part = 'Cover_'+book['isbn']
+            pivots[part] = (x+width-.00075, 1.070, z)
+            box('Hinged leather cover', (x+width-.00075, 1.145, z+h/2), (.0015, .15, h), cover, .0005)
+            box('Ivory front endpaper', (x+width-.00155, 1.145, z+h/2), (.0001, .145, h-.006), cream, .00004)
+            artwork = plane_image('Front cover lettering', (x+width+.00006, 1.145, z+h/2), .15, h, work/f'cover-{idx}.png')
+            artwork.rotation_euler.z = math.pi/2
         group = 'spines'
         part = 'Book_'+book['isbn']
         jacket = plane_image(part, (slot['x'], -slot['z'], z+h/2), width-.001, h-.003, work/f'book-{idx}.png')
@@ -596,9 +600,15 @@ for name, parts in groups.items():
         meshes = [joined]
         parts.clear()
         parts['spines'] = meshes
+    # A cover is read at arm's length, so it is sized from how many are actually
+    # baked rather than from a fixed sheet: one note wants a whole one to itself.
+    # ponytail: doubles per four covers, capped; revisit if the shelf ever carries
+    # enough notes to need per-cover atlases instead.
+    covers_atlas = min(size * 2, 2048 * 2 ** max(0, math.ceil(math.log2(max(1, len(parts)) / 4) / 2)))
     resolution = (
         1024 if name == 'bookmark' else
-        size * 2 if name in ('objects', 'spines', 'covers') else size // 2 if name == 'moving' else size
+        covers_atlas if name == 'covers' else
+        size * 2 if name in ('objects', 'spines') else size // 2 if name == 'moving' else size
     )
     image = bpy.data.images.new(name+' baked',width=resolution,height=resolution,float_buffer=True)
     for obj in meshes:

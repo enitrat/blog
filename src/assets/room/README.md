@@ -74,7 +74,8 @@ recovering them for matching assets, not for relocating existing books.
 The room bookshelf uses the same scene, with frontal camera sections derived
 from these slots. Its HTML links, records, notes, history, and fallback list live
 in `src/components/home/room/Bookshelf.astro` and `bookshelf.ts`. Notes are
-rendered from the content collection; adding a note does not require a rebake.
+rendered from the content collection. Adding a note needs `--books-only` to
+bake that volume a front cover; nothing else about a note requires a rebake.
 `/#bookshelf` approaches the whole cabinet. Unfilled ivory dots mark its row
 targets; selecting a row reaches reading distance. Books with notes show a persistent warm dot and tip on hover or keyboard focus.
 Only those books open. Other spines expose metadata without an opening action.
@@ -96,11 +97,15 @@ Each body is baked in isolation under the room lights so neighbouring books do
 not leave black shadows on exposed pages. Printed jackets keep their separate
 atlas. The runtime attaches each body and jacket to the same pivot.
 
-`covers.glb` holds 55 `Cover_<isbn>` front covers, each with a hinge at its
-spine-side edge, leather thickness, an ivory endpaper, and original gold title
-and author artwork from `coverSvg` in `spine-art.mjs`. The covers share a 4096px
-atlas. A temporary joined copy bakes them together, excluding secondary rays
-between these flat covers; the exported originals retain independent hinges.
+`covers.glb` holds a `Cover_<isbn>` front cover for each **annotated** volume
+only, since only those open: each has a hinge at its spine-side edge, leather
+thickness, an ivory endpaper, and original gold title and author artwork from
+`coverSvg` in `spine-art.mjs`. A temporary joined copy bakes them together,
+excluding secondary rays between these flat covers; the exported originals
+retain independent hinges. Baking all 55 divided the atlas among 200-odd faces
+the reader can never reach and left the openable cover lettered at eight pixels
+per centimetre; the sheet is now sized from the number of covers actually in
+it, and one note is read at forty-four.
 
 `bookmark.glb` holds one reusable Blender-authored textile bookmark. It has a
 curved fold, a twisted and tapered tail, solid thickness, bevelled edges, and baked woven bump detail. Its
@@ -127,5 +132,6 @@ the moving book. The native notes dialog preserves content nodes and returns foc
 to the same spine when closed.
 
 The default bake uses 256 samples, 2048px shell/furniture atlases, 4096px
-object and jacket atlases, a 2048px book-body atlas, a 4096px front-cover atlas, and 1024px atlases for the
+object and jacket atlases, a 2048px book-body atlas, a front-cover atlas that
+doubles from 2048px per four covers up to 4096px, and 1024px atlases for the
 turntable parts and bookmark. Vite fingerprints the GLBs; Astro generates the poster formats.

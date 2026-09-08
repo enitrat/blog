@@ -154,8 +154,9 @@ export async function mountRoom(
 		for (const slot of ordered) {
 			const jacket = printed.owned.get(slot.isbn);
 			const body = scene.getObjectByName(`Body_${slot.isbn}`);
+			// Only an annotated volume is baked a front cover, because only it opens.
 			const cover = scene.getObjectByName(`Cover_${slot.isbn}`);
-			if (!jacket || !body || !cover) {
+			if (!jacket || !body || (!cover && bookshelf.hasNotes(slot.isbn))) {
 				releaseAssets();
 				return null;
 			}
@@ -166,8 +167,10 @@ export async function mountRoom(
 			book.add(new THREE.Mesh(jacket, atlas.material));
 			scene.add(book);
 			book.attach(body);
-			book.attach(cover);
-			covers.set(slot.isbn, cover);
+			if (cover) {
+				book.attach(cover);
+				covers.set(slot.isbn, cover);
+			}
 			if (bookshelf.hasNotes(slot.isbn)) {
 				for (const surface of book.children) {
 					if (
