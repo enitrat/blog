@@ -4,16 +4,18 @@ Updated: 2026-09-08
 
 ## Where this pass stopped
 
-The bookshelf refinement has now had a visual review against Henry Heffernan's
-live portfolio and source. Frame-by-frame capture showed the previous 18cm
-extraction clipping the book and bookmark outside the canvas. Extraction now
-travels 6cm, with a 280ms delay before notes open. The Blender bookmark has a
-slightly longer, tapered tail and a twist across its fold so its shading reads
-more clearly at reading distance. The user has not yet reviewed these changes.
+The book-opening pass is complete. The front covers bake from one temporary
+joined mesh with the corrected hinge, while the exported covers keep their
+individual hinges. The book bodies are baked in isolation under the room
+lights and now carry that atlas: the previous `books.glb` had been exported
+before its bake and shipped 55 untextured bodies. Both assets are in place and
+consistent with each other.
 
-The final working tree now includes two new runtime assets: `books.glb` with 55
-book-body nodes and `bookmark.glb` with one reusable bookmark node. The poster
-was regenerated after those assets were published.
+The final working tree includes three runtime assets beyond the room:
+`books.glb` with 55 book-body nodes, `covers.glb` with 55 hinged front covers,
+and `bookmark.glb` with one reusable bookmark node. The poster was regenerated
+after those assets were published. The user has not yet reviewed the result
+visually.
 
 The inspiration remains Henry Heffernan's portfolio, particularly its baked,
 unlit rendering and coordinated camera position/focus transitions. Reference
@@ -143,6 +145,15 @@ inspection rather than adding a repository test suite.
 - The poster was regenerated from the final bookmark asset with controls hidden.
 - Browser observations do not certify physical devices or other browser engines.
 
+- `/tmp/check-book-opening.mjs` passes at 1280x1000, 768x1024, and 390x844
+  against the production textures. It covers keyboard opening, the cover and
+  page sequence, closing, three interruption points during extraction, history
+  navigation, focus restoration, resizing while a book is open, long-note
+  scrolling, and switching to reduced motion mid-open. It also checks the
+  direct note link and the no-JavaScript authored note. Captures are
+  `/tmp/book-final-{desktop,tablet,phone}-{cover,hinge,note}.png`.
+
 The user has not approved the latest appearance. The next step is their visual
-review of the cloth, extraction, and navigation placement. No next room area
-has been selected.
+review of the opened spread, the cloth, and navigation placement. The right
+page of the spread is a flat panel next to the warm baked left page; decide
+whether that contrast is wanted. No next room area has been selected.
