@@ -7,6 +7,8 @@ No models or textures from the reference websites are included.
 The rendering approach follows Henry Heffernan's
 [baked models](https://github.com/henryjeff/portfolio-website/blob/master/src/Application/Utils/BakedModel.ts):
 glTF geometry with baked color and light, displayed using unlit materials.
+Camera position and focus move together with quintic ease-in-out, following his
+[camera transitions](https://github.com/henryjeff/portfolio-website/blob/master/src/Application/Camera/Camera.ts).
 
 With Blender 4.5 available, run:
 
@@ -53,13 +55,19 @@ the row names from it, so none of those can fall behind the geometry on screen.
 Both files are written to this directory on every run, whether or not Blender
 is invoked. They are generated, so the formatter leaves them alone.
 
-To update only printed artwork without rebaking the room:
+To update only printed spine artwork without rebaking the room:
 
 ```sh
 BLENDER=/path/to/blender bun run room:bake --spines-only
 ```
 
-Only use that option when book positions and dimensions have not changed.
+To rebuild articulated book bodies and front covers without rebaking the room:
+
+```sh
+BLENDER=/path/to/blender bun run room:bake --books-only
+```
+
+Only use these options when book positions and dimensions have not changed.
 `--layout-only` writes both manifests without invoking Blender; it is for
 recovering them for matching assets, not for relocating existing books.
 
@@ -68,8 +76,9 @@ from these slots. Its HTML links, records, notes, history, and fallback list liv
 in `src/components/home/room/Bookshelf.astro` and `bookshelf.ts`. Notes are
 rendered from the content collection; adding a note does not require a rebake.
 `/#bookshelf` approaches the whole cabinet. Unfilled ivory dots mark its row
-targets; selecting a row reaches reading distance. Individual books show the
-same dot on hover or keyboard focus. Clear background steps back one level;
+targets; selecting a row reaches reading distance. Books with notes show a persistent warm dot and tip on hover or keyboard focus.
+Only those books open. Other spines expose metadata without an opening action.
+A red cloth ribbon marks books currently being read, independently of notes. Clear background steps back one level;
 the band between book spines is inactive so a near miss does not zoom out.
 Previous/next-row controls and Up/Down switch rows. Left/Right controls and
 horizontal swipes stay within the current row. Movement within a row and
@@ -79,8 +88,44 @@ the cabinet. Closing a book restores its row and focused spine.
 Book URLs use `/#bookshelf/<row-anchor-isbn>/<book-isbn>`. The old `/bookshelf/`
 archive remains available during the transition.
 
-The current poster predates the new print atlas. Regenerate it in the next
-visual pass; this implementation pass intentionally did not capture the browser.
+The poster matches the latest full rebake. The capture hides scene controls.
+
+`books.glb` holds each book body as `Body_<isbn>`, with its origin at the bottom
+front of the spine. The back cover, spine, and paper form one movable node per volume.
+Each body is baked in isolation under the room lights so neighbouring books do
+not leave black shadows on exposed pages. Printed jackets keep their separate
+atlas. The runtime attaches each body and jacket to the same pivot.
+
+`covers.glb` holds 55 `Cover_<isbn>` front covers, each with a hinge at its
+spine-side edge, leather thickness, an ivory endpaper, and original gold title
+and author artwork from `coverSvg` in `spine-art.mjs`. The covers share a 4096px
+atlas. A temporary joined copy bakes them together, excluding secondary rays
+between these flat covers; the exported originals retain independent hinges.
+
+`bookmark.glb` holds one reusable Blender-authored textile bookmark. It has a
+curved fold, a twisted and tapered tail, solid thickness, bevelled edges, and baked woven bump detail. Its
+origin is the top of the book; the runtime attaches a copy to each currently
+reading volume. Reading-status changes do not require a rebake.
+
+Annotated books tilt six degrees and slide forward slightly on hover. Opening
+runs a reversible 900ms sequence: clear the shelf, turn the front cover toward
+the viewer, then open the cover. The book travels 32cm in total. The camera
+retreats and centers the volume before the cover opens into a spread. Closing
+fades the HTML for 100ms and reverses the physical sequence over 650ms.
+Escape or history navigation can interrupt extraction. Closing returns the book
+to its slot. Reduced motion uses the conventional notes dialog immediately. With motion,
+the native dialog starts focus containment at once, while its HTML stays inert
+and transparent until the cover reveals the pages. The renderer projects the
+page bounds into the dialog, keeping notes selectable and links functional.
+Each page scrolls independently for long content, including on phones.
+Only annotated jackets and bodies receive the warm material tint.
+
+Row views use a 40-degree lens and a slightly raised camera, clearing the foreground
+lampshade. Cabinet and room retain the authored lens. Captions and row navigation
+sit below the canvas; projected hit targets stay still while cloth ribbons follow
+the moving book. The native notes dialog preserves content nodes and returns focus
+to the same spine when closed.
 
 The default bake uses 256 samples, 2048px shell/furniture atlases, 4096px
-object and jacket atlases, and a 1024px atlas for the moving parts. Vite fingerprints the GLBs; Astro generates the poster formats.
+object and jacket atlases, a 2048px book-body atlas, a 4096px front-cover atlas, and 1024px atlases for the
+turntable parts and bookmark. Vite fingerprints the GLBs; Astro generates the poster formats.

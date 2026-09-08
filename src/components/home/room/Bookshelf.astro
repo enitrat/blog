@@ -25,35 +25,41 @@ const entries = await Promise.all(
 ---
 
 <section class="room-library" id="room-library" aria-label="Bookshelf">
-	{noted.size > 0 && <p class="room-library__legend">A ribbon marks a book with notes inside.</p>}
+	{noted.size > 0 && <p class="room-library__legend">Glowing books hold notes. A red ribbon marks current reading.</p>}
 	<!-- The list is the whole bookshelf without a renderer. Once the room is
 	     live it steps aside: home.css hides it under [data-live]. -->
 	<details class="room-library__catalog" data-shelf-catalog>
 		<summary>Browse books as a list</summary>
 		<ul>
-			{entries.map(({ book, Content }) => (
-				<li>
-					<details
-						id={`room-book-${book.edition.isbn13}`}
-						data-book={book.edition.isbn13}
-						data-title={book.title}
-						data-author={book.author}
-						data-noted={Content ? '' : undefined}
-						style={`--binding: ${PLEIADE_HEX[pleiadeStyleFor(book.author).color]}`}
-					>
-						<summary><span>{book.title}</span> <small>{book.author}{Content && ' · Notes inside'}</small></summary>
-						<article data-book-content>
-							<header>
-								<h3>{book.title}</h3>
-								<p>{book.author}</p>
-								<p class="room-library__facts">{recordFacts(book)}</p>
-								{book.writingSlug && <a href={`/writing/${book.writingSlug}/`}>Read the piece</a>}
-							</header>
-							{Content && <div class="room-library__notes"><Content /></div>}
-						</article>
-					</details>
-				</li>
-			))}
+			{entries.map(({ book, Content }) => {
+				const Record = Content ? 'details' : 'div';
+				const Heading = Content ? 'summary' : 'header';
+				return (
+					<li>
+						<Record
+							id={`room-book-${book.edition.isbn13}`}
+							data-book={book.edition.isbn13}
+							data-title={book.title}
+							data-author={book.author}
+							data-noted={Content ? '' : undefined}
+							data-reading={book.status === 'reading' ? '' : undefined}
+							data-facts={recordFacts(book)}
+							style={`--binding: ${PLEIADE_HEX[pleiadeStyleFor(book.author).color]}`}
+						>
+							<Heading><span>{book.title}</span> <small>{book.author}{Content && ' · Notes inside'}</small></Heading>
+							{Content ? <article data-book-content>
+								<header>
+									<h3>{book.title}</h3>
+									<p>{book.author}</p>
+									<p class="room-library__facts">{recordFacts(book)}</p>
+									{book.writingSlug && <a href={`/writing/${book.writingSlug}/`}>Read the piece</a>}
+								</header>
+								<div class="room-library__notes"><Content /></div>
+							</article> : <p class="room-library__facts">{recordFacts(book)}</p>}
+						</Record>
+					</li>
+				);
+			})}
 		</ul>
 	</details>
 	<dialog class="room-library__book" data-room-book aria-label="Book record">

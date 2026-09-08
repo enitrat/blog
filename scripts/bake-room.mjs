@@ -6,7 +6,7 @@ import { join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { books } from '../src/booksData.ts';
 import { PLEIADE_HEX, pleiadeStyleFor } from '../src/utils/pleiade.ts';
-import { ART_HEIGHT, spineSvg } from './spine-art.mjs';
+import { ART_HEIGHT, coverSvg, spineSvg } from './spine-art.mjs';
 
 const option = (name, fallback) => {
 	const index = process.argv.indexOf(name);
@@ -97,6 +97,9 @@ for (const [index, book] of library.entries()) {
 	await sharp(Buffer.from(svg), { density })
 		.png()
 		.toFile(join(work, `book-${index}.png`));
+	await sharp(Buffer.from(coverSvg(book)), { density: 192 })
+		.png()
+		.toFile(join(work, `cover-${index}.png`));
 }
 // Original geometric artwork, with no invented attribution or borrowed cover art.
 for (const [name, width, height] of [
@@ -123,6 +126,7 @@ const child = spawn(
 		option('--size', '2048'),
 		...(process.argv.includes('--preview') ? ['--preview'] : []),
 		...(process.argv.includes('--spines-only') ? ['--spines-only'] : []),
+		...(process.argv.includes('--books-only') ? ['--books-only'] : []),
 	],
 	{ stdio: 'inherit' },
 );

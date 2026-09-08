@@ -1,6 +1,9 @@
 /** Display the baked room and frame its navigable bookshelf. */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import bookmarkUrl from '../../../assets/room/bookmark.glb?url';
+import booksUrl from '../../../assets/room/books.glb?url';
+import coversUrl from '../../../assets/room/covers.glb?url';
 import furnitureUrl from '../../../assets/room/furniture.glb?url';
 import movingUrl from '../../../assets/room/moving.glb?url';
 import objectsUrl from '../../../assets/room/objects.glb?url';
@@ -53,7 +56,16 @@ export async function mountRoom(
 	};
 	// Await all loads even after failure so a late success cannot leak GPU resources.
 	const results = await Promise.allSettled(
-		[shellUrl, furnitureUrl, objectsUrl, movingUrl, spinesUrl].map(async (url) => {
+		[
+			shellUrl,
+			furnitureUrl,
+			objectsUrl,
+			movingUrl,
+			spinesUrl,
+			booksUrl,
+			coversUrl,
+			bookmarkUrl,
+		].map(async (url) => {
 			const gltf = await loader.loadAsync(url);
 			gltf.scene.traverse((object) => {
 				if (!(object instanceof THREE.Mesh)) return;
@@ -76,17 +88,10 @@ export async function mountRoom(
 		return null;
 	}
 
-	/* A volume tips out of the row on its own, the way a finger on the top of a
-	   book tips it: so it has to be its own object, both halves of it. The bake
-	   joins the printed jackets into one atlas mesh and the leather bodies into
-	   the room's objects, one bake and one draw each. Cut both back out against
-	   the manifest Blender placed them from, and hang each pair on a pivot at
-	   its bottom front edge, the edge a leaning book turns on. */
 	const books = new Map<string, THREE.Group>();
+	const covers = new Map<string, THREE.Object3D>();
 
-	/** Split one baked mesh into the geometry each book owns and the rest of it.
-	 *  `depth` is how far back from the spine face a book reaches: the jacket is
-	 *  flat against that face, the body stands behind it. */
+	/** Recover each printed jacket from the shared atlas using its ISBN slot. */
 	function slice(mesh: THREE.Mesh, depth: number) {
 		mesh.updateWorldMatrix(true, false);
 		const flat = mesh.geometry.clone().toNonIndexed().applyMatrix4(mesh.matrixWorld);
@@ -141,54 +146,50 @@ export async function mountRoom(
 	}
 
 	const atlas = scene.getObjectByName('spines');
-	const room = scene.getObjectByName('objects');
-	if (atlas instanceof THREE.Mesh && room instanceof THREE.Mesh) {
-		// Deep enough to take the whole body with the jacket, shallow enough to
-		// leave the shelf it stands on and the records behind it where they are.
+	const bookmark = scene.getObjectByName('Bookmark');
+	if (bookmark) bookmark.visible = false;
+	if (atlas instanceof THREE.Mesh) {
 		const printed = slice(atlas, 0.006);
-		const carcass = slice(room, 0.16);
+
 		for (const slot of ordered) {
 			const jacket = printed.owned.get(slot.isbn);
-			const body = carcass.owned.get(slot.isbn);
-			if (!jacket || !body) continue;
+			const body = scene.getObjectByName(`Body_${slot.isbn}`);
+			const cover = scene.getObjectByName(`Cover_${slot.isbn}`);
+			if (!jacket || !body || !cover) {
+				releaseAssets();
+				return null;
+			}
 			const book = new THREE.Group();
 			book.position.set(slot.x, slot.y, slot.z);
-			for (const [geometry, material] of [
-				[jacket, atlas.material],
-				[body, room.material],
-			] as const) {
-				geometry.translate(-slot.x, -slot.y, -slot.z);
-				geometries.add(geometry);
-				book.add(new THREE.Mesh(geometry, material));
-			}
+			jacket.translate(-slot.x, -slot.y, -slot.z);
+			geometries.add(jacket);
+			book.add(new THREE.Mesh(jacket, atlas.material));
 			scene.add(book);
+			book.attach(body);
+			book.attach(cover);
+			covers.set(slot.isbn, cover);
+			if (bookshelf.hasNotes(slot.isbn)) {
+				for (const surface of book.children) {
+					if (
+						!(surface instanceof THREE.Mesh) ||
+						!(surface.material instanceof THREE.MeshBasicMaterial)
+					)
+						continue;
+					surface.material = surface.material.clone();
+					surface.material.color.setRGB(1.12, 1.07, 1.02);
+					materials.add(surface.material);
+				}
+			}
+			if (bookshelf.isReading(slot.isbn) && bookmark) {
+				const ribbon = bookmark.clone();
+				ribbon.visible = true;
+				ribbon.position.set(slot.width * 0.12, slot.height, 0);
+				book.add(ribbon);
+			}
 			books.set(slot.isbn, book);
 		}
-		// All of them or none: half a shelf of loose books over a shelf that still
-		// draws them is worse than a row that cannot lean.
-		if (books.size === ordered.length) {
-			atlas.visible = false;
-			// What the room keeps is drawn as its own mesh, not handed back to the
-			// baked node: these vertices have that node's transform in them
-			// already, and it would be applied to them a second time.
-			room.visible = false;
-			geometries.add(carcass.left);
-			scene.add(new THREE.Mesh(carcass.left, room.material));
-		} else {
-			for (const book of books.values()) {
-				scene.remove(book);
-				for (const part of book.children)
-					if (part instanceof THREE.Mesh) {
-						geometries.delete(part.geometry);
-						part.geometry.dispose();
-					}
-			}
-			books.clear();
-			carcass.left.dispose();
-		}
+		atlas.visible = false;
 		printed.left.dispose();
-		for (const [isbn, geometry] of printed.owned) if (!books.has(isbn)) geometry.dispose();
-		for (const [isbn, geometry] of carcass.owned) if (!books.has(isbn)) geometry.dispose();
 	}
 
 	let renderer: THREE.WebGLRenderer;
@@ -208,6 +209,8 @@ export async function mountRoom(
 	renderer.toneMapping = THREE.NoToneMapping;
 	renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 	const camera = new THREE.PerspectiveCamera(23.83, 16 / 9, 0.05, 50);
+	let fromFov = camera.fov;
+	let destinationFov = camera.fov;
 	const position = VIEWS.room.position.clone();
 	const target = VIEWS.room.target.clone();
 	const fromPosition = position.clone();
@@ -251,19 +254,65 @@ export async function mountRoom(
 
 	/** How far a volume leans out when it is reached for. A finger on the top of
 	 *  a book tips it about this far before it comes free of the row. */
-	const TILT = THREE.MathUtils.degToRad(12);
+	const TILT = THREE.MathUtils.degToRad(6);
 	let reached: string | null = null;
+	let reading: (typeof ordered)[number] | undefined;
+	let opening = 0;
+	const readingTarget = new THREE.Vector3();
+	const readingCamera = new THREE.Vector3();
+	const lookAt = new THREE.Vector3();
 
 	function pull(dt: number) {
 		let moving = false;
-		for (const [isbn, book] of books) {
-			const wanted = isbn === reached ? TILT : 0;
-			if (book.rotation.x === wanted) continue;
-			const eased = motion.matches
-				? wanted
-				: book.rotation.x + (wanted - book.rotation.x) * (1 - Math.exp(-12 * dt));
-			book.rotation.x = Math.abs(wanted - eased) < 0.0004 ? wanted : eased;
-			moving = true;
+		const requested = motion.matches ? null : bookshelf.openBook;
+		if (requested && reading?.isbn !== requested) {
+			reading = ordered.find((slot) => slot.isbn === requested);
+			opening = 0;
+		}
+		const wasOpening = opening;
+		opening = motion.matches
+			? 0
+			: THREE.MathUtils.clamp(opening + dt / (requested ? 0.9 : -0.65), 0, 1);
+		host.toggleAttribute('data-book-moving', opening > 0);
+		for (const slot of ordered) {
+			const book = books.get(slot.isbn);
+			if (!book) continue;
+			const presenting = slot.isbn === reading?.isbn && opening > 0;
+			const wanted = motion.matches || presenting ? 0 : slot.isbn === reached ? TILT : 0;
+			const z = slot.z + (motion.matches || presenting ? 0 : slot.isbn === reached ? 0.008 : 0);
+			book.rotation.x = THREE.MathUtils.damp(book.rotation.x, wanted, 16, dt);
+			book.rotation.y = 0;
+			book.position.x = slot.x;
+			const cover = covers.get(slot.isbn);
+			if (cover) cover.rotation.y = 0;
+			if (presenting) {
+				const turn = THREE.MathUtils.smoothstep(opening, 0.3, 0.58);
+				const unfold = THREE.MathUtils.smoothstep(opening, 0.72, 1);
+				book.position.x = THREE.MathUtils.lerp(
+					slot.x,
+					(shelfFrame?.x ?? slot.x) - 0.075 * (1 - unfold),
+					turn,
+				);
+				book.position.z =
+					slot.z +
+					0.19 * THREE.MathUtils.smoothstep(opening, 0, 0.3) +
+					0.13 * THREE.MathUtils.smoothstep(opening, 0.3, 0.58);
+				book.rotation.y = (-Math.PI / 2) * turn;
+				if (cover) cover.rotation.y = -Math.PI * unfold;
+				moving ||= opening < 1 || !requested;
+				continue;
+			}
+			book.position.z =
+				wasOpening > 0 && opening === 0 && slot.isbn === reading?.isbn
+					? slot.z
+					: THREE.MathUtils.damp(book.position.z, z, 16, dt);
+			if (Math.abs(book.rotation.x - wanted) < 0.0004) book.rotation.x = wanted;
+			if (Math.abs(book.position.z - z) < 0.0001) book.position.z = z;
+			moving ||= book.rotation.x !== wanted || book.position.z !== z;
+		}
+		if (wasOpening > 0 && opening === 0) {
+			reading = undefined;
+			settle();
 		}
 		return moving;
 	}
@@ -292,9 +341,45 @@ export async function mountRoom(
 		camera.position.copy(position);
 		camera.position.x += offset.x;
 		camera.position.y += offset.y;
-		camera.lookAt(target);
+		lookAt.copy(target);
+		if (reading && opening > 0) {
+			readingTarget.set(
+				shelfFrame?.x ?? reading.x,
+				reading.y + reading.height / 2,
+				reading.z + 0.32 + reading.width / 2,
+			);
+			const distance =
+				Math.max(0.29, 0.34 / camera.aspect) /
+				(2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+			readingCamera.copy(readingTarget);
+			readingCamera.z += distance;
+			const retreat = THREE.MathUtils.smoothstep(opening, 0, 0.55);
+			camera.position.lerp(readingCamera, retreat);
+			lookAt.lerp(readingTarget, retreat);
+		}
+		camera.lookAt(lookAt);
 		camera.updateMatrixWorld();
 		renderer.render(scene, camera);
+		if (reading && opening > 0) {
+			const bounds = canvas.getBoundingClientRect();
+			const center = books.get(reading.isbn)?.position.x ?? readingTarget.x;
+			projected
+				.set(center - 0.146, reading.y + reading.height - 0.003, readingTarget.z)
+				.project(camera);
+			const left = bounds.left + ((projected.x + 1) * bounds.width) / 2;
+			const top = bounds.top + ((1 - projected.y) * bounds.height) / 2;
+			projected.set(center + 0.146, reading.y + 0.003, readingTarget.z).project(camera);
+			bookshelf.positionReader(
+				{
+					left,
+					top,
+					width: bounds.left + ((projected.x + 1) * bounds.width) / 2 - left,
+					height: bounds.top + ((1 - projected.y) * bounds.height) / 2 - top,
+					controlsTop: bounds.bottom + 68,
+				},
+				THREE.MathUtils.smoothstep(opening, 0.92, 1),
+			);
+		}
 		for (const hotspot of hotspots) {
 			const name = hotspot.dataset.anchor;
 			if (name !== 'bookshelf' && name !== 'record') continue;
@@ -322,9 +407,11 @@ export async function mountRoom(
 		lastTime = now;
 		if (transitionStart !== null) {
 			const t = motion.matches ? 1 : Math.min((now - transitionStart) / transitionDuration, 1);
-			const eased = 1 - (1 - t) ** 3;
+			const eased = t < 0.5 ? 16 * t ** 5 : 1 - (-2 * t + 2) ** 5 / 2;
 			position.lerpVectors(fromPosition, destination, eased);
 			target.lerpVectors(fromTarget, destinationTarget, eased);
+			camera.fov = THREE.MathUtils.lerp(fromFov, destinationFov, eased);
+			camera.updateProjectionMatrix();
 			if (t === 1) {
 				transitionStart = null;
 				settle();
@@ -349,6 +436,7 @@ export async function mountRoom(
 		nextPosition: THREE.Vector3,
 		nextTarget: THREE.Vector3,
 		duration = 750,
+		fov = 23.83,
 	) {
 		if (next === view && destination.equals(nextPosition) && destinationTarget.equals(nextTarget)) {
 			// Already going where we are asked to go. Arrived, the targets still
@@ -359,6 +447,8 @@ export async function mountRoom(
 		}
 		fromPosition.copy(position);
 		fromTarget.copy(target);
+		fromFov = camera.fov;
+		destinationFov = fov;
 		destination.copy(nextPosition);
 		destinationTarget.copy(nextTarget);
 		transitionDuration = duration;
@@ -373,6 +463,8 @@ export async function mountRoom(
 		if (transitionStart === null) {
 			position.copy(destination);
 			target.copy(destinationTarget);
+			camera.fov = fov;
+			camera.updateProjectionMatrix();
 			settle();
 		}
 		requestDraw();
@@ -410,6 +502,7 @@ export async function mountRoom(
 		// as a new object. Framing the shelf we are already framing is a re-
 		// projection, not a journey: it must not start the flight again.
 		const reframe = shelfFrame !== null && shelf !== null && sameShelf(shelfFrame, shelf);
+		const lateral = shelfFrame?.view === 'row' && shelf?.view === 'row';
 		shelfFrame = shelf;
 		if (!shelf) {
 			if (view === 'shelf') changeView('room');
@@ -417,16 +510,19 @@ export async function mountRoom(
 		}
 		camera.aspect = canvas.clientWidth / Math.max(1, canvas.clientHeight);
 		camera.updateProjectionMatrix();
+		// A wider lens puts the reading camera beyond the foreground lampshade,
+		// rather than inside it. The room and cabinet keep their authored lens.
+		const fov = shelf.view === 'row' ? 40 : 23.83;
 		const distance =
 			Math.max(shelf.height, shelf.width / camera.aspect) /
-			(2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+			(2 * Math.tan(THREE.MathUtils.degToRad(fov / 2)));
 		// Stepping along a row is a short pan; arriving at the shelves is a trip.
-		const lateral = view === 'shelf' && shelf.view === 'row';
 		travel(
 			'shelf',
-			shelfPosition.set(shelf.x, shelf.y, shelf.z + distance),
+			shelfPosition.set(shelf.x, shelf.y + (shelf.view === 'row' ? 0.06 : 0), shelf.z + distance),
 			shelfTarget.set(shelf.x, shelf.y, shelf.z),
-			duration ?? (reframe ? 0 : lateral ? 320 : 750),
+			duration ?? (reframe ? 0 : lateral ? 280 : shelf.view === 'row' ? 500 : 750),
+			fov,
 		);
 	}
 
@@ -684,7 +780,7 @@ export async function mountRoom(
 	publish('room');
 	host.dataset.live = '';
 	bookshelf.pulls((isbn) => {
-		if (isbn === reached) return;
+		if (!frame) lastTime = performance.now();
 		reached = isbn;
 		requestDraw();
 	});

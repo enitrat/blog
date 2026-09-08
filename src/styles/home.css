@@ -359,6 +359,11 @@
 	cursor: default;
 }
 
+.room-controls > button {
+	min-width: 44px;
+	min-height: 44px;
+}
+
 .room-controls svg {
 	display: block;
 	width: 1rem;
@@ -378,6 +383,10 @@
 	right: 1rem;
 }
 
+.living-room[data-browsing] .room-controls__audio {
+	top: 4.5rem;
+}
+
 /* The chevron asset points left; each direction is that one glyph turned. */
 .room-controls__step,
 .room-controls__pan {
@@ -385,21 +394,19 @@
 	line-height: 0;
 }
 .room-controls__step {
-	left: 50%;
-	translate: -50%;
+	bottom: 1rem;
 }
 .room-controls__pan {
-	top: 50%;
-	translate: 0 -50%;
+	bottom: 1rem;
 }
 [data-row-previous] {
-	top: 1rem;
+	right: 4.5rem;
 }
 [data-row-previous] svg {
 	rotate: 90deg;
 }
 [data-row-next] {
-	bottom: 1rem;
+	right: 1rem;
 }
 [data-row-next] svg {
 	rotate: -90deg;
@@ -408,7 +415,7 @@
 	left: 1rem;
 }
 [data-shelf-next] {
-	right: 1rem;
+	left: 4.5rem;
 }
 [data-shelf-next] svg {
 	rotate: 180deg;
@@ -519,18 +526,27 @@
 		clip-path: inset(50%);
 	}
 	.living-room[data-browsing] .living-room__caption {
-		bottom: 4.25rem;
+		bottom: 4.5rem;
 	}
 }
 
 .living-room[data-browsing][data-live] .living-room__stage {
 	aspect-ratio: auto;
-	height: var(--shelf-stage-height, 36rem);
+	height: clamp(30rem, calc(100svh - 4rem), 52rem);
 	padding-bottom: 0;
 }
 .living-room[data-browsing][data-live] .living-room__canvas,
 .living-room[data-browsing][data-live] .living-room__poster {
-	height: 100%;
+	height: calc(100% - 8rem);
+}
+.living-room[data-browsing] .room-book-targets {
+	bottom: 8rem;
+}
+.living-room[data-browsing] .room-controls__back {
+	top: auto;
+	bottom: 1rem;
+	left: 50%;
+	transform: translateX(-50%);
 }
 .living-room[data-browsing][data-live] .living-room__canvas {
 	cursor: zoom-out;
@@ -553,14 +569,30 @@
 .living-room[data-traveling] .room-book-targets {
 	display: none;
 }
+.living-room[data-book-moving] :is(.room-book-targets, .room-controls, .living-room__caption) {
+	visibility: hidden;
+}
 /* Browsing, the caption is a standing label for what is under the pointer, so
    it sits in the corner rather than over the spines it is naming. */
 .living-room[data-browsing] .living-room__caption {
 	left: 1rem;
+	bottom: 4.5rem;
 	translate: none;
 	max-width: calc(100% - 2rem);
+	max-height: 3.6em;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	white-space: pre-line;
+	line-height: 1.5;
 	overflow: hidden;
-	text-overflow: ellipsis;
+	padding: 0;
+	background: none;
+	color: #352a1d;
+}
+
+.living-room[data-browsing] .living-room__caption::first-line {
+	font-weight: 600;
 }
 
 @media (prefers-reduced-motion: reduce) {

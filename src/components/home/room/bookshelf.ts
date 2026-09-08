@@ -23,6 +23,7 @@ export function mountBookshelf(host: HTMLElement) {
 		return element;
 	};
 	const stage = required<HTMLElement>('[data-room-stage]');
+	const canvas = required<HTMLCanvasElement>('.living-room__canvas');
 	const targets = required<HTMLElement>('[data-book-targets]');
 	const previous = required<HTMLButtonElement>('[data-shelf-previous]');
 	const next = required<HTMLButtonElement>('[data-shelf-next]');
@@ -40,12 +41,12 @@ export function mountBookshelf(host: HTMLElement) {
 	const entrance = required<HTMLAnchorElement>('[data-anchor="bookshelf"]');
 	const events = new AbortController();
 	const records = new Map(
-		[...host.querySelectorAll<HTMLDetailsElement>('[data-book]')].map((record) => [
+		[...host.querySelectorAll<HTMLElement>('[data-book]')].map((record) => [
 			record.dataset.book,
 			record,
 		]),
 	);
-	const links = new Map<string, HTMLAnchorElement>();
+	const links = new Map<string, HTMLElement>();
 	const rowLinks = new Map<number, HTMLAnchorElement>();
 	const rowAnchors = new Map(rows.map(({ row, books }) => [row, books[0]]));
 	// This transparent band catches near misses between spines without zooming out.
@@ -63,7 +64,11 @@ export function mountBookshelf(host: HTMLElement) {
 	let pullChanged: ((isbn: string | null) => void) | undefined;
 	// Which record is currently on loan to the dialog. A DOM bookkeeping detail:
 	// the level is `location.kind`, never this.
-	let mounted: { slot: Slot; source: HTMLDetailsElement; content: HTMLElement } | undefined;
+	let mounted: { slot: Slot; source: HTMLElement; content: HTMLElement } | undefined;
+	let closing: Animation | undefined;
+	let reachTimer: ReturnType<typeof setTimeout> | undefined;
+	let returningBook = false;
+	const motion = matchMedia('(prefers-reduced-motion: reduce)');
 	let returnFocus: HTMLElement | undefined;
 	let lastHash = '';
 	let goingBack = false;
@@ -88,7 +93,10 @@ export function mountBookshelf(host: HTMLElement) {
 		if (!anchor) return null;
 		if (!bookIsbn) return { kind: 'row', anchor };
 		const book = ordered.find((slot) => slot.isbn === bookIsbn);
-		return book && book.row === anchor.row ? { kind: 'book', anchor, book } : null;
+		if (!book || book.row !== anchor.row) return null;
+		return records.get(book.isbn)?.hasAttribute('data-noted')
+			? { kind: 'book', anchor, book }
+			: { kind: 'row', anchor: book };
 	}
 
 	function address(anchor: Slot, book?: Slot) {
@@ -123,13 +131,18 @@ export function mountBookshelf(host: HTMLElement) {
 	   (copy buttons on code blocks), and a clone would leave those dead. */
 	function restoreBook() {
 		if (!mounted) return;
+		closing?.cancel();
+		closing = undefined;
+		dialog.removeAttribute('data-closing');
 		mounted.source.append(mounted.content);
-		if (frameChanged) returnFocus = links.get(mounted.slot.isbn);
-		else {
+		if (frameChanged) {
+			returnFocus = links.get(mounted.slot.isbn);
+			returningBook = true;
+		} else {
 			// Without a renderer the list is the bookshelf. Open it back to where
 			// the reader was: focus inside a closed <details> is dropped silently.
 			catalog.open = true;
-			mounted.source.open = true;
+			if (mounted.source instanceof HTMLDetailsElement) mounted.source.open = true;
 			returnFocus = mounted.source.querySelector('summary') ?? undefined;
 		}
 		mounted = undefined;
@@ -137,11 +150,22 @@ export function mountBookshelf(host: HTMLElement) {
 	}
 
 	function showBook(slot: Slot) {
+		const spatial = !!frameChanged && !motion.matches;
+		if (spatial && (!dialog.open || !dialog.hasAttribute('data-spatial'))) {
+			stage.scrollIntoView({ block: 'center', behavior: 'instant' });
+			body.style.opacity = '0';
+			body.inert = true;
+		}
+		dialog.toggleAttribute('data-spatial', spatial);
+		if (!spatial) {
+			body.removeAttribute('style');
+			body.inert = false;
+		}
 		if (mounted?.slot.isbn === slot.isbn) return;
 		restoreBook();
 		const source = records.get(slot.isbn);
 		const content = source?.querySelector<HTMLElement>('[data-book-content]');
-		if (!source || !content) return;
+		if (!source?.hasAttribute('data-noted') || !content) return;
 		mounted = { slot, source, content };
 		dialog.style.setProperty('--binding', source.style.getPropertyValue('--binding'));
 		dialog.toggleAttribute('data-noted', source.hasAttribute('data-noted'));
@@ -151,24 +175,49 @@ export function mountBookshelf(host: HTMLElement) {
 		dialog.scrollTop = 0;
 	}
 
+	function closeBook() {
+		if (closing) return;
+		const style = getComputedStyle(dialog);
+		const animation = dialog.animate(
+			[
+				{ opacity: style.opacity, transform: style.transform },
+				{
+					opacity: 0,
+					transform:
+						motion.matches || dialog.hasAttribute('data-spatial')
+							? 'none'
+							: 'translateY(8px) scale(0.98)',
+				},
+			],
+			{
+				duration: motion.matches || dialog.hasAttribute('data-spatial') ? 100 : 180,
+				easing: 'cubic-bezier(0.23, 1, 0.32, 1)',
+				fill: 'forwards',
+			},
+		);
+		closing = animation;
+		dialog.setAttribute('data-closing', '');
+		void animation.finished.then(
+			() => {
+				if (closing === animation) back();
+			},
+			() => {},
+		);
+	}
+
 	function captionFor(slot?: Slot) {
 		const record = slot && records.get(slot.isbn);
-		return record
-			? `${record.dataset.title} · ${record.dataset.author} · ${record.hasAttribute('data-noted') ? 'Read notes' : 'View record'}`
-			: 'Choose a row to look closer.';
+		if (!record) return 'Choose a row to look closer.\nGlowing books hold notes.';
+		return `${record.dataset.title}\n${record.dataset.author} · ${record.hasAttribute('data-noted') ? `Read notes${record.hasAttribute('data-reading') ? ' · Reading now' : ''}` : record.dataset.facts}`;
 	}
 
 	const describe = (slot?: Slot) => write(caption, captionFor(slot));
 
-	const narrowest = Math.min(...ordered.map((slot) => slot.width));
-
 	function layout() {
-		const width = Math.max(0.06, Math.min(0.48, (stage.clientWidth * narrowest) / 48));
-		// The observer below watches the element this height applies to, so write
-		// it only when it changes: measure, write, measure has to terminate.
-		const height = `${Math.ceil((stage.clientWidth * 0.3) / width)}px`;
-		if (host.style.getPropertyValue('--shelf-stage-height') !== height)
-			host.style.setProperty('--shelf-stage-height', height);
+		const width = Math.max(
+			0.06,
+			Math.min(0.48, (canvas.clientWidth * 0.3) / Math.max(1, canvas.clientHeight)),
+		);
 		sections = [];
 		for (const { books } of rows) {
 			let start = 0;
@@ -188,7 +237,7 @@ export function mountBookshelf(host: HTMLElement) {
 						y: first.y + Math.max(...visible.map((slot) => slot.height)) / 2,
 						z: first.z,
 						width,
-						height: 0.3,
+						height: 0.32,
 					},
 				});
 				if (end === books.length) break;
@@ -286,16 +335,26 @@ export function mountBookshelf(host: HTMLElement) {
 	}
 
 	function applyFocus() {
-		if (!returnFocus || mounted) return;
+		if (!returnFocus || mounted || host.hasAttribute('data-book-moving')) return;
 		if (returnFocus.hidden || returnFocus.closest('[hidden]')) return;
 		returnFocus.focus({ preventScroll: true });
 		returnFocus = undefined;
+		if (returningBook) {
+			returningBook = false;
+			pullChanged?.(null);
+		}
 	}
 
 	function sync() {
 		if (disposed) return;
+		clearTimeout(reachTimer);
 		const before = location;
 		location = readLocation();
+		if (location?.kind === 'row' && window.location.hash.split('/').length === 3) {
+			const url = new URL(window.location.href);
+			url.hash = address(location.anchor);
+			history.replaceState(history.state, '', url);
+		}
 		const changed = lastHash !== window.location.hash;
 		lastHash = window.location.hash;
 		goingBack = false;
@@ -309,8 +368,13 @@ export function mountBookshelf(host: HTMLElement) {
 			changed &&
 			shown !== null &&
 			(targets.contains(document.activeElement) || document.activeElement === entrance);
-		if (location?.kind === 'book') showBook(location.book);
-		else restoreBook();
+		if (location?.kind === 'book') {
+			showBook(location.book);
+		} else {
+			if (before?.kind === 'book' && !mounted && frameChanged)
+				returnFocus = links.get(before.book.isbn);
+			restoreBook();
+		}
 		// `place()` reads this when the camera settles, so it is set first.
 		if (shown && shown.kind !== 'cabinet') rowAnchors.set(shown.anchor.row, shown.anchor);
 		applyChrome(chromeFor(shown));
@@ -368,7 +432,13 @@ export function mountBookshelf(host: HTMLElement) {
 			`Look closer at the ${rowName(row).toLowerCase()}, ${books.length} books`,
 		);
 		const describeRow = () => {
-			write(caption, `${rowName(row)} · ${books.length} books · Look closer`);
+			const notes = books.filter((slot) =>
+				records.get(slot.isbn)?.hasAttribute('data-noted'),
+			).length;
+			write(
+				caption,
+				`${rowName(row)} · ${books.length} books\nLook closer${notes ? ` · ${notes} with notes inside` : ''}`,
+			);
 		};
 		link.addEventListener('pointerenter', describeRow, { signal: events.signal });
 		link.addEventListener('focus', describeRow, { signal: events.signal });
@@ -388,24 +458,43 @@ export function mountBookshelf(host: HTMLElement) {
 	for (const slot of ordered) {
 		const record = records.get(slot.isbn);
 		if (!record) continue;
-		const link = document.createElement('a');
+		const noted = record.hasAttribute('data-noted');
+		const link: HTMLElement = document.createElement(noted ? 'a' : 'span');
 		link.className = 'room-library__spine';
-		link.href = address(slot, slot);
+		if (link instanceof HTMLAnchorElement) {
+			link.href = address(slot, slot);
+			link.setAttribute('aria-haspopup', 'dialog');
+		} else {
+			link.tabIndex = 0;
+			link.setAttribute('role', 'img');
+		}
 		link.hidden = true;
-		link.setAttribute('aria-haspopup', 'dialog');
 		link.setAttribute(
 			'aria-label',
-			`${record.dataset.title}, ${record.dataset.author}. ${record.hasAttribute('data-noted') ? 'Read notes' : 'View record'}`,
+			`${record.dataset.title}, ${record.dataset.author}. ${noted ? `Read notes. ${record.dataset.facts}` : record.dataset.facts}`,
 		);
 		link.toggleAttribute('data-noted', record.hasAttribute('data-noted'));
+		link.toggleAttribute('data-reading', record.hasAttribute('data-reading'));
 		const reach = () => {
+			clearTimeout(reachTimer);
 			describe(slot);
-			pullChanged?.(slot.isbn);
+			pullChanged?.(noted ? slot.isbn : null);
 		};
 		// A volume you are no longer reaching for goes back, unless it is the one
 		// you already took down: an open record keeps its book out of the row.
-		const release = () => pullChanged?.(location?.kind === 'book' ? location.book.isbn : null);
-		link.addEventListener('pointerenter', reach, { signal: events.signal });
+		const release = () => {
+			clearTimeout(reachTimer);
+			pullChanged?.(location?.kind === 'book' ? location.book.isbn : null);
+		};
+		link.addEventListener(
+			'pointerenter',
+			(event) => {
+				describe(slot);
+				clearTimeout(reachTimer);
+				if (event.pointerType === 'mouse') reachTimer = setTimeout(reach, 100);
+			},
+			{ signal: events.signal },
+		);
 		link.addEventListener('focus', reach, { signal: events.signal });
 		link.addEventListener('pointerleave', release, { signal: events.signal });
 		link.addEventListener('blur', release, { signal: events.signal });
@@ -414,7 +503,12 @@ export function mountBookshelf(host: HTMLElement) {
 			(event) => {
 				if (!plainClick(event)) return;
 				event.preventDefault();
-				if (!fromSwipe() && location?.kind === 'row') navigate(address(location.anchor, slot));
+				if (fromSwipe() || location?.kind !== 'row') return;
+				if (noted) navigate(address(location.anchor, slot));
+				else {
+					link.focus({ preventScroll: true });
+					reach();
+				}
 			},
 			{ signal: events.signal },
 		);
@@ -444,7 +538,7 @@ export function mountBookshelf(host: HTMLElement) {
 		'cancel',
 		(event) => {
 			event.preventDefault();
-			back();
+			closeBook();
 		},
 		{ signal: events.signal },
 	);
@@ -452,7 +546,7 @@ export function mountBookshelf(host: HTMLElement) {
 		'submit',
 		(event) => {
 			event.preventDefault();
-			back();
+			closeBook();
 		},
 		{ signal: events.signal },
 	);
@@ -460,6 +554,11 @@ export function mountBookshelf(host: HTMLElement) {
 		'keydown',
 		(event) => {
 			if (event.target instanceof Node && catalog.contains(event.target)) return;
+			if (location?.kind === 'book' && !dialog.open && event.key === 'Escape') {
+				event.preventDefault();
+				back();
+				return;
+			}
 			if (!location || location.kind === 'book') return;
 			if (event.altKey || event.metaKey || event.ctrlKey) return;
 			if (event.key === 'Escape') {
@@ -537,7 +636,8 @@ export function mountBookshelf(host: HTMLElement) {
 		layout();
 		sync();
 	});
-	resize.observe(stage);
+	resize.observe(canvas);
+	motion.addEventListener('change', sync, { signal: events.signal });
 	layout();
 	sync();
 
@@ -547,8 +647,22 @@ export function mountBookshelf(host: HTMLElement) {
 		box: { left: number; bottom: number; right: number; top: number; z: number },
 		clip = false,
 	) {
-		const a = project(box.left, box.top, box.z);
-		const b = project(box.right, box.bottom, box.z);
+		const corners = [
+			project(box.left, box.top, box.z),
+			project(box.right, box.top, box.z),
+			project(box.left, box.bottom, box.z),
+			project(box.right, box.bottom, box.z),
+		];
+		const a = {
+			x: Math.min(...corners.map((p) => p.x)),
+			y: Math.max(...corners.map((p) => p.y)),
+			z: Math.min(...corners.map((p) => p.z)),
+		};
+		const b = {
+			x: Math.max(...corners.map((p) => p.x)),
+			y: Math.min(...corners.map((p) => p.y)),
+			z: Math.max(...corners.map((p) => p.z)),
+		};
 		// `hidden` here means one thing only: no valid position on screen. Which
 		// level a target belongs to is CSS's business, via data-shelf-level.
 		element.hidden =
@@ -567,8 +681,25 @@ export function mountBookshelf(host: HTMLElement) {
 
 	return {
 		enter,
+		/** Align live HTML with the exposed Blender pages in viewport coordinates. */
+		positionReader(
+			rect: { left: number; top: number; width: number; height: number; controlsTop: number },
+			opacity: number,
+		) {
+			if (!dialog.hasAttribute('data-spatial')) return;
+			body.style.left = `${rect.left}px`;
+			body.style.top = `${rect.top}px`;
+			body.style.width = `${rect.width}px`;
+			body.style.height = `${rect.height}px`;
+			body.style.opacity = String(opacity);
+			body.inert = opacity < 1;
+			dialog.style.setProperty('--reader-controls-top', `${rect.controlsTop}px`);
+		},
 		background() {
 			if (frameChanged && !fromSwipe() && location) back();
+		},
+		get openBook() {
+			return location?.kind === 'book' ? location.book.isbn : null;
 		},
 		get active() {
 			return location !== null;
@@ -581,6 +712,14 @@ export function mountBookshelf(host: HTMLElement) {
 		/** The room comes to collect the volume being reached for. */
 		pulls(listener: (isbn: string | null) => void) {
 			pullChanged = listener;
+		},
+		/** Only annotated volumes invite opening and receive the scene's warm glow. */
+		hasNotes(isbn: string) {
+			return records.get(isbn)?.hasAttribute('data-noted') ?? false;
+		},
+		/** Reading status supplies the cloth bookmark independently of authored notes. */
+		isReading(isbn: string) {
+			return records.get(isbn)?.hasAttribute('data-reading') ?? false;
 		},
 		connect(listener: (frame: ShelfFrame | null) => void) {
 			frameChanged = listener;
@@ -596,7 +735,7 @@ export function mountBookshelf(host: HTMLElement) {
 		},
 		/** Project every target once, when the camera has arrived. The shelves are
 		 *  a function of where the camera is going, not of the frames it draws on
-		 *  the way: the settled view is axis-aligned and parallax is off while
+		 *  the way: the settled camera stays still and parallax is off while
 		 *  browsing, so re-running this per frame recomputed identical numbers. */
 		place(project: Project) {
 			for (const { row, books } of rows) {
@@ -649,13 +788,14 @@ export function mountBookshelf(host: HTMLElement) {
 						top: slot.y + slot.height,
 						z: slot.z,
 					});
-					link.href = address(location.anchor, slot);
+					if (link instanceof HTMLAnchorElement) link.href = address(location.anchor, slot);
 				}
 			}
 			applyFocus();
 		},
 		dispose() {
 			disposed = true;
+			clearTimeout(reachTimer);
 			events.abort();
 			resize.disconnect();
 			restoreBook();

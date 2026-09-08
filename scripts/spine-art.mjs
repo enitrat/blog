@@ -115,8 +115,8 @@ export const spineSvg = (book, aspect) => {
 	const type = `text-anchor="middle" font-family="Georgia,'Times New Roman',serif" fill="${GOLD}"`;
 	return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
 <rect width="${width}" height="${height}" fill="${leather}"/>
-<g fill="none" stroke="#000" stroke-width="${(height * 0.0013).toFixed(2)}" opacity=".24" transform="translate(0 ${(step * 0.45).toFixed(2)})">${bands.join('')}</g>
-<g fill="none" stroke="${GOLD}" stroke-width="${(height * 0.0013).toFixed(2)}" opacity=".38">${bands.join('')}</g>
+<g fill="none" stroke="#000" stroke-width="${(height * 0.0013).toFixed(2)}" opacity=".12" transform="translate(0 ${(step * 0.45).toFixed(2)})">${bands.join('')}</g>
+<g fill="none" stroke="${GOLD}" stroke-width="${(height * 0.0013).toFixed(2)}" opacity=".16">${bands.join('')}</g>
 <g fill="none" stroke="${RULE}" stroke-width="${(height * 0.002).toFixed(2)}" opacity=".8">${rules}</g>
 <rect ${box} fill="${mix(leather, 0, 0.38)}"/>
 <rect ${box} fill="none" stroke="${RULE}" stroke-width="${(height * 0.0019).toFixed(2)}" opacity=".9"/>
@@ -126,5 +126,27 @@ export const spineSvg = (book, aspect) => {
 </g>
 <rect width="${hinge.toFixed(1)}" height="${height}" fill="#000" opacity=".22"/>
 <rect x="${(width - hinge).toFixed(1)}" width="${hinge.toFixed(1)}" height="${height}" fill="#000" opacity=".22"/>
+</svg>`;
+};
+
+/** Original front-cover lettering, using the spine's leather and gold palette. */
+export const coverSvg = (book) => {
+	const width = 506;
+	const author = fit(book.author, 382, 25, 3);
+	const title = fit(book.title, 382, 36, 5);
+	const lines = (fitted, top) =>
+		fitted.lines
+			.map(
+				(line, index) =>
+					`<text x="253" y="${top + index * fitted.size * 1.5}" font-size="${fitted.size}">${xml(line)}</text>`,
+			)
+			.join('');
+	return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="800">
+<rect width="506" height="800" fill="${book.color}"/>
+<g fill="none" stroke="${RULE}"><rect x="28" y="28" width="450" height="744" stroke-width="2"/><rect x="36" y="36" width="434" height="728" stroke-width=".8"/></g>
+<g font-family="Georgia,'Times New Roman',serif" text-anchor="middle" fill="${GOLD}" letter-spacing="1">
+${lines(author, 210)}${lines(title, 340)}
+</g>
+<path d="M218 620h70M239 629h28" stroke="${RULE}" fill="none"/>
 </svg>`;
 };

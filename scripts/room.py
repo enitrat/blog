@@ -50,7 +50,7 @@ scene.render.resolution_x = 1920
 scene.render.resolution_y = 1080
 scene.render.resolution_percentage = 100
 
-groups = {'shell': {}, 'furniture': {}, 'objects': {}, 'moving': {}, 'spines': {}}
+groups = {'shell': {}, 'furniture': {}, 'objects': {}, 'moving': {}, 'spines': {}, 'books': {}, 'covers': {}, 'bookmark': {}}
 group = 'shell'
 # Parts of `moving` keep their own transform so the runtime can turn them, and
 # their origin sits on the axis they turn about.
@@ -271,9 +271,25 @@ for bay in range(3):
             continue
         width, h, z = slot['width'], slot['height'], slot['y']
         x = slot['x']-width/2
-        cover = material('Leather '+str(idx), book['color'], .7)
-        box('Pleiade leather binding', (x+width/2, 1.145, z+h/2), (width, .15, h), cover, .003)
-        box('Bible paper edges', (x+width/2, 1.15, z+h/2+.001), (width-.004, .135, h-.006), cream, .001)
+        group = 'books'
+        part = 'Body_'+book['isbn']
+        pivots[part] = (slot['x'], -slot['z'], z)
+        cover = material('Leather '+str(idx), book['color'], .7, 'fabric')
+        # Books move after baking. A little local fill keeps the covered sides
+        # readable when exposed without lifting the cabinet's contact shadows.
+        binding = cover.node_tree.nodes.get('Principled BSDF')
+        binding.inputs['Emission Color'].default_value = (*linear(book['color']), 1)
+        binding.inputs['Emission Strength'].default_value = .18
+        box('Pleiade back cover', (x+.00075, 1.145, z+h/2), (.0015, .15, h), cover, .0005)
+        box('Pleiade leather spine', (x+width/2, 1.072, z+h/2), (width, .004, h), cover, .001)
+        box('Bible paper edges', (x+width/2, 1.145, z+h/2), (width-.003, .142, h-.004), cream, .0005)
+        group = 'covers'
+        part = 'Cover_'+book['isbn']
+        pivots[part] = (x+width-.00075, 1.070, z)
+        box('Hinged leather cover', (x+width-.00075, 1.145, z+h/2), (.0015, .15, h), cover, .0005)
+        box('Ivory front endpaper', (x+width-.00155, 1.145, z+h/2), (.0001, .145, h-.006), cream, .00004)
+        artwork = plane_image('Front cover lettering', (x+width+.00006, 1.145, z+h/2), .15, h, work/f'cover-{idx}.png')
+        artwork.rotation_euler.z = math.pi/2
         group = 'spines'
         part = 'Book_'+book['isbn']
         jacket = plane_image(part, (slot['x'], -slot['z'], z+h/2), width-.001, h-.003, work/f'book-{idx}.png')
@@ -284,6 +300,62 @@ for bay in range(3):
     if bay != 1 and used_right < cx+.295:
         for i in range(3):
             box('Books laid flat', (cx+.39, 1.19, z+.015+i*.031), (.16, .23, .028), cream, .002, .03*i)
+# A reusable woven bookmark, modelled at the first volume's head. Its short
+# folded tab lies over the headband instead of forming an upright handle.
+group = 'bookmark'
+part = 'Bookmark'
+slot = slots[0]
+pivots[part] = (slot['x'], -slot['z'], slot['y'] + slot['height'])
+cloth = material('Madder silk bookmark', '#5b1320', .72)
+bsdf = cloth.node_tree.nodes.get('Principled BSDF')
+bsdf.inputs['Sheen Weight'].default_value = .35
+nodes, links = cloth.node_tree.nodes, cloth.node_tree.links
+coord = nodes.new('ShaderNodeTexCoord')
+wave = nodes.new('ShaderNodeTexWave')
+wave.wave_type = 'BANDS'
+wave.bands_direction = 'X'
+wave.inputs['Scale'].default_value = 95
+links.new(coord.outputs['Generated'], wave.inputs['Vector'])
+bump = nodes.new('ShaderNodeBump')
+bump.inputs['Strength'].default_value = .22
+bump.inputs['Distance'].default_value = .00008
+links.new(wave.outputs['Color'], bump.inputs['Height'])
+links.new(bump.outputs['Normal'], bsdf.inputs['Normal'])
+# Cubic sections turn the cloth over once, with a shallow trough across its width.
+knots = [( .020, -.003), (.018, .006), (.012, .008), (.006, .006),
+         (-.001, .003), (-.004, -.005), (-.006, -.014)]
+vertices, faces = [], []
+for i in range(49):
+    t = i / 48 * (len(knots)-1)
+    k = min(int(t), len(knots)-2)
+    u = t-k
+    a, b, c, d = [knots[min(max(j, 0), len(knots)-1)] for j in (k-1,k,k+1,k+2)]
+    y, z = [ .5*((2*b[n])+(-a[n]+c[n])*u+(2*a[n]-5*b[n]+4*c[n]-d[n])*u*u+(-a[n]+3*b[n]-3*c[n]+d[n])*u*u*u) for n in (0,1)]
+    for j in range(9):
+        across = j/8*2-1
+        x = across*.0028*(1-.12*(i/48)**2) + .0015*(i/48)**2
+        notch = .0012*(1-abs(across)) * max(0, (i-44)/4)
+        twist = across*.0018*math.sin(math.pi*i/48)
+        vertices.append((slot['x']+x, -slot['z']+y+twist, slot['y']+slot['height']+z+.0012*across*across+notch))
+        if i < 48 and j < 8:
+            v = i*9+j
+            faces.append((v,v+1,v+10,v+9))
+mesh = bpy.data.meshes.new('Woven bookmark folds')
+mesh.from_pydata(vertices, [], faces)
+obj = bpy.data.objects.new(part, mesh)
+scene.collection.objects.link(obj)
+finish(obj, part, cloth)
+# The reusable template must not leave a shadow in the static room atlases.
+obj.hide_render = True
+for polygon in mesh.polygons:
+    polygon.use_smooth = True
+solid = obj.modifiers.new('Woven thickness', 'SOLIDIFY')
+solid.thickness = .00018
+bevel = obj.modifiers.new('Soft cloth edge', 'BEVEL')
+bevel.width = .00009
+bevel.segments = 2
+part = None
+group = 'objects'
 # Vinyl spines sit below the books.
 record_colors = [cream, rug_red, rug_blue, black, linen, terra]
 for i in range(39):
@@ -477,6 +549,8 @@ if preview_only:
 for name, parts in groups.items():
     if '--spines-only' in args and name != 'spines':
         continue
+    if '--books-only' in args and name not in ('books', 'covers'):
+        continue
     meshes = [objects[0] for objects in parts.values()]
     bpy.ops.object.select_all(action='DESELECT')
     for obj in meshes:
@@ -523,7 +597,8 @@ for name, parts in groups.items():
         parts.clear()
         parts['spines'] = meshes
     resolution = (
-        size * 2 if name in ('objects', 'spines') else size // 2 if name == 'moving' else size
+        1024 if name == 'bookmark' else
+        size * 2 if name in ('objects', 'spines', 'covers') else size // 2 if name == 'moving' else size
     )
     image = bpy.data.images.new(name+' baked',width=resolution,height=resolution,float_buffer=True)
     for obj in meshes:
@@ -538,7 +613,42 @@ for name, parts in groups.items():
     scene.render.bake.use_pass_transmission = False
     scene.render.bake.margin = 16
     print('BAKING',name,size,samples,flush=True)
-    bpy.ops.object.bake(type='COMBINED')
+    # Moving surfaces cannot inherit shadows from their neighbours. Bake each
+    # volume in the same room light, with only its own covers shading its pages.
+    if name == 'covers':
+        hidden = [(obj, obj.hide_render) for obj in scene.objects if obj.type == 'MESH']
+        for obj, _ in hidden:
+            obj.hide_render = True
+        bpy.ops.object.duplicate(linked=False)
+        bpy.ops.object.join()
+        combined = bpy.context.object
+        combined.hide_render = False
+        # These flat, convex covers need no self-shadowing. Exclude them from
+        # secondary rays; a joined copy bakes once while the originals retain their hinges.
+        combined.visible_shadow = False
+        combined.visible_diffuse = False
+        combined.visible_glossy = False
+        bpy.ops.object.bake(type='COMBINED')
+        bpy.data.objects.remove(combined, do_unlink=True)
+        for obj, was_hidden in hidden:
+            obj.hide_render = was_hidden
+    elif name in ('books', 'bookmark'):
+        hidden = [(obj, obj.hide_render) for obj in scene.objects if obj.type == 'MESH']
+        for obj, _ in hidden:
+            obj.hide_render = True
+        for obj in meshes:
+            bpy.ops.object.select_all(action='DESELECT')
+            obj.hide_render = False
+            obj.select_set(True)
+            bpy.context.view_layer.objects.active = obj
+            scene.render.bake.use_clear = obj == meshes[0]
+            bpy.ops.object.bake(type='COMBINED')
+            obj.hide_render = True
+        for obj, was_hidden in hidden:
+            obj.hide_render = was_hidden
+        scene.render.bake.use_clear = True
+    else:
+        bpy.ops.object.bake(type='COMBINED')
     # Color-manage once here. Runtime emission materials are display-referred.
     scene.render.image_settings.file_format = 'JPEG'
     scene.render.image_settings.color_mode = 'RGB'
@@ -560,6 +670,8 @@ for name, parts in groups.items():
 
 for name, parts in groups.items():
     if '--spines-only' in args and name != 'spines':
+        continue
+    if '--books-only' in args and name not in ('books', 'covers'):
         continue
     meshes = [objects[0] for objects in parts.values()]
     bpy.ops.object.select_all(action='DESELECT')

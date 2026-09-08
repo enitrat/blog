@@ -41,6 +41,10 @@
 	cursor: pointer;
 }
 
+.room-library__catalog [data-book] > header {
+	padding-top: 0.75rem;
+}
+
 .room-library__catalog ul {
 	list-style: none;
 	padding: 0;
@@ -104,10 +108,20 @@
 	box-shadow: 0 18px 48px rgb(25 18 10 / 0.3);
 	overscroll-behavior: contain;
 	scrollbar-color: #94856b #f5f0e5;
+	opacity: 1;
+	transform: translateY(0) scale(1);
+	transition:
+		opacity 250ms cubic-bezier(0.23, 1, 0.32, 1),
+		transform 250ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .room-library__book::backdrop {
 	background: rgb(28 23 17 / 0.35);
+	transition: background-color 180ms ease;
+}
+
+.room-library__book[data-closing]::backdrop {
+	background: rgb(28 23 17 / 0);
 }
 
 .room-library__book form {
@@ -123,28 +137,31 @@
 
 .room-library__book[data-noted] article {
 	display: grid;
-	grid-template-columns: 1fr 1.5fr;
-	gap: 3rem;
+	grid-template-columns: 1fr 1fr;
+	gap: 0;
+	padding: 1.5rem 0 0;
+	min-height: 17rem;
+}
+
+.room-library__book article > header {
+	padding: 2rem;
 }
 
 .room-library__book[data-noted] .room-library__notes {
 	margin: 0;
+	padding: 2rem;
+	border-left: 1px solid #d8cfbd;
+	box-shadow: inset 12px 0 20px -20px #766647;
+	font-size: 1.125rem;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-	.room-library__book[data-noted][open] {
-		animation: room-book-open 300ms cubic-bezier(0.16, 1, 0.3, 1);
-		transform-origin: 0 50%;
+@starting-style {
+	.room-library__book[open] {
+		opacity: 0;
+		transform: translateY(8px) scale(0.98);
 	}
-	@keyframes room-book-open {
-		from {
-			opacity: 0;
-			transform: perspective(1000px) rotateY(-12deg);
-		}
-		to {
-			opacity: 1;
-			transform: perspective(1000px) rotateY(0);
-		}
+	.room-library__book[open]::backdrop {
+		background: rgb(28 23 17 / 0);
 	}
 }
 
@@ -165,22 +182,28 @@
 	border-radius: 2px;
 }
 
-.room-library__gaps {
+.room-library__gaps,
+.room-library__spine:not([data-noted]) {
 	cursor: default;
 }
 
-/* The ring these wear is the room's, defined once in home.css. */
-
-.room-library__spine[data-noted]::after {
-	content: "";
-	position: absolute;
-	left: 58%;
-	top: 95%;
-	width: 7px;
-	height: 23px;
-	background: #9f392e;
-	clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+.room-library__spine:focus-visible {
+	outline: 2px solid var(--home-cobalt);
+	outline-offset: 3px;
 }
+
+.room-library__spine:not([data-noted])::before {
+	display: none;
+}
+
+.room-library__spine[data-noted]::before {
+	opacity: 1;
+	border-color: #fff7e7;
+	background: rgb(255 247 231 / 0.5);
+	box-shadow: 0 0 9px 3px rgb(245 198 117 / 0.5);
+}
+
+/* The ring these wear is the room's, defined once in home.css. */
 
 @media (max-width: 40rem) {
 	.room-library__book {
@@ -191,8 +214,94 @@
 	}
 	.room-library__book[data-noted] article {
 		display: block;
+		min-height: auto;
+	}
+	.room-library__book article > header {
+		padding: 1rem;
 	}
 	.room-library__book[data-noted] .room-library__notes {
-		margin-top: 2rem;
+		margin: 1rem;
+		padding: 1.5rem 0;
+		border-left: 0;
+		border-top: 1px solid #d8cfbd;
+		box-shadow: none;
 	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.room-library__book {
+		transform: none;
+		transition: opacity 100ms ease;
+	}
+	@starting-style {
+		.room-library__book[open] {
+			transform: none;
+		}
+	}
+}
+
+.room-library__book[data-spatial] {
+	position: fixed;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	max-height: none;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+	opacity: 1;
+	transform: none;
+	transition: none;
+	overflow: hidden;
+}
+
+.room-library__book[data-spatial]::backdrop {
+	background: transparent;
+	transition: none;
+}
+
+.room-library__book[data-spatial] form {
+	position: absolute;
+	top: var(--reader-controls-top, calc(100% - 4rem));
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+.room-library__book[data-spatial] [data-open-book] {
+	position: absolute;
+	container-type: inline-size;
+}
+
+.room-library__book[data-spatial] article {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	height: 100%;
+	min-height: 0;
+	padding: 0;
+}
+
+.room-library__book[data-spatial] article > header,
+.room-library__book[data-spatial] .room-library__notes {
+	box-sizing: border-box;
+	min-height: 0;
+	margin: 0;
+	padding: clamp(0.75rem, 5cqi, 2rem);
+	border: 0;
+	box-shadow: none;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	font-size: clamp(1rem, 3cqi, 1.125rem);
+	line-height: 1.6;
+}
+
+.room-library__book[data-spatial] article h3 {
+	font-size: clamp(1.125rem, 5cqi, 2rem);
+}
+
+.room-library__book[data-spatial] .room-library__facts {
+	font-size: clamp(0.75rem, 2.5cqi, 0.875rem);
 }
