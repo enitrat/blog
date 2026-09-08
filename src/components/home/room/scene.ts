@@ -403,7 +403,11 @@ export async function mountRoom(
 	function tick(now: number) {
 		frame = 0;
 		if (!alive || lost || !visible || document.hidden) return;
-		const dt = Math.min((now - lastTime) / 1000, 0.05);
+		// A frame's timestamp is the moment it began, which can precede a
+		// `performance.now()` taken while scheduling it. Time never runs backwards:
+		// damping would undo itself, and dividing a negative step by a negative
+		// rate would open a book nobody reached for.
+		const dt = Math.min(Math.max(now - lastTime, 0) / 1000, 0.05);
 		lastTime = now;
 		if (transitionStart !== null) {
 			const t = motion.matches ? 1 : Math.min((now - transitionStart) / transitionDuration, 1);

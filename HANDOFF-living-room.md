@@ -150,8 +150,18 @@ inspection rather than adding a repository test suite.
   page sequence, closing, three interruption points during extraction, history
   navigation, focus restoration, resizing while a book is open, long-note
   scrolling, and switching to reduced motion mid-open. It also checks the
-  direct note link and the no-JavaScript authored note. Captures are
+  direct note link and the no-JavaScript authored note. It also guards the
+  reach-and-release regression below. Captures are
   `/tmp/book-final-{desktop,tablet,phone}-{cover,hinge,note}.png`.
+- A frame's rAF timestamp is the moment the frame began, which can fall a few
+  milliseconds behind a `performance.now()` read while scheduling it. `tick`
+  used that difference unclamped, so a cold start from `bookshelf.pulls` could
+  produce a negative `dt`. Divided by the negative closing rate in `pull`, that
+  opened a book nobody had reached for: `data-book-moving` went on, `home.css`
+  hid the targets, controls, and caption, and the on-demand loop then stopped
+  with nothing left to animate, so the attribute never cleared. Hovering a
+  spine and moving the pointer away emptied the whole row view until the next
+  real animation. `dt` is now clamped at zero.
 
 The user has not approved the latest appearance. The next step is their visual
 review of the opened spread, the cloth, and navigation placement. The right
