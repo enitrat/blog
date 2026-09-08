@@ -30,6 +30,14 @@ unlit rendering and coordinated camera position/focus transitions. Reference
 source is available at `/tmp/henry-reference.Le1cOF/`; it is not a dependency.
 No reference-site geometry or textures were copied.
 
+The open book was a modal dialog, which made the rest of the document inert:
+the page could not scroll behind it and a click on the shelf never reached the
+canvas. Only the conventional record — reduced motion, or no renderer — is
+modal now. The consequence to weigh is that a non-modal dialog does not contain
+the tab order, so a reader can tab out of an open book; that follows from the
+page behind it being live, and Escape now reaches the book from anywhere on the
+page rather than only from inside the room.
+
 ## Current bookshelf implementation
 
 - The hierarchy remains room → cabinet → row → book, in the existing Three.js
@@ -153,6 +161,11 @@ inspection rather than adding a repository test suite.
 - The poster was regenerated from the final bookmark asset with controls hidden.
 - Browser observations do not certify physical devices or other browser engines.
 
+- `/tmp/check-modal.mjs` covers what a non-modal open book has to keep: the
+  page scrolling behind it, the note still scrolling under the pointer, a
+  background click closing it, Escape with focus restored, and reduced motion
+  staying a conventional modal. `/tmp/check-escape-out.mjs` checks Escape after
+  the tab order has left the book.
 - `/tmp/check-book-opening.mjs` passes at 1280x1000, 768x1024, and 390x844
   against the production textures. It covers keyboard opening, the cover and
   page sequence, closing, three interruption points during extraction, history

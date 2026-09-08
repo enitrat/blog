@@ -161,7 +161,15 @@ export function mountBookshelf(host: HTMLElement) {
 			body.removeAttribute('style');
 			body.inert = false;
 		}
-		if (mounted?.slot.isbn === slot.isbn) return;
+		if (mounted?.slot.isbn === slot.isbn) {
+			// Reduced motion arrived or left while this book was open. Only the
+			// modality has to change; what is mounted is already right.
+			if (dialog.open && dialog.matches(':modal') === spatial) {
+				dialog.close();
+				open(spatial);
+			}
+			return;
+		}
 		restoreBook();
 		const source = records.get(slot.isbn);
 		const content = source?.querySelector<HTMLElement>('[data-book-content]');
@@ -171,8 +179,19 @@ export function mountBookshelf(host: HTMLElement) {
 		dialog.toggleAttribute('data-noted', source.hasAttribute('data-noted'));
 		dialog.setAttribute('aria-label', `${source.dataset.title}, ${source.dataset.author}`);
 		body.replaceChildren(content);
-		dialog.showModal();
+		open(spatial);
 		dialog.scrollTop = 0;
+	}
+
+	/** A book standing open in the room is an object on a shelf, not a sheet laid
+	 *  over the page: the reader keeps scrolling the page behind it, and a click
+	 *  on clear background reaches the canvas and steps back a level. A modal
+	 *  dialog makes the rest of the document inert and takes both away, so only
+	 *  the conventional record — reduced motion, or no renderer — is modal.
+	 *  Escape is the browser's `cancel` there, and the room's own key handler here. */
+	function open(spatial: boolean) {
+		if (spatial) dialog.show();
+		else dialog.showModal();
 	}
 
 	function closeBook() {
@@ -550,11 +569,24 @@ export function mountBookshelf(host: HTMLElement) {
 		},
 		{ signal: events.signal },
 	);
+	// A non-modal book does not contain the tab order, so focus can legitimately
+	// be anywhere on the page while one stands open. Escape has to reach it from
+	// there too; the room's own handler below runs first and marks the event.
+	document.addEventListener(
+		'keydown',
+		(event) => {
+			if (event.defaultPrevented || event.key !== 'Escape') return;
+			if (location?.kind !== 'book' || dialog.matches(':modal')) return;
+			event.preventDefault();
+			back();
+		},
+		{ signal: events.signal },
+	);
 	host.addEventListener(
 		'keydown',
 		(event) => {
 			if (event.target instanceof Node && catalog.contains(event.target)) return;
-			if (location?.kind === 'book' && !dialog.open && event.key === 'Escape') {
+			if (location?.kind === 'book' && !dialog.matches(':modal') && event.key === 'Escape') {
 				event.preventDefault();
 				back();
 				return;

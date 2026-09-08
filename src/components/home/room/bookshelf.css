@@ -257,6 +257,13 @@
 	transform: none;
 	transition: none;
 	overflow: hidden;
+	/* The overlay spans the viewport to place the pages, so it must not intercept
+	   the room behind them: the shelf keeps its clicks and the page its scroll. */
+	pointer-events: none;
+}
+
+.room-library__book[data-spatial] :is([data-open-book], form) {
+	pointer-events: auto;
 }
 
 .room-library__book[data-spatial]::backdrop {

@@ -118,8 +118,13 @@ the viewer, then open the cover. The book travels 32cm in total. The camera
 retreats and centers the volume before the cover opens into a spread. Closing
 fades the HTML for 100ms and reverses the physical sequence over 650ms.
 Escape or history navigation can interrupt extraction. Closing returns the book
-to its slot. Reduced motion uses the conventional notes dialog immediately. With motion,
-the native dialog starts focus containment at once, while its HTML stays inert
+to its slot. Reduced motion uses the conventional notes dialog immediately, and
+that one is modal. A book standing open in the room is not: it is an object on
+a shelf rather than a sheet laid over the page, so the page behind it still
+scrolls, a click on clear background still steps back a level, and the tab
+order is not contained. The overlay spans the viewport only to place the pages,
+and passes pointer events through everywhere else. Escape closes an open book
+from anywhere on the page, not only from inside the room. Its HTML stays inert
 and transparent until the cover reveals the pages. The renderer projects the
 page bounds into the dialog, keeping notes selectable and links functional.
 Each page scrolls independently for long content, including on phones.
