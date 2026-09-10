@@ -29,6 +29,23 @@ frontmatter directly, English only, newest first; `sheet-art.mjs` draws the
 pages. A piece published without a rebake is on `/writing/` but not on the
 desk, by design.
 
+**Open bug, not fixed.** Seated at the desk, the user still sees a black
+rectangle the size and shape of a sheet in the right-hand pile, with a soft
+shadowed edge along its right side, while a sheet in that pile is hovered
+(filled ring). It appeared first as black triangles at sheet corners that
+flickered with mouse parallax; stacking the manuscripts 3mm apart
+(`DESK.leaves` in `bake-room.mjs`, 2.5mm leaves in `room.py`) removed the
+triangles in the Playwright captures, but the user's browser still shows a
+whole black sheet after that rebake. Not reproduced in
+`/tmp/desk-{desktop,tablet}-{seated,lifted}.png`. Candidates to check in
+order: a sheet's top plane baked black because it was occluded by the sheet
+above during the `sheets` bake (inspect `/tmp/blog-desk/sheets.jpg` for a
+black island); the lift in `scene.ts` raising a sheet into the one above, so a
+back face or the underside of the neighbour's cream box is what is seen; and
+depth precision with the 0.05 near plane at desk distance. If it is the bake,
+baking each sheet with the others hidden, the way `books` does, is the known
+fix. The user's screenshot is in the session image cache as image 5.
+
 Checks: `/tmp/check-desk.mjs` seats the camera at 1280x1000 and 768x1024,
 asserts eight visible manuscript links with sane boxes and `/writing/<slug>/`
 hrefs, the desk ring stepping aside, hover naming the piece, keyboard focus,
