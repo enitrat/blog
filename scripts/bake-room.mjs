@@ -136,6 +136,7 @@ const child = spawn(
 		...(process.argv.includes('--preview') ? ['--preview'] : []),
 		...(process.argv.includes('--spines-only') ? ['--spines-only'] : []),
 		...(process.argv.includes('--books-only') ? ['--books-only'] : []),
+		...(process.argv.includes('--room-only') ? ['--room-only'] : []),
 	],
 	{ stdio: 'inherit' },
 );

@@ -1,8 +1,30 @@
 # Living room handoff
 
-Updated: 2026-09-08
+Updated: 2026-09-10
 
 ## Where this pass stopped
+
+The desk pass is complete. The leather reading chair on the right of the room
+is gone; in its place, along the open side, stands a fumed-oak pedestal writing
+desk and a slatted side chair, both authored in `scripts/room.py` and baked
+into `furniture.glb`. The desk carries a brass banker's lamp with an emerald
+shade, a manuscript with a loose sheet, a fountain pen and an inkwell, all in
+`objects.glb`. The lamp is a fourth practical light, so the whole room was
+rebaked; the poster was regenerated and `bun run build` and
+`bun run room:check chromium` pass. The user has seen the preview render and the
+poster.
+
+The scene now has a home for each strand: readings on the shelf, SoundCloud on
+the record player, and the desk for the writings. Nothing in the runtime
+targets the desk yet: no hotspot, no camera frame, no manuscript link. That is
+the next step, and `scene.ts`/`bookshelf.ts` are where the shelf does the same.
+
+The 55 isolated book bakes take about 21 of a full run's 25 minutes and cannot
+see the rest of the room, so `bun run room:bake --room-only` now skips books,
+covers and bookmark. Use it for any change that does not move a light or a
+book.
+
+## Previous pass
 
 The book-opening pass is complete. The front covers bake from one temporary
 joined mesh with the corrected hinge, while the exported covers keep their

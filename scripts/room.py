@@ -104,7 +104,6 @@ metal = material('Brushed aluminium', '#aaa9a2', .3, metal=.2)
 brass = material('Aged brass', '#ad8750', .32, metal=.15)
 cream = material('Ivory paper', '#ddd3b5', .85)
 linen = material('Oatmeal linen', '#c5ad7e', .9, 'fabric')
-leather = material('Cognac leather', '#925634', .5, 'fabric')
 ceramic = material('Porcelain', '#bdbca9', .24)
 green = material('Rubber plant leaves', '#405b31', .45)
 soil = material('Potting soil', '#302821', 1)
@@ -226,20 +225,80 @@ for x in [.26, 1.09]:
     box('Recessed finger pull', (x+.30, .887, .455), (.012, .008, .085), black, .005)
 box('Credenza lower rail', (hx, .91, .221), (1.64, .035, .028), walnut)
 
-# A small leather reading chair, curved cushions and an exposed walnut frame.
-ax, ay = 1.29, -.67
-for x in [ax-.30, ax+.30]:
-    for y in [ay-.28, ay+.29]:
-        cylinder('Chair leg', (x, y, .22), .022, .42, walnut, 16, .015)
-    tube('Chair continuous arm', [(x, ay-.33, .57), (x, ay-.15, .62), (x, ay+.34, .69)], .033, walnut)
-box('Chair seat frame', (ax, ay, .37), (.65, .66, .09), walnut, .035)
-seat = box('Soft leather seat', (ax, ay-.01, .46), (.60, .60, .15), leather, .065)
-back = box('Soft leather back', (ax, ay+.285, .78), (.59, .17, .58), leather, .07)
-back.rotation_euler.x = math.radians(12)
-for x in [ax-.15, ax+.15]:
-    sphere('Upholstery button', (x, ay+.187, .81), (.016, .009, .016), darkwood)
-for offset in [-.273, .273]:
-    tube('Seat welt', [(ax+offset, ay-.26, .493), (ax+offset, ay, .505), (ax+offset, ay+.24, .493)], .0025, darkwood)
+# A writer's desk from the century before last: a fumed-oak pedestal desk with
+# a leather writing surface, turned corner columns, fielded panels and brass
+# swan-neck pulls. It stands along the open side of the room. The drawers face
+# the chair; the camera reads the panelled back, the end and the leather top.
+fumed = material('Fumed oak', '#5a3a21', .32, 'wood')
+fumed_shadow = material('Fumed oak shadow', '#3a2615', .5, 'wood')
+hide = material('Bottle-green writing leather', '#2b3f33', .55, 'fabric')
+dx, dy, dz = 1.72, -.55, .725  # centre of the desk and the underside of its top
+for py in [dy-.45, dy+.45]:
+    box('Pedestal plinth', (dx, py, .035), (.585, .425, .07), fumed_shadow, .004)
+    box('Pedestal carcass', (dx, py, .3975), (.56, .40, .655), fumed, .004)
+    # Three graduated drawers, the deepest at the bottom, each with a bail pull.
+    z = .075 + .012
+    for h in (.222, .20, .17):
+        face = dx - .28 - .005
+        box('Drawer front', (face, py, z + h/2), (.01, .36, h), fumed, .003)
+        tube('Swan-neck brass pull', [(face-.008, py-.035, z+h/2-.012), (face-.018, py, z+h/2+.004),
+                                      (face-.008, py+.035, z+h/2-.012)], .003, brass)
+        z += h + .012
+    # Fielded panels on the back and both ends; the kneehole shows the inner end.
+    box('Fielded back panel', (dx+.28+.004, py, .40), (.008, .30, .56), fumed, .005)
+    for sign in [-1, 1]:
+        box('Fielded end panel', (dx, py+sign*(.20+.004), .40), (.44, .008, .56), fumed, .005)
+    # Turned quarter columns at every corner, with a ring at each end.
+    for x in [dx-.27, dx+.27]:
+        for y in [py-.19, py+.19]:
+            cylinder('Turned corner column', (x, y, .3975), .02, .655, fumed, 24)
+            cylinder('Column capital', (x, y, .705), .024, .02, fumed_shadow, 24)
+            cylinder('Column base ring', (x, y, .09), .024, .02, fumed_shadow, 24)
+# A modesty panel closes the kneehole on the side the room sees.
+box('Modesty panel', (dx+.27, dy, .42), (.025, .50, .60), fumed, .004)
+box('Fielded modesty panel', (dx+.27+.0165, dy, .42), (.008, .40, .46), fumed, .005)
+# A frieze spans the kneehole under the top and carries a shallow centre drawer.
+box('Kneehole frieze', (dx, dy, .69), (.56, .50, .07), fumed, .004)
+box('Centre drawer front', (dx-.28-.005, dy, .69), (.01, .44, .05), fumed, .003)
+tube('Swan-neck brass pull', [(dx-.293, dy-.035, .678), (dx-.303, dy, .694), (dx-.293, dy+.035, .678)], .003, brass)
+# The top, with an ogee lip beneath, and a leather surface in three panels.
+box('Desk top', (dx, dy, dz+.0175), (.62, 1.30, .035), fumed, .006)
+box('Ogee lip', (dx, dy, dz+.003), (.64, 1.32, .012), fumed_shadow, .004)
+box('Leather writing surface', (dx, dy, dz+.036), (.46, 1.14, .002), hide, .0008)
+for y in [dy-.22, dy+.22]:
+    box('Oak divider strip', (dx, y, dz+.0365), (.46, .02, .003), fumed, .001)
+
+# The writer's chair, a dark oak side chair with a curved slatted back and a
+# nailed leather seat, turned a little from the desk as if just left.
+def turn(objects, pivot, angle):
+    """Yaw already-placed parts about a vertical axis through `pivot`."""
+    pivot = Vector(pivot)
+    for obj in objects:
+        offset = obj.location - pivot
+        obj.location = pivot + Vector((offset.x*math.cos(angle) - offset.y*math.sin(angle),
+                                       offset.x*math.sin(angle) + offset.y*math.cos(angle), offset.z))
+        obj.rotation_euler.z += angle
+
+qx, qy = 1.10, -.55
+chair_start = len(groups['furniture']['furniture'])
+for y in [qy-.20, qy+.20]:
+    cylinder('Chair front leg', (qx+.19, y, .22), .02, .44, fumed, 16, .014)
+    tube('Chair rear stile', [(qx-.19, y, .01), (qx-.19, y, .46), (qx-.25, y, .94)], .017, fumed)
+    tube('Chair side stretcher', [(qx+.19, y, .17), (qx-.19, y, .17)], .008, fumed)
+tube('Chair cross stretcher', [(qx, qy-.20, .17), (qx, qy+.20, .17)], .008, fumed)
+box('Chair seat frame', (qx, qy, .43), (.42, .44, .06), fumed, .006)
+box('Nailed leather seat', (qx, qy, .485), (.41, .43, .05), hide, .02)
+for i in range(13):
+    sphere('Brass nail head', (qx+.207, qy-.18+i*.03, .49), (.0035, .0035, .0035), brass)
+    sphere('Brass nail head', (qx-.18+i*.03, qy-.217, .49), (.0035, .0035, .0035), brass)
+    sphere('Brass nail head', (qx-.18+i*.03, qy+.217, .49), (.0035, .0035, .0035), brass)
+tube('Chair lower back rail', [(qx-.20, qy-.19, .57), (qx-.20, qy+.19, .57)], .012, fumed)
+tube('Chair crest rail', [(qx-.25, qy-.20, .94), (qx-.275, qy, .955), (qx-.25, qy+.20, .94)], .02, fumed)
+rake = math.atan2(.06, .48)
+for i in range(7):
+    slat = box('Chair back slat', (qx-.227, qy-.15+i*.05, .755), (.009, .02, .36), fumed, .002)
+    slat.rotation_euler.y = -rake
+turn(groups['furniture']['furniture'][chair_start:], (qx, qy, 0), -.2)
 
 # Coffee table, with a rounded rectangular top and splayed legs.
 for x in [-.57, .01]:
@@ -494,6 +553,43 @@ cover.rotation_euler = (0,0,-.19)
 cylinder('Mug', (.02,-.55,.493), .038,.108,ceramic,48,.031)
 cylinder('Coffee', (.02,-.55,.548), .032,.001,soil)
 tube('Mug handle', [(.052,-.55,.526),(.088,-.55,.521),(.083,-.55,.48),(.05,-.55,.466)], .007,ceramic)
+# What is on the desk: a brass banker's lamp with an emerald glass shade, a
+# manuscript with a loose sheet, a fountain pen and an inkwell.
+glass = material('Emerald lamp glass', '#1d6a3c', .18)
+bsdf = glass.node_tree.nodes.get('Principled BSDF')
+bsdf.inputs['Emission Color'].default_value = (*linear('#2f9a55'), 1)
+bsdf.inputs['Emission Strength'].default_value = .45
+top = dz + .037
+cylinder('Banker lamp base', (1.86, -.25, top+.007), .058, .014, brass, 48)
+sphere('Banker lamp base dome', (1.86, -.25, top+.014), (.04, .04, .02), brass)
+cylinder('Banker lamp stem', (1.86, -.25, top+.014+.125), .008, .25, brass, 24)
+sphere('Banker lamp finial', (1.86, -.25, top+.27), (.012, .012, .012), brass)
+tube('Banker lamp arm', [(1.86, -.25, top+.27), (1.83, -.25, top+.28)], .006, brass)
+# The shade is a half cylinder along the desk, open at the bottom, given glass thickness.
+sx, sy, sz, radius, half = 1.83, -.25, top+.28, .065, .135
+vertices, faces = [], []
+for j in range(13):
+    a = math.pi*j/12
+    vertices.extend([(sx+radius*math.cos(a), sy-half, sz+radius*math.sin(a)),
+                     (sx+radius*math.cos(a), sy+half, sz+radius*math.sin(a))])
+    if j:
+        faces.append((2*j-2, 2*j-1, 2*j+1, 2*j))
+mesh = bpy.data.meshes.new('Banker lamp shade')
+mesh.from_pydata(vertices, [], faces)
+shade = bpy.data.objects.new('Banker lamp shade', mesh)
+scene.collection.objects.link(shade)
+for p in mesh.polygons:
+    p.use_smooth = True
+shade.modifiers.new('Glass thickness', 'SOLIDIFY').thickness = .004
+finish(shade, shade.name, glass)
+for y in [sy-half, sy+half]:
+    tube('Shade brass rim', [(sx+radius, y, sz), (sx, y, sz+radius), (sx-radius, y, sz)], .004, brass)
+stack = box('Manuscript', (1.64, -.75, top+.009), (.215, .30, .018), cream, .001, .10)
+box('Loose sheet', (1.62, -.70, top+.0185), (.21, .297, .001), cream, .0003, -.22)
+tube('Fountain pen', [(1.60, -.60, top+.0245), (1.66, -.62, top+.0245)], .0055, black)
+tube('Fountain pen cap', [(1.66, -.62, top+.0245), (1.72, -.64, top+.0245)], .006, brass)
+cylinder('Inkwell', (1.80, -.86, top+.017), .022, .034, black, 32)
+cylinder('Inkwell lid', (1.80, -.86, top+.040), .012, .012, brass, 24)
 
 def light(name, at, target, energy, color, size):
     data = bpy.data.lights.new(name, 'AREA')
@@ -510,6 +606,7 @@ light('Large soft window', (-3,-2.3,4.5), (0,.5,.5), 450, (1,.89,.72), 4)
 light('Cool room fill', (3,-1.5,3.8), (0,.5,.8), 170, (.72,.82,1), 3)
 light('Lamp down', (lx,ly,1.42), (lx,ly,0), 22, (1,.64,.30), .35)
 light('Lamp up', (lx,ly,1.77), (lx,ly,2.6), 15, (1,.72,.42), .22)
+light('Banker lamp', (1.83,-.25,dz+.30), (1.83,-.25,dz), 4, (1,.85,.62), .07)
 
 # A long-lens overview, with the complete cutaway visible against warm white.
 camera_data = bpy.data.cameras.new('Room camera')
@@ -554,6 +651,8 @@ for name, parts in groups.items():
     if '--spines-only' in args and name != 'spines':
         continue
     if '--books-only' in args and name not in ('books', 'covers'):
+        continue
+    if '--room-only' in args and name in ('books', 'covers', 'bookmark'):
         continue
     meshes = [objects[0] for objects in parts.values()]
     bpy.ops.object.select_all(action='DESELECT')
@@ -682,6 +781,8 @@ for name, parts in groups.items():
     if '--spines-only' in args and name != 'spines':
         continue
     if '--books-only' in args and name not in ('books', 'covers'):
+        continue
+    if '--room-only' in args and name in ('books', 'covers', 'bookmark'):
         continue
     meshes = [objects[0] for objects in parts.values()]
     bpy.ops.object.select_all(action='DESELECT')

@@ -24,6 +24,18 @@ directory. `--preview` renders a Cycles still without exporting assets.
 atlas because a group's parts unwrap together, and they are baked in place, so
 their own contact shadows read correctly at rest.
 
+The writing desk on the open side of the room is a fumed-oak pedestal desk of
+the kind Balzac or Dostoevsky wrote at: two pedestals of graduated drawers with
+brass swan-neck pulls facing the chair, fielded panels on the back and ends,
+turned corner columns, a kneehole frieze with a centre drawer, and a
+bottle-green leather writing surface divided into three by oak strips. Its side
+chair has a curved slatted back and a nailed leather seat, yawed a little as if
+just left. Both live in `furniture.glb`. What lies on the desk -- a brass
+banker's lamp with an emerald glass shade, a manuscript, a fountain pen and an
+inkwell -- is in `objects.glb`. The lamp is a real practical in the bake, so the
+leather under it carries its pool of light. The desk is where the writings will
+be reached from; nothing in the runtime targets it yet.
+
 `spines.glb` holds the printed jackets on a separate 4096px atlas. `spine-art.mjs`
 draws each one: gold ribbing over the leather, a label plate at the same height on
 every volume, author and title in gold capitals fitted to the plate rather than
@@ -66,6 +78,16 @@ To rebuild articulated book bodies and front covers without rebaking the room:
 ```sh
 BLENDER=/path/to/blender bun run room:bake --books-only
 ```
+
+To rebake the room around the shelf -- furniture, objects, turntable parts and
+jackets -- without the 55 isolated book bakes that take most of a full run:
+
+```sh
+BLENDER=/path/to/blender bun run room:bake --room-only
+```
+
+Books bake with every other mesh hidden, so a change elsewhere in the room
+cannot reach them; only a moved light or a changed book needs the full run.
 
 Only use these options when book positions and dimensions have not changed.
 `--layout-only` writes both manifests without invoking Blender; it is for
