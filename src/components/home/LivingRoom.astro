@@ -1,7 +1,19 @@
 ---
 import { Picture } from 'astro:assets';
 import poster from '../../assets/living-room.png';
+import sheets from '../../assets/room/sheets.json';
+import { getWritingIndex, postUrl } from '../../utils/writing';
 import Bookshelf from './room/Bookshelf.astro';
+
+// The manuscripts on the desk are baked, one per piece the bake knew about.
+// A piece published since is on /writing/ but not yet on the desk; the bake
+// is the only thing that can put it there, so it is left off rather than
+// given a target with nothing under it.
+const posts = await getWritingIndex();
+const manuscripts = sheets.flatMap((sheet) => {
+	const post = posts.find((entry) => entry.id === sheet.slug);
+	return post ? [{ slug: sheet.slug, title: post.data.title, href: postUrl(post) }] : [];
+});
 ---
 
 <div class="living-room" data-room>
@@ -9,7 +21,7 @@ import Bookshelf from './room/Bookshelf.astro';
 	<Picture
 		class="living-room__poster"
 		src={poster}
-		alt="A miniature eighties living room: Pléiade books and records, a walnut hi-fi with a turntable, a pleated floor lamp, and a leather reading chair on a patterned rug."
+		alt="A miniature living room: Pléiade books and records, a walnut hi-fi with a turntable, a pleated floor lamp, a patterned rug, and an oak writing desk with manuscripts under a green banker's lamp."
 		widths={[640, 960, 1440]}
 		sizes="(max-width: 64rem) 100vw, 64rem"
 		formats={['avif']}
@@ -30,6 +42,10 @@ import Bookshelf from './room/Bookshelf.astro';
 			Play the record
 		</button>
 
+		<a class="living-room__hotspot" href="/writing/" data-anchor="desk">
+			Sit at the desk
+		</a>
+
 		<a
 			class="living-room__hotspot living-room__mix"
 			href="https://soundcloud.com/user2211512"
@@ -42,6 +58,13 @@ import Bookshelf from './room/Bookshelf.astro';
 
 	<p class="living-room__caption" aria-hidden="true"></p>
 	<div class="room-book-targets" data-book-targets hidden aria-label="Books on this shelf"></div>
+	<!-- Real links over the baked manuscripts: the scene lays each over the
+	     sheet it names once the camera is at the desk. -->
+	<nav class="room-desk-targets" data-desk-targets hidden aria-label="Manuscripts on the desk">
+		{manuscripts.map((piece) => (
+			<a class="room-desk__sheet" href={piece.href} data-sheet={piece.slug} hidden>{piece.title}</a>
+		))}
+	</nav>
 
 	<!-- Camera chrome lives over the artwork, not under it: one chevron asset,
 	     rotated, points back out and along the shelves. -->

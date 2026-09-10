@@ -217,7 +217,8 @@
 	cursor: zoom-in;
 }
 .living-room[data-live][data-view="closer"] .living-room__canvas,
-.living-room[data-live][data-view="record"] .living-room__canvas {
+.living-room[data-live][data-view="record"] .living-room__canvas,
+.living-room[data-live][data-view="desk"] .living-room__canvas {
 	cursor: zoom-out;
 }
 
@@ -253,6 +254,10 @@
 	left: 56.63%;
 	top: 48.43%;
 }
+.living-room__hotspot[data-anchor="desk"] {
+	left: 60.2%;
+	top: 67.5%;
+}
 .living-room:hover .living-room__hotspot,
 .living-room__hotspot:focus-visible,
 .living-room[data-playing] button.living-room__hotspot {
@@ -283,7 +288,8 @@
    because the room owns its own chrome; bookshelf.css owns the reader. */
 .living-room__hotspot:not(.living-room__mix)::before,
 .room-library__row::before,
-.room-library__spine::before {
+.room-library__spine::before,
+.room-desk__sheet::before {
 	content: "";
 	position: absolute;
 	left: 50%;
@@ -305,7 +311,8 @@
 
 .living-room__hotspot:not(.living-room__mix):is(:hover, :focus-visible)::before,
 .room-library__row:is(:hover, :focus-visible)::before,
-.room-library__spine:is(:hover, :focus-visible)::before {
+.room-library__spine:is(:hover, :focus-visible)::before,
+.room-desk__sheet:is(:hover, :focus-visible)::before {
 	border-color: #fff7e7;
 	background: rgb(255 247 231 / 0.85);
 	scale: 1.15;
@@ -318,6 +325,33 @@
 }
 .room-library__spine:is(:hover, :focus-visible)::before {
 	opacity: 1;
+}
+
+/* The manuscripts, seated at the desk: a link laid over each sheet's exposed
+   head, its ring standing where the title is written. Off the desk view the
+   scene keeps the whole set hidden. */
+.room-desk-targets {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+.room-desk__sheet {
+	position: absolute;
+	box-sizing: border-box;
+	pointer-events: auto;
+	cursor: pointer;
+	border-radius: 2px;
+	overflow: hidden;
+	text-indent: 110%;
+	white-space: nowrap;
+	color: transparent;
+}
+.room-desk__sheet:focus-visible {
+	outline: 2px solid var(--home-cobalt);
+	outline-offset: 3px;
+}
+.living-room[data-traveling] .room-desk-targets {
+	display: none;
 }
 
 /* Keyboard focus is the site's one cobalt outline (site.css); the ring only

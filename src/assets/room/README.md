@@ -33,8 +33,19 @@ chair has a curved slatted back and a nailed leather seat, yawed a little as if
 just left. Both live in `furniture.glb`. What lies on the desk -- a brass
 banker's lamp with an emerald glass shade, a manuscript, a fountain pen and an
 inkwell -- is in `objects.glb`. The lamp is a real practical in the bake, so the
-leather under it carries its pool of light. The desk is where the writings will
-be reached from; nothing in the runtime targets it yet.
+leather under it carries its pool of light.
+
+The writing lies on the desk. `sheets.glb` holds one `Sheet_<slug>` node per
+published English piece in `src/content/blog`, a manuscript leaf with its title
+in a copperplate hand across the head, the month beneath, and the body
+scribbled in ink; `sheet-art.mjs` draws them, at four pixels per millimetre,
+with the fonts of the bake machine (Snell Roundhand ships with macOS). They lie
+fanned in two piles, newest on top and nearest the chair, each older sheet
+pushed further from the writer so its head shows. `sheets.json` records slug,
+position, yaw and the exposed head band in Three.js coordinates; the browser
+lays a real link over each band once the camera is seated, so a new piece
+appears on the desk only after a rebake -- `--room-only` is enough -- and is
+left off the desk, not given a target with nothing under it, until then.
 
 `spines.glb` holds the printed jackets on a separate 4096px atlas. `spine-art.mjs`
 draws each one: gold ribbing over the leather, a label plate at the same height on

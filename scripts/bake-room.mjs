@@ -1,11 +1,12 @@
 /** Bake original room assets with Blender 4.5; Blender is an offline tool only. */
 import { spawn } from 'node:child_process';
-import { mkdir, mkdtemp, readdir, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readdir, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { books } from '../src/booksData.ts';
 import { PLEIADE_HEX, pleiadeStyleFor } from '../src/utils/pleiade.ts';
+import { SHEET, sheetSvg } from './sheet-art.mjs';
 import { ART_HEIGHT, coverSvg, spineSvg } from './spine-art.mjs';
 
 const option = (name, fallback) => {
@@ -76,6 +77,88 @@ const slots = library.map((book, index) => {
 		height: SPINE_HEIGHT,
 	};
 });
+// The writing lies on the desk, one manuscript per published piece. A piece is
+// a directory in the blog collection whose route is its directory name, and
+// the English original is what the index lists; `astro:content` is not
+// available out here, so the frontmatter is read directly, as the notes are.
+const pieces = [];
+for (const directory of (await readdir('src/content/blog', { withFileTypes: true })).filter(
+	(entry) => entry.isDirectory(),
+)) {
+	const files = (await readdir(join('src/content/blog', directory.name))).filter((file) =>
+		/\.mdx?$/.test(file),
+	);
+	for (const file of files) {
+		const source = await readFile(join('src/content/blog', directory.name, file), 'utf8');
+		const front = source.match(/^---\n([\s\S]*?)\n---/)?.[1] ?? '';
+		const field = (name) =>
+			front
+				.match(new RegExp(`^${name}:\\s*(.+)$`, 'm'))?.[1]
+				.trim()
+				.replace(/^(['"])(.*)\1$/, '$2');
+		if ((field('lang') ?? 'en') !== 'en') continue;
+		const date = new Date(field('pubDate'));
+		pieces.push({
+			slug: directory.name,
+			title: field('title'),
+			date: date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }),
+			time: date.valueOf(),
+		});
+	}
+}
+pieces.sort((a, b) => b.time - a.time);
+// Two fanned piles on the leather, newest on top and nearest the chair, each
+// older sheet pushed a little further from the writer so its head -- where
+// the title is written -- shows past the sheet on top of it. Blender's axes:
+// the desk runs along y, the writer sits at -x and reads towards +x.
+const DESK = {
+	top: 0.762,
+	x: 1.5,
+	piles: [-0.55, -0.88],
+	step: 0.05,
+	leaves: 0.003,
+	sheet: { width: 0.21, height: 0.297 },
+};
+let seed = 11;
+const jitter = (amount) => {
+	seed = (seed * 9301 + 49297) % 233280;
+	return (seed / 233280 - 0.5) * 2 * amount;
+};
+const sheets = pieces.map((piece, index) => {
+	const perPile = Math.ceil(pieces.length / DESK.piles.length);
+	const pile = Math.floor(index / perPile);
+	const depth = index % perPile;
+	const yaw = jitter(0.1);
+	// Blender: x along the sheet's height (its head towards +x), y across it.
+	const x = DESK.x + DESK.sheet.height / 2 + depth * DESK.step + jitter(0.006);
+	const y = DESK.piles[pile] + jitter(0.02);
+	// Each manuscript is a few leaves thick, so the pile steps by real paper.
+	const z = DESK.top + (perPile - 1 - depth) * DESK.leaves;
+	// The exposed head band, in the runtime's axes (Y up, depth along -Z), so
+	// the browser can lay a target over exactly what a reader sees of it.
+	const band = depth === 0 ? DESK.sheet.height : DESK.step;
+	const corners = [
+		[DESK.sheet.height / 2, -DESK.sheet.width / 2],
+		[DESK.sheet.height / 2, DESK.sheet.width / 2],
+		[DESK.sheet.height / 2 - band, DESK.sheet.width / 2],
+		[DESK.sheet.height / 2 - band, -DESK.sheet.width / 2],
+	].map(([along, across]) => [
+		x + along * Math.cos(yaw) - across * Math.sin(yaw),
+		z + DESK.leaves,
+		-(y + along * Math.sin(yaw) + across * Math.cos(yaw)),
+	]);
+	return {
+		slug: piece.slug,
+		title: piece.title,
+		x,
+		y: z,
+		z: -y,
+		yaw,
+		band: corners,
+		...DESK.sheet,
+	};
+});
+
 // Blender reads these from the work directory; the browser imports the pair
 // written beside the GLBs.
 const publish = async (directory, pretty) => {
@@ -84,6 +167,7 @@ const publish = async (directory, pretty) => {
 	const end = pretty ? '\n' : '';
 	await writeFile(join(directory, 'book-slots.json'), JSON.stringify(slots, null, space) + end);
 	await writeFile(join(directory, 'cabinet.json'), JSON.stringify(CABINET, null, space) + end);
+	await writeFile(join(directory, 'sheets.json'), JSON.stringify(sheets, null, space) + end);
 };
 await publish(work, false);
 // The browser imports these from the asset directory, so every run writes them
@@ -109,6 +193,12 @@ for (const [index, book] of library.entries()) {
 	await sharp(Buffer.from(coverSvg(book)), { density: 192 })
 		.png()
 		.toFile(join(work, `cover-${index}.png`));
+}
+for (const [index, piece] of pieces.entries()) {
+	// Four pixels per millimetre: a title read from the chair, not a texture.
+	await sharp(Buffer.from(sheetSvg(piece, index)), { density: 96 * (1600 / SHEET.height) })
+		.png()
+		.toFile(join(work, `sheet-${index}.png`));
 }
 // Original geometric artwork, with no invented attribution or borrowed cover art.
 for (const [name, width, height] of [

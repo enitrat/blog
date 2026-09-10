@@ -7,6 +7,8 @@ import coversUrl from '../../../assets/room/covers.glb?url';
 import furnitureUrl from '../../../assets/room/furniture.glb?url';
 import movingUrl from '../../../assets/room/moving.glb?url';
 import objectsUrl from '../../../assets/room/objects.glb?url';
+import sheetsUrl from '../../../assets/room/sheets.glb?url';
+import sheets from '../../../assets/room/sheets.json';
 import shellUrl from '../../../assets/room/shell.glb?url';
 // The printed jackets carry the only type in the room meant to be read, so they
 // own an atlas instead of sharing one with nine square metres of leather.
@@ -24,11 +26,19 @@ const VIEWS = {
 		position: new THREE.Vector3(0.98, 1.48, 0.55),
 		target: new THREE.Vector3(0.21, 0.8, -1.16),
 	},
+	// Seated: over the chair, looking down the leather at the two piles.
+	desk: {
+		position: new THREE.Vector3(1.1, 1.3, 0.72),
+		target: new THREE.Vector3(1.72, 0.77, 0.72),
+		fov: 40,
+	},
 };
 const ANCHORS = {
 	// The cabinet's ring sits on its books, and the bake owns where those are.
 	bookshelf: new THREE.Vector3(BOOKSHELF_ANCHOR.x, BOOKSHELF_ANCHOR.y, BOOKSHELF_ANCHOR.z),
 	record: new THREE.Vector3(0.21, 0.78, -1.16),
+	// On the top sheet of the nearer pile, where the bake put it.
+	desk: new THREE.Vector3(sheets[0]?.x ?? 1.65, sheets[0]?.y ?? 0.77, sheets[0]?.z ?? 0.55),
 };
 
 type View = keyof typeof VIEWS | 'shelf';
@@ -65,6 +75,7 @@ export async function mountRoom(
 			booksUrl,
 			coversUrl,
 			bookmarkUrl,
+			sheetsUrl,
 		].map(async (url) => {
 			const gltf = await loader.loadAsync(url);
 			gltf.scene.traverse((object) => {
@@ -195,6 +206,21 @@ export async function mountRoom(
 		printed.left.dispose();
 	}
 
+	// The manuscripts: a baked node under each real link. A link whose sheet is
+	// missing names a piece the bake never saw, and comes off the desk.
+	const deskTargets = host.querySelector<HTMLElement>('[data-desk-targets]');
+	const manuscripts = [
+		...(deskTargets?.querySelectorAll<HTMLAnchorElement>('a[data-sheet]') ?? []),
+	].flatMap((link) => {
+		const sheet = sheets.find((entry) => entry.slug === link.dataset.sheet);
+		const node = sheet && scene.getObjectByName(`Sheet_${sheet.slug}`);
+		if (!sheet || !node) {
+			link.remove();
+			return [];
+		}
+		return [{ link, node, sheet, rest: node.position.y }];
+	});
+
 	let renderer: THREE.WebGLRenderer;
 	try {
 		renderer = new THREE.WebGLRenderer({
@@ -259,6 +285,8 @@ export async function mountRoom(
 	 *  a book tips it about this far before it comes free of the row. */
 	const TILT = THREE.MathUtils.degToRad(6);
 	let reached: string | null = null;
+	/** The manuscript a reader's hand is over, lifting from the pile. */
+	let lifted: string | null = null;
 	let reading: (typeof ordered)[number] | undefined;
 	let opening = 0;
 	const readingTarget = new THREE.Vector3();
@@ -316,6 +344,23 @@ export async function mountRoom(
 		if (wasOpening > 0 && opening === 0) {
 			reading = undefined;
 			settle();
+		}
+		return moving;
+	}
+
+	/** A reached-for sheet rises a little off the pile and its head comes up,
+	 *  the way a page is picked up by its far edge before it is read. */
+	function lift(dt: number) {
+		let moving = false;
+		for (const { node, sheet, rest } of manuscripts) {
+			const up = lifted === sheet.slug && !motion.matches;
+			const y = rest + (up ? 0.02 : 0);
+			const tilt = up ? 0.07 : 0;
+			node.position.y = THREE.MathUtils.damp(node.position.y, y, 14, dt);
+			node.rotation.z = THREE.MathUtils.damp(node.rotation.z, tilt, 14, dt);
+			if (Math.abs(node.position.y - y) < 0.0001) node.position.y = y;
+			if (Math.abs(node.rotation.z - tilt) < 0.0004) node.rotation.z = tilt;
+			moving ||= node.position.y !== y || node.rotation.z !== tilt;
 		}
 		return moving;
 	}
@@ -385,15 +430,17 @@ export async function mountRoom(
 		}
 		for (const hotspot of hotspots) {
 			const name = hotspot.dataset.anchor;
-			if (name !== 'bookshelf' && name !== 'record') continue;
+			if (name !== 'bookshelf' && name !== 'record' && name !== 'desk') continue;
 			projected.copy(ANCHORS[name]).project(camera);
 			// A close view leaves the other object off frame: take its ring out of
 			// the picture and out of the tab order rather than parking it outside.
 			// The wide mix credit needs more room than a ring before it fits.
 			const slack = hotspot.classList.contains('living-room__mix') ? 0.6 : 0.98;
 			// At reading distance the ring has nothing left to offer, so it steps aside.
+			// Seated at the desk, the sheets themselves are the targets.
 			hotspot.hidden =
 				bookshelf.active ||
+				(name === 'desk' && view === 'desk') ||
 				projected.z < -1 ||
 				projected.z > 1 ||
 				Math.abs(projected.x) > slack ||
@@ -428,8 +475,9 @@ export async function mountRoom(
 		if (offset.distanceToSquared(wantedOffset) < 0.000001) offset.copy(wantedOffset);
 		const turning = turntable(dt);
 		const pulling = pull(dt);
+		const lifting = lift(dt);
 		draw();
-		if (transitionStart !== null || turning || pulling || !offset.equals(wantedOffset))
+		if (transitionStart !== null || turning || pulling || lifting || !offset.equals(wantedOffset))
 			requestDraw();
 	}
 
@@ -478,7 +526,8 @@ export async function mountRoom(
 	}
 
 	function changeView(next: keyof typeof VIEWS) {
-		travel(next, VIEWS[next].position, VIEWS[next].target);
+		const to = VIEWS[next];
+		travel(next, to.position, to.target, 750, 'fov' in to ? to.fov : 23.83);
 	}
 
 	/** The camera has arrived: place the shelf targets once, against the view
@@ -494,6 +543,35 @@ export async function mountRoom(
 			projected.set(x, y, z).project(camera);
 			return { x: projected.x, y: projected.y, z: projected.z };
 		});
+		placeManuscripts();
+	}
+
+	/** Lay each link over the exposed head of its sheet, as the desk view shows
+	 *  it. Anywhere else the pile is scenery, and the links leave the tab order. */
+	function placeManuscripts() {
+		if (!deskTargets) return;
+		deskTargets.hidden = view !== 'desk';
+		if (view !== 'desk') return;
+		for (const { link, sheet } of manuscripts) {
+			let left = Infinity;
+			let top = Infinity;
+			let right = -Infinity;
+			let bottom = -Infinity;
+			let visible = true;
+			for (const [x, y, z] of sheet.band) {
+				projected.set(x, y, z).project(camera);
+				visible &&= projected.z > -1 && projected.z < 1;
+				left = Math.min(left, projected.x);
+				right = Math.max(right, projected.x);
+				top = Math.min(top, -projected.y);
+				bottom = Math.max(bottom, -projected.y);
+			}
+			link.hidden = !visible;
+			link.style.left = `${(left * 0.5 + 0.5) * 100}%`;
+			link.style.top = `${(top * 0.5 + 0.5) * 100}%`;
+			link.style.width = `${(right - left) * 50}%`;
+			link.style.height = `${(bottom - top) * 50}%`;
+		}
 	}
 
 	const sameShelf = (a: ShelfFrame, b: ShelfFrame) =>
@@ -542,6 +620,36 @@ export async function mountRoom(
 		},
 		{ signal: events.signal },
 	);
+
+	// The desk link leads to the writing index on a page without a room; with
+	// one, it pulls out the chair instead, and the sheets carry the links.
+	host.querySelector<HTMLAnchorElement>('a[data-anchor="desk"]')?.addEventListener(
+		'click',
+		(event) => {
+			if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0)
+				return;
+			event.preventDefault();
+			if (!bookshelf.active) changeView('desk');
+		},
+		{ signal: events.signal },
+	);
+	for (const { link, sheet } of manuscripts) {
+		const reach = () => {
+			if (!frame) lastTime = performance.now();
+			lifted = sheet.slug;
+			bookshelf.label(`${link.textContent?.trim() ?? sheet.title} · Read`);
+			requestDraw();
+		};
+		const release = () => {
+			if (lifted === sheet.slug) lifted = null;
+			bookshelf.label('');
+			requestDraw();
+		};
+		link.addEventListener('pointerenter', reach, { signal: events.signal });
+		link.addEventListener('focus', reach, { signal: events.signal });
+		link.addEventListener('pointerleave', release, { signal: events.signal });
+		link.addEventListener('blur', release, { signal: events.signal });
+	}
 
 	// The same visible control backs out of a close view and out of the shelves:
 	// the bookshelf owns it while browsing, the camera owns it otherwise.
@@ -741,6 +849,7 @@ export async function mountRoom(
 				hotspot.style.left = '';
 				hotspot.style.top = '';
 			}
+			if (deskTargets) deskTargets.hidden = true;
 			cancelAnimationFrame(frame);
 			frame = 0;
 		},

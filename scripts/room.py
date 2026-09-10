@@ -50,7 +50,7 @@ scene.render.resolution_x = 1920
 scene.render.resolution_y = 1080
 scene.render.resolution_percentage = 100
 
-groups = {'shell': {}, 'furniture': {}, 'objects': {}, 'moving': {}, 'spines': {}, 'books': {}, 'covers': {}, 'bookmark': {}}
+groups = {'shell': {}, 'furniture': {}, 'objects': {}, 'moving': {}, 'spines': {}, 'books': {}, 'covers': {}, 'bookmark': {}, 'sheets': {}}
 group = 'shell'
 # Parts of `moving` keep their own transform so the runtime can turn them, and
 # their origin sits on the axis they turn about.
@@ -168,12 +168,13 @@ def tube(name, points, radius, mat):
     scene.collection.objects.link(obj)
     return finish(obj, name, mat)
 
-def plane_image(name, at, width, height, path):
-    mat = material(name, '#ffffff')
+def plane_image(name, at, width, height, path, flat=None):
+    """An upright print facing -y, or, given a yaw, one lying flat with its top edge turned that way."""
+    mat = material(name, '#ffffff', .8)
     tex = mat.node_tree.nodes.new('ShaderNodeTexImage')
     tex.image = bpy.data.images.load(str(path))
     mat.node_tree.links.new(tex.outputs['Color'], mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'])
-    bpy.ops.mesh.primitive_plane_add(size=1, location=at, rotation=(math.pi/2, 0, 0))
+    bpy.ops.mesh.primitive_plane_add(size=1, location=at, rotation=(math.pi/2, 0, 0) if flat is None else (0, 0, flat))
     obj = bpy.context.object
     obj.scale = (width, height, 1)
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
@@ -584,12 +585,41 @@ shade.modifiers.new('Glass thickness', 'SOLIDIFY').thickness = .004
 finish(shade, shade.name, glass)
 for y in [sy-half, sy+half]:
     tube('Shade brass rim', [(sx+radius, y, sz), (sx, y, sz+radius), (sx-radius, y, sz)], .004, brass)
-stack = box('Manuscript', (1.64, -.75, top+.009), (.215, .30, .018), cream, .001, .10)
-box('Loose sheet', (1.62, -.70, top+.0185), (.21, .297, .001), cream, .0003, -.22)
-tube('Fountain pen', [(1.60, -.60, top+.0245), (1.66, -.62, top+.0245)], .0055, black)
-tube('Fountain pen cap', [(1.66, -.62, top+.0245), (1.72, -.64, top+.0245)], .006, brass)
-cylinder('Inkwell', (1.80, -.86, top+.017), .022, .034, black, 32)
-cylinder('Inkwell lid', (1.80, -.86, top+.040), .012, .012, brass, 24)
+# A fountain pen laid between the piles: a tapered black resin barrel, the cap
+# posted on its end, a brass band and clip, and the nib out, ready.
+pen = Vector((1.56, -.715, top+.0065))
+along = Vector((math.cos(-.12), math.sin(-.12), 0))
+def pen_point(t): return pen + along*t
+tube('Fountain pen barrel', [pen_point(.0), pen_point(.045), pen_point(.075)], .0058, black)
+cylinder('Fountain pen cap', (0, 0, 0), .0068, .058, black, 32, .0055)
+cap = bpy.context.object
+cap.location = pen_point(.104)
+cap.rotation_euler = along.to_track_quat('Z', 'Y').to_euler()
+cylinder('Pen cap band', (0, 0, 0), .0072, .004, brass, 32)
+band = bpy.context.object
+band.location = pen_point(.077)
+band.rotation_euler = cap.rotation_euler
+sphere('Pen cap finial', pen_point(.134), (.004, .004, .004), brass)
+tube('Pen clip', [pen_point(.085) + Vector((0, 0, .0075)), pen_point(.128) + Vector((0, 0, .0085)), pen_point(.130) + Vector((0, 0, .006))], .0013, brass)
+nib = cylinder('Pen nib', (0, 0, 0), .0038, .016, brass, 16, .0008)
+nib.location = pen_point(-.008)
+nib.rotation_euler = (-along).to_track_quat('Z', 'Y').to_euler()
+cylinder('Inkwell', (1.88, -.12, top+.017), .022, .034, black, 32)
+cylinder('Inkwell lid', (1.88, -.12, top+.040), .012, .012, brass, 24)
+
+# The writing, one manuscript per published piece, fanned in two piles so the
+# head of every sheet shows. Each is its own node: the runtime lifts the one a
+# reader reaches for. bake-room.mjs lays them out in the runtime's axes.
+for index, sheet in enumerate(json.loads((work/'sheets.json').read_text())):
+    group = 'sheets'
+    part = 'Sheet_' + sheet['slug']
+    x, y, z, yaw = sheet['x'], -sheet['z'], sheet['y'], sheet['yaw']
+    pivots[part] = (x, y, z)
+    box('Manuscript leaves', (x, y, z+.00125), (sheet['height'], sheet['width'], .0025), cream, .0003, yaw)
+    # The page is drawn head-up; lying flat it is turned so the head faces +x.
+    plane_image(part, (x, y, z+.00262), sheet['width'], sheet['height'], work/f'sheet-{index}.png', yaw - math.pi/2)
+    part = None
+    group = 'objects'
 
 def light(name, at, target, energy, color, size):
     data = bpy.data.lights.new(name, 'AREA')
@@ -707,7 +737,7 @@ for name, parts in groups.items():
     resolution = (
         1024 if name == 'bookmark' else
         covers_atlas if name == 'covers' else
-        size * 2 if name in ('objects', 'spines') else size // 2 if name == 'moving' else size
+        size * 2 if name in ('objects', 'spines', 'sheets') else size // 2 if name == 'moving' else size
     )
     image = bpy.data.images.new(name+' baked',width=resolution,height=resolution,float_buffer=True)
     for obj in meshes:
@@ -799,5 +829,4 @@ for name, parts in groups.items():
     bpy.ops.export_scene.gltf(filepath=str(out/(name+'.glb')),export_format='GLB',use_selection=True,
                               export_texcoords=True,export_normals=False,export_materials='EXPORT',
                               export_image_format='JPEG',export_jpeg_quality=95)
-(out/'book-slots.json').write_text(json.dumps(slots, indent=2)+'\n')
 print('Room assets exported',flush=True)

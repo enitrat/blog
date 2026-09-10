@@ -15,9 +15,27 @@ rebaked; the poster was regenerated and `bun run build` and
 poster.
 
 The scene now has a home for each strand: readings on the shelf, SoundCloud on
-the record player, and the desk for the writings. Nothing in the runtime
-targets the desk yet: no hotspot, no camera frame, no manuscript link. That is
-the next step, and `scene.ts`/`bookshelf.ts` are where the shelf does the same.
+the record player, and the desk for the writings. The writings are surfaced
+one level down, the way the shelf is: a ring on the desk (`data-anchor="desk"`,
+a real link to `/writing/` without a room) seats the camera at the chair with a
+40-degree lens; there, every published piece is a baked manuscript in one of
+two fanned piles, its title in a copperplate hand across its exposed head.
+`sheets.json` carries each sheet's head band, and `scene.ts` lays a real
+`<a>` to the piece over it in the desk view only (`placeManuscripts`, called
+from `settle`). Hover or focus names the piece in the caption and lifts the
+sheet 2cm with its head raised; the click is the link's own navigation. Escape
+or a click on the room stands back up. `bake-room.mjs` reads the blog
+frontmatter directly, English only, newest first; `sheet-art.mjs` draws the
+pages. A piece published without a rebake is on `/writing/` but not on the
+desk, by design.
+
+Checks: `/tmp/check-desk.mjs` seats the camera at 1280x1000 and 768x1024,
+asserts eight visible manuscript links with sane boxes and `/writing/<slug>/`
+hrefs, the desk ring stepping aside, hover naming the piece, keyboard focus,
+Escape restoring the room, a clean console, and the phone's poster path taking
+the desk link straight to the index. Captures are
+`/tmp/desk-{desktop,tablet}-{seated,lifted}.png`. The fountain pen is now a
+tapered barrel, posted cap, brass band, clip and nib, laid between the piles.
 
 The 55 isolated book bakes take about 21 of a full run's 25 minutes and cannot
 see the rest of the room, so `bun run room:bake --room-only` now skips books,
