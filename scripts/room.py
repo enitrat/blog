@@ -18,6 +18,10 @@ out = Path(args[1])
 samples = int(args[2])
 size = int(args[3])
 preview_only = '--preview' in args
+expected_blender = os.environ.get('BLENDER_VERSION', '4.5.3')
+actual_blender = '.'.join(map(str, bpy.app.version))
+if actual_blender != expected_blender:
+    raise RuntimeError(f'Blender {expected_blender} required; found {bpy.app.version_string}')
 random.seed(28)
 bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
@@ -617,7 +621,7 @@ for index, sheet in enumerate(json.loads((work/'sheets.json').read_text())):
     pivots[part] = (x, y, z)
     box('Manuscript leaves', (x, y, z+.00125), (sheet['height'], sheet['width'], .0025), cream, .0003, yaw)
     # The page is drawn head-up; lying flat it is turned so the head faces +x.
-    plane_image(part, (x, y, z+.00262), sheet['width'], sheet['height'], work/f'sheet-{index}.png', yaw - math.pi/2)
+    plane_image(part, (x, y, z+.0028), sheet['width'], sheet['height'], work/f'sheet-{index}.png', yaw - math.pi/2)
     part = None
     group = 'objects'
 
@@ -706,6 +710,18 @@ for name, parts in groups.items():
     bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.uv.smart_project(angle_limit=math.radians(66), island_margin=.006)
     bpy.ops.object.mode_set(mode='OBJECT')
+    if name == 'sheets':
+        # Smart Project packs each object separately, so their UVs otherwise
+        # overlap and later sheet bakes overwrite the earlier ones.
+        columns = math.ceil(math.sqrt(len(meshes)))
+        rows = math.ceil(len(meshes)/columns)
+        padding = 10/(size*2)
+        for index, obj in enumerate(meshes):
+            for baked_uv in obj.data.uv_layers[-1].data:
+                baked_uv.uv = (
+                    (index % columns)/columns + padding + baked_uv.uv.x*(1/columns-2*padding),
+                    (index // columns)/rows + padding + baked_uv.uv.y*(1/rows-2*padding),
+                )
     if name == 'spines':
         # A regular print atlas spends its pixels on lettering rather than the
         # empty bands produced by packing tall, narrow islands automatically.
@@ -771,7 +787,7 @@ for name, parts in groups.items():
         bpy.data.objects.remove(combined, do_unlink=True)
         for obj, was_hidden in hidden:
             obj.hide_render = was_hidden
-    elif name in ('books', 'bookmark'):
+    elif name in ('books', 'bookmark', 'sheets'):
         hidden = [(obj, obj.hide_render) for obj in scene.objects if obj.type == 'MESH']
         for obj, _ in hidden:
             obj.hide_render = True

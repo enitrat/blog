@@ -16,6 +16,7 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { mkdir, rm } from 'node:fs/promises';
 import { chromium, webkit } from 'playwright';
+import sharp from 'sharp';
 
 const OUTPUT = '/tmp/room-check';
 const SHOTS = process.argv.includes('--shots');
@@ -187,6 +188,36 @@ async function run(engineName, url) {
 					const gap = Math.hypot(boxes[0].x - boxes[1].x, boxes[0].y - boxes[1].y);
 					assert.ok(gap > 60, `controls are ${Math.round(gap)}px apart`);
 				});
+
+				// WebKit exposes depth fighting between near-coplanar manuscript surfaces.
+				if (engineName === 'webkit' && viewport.name === 'desktop') {
+					await check(`${label} manuscript surfaces stay stable`, async () => {
+						const room = page.locator('[data-room]');
+						await room.scrollIntoViewIfNeeded();
+						const bounds = await room.boundingBox();
+						assert.ok(bounds);
+						let darkest = 0;
+						for (let i = 0; i < 40; i++) {
+							await page.mouse.move(
+								bounds.x + bounds.width * (i % 2 ? 0.95 : 0.05),
+								bounds.y + bounds.height * (i % 4 < 2 ? 0.05 : 0.95),
+							);
+							await page.waitForTimeout(16);
+							const frame = await page.locator('.living-room__canvas').screenshot();
+							const { data, info } = await sharp(frame)
+								.extract({ left: 555, top: 325, width: 105, height: 85 })
+								.removeAlpha()
+								.raw()
+								.toBuffer({ resolveWithObject: true });
+							let dark = 0;
+							for (let pixel = 0; pixel < data.length; pixel += info.channels) {
+								if (data[pixel] < 35 && data[pixel + 1] < 35 && data[pixel + 2] < 35) dark++;
+							}
+							darkest = Math.max(darkest, dark);
+						}
+						assert.ok(darkest < 900, `${darkest} near-black pixels over the manuscripts`);
+					});
+				}
 
 				if (SHOTS) {
 					await check(`${label} shot`, async () => {
