@@ -902,5 +902,6 @@ export async function mountRoom(
 	});
 	bookshelf.connect(frameShelf);
 	draw();
+	performance.mark('room-live');
 	return dispose;
 }

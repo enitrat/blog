@@ -9,15 +9,24 @@ import math
 import os
 import random
 import sys
+import time
 from pathlib import Path
 from mathutils import Vector
 
+started = time.perf_counter()
 args = sys.argv[sys.argv.index('--') + 1:]
 work = Path(args[0])
 out = Path(args[1])
 samples = int(args[2])
 size = int(args[3])
 preview_only = '--preview' in args
+minimal_art = '--minimal-art' in args
+group_names = ('shell', 'furniture', 'objects', 'moving', 'spines', 'books', 'covers', 'bookmark', 'sheets')
+only_index = args.index('--only')
+targets = set(args[only_index + 1].split(','))
+unknown_targets = targets.difference(group_names)
+if unknown_targets:
+    raise RuntimeError(f'Unknown room groups: {sorted(unknown_targets)}')
 expected_blender = os.environ.get('BLENDER_VERSION', '4.5.3')
 actual_blender = '.'.join(map(str, bpy.app.version))
 if actual_blender != expected_blender:
@@ -54,7 +63,7 @@ scene.render.resolution_x = 1920
 scene.render.resolution_y = 1080
 scene.render.resolution_percentage = 100
 
-groups = {'shell': {}, 'furniture': {}, 'objects': {}, 'moving': {}, 'spines': {}, 'books': {}, 'covers': {}, 'bookmark': {}, 'sheets': {}}
+groups = {name: {} for name in group_names}
 group = 'shell'
 # Parts of `moving` keep their own transform so the runtime can turn them, and
 # their origin sits on the axis they turn about.
@@ -175,9 +184,12 @@ def tube(name, points, radius, mat):
 def plane_image(name, at, width, height, path, flat=None):
     """An upright print facing -y, or, given a yaw, one lying flat with its top edge turned that way."""
     mat = material(name, '#ffffff', .8)
-    tex = mat.node_tree.nodes.new('ShaderNodeTexImage')
-    tex.image = bpy.data.images.load(str(path))
-    mat.node_tree.links.new(tex.outputs['Color'], mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'])
+    if path.exists():
+        tex = mat.node_tree.nodes.new('ShaderNodeTexImage')
+        tex.image = bpy.data.images.load(str(path))
+        mat.node_tree.links.new(tex.outputs['Color'], mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'])
+    elif not minimal_art or group in targets:
+        raise FileNotFoundError(path)
     bpy.ops.mesh.primitive_plane_add(size=1, location=at, rotation=(math.pi/2, 0, 0) if flat is None else (0, 0, flat))
     obj = bpy.context.object
     obj.scale = (width, height, 1)
@@ -675,19 +687,20 @@ for parts in groups.values():
             scene.cursor.location = pivots[name]
             bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
 
-bpy.ops.wm.save_as_mainfile(filepath=str(work/'living-room.blend'))
+source_name = 'living-room.blend' if not minimal_art else f"living-room-{'-'.join(sorted(targets))}.blend"
+bpy.ops.wm.save_as_mainfile(filepath=str(work/source_name))
+print(f'TIMING scene {time.perf_counter()-started:.2f}s', flush=True)
 if preview_only:
     scene.render.filepath = str(work/'preview.png')
+    render_started = time.perf_counter()
     bpy.ops.render.render(write_still=True)
+    print(f'TIMING preview {time.perf_counter()-render_started:.2f}s', flush=True)
     sys.exit(0)
 
 for name, parts in groups.items():
-    if '--spines-only' in args and name != 'spines':
+    if name not in targets:
         continue
-    if '--books-only' in args and name not in ('books', 'covers'):
-        continue
-    if '--room-only' in args and name in ('books', 'covers', 'bookmark'):
-        continue
+    bake_started = time.perf_counter()
     meshes = [objects[0] for objects in parts.values()]
     bpy.ops.object.select_all(action='DESELECT')
     for obj in meshes:
@@ -767,19 +780,21 @@ for name, parts in groups.items():
     scene.render.bake.use_pass_glossy = False
     scene.render.bake.use_pass_transmission = False
     scene.render.bake.margin = 16
-    print('BAKING',name,size,samples,flush=True)
+    print('BAKING', name, resolution, samples, flush=True)
     # Moving surfaces cannot inherit shadows from their neighbours. Bake each
     # volume in the same room light, with only its own covers shading its pages.
-    if name == 'covers':
+    if name in ('covers', 'sheets'):
         hidden = [(obj, obj.hide_render) for obj in scene.objects if obj.type == 'MESH']
         for obj, _ in hidden:
             obj.hide_render = True
         bpy.ops.object.duplicate(linked=False)
-        bpy.ops.object.join()
+        if len(meshes) > 1:
+            bpy.ops.object.join()
         combined = bpy.context.object
         combined.hide_render = False
-        # These flat, convex covers need no self-shadowing. Exclude them from
-        # secondary rays; a joined copy bakes once while the originals retain their hinges.
+        # These flat surfaces need no self-shadowing. Exclude them from
+        # secondary rays; a joined copy bakes once while the originals retain
+        # their runtime transforms.
         combined.visible_shadow = False
         combined.visible_diffuse = False
         combined.visible_glossy = False
@@ -787,7 +802,7 @@ for name, parts in groups.items():
         bpy.data.objects.remove(combined, do_unlink=True)
         for obj, was_hidden in hidden:
             obj.hide_render = was_hidden
-    elif name in ('books', 'bookmark', 'sheets'):
+    elif name in ('books', 'bookmark'):
         hidden = [(obj, obj.hide_render) for obj in scene.objects if obj.type == 'MESH']
         for obj, _ in hidden:
             obj.hide_render = True
@@ -822,14 +837,17 @@ for name, parts in groups.items():
     # Do not change the other groups' source materials until every bake is done.
     for obj in meshes:
         obj['baked_material'] = mat.name
+    print(f'TIMING bake:{name} {time.perf_counter()-bake_started:.2f}s', flush=True)
+
+checkpoint_started = time.perf_counter()
+checkpoint_name = source_name.removesuffix('.blend') + '-baked.blend'
+bpy.ops.wm.save_as_mainfile(filepath=str(work/checkpoint_name))
+print(f'TIMING checkpoint {time.perf_counter()-checkpoint_started:.2f}s', flush=True)
 
 for name, parts in groups.items():
-    if '--spines-only' in args and name != 'spines':
+    if name not in targets:
         continue
-    if '--books-only' in args and name not in ('books', 'covers'):
-        continue
-    if '--room-only' in args and name in ('books', 'covers', 'bookmark'):
-        continue
+    export_started = time.perf_counter()
     meshes = [objects[0] for objects in parts.values()]
     bpy.ops.object.select_all(action='DESELECT')
     for obj in meshes:
@@ -845,4 +863,5 @@ for name, parts in groups.items():
     bpy.ops.export_scene.gltf(filepath=str(out/(name+'.glb')),export_format='GLB',use_selection=True,
                               export_texcoords=True,export_normals=False,export_materials='EXPORT',
                               export_image_format='JPEG',export_jpeg_quality=95)
+    print(f'TIMING export:{name} {time.perf_counter()-export_started:.2f}s', flush=True)
 print('Room assets exported',flush=True)

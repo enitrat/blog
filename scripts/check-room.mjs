@@ -20,6 +20,7 @@ import sharp from 'sharp';
 
 const OUTPUT = '/tmp/room-check';
 const SHOTS = process.argv.includes('--shots');
+const METRICS = process.argv.includes('--metrics');
 const ENGINES = { chromium, webkit };
 const only = process.argv.slice(2).find((arg) => arg in ENGINES);
 
@@ -149,6 +150,29 @@ async function run(engineName, url) {
 					.waitForSelector('[data-room][data-live]', { timeout: 20000 })
 					.then(() => true)
 					.catch(() => false));
+
+			const metrics = booted
+				? await page.evaluate(() => {
+						const assets = performance
+							.getEntriesByType('resource')
+							.filter((entry) => entry.name.includes('.glb') && entry.initiatorType === 'fetch');
+						return {
+							liveMs: Math.round(performance.getEntriesByName('room-live').at(-1)?.startTime ?? 0),
+							lastAssetMs: Math.round(Math.max(0, ...assets.map((entry) => entry.responseEnd))),
+							assets: assets.length,
+							encodedBytes: assets.reduce((total, entry) => total + entry.encodedBodySize, 0),
+						};
+					})
+				: null;
+			if (metrics) {
+				await check(`${label} stays within the room asset budget`, () => {
+					assert.equal(metrics.assets, 9);
+					assert.ok(metrics.encodedBytes <= 11_000_000, `${metrics.encodedBytes} GLB bytes`);
+				});
+				if (METRICS) {
+					console.log(`ROOM_METRICS ${label} ${JSON.stringify(metrics)}`);
+				}
+			}
 
 			if (viewport.hasTouch) {
 				await check(`${label} stays on the poster`, () =>

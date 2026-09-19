@@ -50,7 +50,10 @@ place.
 
 ## JSON manifests
 
-`bake-room.mjs` writes every manifest on each run, including `--layout-only`.
+`bake-room.mjs` stages manifests and GLBs in the work directory. It validates
+selected GLBs before replacing checked-in assets. A full bake and
+`--layout-only` publish every manifest; `--only sheets` publishes `sheets.json`
+with its GLB.
 
 | File | Consumers | Contents |
 |---|---|---|
@@ -82,16 +85,17 @@ The default atlas sizes are:
 | Covers | 2048 to 4096 px, based on the cover count |
 | Moving parts and bookmark | 1024 px |
 
-Books, the bookmark, and manuscript sheets bake in isolation. This prevents
-nearby meshes from adding permanent occlusion to movable surfaces. Source
-artwork UVs stay separate from bake UVs.
+Books and the bookmark bake individually. Manuscript sheets share one isolated
+bake pass after their UVs are packed into separate atlas cells. This prevents
+nearby meshes from adding permanent occlusion to movable surfaces without
+running Cycles once per sheet. Source artwork UVs stay separate from bake UVs.
 
 ## Content changes
 
 | Change | Required output |
 |---|---|
 | Add or reorder a book | Full bake and all manifests |
-| Add a note | `books.glb` and `covers.glb` |
+| Add a note | `covers.glb` |
 | Change reading status | No bake. The runtime reuses `bookmark.glb` |
 | Publish English writing | `sheets.glb` and `sheets.json` |
 | Change cabinet dimensions | Full bake and all manifests |
