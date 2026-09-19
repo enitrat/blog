@@ -60,7 +60,3 @@ Mathieu reads the report and answers freeform. Every accept/reject on a C-questi
 - Calibrate on Mathieu's own writing (`src/content/blog/`) before proposing anything: plain, direct, complete sentences, concrete numbers, no aphorisms, no editorial cleverness, **no em-dashes**.
 - Propose via multi-choice variants he picks from or corrects; never ship freeform drafts of his voice. His corrections are final text.
 - Facts about him come only from him or his files. Blank placeholder beats invented specificity.
-
-## Deferred backlog
-
-Carried between runs: mobile pass (the scroll-driven art stage is the riskiest untested surface per `HANDOFF.md`), production-deploy verification, re-review when field reports and final artwork replace placeholders.

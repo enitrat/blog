@@ -1,4 +1,4 @@
-/** Bake original room assets with Blender 4.5; Blender is an offline tool only. */
+/** Bake original room assets with Blender 4.5; the browser consumes only the exports. */
 import { spawn } from 'node:child_process';
 import { mkdir, mkdtemp, readdir, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
