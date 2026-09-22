@@ -9,8 +9,8 @@
 /** Drawing size, in the same units as every dimension below. A4 at 4 per mm. */
 export const SHEET = { width: 840, height: 1188 };
 
-const INK = '#1f2a4a';
-const PAPER = '#efe6cf';
+const INK = '#090d18';
+const PAPER = '#dfd1ae';
 const HAND = "'Snell Roundhand','Zapfino','Apple Chancery',cursive";
 
 const xml = (text) =>
@@ -81,7 +81,7 @@ export const sheetSvg = (piece, seed) => {
 	const single = (measure / piece.title.length) * 2.05;
 	const heading = single >= 44 ? [piece.title] : lines(piece.title, 2);
 	const longest = Math.max(...heading.map((line) => line.length));
-	const size = Math.min(58, (measure / longest) * 2.05);
+	const size = Math.min(64, (measure / longest) * 2.12);
 	const leading = size * 1.25;
 	const head = [];
 	let y = 96 + size * 0.8;
@@ -105,7 +105,7 @@ export const sheetSvg = (piece, seed) => {
 		const length = last
 			? measure * (0.35 + random() * 0.4)
 			: measure - (start - margin) - random() * 20;
-		body.push(scribble(random, start, line, length, 2.2 + random() * 0.8));
+		body.push(scribble(random, start, line, length, 3.1 + random() * 1.0));
 		if (random() < 0.09) {
 			const at = start + random() * (length - 120);
 			body.push(
@@ -132,7 +132,7 @@ export const sheetSvg = (piece, seed) => {
 	return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
 <rect width="${width}" height="${height}" fill="${PAPER}"/>
 <g font-family="${HAND}" fill="${INK}" text-anchor="middle">${head.join('')}</g>
-<g fill="none" stroke="${INK}" stroke-linecap="round" opacity=".82" transform="translate(${(Math.tan((9 * Math.PI) / 180) * (height / 2)).toFixed(1)} 0) skewX(-9)">${body.join('')}</g>
+<g fill="none" stroke="${INK}" stroke-linecap="round" opacity=".96" transform="translate(${(Math.tan((9 * Math.PI) / 180) * (height / 2)).toFixed(1)} 0) skewX(-9)">${body.join('')}</g>
 ${blot}
 </svg>`;
 };

@@ -601,10 +601,14 @@ export async function mountRoom(
 		const distance =
 			Math.max(shelf.height, shelf.width / camera.aspect) /
 			(2 * Math.tan(THREE.MathUtils.degToRad(fov / 2)));
+		// The cabinet's straight-on sightline runs through the sofa. Approach from
+		// the open side while keeping the same camera-to-shelf framing distance.
+		const cameraX = shelf.view === 'cabinet' ? 1.5 : shelf.x;
+		const depth = Math.sqrt(distance ** 2 - (cameraX - shelf.x) ** 2);
 		// Stepping along a row is a short pan; arriving at the shelves is a trip.
 		travel(
 			'shelf',
-			shelfPosition.set(shelf.x, shelf.y + (shelf.view === 'row' ? 0.06 : 0), shelf.z + distance),
+			shelfPosition.set(cameraX, shelf.y + (shelf.view === 'row' ? 0.06 : 0), shelf.z + depth),
 			shelfTarget.set(shelf.x, shelf.y, shelf.z),
 			duration ?? (reframe ? 0 : lateral ? 280 : shelf.view === 'row' ? 500 : 750),
 			fov,

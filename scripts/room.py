@@ -53,11 +53,11 @@ try:
 except (TypeError, RuntimeError):
     scene.cycles.device = 'CPU'
 scene.world.use_nodes = True
-scene.world.node_tree.nodes['Background'].inputs[0].default_value = (0.72, 0.79, 0.9, 1)
-scene.world.node_tree.nodes['Background'].inputs[1].default_value = 0.3
+scene.world.node_tree.nodes['Background'].inputs[0].default_value = (0.018, 0.028, 0.045, 1)
+scene.world.node_tree.nodes['Background'].inputs[1].default_value = 0.16
 scene.view_settings.view_transform = 'AgX'
 scene.view_settings.look = 'AgX - Medium High Contrast'
-scene.view_settings.exposure = 0.35
+scene.view_settings.exposure = 0.30
 scene.render.image_settings.file_format = 'PNG'
 scene.render.resolution_x = 1920
 scene.render.resolution_y = 1080
@@ -87,7 +87,11 @@ def material(name, color, rough=.6, texture=None, metal=0):
         coord = nodes.new('ShaderNodeTexCoord')
         mapping = nodes.new('ShaderNodeVectorMath')
         mapping.operation = 'MULTIPLY'
-        mapping.inputs[1].default_value = (3, 55, 4) if texture == 'wood' else (180, 180, 180)
+        mapping.inputs[1].default_value = (
+            (3, 55, 4) if texture == 'wood' else
+            (5, 5, 5) if texture == 'plaster' else
+            (180, 180, 180)
+        )
         links.new(coord.outputs['Generated'], mapping.inputs[0])
         noise = nodes.new('ShaderNodeTexNoise')
         noise.inputs['Scale'].default_value = 2.5
@@ -96,34 +100,37 @@ def material(name, color, rough=.6, texture=None, metal=0):
         links.new(mapping.outputs[0], noise.inputs['Vector'])
         ramp = nodes.new('ShaderNodeValToRGB')
         ramp.color_ramp.elements[0].position = .2
-        ramp.color_ramp.elements[0].color = (*(v * .65 for v in base), 1)
+        dark, light = (.78, 1.08) if texture == 'plaster' else (.65, 1.2)
+        ramp.color_ramp.elements[0].color = (*(v * dark for v in base), 1)
         ramp.color_ramp.elements[1].position = .8
-        ramp.color_ramp.elements[1].color = (*(min(1, v * 1.2) for v in base), 1)
+        ramp.color_ramp.elements[1].color = (*(min(1, v * light) for v in base), 1)
         links.new(noise.outputs['Fac'], ramp.inputs[0])
         links.new(ramp.outputs[0], bsdf.inputs['Base Color'])
         bump = nodes.new('ShaderNodeBump')
-        bump.inputs['Strength'].default_value = .18
-        bump.inputs['Distance'].default_value = .0015 if texture == 'wood' else .0007
+        bump.inputs['Strength'].default_value = .10 if texture == 'plaster' else .18
+        bump.inputs['Distance'].default_value = .0015 if texture == 'wood' else .003 if texture == 'plaster' else .0007
         links.new(noise.outputs['Fac'], bump.inputs['Height'])
         links.new(bump.outputs[0], bsdf.inputs['Normal'])
+        if texture == 'velvet':
+            bsdf.inputs['Sheen Weight'].default_value = .18
     return mat
 
-plaster = material('Warm lime plaster', '#d3c9b5', .95, 'fabric')
-walnut = material('Oiled walnut', '#795037', .38, 'wood')
-oak = material('Oak end grain', '#a17b50', .48, 'wood')
-darkwood = material('Walnut shadow', '#493223', .65, 'wood')
+plaster = material('Deep green wall', '#13271f', .92, 'plaster')
+walnut = material('Oiled walnut', '#3d2418', .42, 'wood')
+oak = material('Smoked oak', '#55351f', .48, 'wood')
+darkwood = material('Walnut shadow', '#1b100b', .65, 'wood')
 black = material('Charcoal enamel', '#242725', .35)
 metal = material('Brushed aluminium', '#aaa9a2', .3, metal=.2)
-brass = material('Aged brass', '#ad8750', .32, metal=.15)
+brass = material('Aged brass', '#8b6936', .28, metal=.68)
 cream = material('Ivory paper', '#ddd3b5', .85)
-linen = material('Oatmeal linen', '#c5ad7e', .9, 'fabric')
+linen = material('Oatmeal linen', '#b99b6c', .9, 'fabric')
 ceramic = material('Porcelain', '#bdbca9', .24)
 green = material('Rubber plant leaves', '#405b31', .45)
 soil = material('Potting soil', '#302821', 1)
 terra = material('Terracotta', '#a66a48', .9, 'fabric')
-rug_red = material('Kilim madder', '#9b483a', .98, 'fabric')
-rug_blue = material('Kilim indigo', '#3a5359', .98, 'fabric')
-rug_cream = material('Kilim flax', '#c6ac81', .98, 'fabric')
+rug_red = material('Kilim madder', '#6f2526', .98, 'fabric')
+rug_blue = material('Kilim deep green', '#203b33', .98, 'fabric')
+rug_cream = material('Kilim tobacco', '#ad875e', .98, 'fabric')
 
 def finish(obj, name, mat, bevel=0):
     obj.name = name
@@ -196,20 +203,45 @@ def plane_image(name, at, width, height, path, flat=None):
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
     return finish(obj, name, mat)
 
-# A cutaway corner, with open space around the furniture and a real floor edge.
-box('Floating oak foundation', (0, 0, -.10), (4.3, 3.1, .18), darkwood, .035)
-floor_mats = [material('Oak board '+str(i), c, .58, 'wood') for i, c in enumerate(
-    ['#ad8a5e', '#a98559', '#b39165', '#a27b50', '#af8b5f'])]
-for row in range(16):
-    y = -1.45 + row * .193
-    for col in range(4):
-        x = -1.6125 + col * 1.075
-        box('Individual floor board', (x, y, .003), (1.071, .189, .025), floor_mats[(row*3+col)%5], .002)
+# A dark, panelled cutaway room. Short parquet blocks give the floor scale in
+# both the overview and the close desk view without requiring a texture asset.
+box('Floating walnut foundation', (0, 0, -.10), (4.3, 3.1, .18), darkwood, .035)
+floor_mats = [material('Parquet '+str(i), c, .48, 'wood') for i, c in enumerate(
+    ['#3e2519', '#472b1c', '#553622', '#352017', '#5a3925'])]
+for row in range(15):
+    y = -1.44 + row * .205
+    for col in range(9):
+        x = -1.90 + col * .46
+        offset = .08 if row % 2 else 0
+        box('Staggered parquet block', (x+offset, y, .003), (.448, .198, .025),
+            floor_mats[(row*5+col*3)%len(floor_mats)], .0015)
 box('Back wall', (0, 1.52, 1.28), (4.3, .09, 2.56), plaster, .012)
-# Left wall is low at the front, preserving the lamp silhouette from the room camera.
 box('Left wall', (-2.105, .45, 1.28), (.09, 2.14, 2.56), plaster, .012)
-box('Back skirting', (0, 1.452, .07), (4.18, .035, .11), oak, .005)
-box('Left skirting', (-2.041, .45, .07), (.035, 2.03, .11), oak, .005)
+box('Back skirting', (0, 1.452, .09), (4.18, .045, .17), darkwood, .005)
+box('Left skirting', (-2.041, .45, .09), (.045, 2.03, .17), darkwood, .005)
+box('Back picture rail', (1.88, 1.445, 1.72), (.45, .055, .065), walnut, .008)
+box('Back crown', (0, 1.442, 2.48), (4.22, .075, .11), darkwood, .014)
+box('Left picture rail', (-2.038, .45, 1.72), (.055, 2.02, .065), walnut, .008)
+box('Left crown', (-2.035, .45, 2.48), (.075, 2.06, .11), darkwood, .014)
+
+# Shallow wall mouldings catch the warm light but stay behind every interaction.
+for x in [1.68, 2.08]:
+    box('Panel stile', (x, 1.437, .91), (.035, .035, 1.47), walnut, .004)
+for z in [.20, 1.63]:
+    box('Panel rail', (1.88, 1.437, z), (.45, .035, .035), walnut, .004)
+
+# An arched night window on the left wall. It is a dark recess rather than a
+# boolean opening, which renders the same from the room camera at far lower cost.
+night = material('Rainy night glass', '#071413', .2)
+box('Window dark recess', (-2.045, .36, 1.38), (.014, .94, 1.66), night, .015)
+for y in [-.12, .36, .84]:
+    box('Window vertical frame', (-2.025, y, 1.38), (.035, .032, 1.66), darkwood, .005)
+for z in [.58, 1.14, 1.70, 2.21]:
+    box('Window horizontal frame', (-2.025, .36, z), (.035, .94, .032), darkwood, .005)
+box('Window sill', (-1.99, .36, .53), (.16, 1.08, .08), walnut, .012)
+window_arch = [(-2.023, .36 + .47*math.cos(a), 1.72 + .47*math.sin(a))
+               for a in [i*math.pi/16 for i in range(17)]]
+tube('Window arched head', window_arch, .025, darkwood)
 
 group = 'furniture'
 # Bookcase: thinner shelves and a recessed back give each bay depth. Its
@@ -229,6 +261,37 @@ box('Bookcase plinth', (cx, cy, cabinet['floor'] + plinth/2), (.99, .34, plinth)
 shelves = cabinet['shelves']
 for z in shelves:
     box('Shelf with rounded lip', (cx, cy, z-.013), (1.03, .39, .027), walnut, .005)
+    box('Bookcase shelf nosing', (cx, 1.073, z-.005), (1.07, .035, .045), walnut, .006)
+for x in [cx-cw/2-.005, cx+cw/2+.005]:
+    box('Bookcase face stile', (x, 1.073, .92), (.055, .035, 1.66), walnut, .006)
+
+# Join the active cabinet and the listening console into one wall of millwork.
+# The interactive shelf keeps its manifest dimensions; these parts are only the
+# architectural surround, so redesigning them cannot move a book target.
+box('Library left pilaster', (-1.79, 1.28, 1.22), (.14, .28, 2.36), darkwood, .008)
+box('Library centre pilaster', (-.49, 1.28, 1.22), (.12, .28, 2.36), darkwood, .008)
+box('Library right pilaster', (1.57, 1.28, 1.22), (.14, .28, 2.36), darkwood, .008)
+box('Library entablature', (-.11, 1.29, 2.36), (3.52, .31, .16), walnut, .012)
+box('Library crown cap', (-.11, 1.28, 2.47), (3.65, .36, .08), darkwood, .012)
+box('Library dentil rail', (-.11, 1.105, 2.31), (3.54, .035, .055), darkwood, .006)
+for x in [-1.79, -.49, 1.57]:
+    for offset in [-.035, .035]:
+        box('Pilaster flute', (x+offset, 1.125, 1.31), (.012, .018, 1.82), walnut, .004)
+    box('Pilaster capital', (x, 1.115, 2.25), (.18, .05, .10), walnut, .008)
+    box('Pilaster foot block', (x, 1.115, .20), (.18, .05, .20), walnut, .006)
+
+# Upper shelves over the record console turn the separate pieces into a built-in.
+for z in [1.13, 2.30]:
+    box('Listening shelf', (.54, 1.31, z), (1.94, .34, .045), walnut, .006)
+    box('Listening shelf nosing', (.54, 1.125, z-.002), (2.00, .035, .065), walnut, .006)
+for z in [1.53, 1.93]:
+    box('Listening shelf', (-.19, 1.31, z), (.46, .34, .045), walnut, .006)
+    box('Listening shelf', (1.27, 1.31, z), (.46, .34, .045), walnut, .006)
+    box('Listening shelf nosing', (-.19, 1.125, z), (.49, .035, .055), walnut, .005)
+    box('Listening shelf nosing', (1.27, 1.125, z), (.49, .035, .055), walnut, .005)
+box('Listening cabinet back', (.54, 1.46, 1.72), (1.94, .025, 1.18), darkwood, .003)
+for x in [-.43, .54, 1.51]:
+    box('Listening shelf divider', (x, 1.31, 1.72), (.045, .34, 1.18), walnut, .005)
 
 # A 1970s walnut credenza, with sliding fronts, finger pulls and tapered legs.
 hx, hy = .68, 1.15
@@ -239,15 +302,19 @@ box('Credenza carcass', (hx, hy, .42), (1.66, .47, .45), darkwood)
 box('Credenza top', (hx, hy, .665), (1.72, .51, .04), walnut, .012)
 for x in [.26, 1.09]:
     box('Sliding walnut door', (x, .904, .435), (.812, .025, .387), walnut, .005)
-    box('Recessed finger pull', (x+.30, .887, .455), (.012, .008, .085), black, .005)
+    for y in [.294, .576]:
+        box('Credenza door rail', (x, .885, y), (.70, .018, .025), darkwood, .003)
+    for edge in [x-.35, x+.35]:
+        box('Credenza door stile', (edge, .885, .435), (.025, .018, .30), darkwood, .003)
+    cylinder('Credenza brass pull', (x+.30, .875, .455), .012, .018, brass, 24).rotation_euler.x = math.pi/2
 box('Credenza lower rail', (hx, .91, .221), (1.64, .035, .028), walnut)
 
 # A writer's desk from the century before last: a fumed-oak pedestal desk with
 # a leather writing surface, turned corner columns, fielded panels and brass
 # swan-neck pulls. It stands along the open side of the room. The drawers face
 # the chair; the camera reads the panelled back, the end and the leather top.
-fumed = material('Fumed oak', '#5a3a21', .32, 'wood')
-fumed_shadow = material('Fumed oak shadow', '#3a2615', .5, 'wood')
+fumed = material('Fumed oak', '#412719', .40, 'wood')
+fumed_shadow = material('Fumed oak shadow', '#25160f', .55, 'wood')
 hide = material('Bottle-green writing leather', '#2b3f33', .55, 'fabric')
 dx, dy, dz = 1.72, -.55, .725  # centre of the desk and the underside of its top
 for py in [dy-.45, dy+.45]:
@@ -323,20 +390,78 @@ for x in [-.57, .01]:
         tube('Coffee table leg', [(x, y, .035), (x*.88-.03, y*.94, .38)], .018, walnut)
 box('Coffee table top', (-.28, -.59, .405), (.90, .62, .055), walnut, .10)
 
+# A compact oxblood listening sofa runs along the open left edge and faces the
+# writing desk. Its low back preserves the existing shelf camera sightline.
+velvet = material('Oxblood cotton velvet', '#42040b', .72, 'velvet')
+velvet_dark = material('Oxblood velvet shadow', '#240207', .80, 'velvet')
+sofa_x, sofa_y = -1.42, -.61
+box('Sofa shadow plinth', (sofa_x, sofa_y, .15), (.54, 1.40, .065), darkwood, .025)
+box('Sofa back', (sofa_x-.29, sofa_y, .68), (.20, 1.58, .86), velvet, .09)
+box('Sofa seat deck', (sofa_x, sofa_y, .42), (.69, 1.50, .20), velvet_dark, .07)
+box('Sofa front apron', (sofa_x+.345, sofa_y, .38), (.055, 1.38, .18), velvet, .025)
+for y in [sofa_y-.49, sofa_y, sofa_y+.49]:
+    box('Sofa loose seat cushion', (sofa_x+.05, y, .53), (.57, .46, .16), velvet, .055)
+for y in [sofa_y-.80, sofa_y+.80]:
+    box('Sofa rolled arm', (sofa_x+.01, y, .62), (.72, .20, .46), velvet, .09)
+    scroll = cylinder('Sofa arm scroll', (sofa_x+.31, y, .68), .10, .20, velvet, 32)
+    scroll.rotation_euler.x = math.pi/2
+    for cap_y in [y-.102, y+.102]:
+        sphere('Sofa arm upholstered cap', (sofa_x+.31, cap_y, .68), (.101, .018, .101), velvet)
+for y in [sofa_y-.62, sofa_y-.20, sofa_y+.22, sofa_y+.64]:
+    for z in [.55, .73, .90]:
+        sphere('Sofa tuft button', (sofa_x-.185, y, z), (.012, .012, .012), velvet_dark)
+for y in [sofa_y-.62+i*.125 for i in range(11)]:
+    sphere('Sofa brass nail', (sofa_x+.376, y, .38), (.004, .004, .004), brass)
+for x in [sofa_x-.23, sofa_x+.23]:
+    for y in [sofa_y-.65, sofa_y+.65]:
+        cylinder('Sofa walnut foot', (x, y, .10), .027, .20, walnut, 16, .02)
+
+# Two restrained cushions tie the sofa to the green walls and old rug.
+green_cushion = box('Sofa green cushion', (sofa_x-.08, sofa_y-.37, .73), (.13, .34, .34), hide, .055, -.08)
+green_cushion.rotation_euler.y = -.22
+tapestry_cushion = box('Sofa tapestry cushion', (sofa_x-.07, sofa_y+.34, .72), (.13, .32, .32), rug_cream, .05, .10)
+tapestry_cushion.rotation_euler.y = -.18
+
 group = 'objects'
-# Woven kilim. The motifs are geometry in the source and become texture in the bake.
-box('Kilim ground', (.10, -.35, .025), (2.6, 1.72, .012), rug_red, .01)
-box('Kilim border', (.10, -.35, .032), (2.41, 1.53, .004), rug_cream, .003)
-box('Kilim inner field', (.10, -.35, .035), (2.29, 1.41, .003), rug_blue, .002)
-for x in [-.69, -.17, .35, .87]:
-    obj = box('Kilim diamond', (x, -.35, .038), (.32, .32, .001), rug_red, 0, math.pi/4)
-    box('Kilim diamond centre', (x, -.35, .040), (.145, .145, .001), rug_cream, 0, math.pi/4)
-for y in [-.94, .24]:
-    for i in range(22):
-        box('Kilim border stitch', (-.99+i*.104, y, .039), (.036, .06, .001), rug_cream, 0, math.pi/4)
+# A dark Persian-style rug. Flat geometry becomes one baked textile atlas, so
+# the browser pays no runtime cost for the medallion and repeated border.
+box('Rug ground', (.10, -.35, .025), (2.6, 1.72, .012), rug_red, .01)
+box('Rug outer border', (.10, -.35, .032), (2.43, 1.55, .004), rug_blue, .003)
+box('Rug guard stripe', (.10, -.35, .035), (2.31, 1.43, .003), rug_cream, .002)
+box('Rug inner border', (.10, -.35, .038), (2.19, 1.31, .002), rug_red, .002)
+box('Rug dark field', (.10, -.35, .040), (1.91, 1.03, .002), rug_blue, .002)
+for layer, (radius, mat) in enumerate([(.47, rug_red), (.36, rug_cream), (.27, rug_red), (.15, rug_cream)]):
+    motif = cylinder('Rug central medallion', (.10, -.35, .043+layer*.002), radius, .002, mat, 12)
+    motif.scale.y = .62
+for angle in [0, math.pi/2, math.pi, math.pi*1.5]:
+    x, y = .10+math.cos(angle)*.47, -.35+math.sin(angle)*.29
+    petal = cylinder('Rug medallion palmette', (x, y, .052), .10, .002, rug_red, 8)
+    petal.scale.y = .48
+    petal.rotation_euler.z = angle
+for x in [-.70, .90]:
+    for y in [-.72, .02]:
+        motif = cylinder('Rug corner motif', (x, y, .043), .13, .002, rug_red, 8)
+        motif.scale.y = .70
+        cylinder('Rug corner motif centre', (x, y, .045), .045, .002, rug_cream, 10)
+for x in [-.65, -.28, .48, .85]:
+    for y in [-.68, -.35, -.02]:
+        cylinder('Rug field flower', (x, y, .044), .035, .002, rug_cream, 8)
+        for angle in [0, math.pi/2, math.pi, math.pi*1.5]:
+            px, py = x+math.cos(angle)*.06, y+math.sin(angle)*.06
+            petal = cylinder('Rug field petal', (px, py, .043), .035, .002, rug_red, 8)
+            petal.scale.y = .45
+            petal.rotation_euler.z = angle
+for y in [-1.01, .31]:
+    for i in range(18):
+        cylinder('Rug border rosette', (-.92+i*.12, y, .044), .026, .002,
+                 rug_cream if i%2 else rug_red, 8)
+for x in [-1.09, 1.29]:
+    for i in range(9):
+        cylinder('Rug side rosette', (x, -.83+i*.12, .044), .026, .002,
+                 rug_cream if i%2 else rug_red, 8)
 for x in [-1.23, 1.43]:
     for i in range(55):
-        tube('Kilim fringe', [(x, -1.14+i*.029, .026), (x+(.04 if x>0 else -.04), -1.14+i*.029, .02)], .002, rug_cream)
+        tube('Rug fringe', [(x, -1.14+i*.029, .026), (x+(.04 if x>0 else -.04), -1.14+i*.029, .02)], .002, rug_cream)
 
 books = json.loads((work/'books.json').read_text())
 slots = json.loads((work/'book-slots.json').read_text())
@@ -441,10 +566,52 @@ record_colors = [cream, rug_red, rug_blue, black, linen, terra]
 for i in range(39):
     box('Record sleeve in shelf', (-1.6+i*.012, 1.21, .352), (.009, .308, .32), record_colors[i%6], .001)
 
+# A few quiet rows dress the upper built-in. These are scenery; the authored
+# library remains the only set with readable jackets and interaction identity.
+for shelf_index, z in enumerate([1.552, 1.952]):
+    for side, start in enumerate([-.39, 1.07]):
+        cursor = start
+        for i in range(6):
+            width = .025 + ((i*7 + shelf_index*3 + side) % 4) * .006
+            height = .22 + ((i*5 + side) % 3) * .025
+            book = box('Upper shelf book', (cursor+width/2, 1.17, z+height/2),
+                       (width, .20, height), record_colors[(i+shelf_index+side)%len(record_colors)], .002)
+            if i in (2, 5):
+                book.rotation_euler.y = (-.10 if side else .10) * (1 if shelf_index else 1.4)
+            cursor += width + .005
+
+# Small collected objects break the regular book rows without competing with
+# the interactive library or its readable jackets.
+globe = material('Antique globe parchment', '#786744', .72, 'fabric')
+gx, gy, gz = -.08, 1.18, 1.705
+cylinder('Globe turned base', (gx, gy, 1.565), .055, .025, darkwood, 32, .042)
+cylinder('Globe brass stem', (gx, gy, 1.625), .008, .11, brass, 20)
+sphere('Antique library globe', (gx, gy, gz), (.082, .082, .082), globe)
+bpy.ops.mesh.primitive_torus_add(major_segments=48, minor_segments=8,
+    location=(gx, gy, gz), rotation=(math.pi/2, 0, 0), major_radius=.091, minor_radius=.003)
+finish(bpy.context.object, 'Globe meridian ring', brass)
+
+bx, by = 1.42, 1.17
+box('Classical bust plinth', (bx, by, 1.565), (.13, .11, .025), darkwood, .004)
+cylinder('Classical bust torso', (bx, by, 1.625), .035, .10, cream, 24, .070)
+cylinder('Classical bust neck', (bx, by, 1.675), .025, .07, cream, 20)
+sphere('Classical bust head', (bx, by, 1.735), (.044, .040, .060), cream)
+sphere('Classical bust hair', (bx+.005, by+.018, 1.755), (.047, .030, .045), darkwood)
+sphere('Classical bust nose', (bx, by-.039, 1.741), (.010, .014, .012), cream)
+
+for i, (width, yaw) in enumerate([(.22, -.04), (.20, .03), (.18, -.02)]):
+    box('Upper shelf book stack', (.78, 1.19, 1.955+i*.027),
+        (width, .17, .024), record_colors[(i+2)%len(record_colors)], .002, yaw)
+
+cylinder('Library brass vase', (.84, 1.20, 2.035), .065, .15, brass, 32, .045)
+for i, end in enumerate([(.72, 1.17, 2.25), (.78, 1.14, 2.29), (.87, 1.16, 2.27), (.94, 1.18, 2.23)]):
+    tube('Library foliage stem', [(.84, 1.20, 2.10), end], .003, green)
+    sphere('Library foliage leaf', end, (.045, .018, .075), green).rotation_euler.y = (-.35+i*.22)
+
 # Turntable. The platter and tonearm are exported as their own movable nodes.
 tx, ty, tz = .26, 1.16, .712
 box('Turntable walnut plinth', (tx, ty, tz), (.50, .38, .052), walnut, .014)
-box('Turntable aluminium deck', (tx, ty, tz+.030), (.473, .356, .013), metal, .005)
+box('Turntable charcoal deck', (tx, ty, tz+.030), (.473, .356, .013), black, .005)
 cylinder('Spindle', (tx-.052, ty, tz+.067), .0025, .018, metal, 12)
 
 # The platter and the arm are the two things that move, so they leave the room's
@@ -464,8 +631,13 @@ pivots[part] = (tx+.183, ty+.125, tz)
 cylinder('Tonearm bearing', (tx+.183, ty+.125, tz+.073), .019, .05, metal, 24)
 tube('S shaped tonearm', [(tx+.183, ty+.125, tz+.10), (tx+.17, ty+.04, tz+.105), (tx+.13, ty-.085, tz+.105), (tx+.085, ty-.12, tz+.10)], .0045, metal)
 box('Headshell', (tx+.083, ty-.13, tz+.096), (.018, .034, .014), black, .002, -.25)
+box('Cartridge', (tx+.074, ty-.143, tz+.088), (.012, .019, .011), rug_red, .001, -.25)
+tube('Stylus', [(tx+.073, ty-.148, tz+.087), (tx+.071, ty-.151, tz+.061)], .0007, metal)
 group, part = 'objects', None
-box('Start switch', (tx-.203, ty-.14, tz+.044), (.036, .026, .008), black, .002)
+box('Start switch', (tx-.203, ty-.14, tz+.044), (.036, .026, .008), brass, .002)
+cylinder('Speed selector', (tx-.202, ty+.12, tz+.046), .013, .012, brass, 20)
+for x in [tx-.155, tx-.125]:
+    box('Speed button', (x, ty+.137, tz+.044), (.018, .025, .008), metal, .002)
 # Smoked open lid is modelled with a frame; no opaque card hiding the record.
 for x in [tx-.246, tx+.246]:
     tube('Dust cover edge', [(x, ty+.18, tz+.036), (x, ty+.24, tz+.30)], .004, black)
@@ -648,11 +820,12 @@ def light(name, at, target, energy, color, size):
     obj.location = at
     obj.rotation_euler = (Vector(target)-obj.location).to_track_quat('-Z','Y').to_euler()
 
-light('Large soft window', (-3,-2.3,4.5), (0,.5,.5), 450, (1,.89,.72), 4)
-light('Cool room fill', (3,-1.5,3.8), (0,.5,.8), 170, (.72,.82,1), 3)
-light('Lamp down', (lx,ly,1.42), (lx,ly,0), 22, (1,.64,.30), .35)
-light('Lamp up', (lx,ly,1.77), (lx,ly,2.6), 15, (1,.72,.42), .22)
-light('Banker lamp', (1.83,-.25,dz+.30), (1.83,-.25,dz), 4, (1,.85,.62), .07)
+light('Soft window moonlight', (-3,-2.3,4.5), (-.4,.4,.7), 300, (.56,.67,.92), 4)
+light('Warm room key', (3,-1.5,3.8), (.1,.4,.8), 185, (1,.78,.58), 3)
+light('Library wash', (0,1.0,2.35), (0,1.42,1.10), 72, (1,.65,.35), 1.6)
+light('Lamp down', (lx,ly,1.42), (lx,ly,0), 52, (1,.53,.22), .35)
+light('Lamp up', (lx,ly,1.77), (lx,ly,2.6), 18, (1,.62,.32), .22)
+light('Banker lamp', (1.83,-.25,dz+.30), (1.83,-.25,dz), 18, (1,.73,.42), .07)
 
 # A long-lens overview, with the complete cutaway visible against warm white.
 camera_data = bpy.data.cameras.new('Room camera')

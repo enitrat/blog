@@ -243,6 +243,48 @@ async function run(engineName, url) {
 					});
 				}
 
+				await check(`${label} sofa leaves the bookshelf clear`, async () => {
+					await page.locator('[data-anchor="bookshelf"]').click();
+					await page.waitForFunction(
+						() =>
+							document.querySelector('[data-room]')?.getAttribute('data-view') === 'shelf' &&
+							!document.querySelector('[data-room]')?.hasAttribute('data-traveling'),
+					);
+					try {
+						const canvas = page.locator('.living-room__canvas');
+						const canvasBounds = await canvas.boundingBox();
+						const bottomRow = await page
+							.locator('.room-library__row:not([hidden])')
+							.last()
+							.boundingBox();
+						assert.ok(canvasBounds && bottomRow);
+						const left = Math.max(0, Math.floor(bottomRow.x - canvasBounds.x));
+						const top = Math.max(0, Math.floor(bottomRow.y - canvasBounds.y));
+						const width = Math.min(canvasBounds.width - left, Math.ceil(bottomRow.width));
+						const height = Math.min(canvasBounds.height - top, Math.ceil(bottomRow.height));
+						const { data, info } = await sharp(await canvas.screenshot())
+							.extract({ left, top, width, height })
+							.removeAlpha()
+							.raw()
+							.toBuffer({ resolveWithObject: true });
+						let oxblood = 0;
+						for (let pixel = 0; pixel < data.length; pixel += info.channels) {
+							const red = data[pixel];
+							if (red > 25 && data[pixel + 1] / red < 0.25 && data[pixel + 2] / red < 0.4)
+								oxblood++;
+						}
+						const covered = oxblood / (data.length / info.channels);
+						assert.ok(covered < 0.2, `${Math.round(covered * 100)}% of the bottom row is sofa`);
+					} finally {
+						await page.locator('[data-shelf-exit]').click();
+						await page.waitForFunction(
+							() =>
+								document.querySelector('[data-room]')?.getAttribute('data-view') === 'room' &&
+								!document.querySelector('[data-room]')?.hasAttribute('data-traveling'),
+						);
+					}
+				});
+
 				if (SHOTS) {
 					await check(`${label} shot`, async () => {
 						await page.screenshot({
