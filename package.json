@@ -19,6 +19,7 @@
 		"room:bake": "bun scripts/bake-room.mjs",
 		"room:targets:check": "bun scripts/room-targets.mjs",
 		"room:check": "bun scripts/check-room.mjs",
+		"room:verify": "bun scripts/verify-room.mjs",
 		"record:check": "bun scripts/check-record.mjs",
 		"room:poster": "bun scripts/shoot-poster.mjs"
 	},

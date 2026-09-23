@@ -17,7 +17,7 @@ import type { Bookshelf } from './bookshelf';
 import { BOOKSHELF_ANCHOR, CABINET_BOX, ordered, type ShelfFrame } from './shelves';
 
 const VIEWS = {
-	room: { position: new THREE.Vector3(6.4, 6.5, 9.9), target: new THREE.Vector3(0, 1, -0.2) },
+	room: { position: new THREE.Vector3(5.5, 5.7, 8.5), target: new THREE.Vector3(0, 1, -0.2) },
 	closer: {
 		position: new THREE.Vector3(0.9, 2.4, 4.8),
 		target: new THREE.Vector3(0, 0.94, -1.05),
@@ -233,7 +233,7 @@ export async function mountRoom(
 		releaseAssets();
 		return null;
 	}
-	renderer.setClearColor(0xedeae3, 1);
+	renderer.setClearColor(0x171513, 1);
 	renderer.outputColorSpace = THREE.SRGBColorSpace;
 	renderer.toneMapping = THREE.NoToneMapping;
 	renderer.setPixelRatio(Math.min(devicePixelRatio, 2));

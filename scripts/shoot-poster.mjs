@@ -18,7 +18,7 @@ import { chromium } from 'playwright';
 import sharp from 'sharp';
 
 const OUT = 'src/assets/living-room.png';
-const WIDTH = 1920;
+const WIDTH = 1440;
 const HEIGHT = 1080;
 
 async function serve() {
@@ -43,8 +43,8 @@ async function serve() {
 const { url, stop } = await serve();
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--enable-gpu'] });
 try {
-	/* Tall enough that the hero is not below the fold, and at 2x so the 60rem
-	   column comes back at the poster's full 1920 without upscaling. */
+	/* Tall enough that the hero is not below the fold, and at 2x so the poster
+	   can be downsampled without upscaling. */
 	const page = await browser.newPage({
 		viewport: { width: 1280, height: 1400 },
 		deviceScaleFactor: 2,

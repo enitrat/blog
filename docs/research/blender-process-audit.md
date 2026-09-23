@@ -2,6 +2,27 @@
 
 Assessment date: 2026-09-19.
 
+## Follow-up, 2026-09-22
+
+The first refactor below is complete. Targeted bakes, preflight manifest checks,
+staging, validation, atomic publication, elapsed timings, `--no-publish`, and
+browser performance budgets are now in place.
+
+The remaining inefficiency was verification assembled from separate commands.
+`bun run room:verify --only <targets>` now uses the bake target vocabulary to
+inspect the selected GLBs, capture Chromium frames, print first-frame metrics,
+and enforce the browser asset budget. Playwright remains the browser authority;
+`agent-browser` would duplicate it without covering a missing contract.
+
+The live Blender audit also found a stale preview open in a healthy MCP session.
+The workflow now requires checking both Blender 4.5.3 and the exact open `.blend`
+path before judging a scene. Blender MCP remains the fast geometry and Cycles
+experiment loop. The generated browser scene remains the final result.
+
+The visual target and next modeling passes are recorded in
+[Living-room direction](../room-direction.md). The first furniture pass is
+complete; table profiles are next.
+
 This audit combines the current repository, glTF inspection, and the local
 Claude Code, Codex, and Cursor history for this project. The supporting web
 research is in:

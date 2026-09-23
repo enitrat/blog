@@ -25,5 +25,5 @@ an optimization only when it measurably improves the result and room checks
 still pass.
 
 A visual room change is complete after its production-quality targeted bake,
-glTF Transform inspection of each changed GLB, and
-`bun run room:check chromium` pass.
+glTF Transform inspection of each changed GLB, and browser pass. Run both checks
+with `bun run room:verify --only <comma-separated changed targets>`.

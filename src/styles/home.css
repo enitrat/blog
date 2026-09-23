@@ -183,9 +183,9 @@
 
 .living-room__stage {
 	position: relative;
-	aspect-ratio: 16 / 9;
+	aspect-ratio: 4 / 3;
 	overflow: hidden;
-	background: #edeae3;
+	background: #171513;
 	contain: layout paint;
 }
 

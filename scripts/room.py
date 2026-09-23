@@ -54,7 +54,7 @@ except (TypeError, RuntimeError):
     scene.cycles.device = 'CPU'
 scene.world.use_nodes = True
 scene.world.node_tree.nodes['Background'].inputs[0].default_value = (0.018, 0.028, 0.045, 1)
-scene.world.node_tree.nodes['Background'].inputs[1].default_value = 0.16
+scene.world.node_tree.nodes['Background'].inputs[1].default_value = 0.10
 scene.view_settings.view_transform = 'AgX'
 scene.view_settings.look = 'AgX - Medium High Contrast'
 scene.view_settings.exposure = 0.30
@@ -116,8 +116,8 @@ def material(name, color, rough=.6, texture=None, metal=0):
     return mat
 
 plaster = material('Deep green wall', '#13271f', .92, 'plaster')
-walnut = material('Oiled walnut', '#3d2418', .42, 'wood')
-oak = material('Smoked oak', '#55351f', .48, 'wood')
+walnut = material('Oiled walnut', '#321d14', .42, 'wood')
+oak = material('Smoked oak', '#44291a', .48, 'wood')
 darkwood = material('Walnut shadow', '#1b100b', .65, 'wood')
 black = material('Charcoal enamel', '#242725', .35)
 metal = material('Brushed aluminium', '#aaa9a2', .3, metal=.2)
@@ -207,7 +207,7 @@ def plane_image(name, at, width, height, path, flat=None):
 # both the overview and the close desk view without requiring a texture asset.
 box('Floating walnut foundation', (0, 0, -.10), (4.3, 3.1, .18), darkwood, .035)
 floor_mats = [material('Parquet '+str(i), c, .48, 'wood') for i, c in enumerate(
-    ['#3e2519', '#472b1c', '#553622', '#352017', '#5a3925'])]
+    ['#342016', '#3c2519', '#482e1e', '#2d1b14', '#4b3020'])]
 for row in range(15):
     y = -1.44 + row * .205
     for col in range(9):
@@ -313,9 +313,10 @@ box('Credenza lower rail', (hx, .91, .221), (1.64, .035, .028), walnut)
 # a leather writing surface, turned corner columns, fielded panels and brass
 # swan-neck pulls. It stands along the open side of the room. The drawers face
 # the chair; the camera reads the panelled back, the end and the leather top.
-fumed = material('Fumed oak', '#412719', .40, 'wood')
+fumed = material('Fumed oak', '#352016', .40, 'wood')
 fumed_shadow = material('Fumed oak shadow', '#25160f', .55, 'wood')
 hide = material('Bottle-green writing leather', '#2b3f33', .55, 'fabric')
+chair_leather = material('Burgundy chair leather', '#4a1717', .52, 'fabric')
 dx, dy, dz = 1.72, -.55, .725  # centre of the desk and the underside of its top
 for py in [dy-.45, dy+.45]:
     box('Pedestal plinth', (dx, py, .035), (.585, .425, .07), fumed_shadow, .004)
@@ -371,24 +372,33 @@ for y in [qy-.20, qy+.20]:
     tube('Chair side stretcher', [(qx+.19, y, .17), (qx-.19, y, .17)], .008, fumed)
 tube('Chair cross stretcher', [(qx, qy-.20, .17), (qx, qy+.20, .17)], .008, fumed)
 box('Chair seat frame', (qx, qy, .43), (.42, .44, .06), fumed, .006)
-box('Nailed leather seat', (qx, qy, .485), (.41, .43, .05), hide, .02)
+box('Nailed leather seat', (qx, qy, .485), (.41, .43, .05), chair_leather, .025)
 for i in range(13):
     sphere('Brass nail head', (qx+.207, qy-.18+i*.03, .49), (.0035, .0035, .0035), brass)
     sphere('Brass nail head', (qx-.18+i*.03, qy-.217, .49), (.0035, .0035, .0035), brass)
     sphere('Brass nail head', (qx-.18+i*.03, qy+.217, .49), (.0035, .0035, .0035), brass)
 tube('Chair lower back rail', [(qx-.20, qy-.19, .57), (qx-.20, qy+.19, .57)], .012, fumed)
 tube('Chair crest rail', [(qx-.25, qy-.20, .94), (qx-.275, qy, .955), (qx-.25, qy+.20, .94)], .02, fumed)
-rake = math.atan2(.06, .48)
-for i in range(7):
-    slat = box('Chair back slat', (qx-.227, qy-.15+i*.05, .755), (.009, .02, .36), fumed, .002)
-    slat.rotation_euler.y = -rake
+box('Chair upholstered back', (qx-.24, qy, .76), (.075, .34, .34), chair_leather, .055)
+for y in [qy-.09, qy+.09]:
+    for z in [.70, .82]:
+        sphere('Chair back button', (qx-.198, y, z), (.008, .008, .008), fumed_shadow)
 turn(groups['furniture']['furniture'][chair_start:], (qx, qy, 0), -.2)
 
-# Coffee table, with a rounded rectangular top and splayed legs.
-for x in [-.57, .01]:
-    for y in [-.80, -.40]:
-        tube('Coffee table leg', [(x, y, .035), (x*.88-.03, y*.94, .38)], .018, walnut)
-box('Coffee table top', (-.28, -.59, .405), (.90, .62, .055), walnut, .10)
+# A low round library table leaves more of the rug visible and matches the
+# heavier period furniture better than the old rectangular mid-century top.
+table_x, table_y = -.28, -.59
+marble = material('Brown marble', '#59483a', .30, 'plaster')
+cylinder('Round coffee table top', (table_x, table_y, .415), .43, .065, marble, 64)
+bpy.ops.mesh.primitive_torus_add(major_segments=64, minor_segments=10,
+    location=(table_x, table_y, .442), major_radius=.405, minor_radius=.012)
+finish(bpy.context.object, 'Coffee table moulded rim', darkwood)
+cylinder('Coffee table upper collar', (table_x, table_y, .365), .12, .055, darkwood, 32, .09)
+cylinder('Coffee table turned pedestal', (table_x, table_y, .225), .065, .27, walnut, 32, .10)
+cylinder('Coffee table lower collar', (table_x, table_y, .095), .16, .045, darkwood, 32, .12)
+for angle in [0, math.pi/2, math.pi, math.pi*1.5]:
+    foot = (table_x+math.cos(angle)*.30, table_y+math.sin(angle)*.30, .045)
+    tube('Coffee table splayed foot', [(table_x, table_y, .10), foot], .024, walnut)
 
 # A compact oxblood listening sofa runs along the open left edge and faces the
 # writing desk. Its low back preserves the existing shelf camera sightline.
@@ -401,15 +411,15 @@ box('Sofa seat deck', (sofa_x, sofa_y, .42), (.69, 1.50, .20), velvet_dark, .07)
 box('Sofa front apron', (sofa_x+.345, sofa_y, .38), (.055, 1.38, .18), velvet, .025)
 for y in [sofa_y-.49, sofa_y, sofa_y+.49]:
     box('Sofa loose seat cushion', (sofa_x+.05, y, .53), (.57, .46, .16), velvet, .055)
+    box('Sofa padded back', (sofa_x-.12, y, .79), (.18, .44, .49), velvet, .07)
+    for z in [.68, .84, .99]:
+        sphere('Sofa tuft button', (sofa_x-.018, y, z), (.012, .012, .012), velvet_dark)
 for y in [sofa_y-.80, sofa_y+.80]:
     box('Sofa rolled arm', (sofa_x+.01, y, .62), (.72, .20, .46), velvet, .09)
     scroll = cylinder('Sofa arm scroll', (sofa_x+.31, y, .68), .10, .20, velvet, 32)
     scroll.rotation_euler.x = math.pi/2
     for cap_y in [y-.102, y+.102]:
         sphere('Sofa arm upholstered cap', (sofa_x+.31, cap_y, .68), (.101, .018, .101), velvet)
-for y in [sofa_y-.62, sofa_y-.20, sofa_y+.22, sofa_y+.64]:
-    for z in [.55, .73, .90]:
-        sphere('Sofa tuft button', (sofa_x-.185, y, z), (.012, .012, .012), velvet_dark)
 for y in [sofa_y-.62+i*.125 for i in range(11)]:
     sphere('Sofa brass nail', (sofa_x+.376, y, .38), (.004, .004, .004), brass)
 for x in [sofa_x-.23, sofa_x+.23]:
@@ -561,6 +571,21 @@ bevel.width = .00009
 bevel.segments = 2
 part = None
 group = 'objects'
+# Heavy burgundy curtains frame the night window and carry the oxblood colour
+# into the architecture. Overlapping rounded strips are broad enough to keep
+# their folds after the object atlas is baked down for the browser.
+curtain = material('Burgundy velvet drapery', '#35090e', .86, 'velvet')
+tube('Curtain brass rod', [(-1.96, -.34, 2.29), (-1.96, 1.06, 2.29)], .012, brass)
+for y in [-.34, 1.06]:
+    sphere('Curtain rod finial', (-1.96, y, 2.29), (.025, .025, .025), brass)
+for centre in [-.16, .88]:
+    for fold in range(5):
+        offset = (fold - 2) * .047
+        height = 1.70 - abs(fold - 2) * .025
+        box('Burgundy curtain fold', (-1.985 + (fold % 2) * .018, centre + offset, .53 + height / 2),
+            (.07, .082, height), curtain, .028)
+    box('Curtain brass tieback', (-1.94, centre, 1.27), (.08, .30, .025), brass, .008)
+
 # Vinyl spines sit below the books.
 record_colors = [cream, rug_red, rug_blue, black, linen, terra]
 for i in range(39):
@@ -571,7 +596,7 @@ for i in range(39):
 for shelf_index, z in enumerate([1.552, 1.952]):
     for side, start in enumerate([-.39, 1.07]):
         cursor = start
-        for i in range(6):
+        for i in range(9):
             width = .025 + ((i*7 + shelf_index*3 + side) % 4) * .006
             height = .22 + ((i*5 + side) % 3) * .025
             book = box('Upper shelf book', (cursor+width/2, 1.17, z+height/2),
@@ -607,6 +632,18 @@ cylinder('Library brass vase', (.84, 1.20, 2.035), .065, .15, brass, 32, .045)
 for i, end in enumerate([(.72, 1.17, 2.25), (.78, 1.14, 2.29), (.87, 1.16, 2.27), (.94, 1.18, 2.23)]):
     tube('Library foliage stem', [(.84, 1.20, 2.10), end], .003, green)
     sphere('Library foliage leaf', end, (.045, .018, .075), green).rotation_euler.y = (-.35+i*.22)
+
+# A trailing plant softens the rigid upper shelving without entering the three
+# interactive book rows below it.
+plant_x, plant_y = -.30, 1.13
+cylinder('Trailing plant pot', (plant_x, plant_y, 2.005), .07, .14, terra, 32, .055)
+for i, end in enumerate([(-.43, 1.08, 1.63), (-.30, 1.06, 1.57), (-.16, 1.08, 1.68)]):
+    points = [(plant_x, plant_y, 2.07), ((plant_x+end[0])/2, 1.08, 1.88), end]
+    tube('Trailing plant stem', points, .003, green)
+    for step in [.30, .55, .78]:
+        a = Vector(points[0]).lerp(Vector(end), step)
+        leaf = sphere('Trailing plant leaf', a, (.045, .018, .070), green)
+        leaf.rotation_euler.y = (-.45 + i*.25) * (1 if step != .55 else -1)
 
 # Turntable. The platter and tonearm are exported as their own movable nodes.
 tx, ty, tz = .26, 1.16, .712
@@ -736,12 +773,12 @@ for i in range(10):
 # A graphic print, made for this room, and a sleeve left on the table.
 box('Print walnut frame', (.53,1.453,1.76), (.72,.035,.84), walnut)
 plane_image('Geometric music print', (.53,1.432,1.76), .655,.775,work/'print.png')
-cover = plane_image('Record sleeve on table', (-.43,-.59,.438), .315,.315,work/'sleeve.png')
+cover = plane_image('Record sleeve on table', (-.43,-.59,.455), .315,.315,work/'sleeve.png')
 cover.rotation_euler = (0,0,-.19)
 # Open mug, coffee and a curved handle.
-cylinder('Mug', (.02,-.55,.493), .038,.108,ceramic,48,.031)
-cylinder('Coffee', (.02,-.55,.548), .032,.001,soil)
-tube('Mug handle', [(.052,-.55,.526),(.088,-.55,.521),(.083,-.55,.48),(.05,-.55,.466)], .007,ceramic)
+cylinder('Mug', (.02,-.55,.505), .038,.108,ceramic,48,.031)
+cylinder('Coffee', (.02,-.55,.560), .032,.001,soil)
+tube('Mug handle', [(.052,-.55,.538),(.088,-.55,.533),(.083,-.55,.492),(.05,-.55,.478)], .007,ceramic)
 # What is on the desk: a brass banker's lamp with an emerald glass shade, a
 # manuscript with a loose sheet, a fountain pen and an inkwell.
 glass = material('Emerald lamp glass', '#1d6a3c', .18)
@@ -820,12 +857,12 @@ def light(name, at, target, energy, color, size):
     obj.location = at
     obj.rotation_euler = (Vector(target)-obj.location).to_track_quat('-Z','Y').to_euler()
 
-light('Soft window moonlight', (-3,-2.3,4.5), (-.4,.4,.7), 300, (.56,.67,.92), 4)
-light('Warm room key', (3,-1.5,3.8), (.1,.4,.8), 185, (1,.78,.58), 3)
-light('Library wash', (0,1.0,2.35), (0,1.42,1.10), 72, (1,.65,.35), 1.6)
-light('Lamp down', (lx,ly,1.42), (lx,ly,0), 52, (1,.53,.22), .35)
+light('Soft window moonlight', (-3,-2.3,4.5), (-.4,.4,.7), 220, (.56,.67,.92), 4)
+light('Warm room key', (3,-1.5,3.8), (.1,.4,.8), 120, (1,.78,.58), 3)
+light('Library wash', (0,1.0,2.35), (0,1.42,1.10), 90, (1,.65,.35), 1.4)
+light('Lamp down', (lx,ly,1.42), (lx,ly,0), 75, (1,.53,.22), .32)
 light('Lamp up', (lx,ly,1.77), (lx,ly,2.6), 18, (1,.62,.32), .22)
-light('Banker lamp', (1.83,-.25,dz+.30), (1.83,-.25,dz), 18, (1,.73,.42), .07)
+light('Banker lamp', (1.83,-.25,dz+.30), (1.83,-.25,dz), 30, (1,.73,.42), .07)
 
 # A long-lens overview, with the complete cutaway visible against warm white.
 camera_data = bpy.data.cameras.new('Room camera')

@@ -1,7 +1,8 @@
 # Change the living room
 
 Use live Blender to find the change. Put the accepted change in the source
-scripts, then rebuild the web assets with headless Blender.
+scripts, then rebuild the web assets with headless Blender. The browser render
+is the final visual result.
 
 ```mermaid
 flowchart LR
@@ -60,11 +61,13 @@ In Blender, open the 3D View sidebar. Open **MCP for Blender**, then click
 
 ## Make and judge the change
 
-1. Ask the agent to inspect the objects, transforms, camera, lights, materials,
-   and render engine that the change touches.
-2. Make one small change through Blender MCP and `bpy`.
-3. Capture a viewport screenshot.
-4. For lighting, camera, material, or bake work, render a Cycles still.
+1. Confirm Blender MCP reports Blender 4.5.3 and the open file is exactly
+   `$ROOM_WORK/living-room.blend`. A connected stale `/tmp` scene is not useful.
+2. Inspect only the objects, transforms, camera, lights, and materials touched
+   by the change.
+3. Make one small change through Blender MCP and `bpy`.
+4. Judge geometry from a camera-framed viewport screenshot. For lighting,
+   camera, material, or bake work, render a small Cycles still.
 5. Repeat until the result is correct.
 6. Copy the accepted logic into `scripts/room.py` or `scripts/bake-room.mjs`.
 
@@ -78,7 +81,8 @@ See the [MCP efficiency note](./research/blender-mcp-efficiency.md) for the
 socket, timeout, safe-mode, and telemetry limits.
 
 Use Blender MCP only to inspect and test changes. If a problem appears only in
-the browser, debug it in the browser instead of adding more Blender machinery.
+the browser, debug it with the existing Playwright room check instead of adding
+another browser driver or more Blender machinery.
 
 ## Bake the checked-in assets
 
@@ -114,25 +118,20 @@ Cycles again.
 
 ## Check the result
 
-The bake validates every changed GLB. Inspect their size, texture, mesh, and
-extension reports before accepting them:
-
-```sh
-bunx @gltf-transform/cli inspect src/assets/room/shell.glb
-```
-
-Replace `shell.glb` with each changed filename. Then rebuild the poster and test
-the browser result:
+The bake validates every changed GLB. If the room overview changed, rebuild the
+poster. Then inspect the changed GLBs and test the browser result with the same
+target list used for the bake:
 
 ```sh
 bun run room:poster
-bun run room:check chromium
-bun run room:check chromium --metrics
-bun run build
+bun run room:verify --only shell,furniture
 ```
 
-The metrics form reports first-frame timing and GLB transfer size. The regular
-room check enforces the nine-file contract and an 11 MB initial GLB budget.
+`room:verify` prints glTF mesh, texture, and extension reports, captures browser
+frames in `/tmp/room-check`, reports first-frame timing and transfer size, and
+enforces the nine-file contract and 11 MB initial GLB budget. It defaults to
+Chromium; pass `webkit` for the WebKit path. Run `bun run build` when site code
+also changed.
 
 The runtime does not configure Draco or Meshopt decoders. Keep compression out
 of the checked-in pipeline until the measured saving justifies the decoder and
