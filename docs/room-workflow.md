@@ -1,140 +1,131 @@
 # Change the living room
 
-Use live Blender to find the change. Put the accepted change in the source
-scripts, then rebuild the web assets with headless Blender. The browser render
-is the final visual result.
+This guide covers changing anything in the 3D living room: geometry,
+materials, lights, camera, or which content it shows. To learn why the
+pipeline works this way, read [ADR 0002](./adr/0002-room-bake-pipeline.md).
+
+Two scripts hold the room. `scripts/room.py` builds and bakes the scene in
+Blender. `scripts/bake-room.mjs` lays out the books and manuscripts, draws
+their artwork, and runs Blender. Change these files, never the GLBs.
 
 ```mermaid
 flowchart LR
-	S["room.py + bake-room.mjs"] --> P["Preview .blend"]
-	P --> M["Blender MCP + bpy"]
-	M --> J["Viewport or Cycles render"]
-	J -->|Adjust| M
-	J -->|Accept| S
-	S --> B["Headless Blender bake"]
-	B --> V["Stage + validate GLBs"]
-	V --> A["Publish GLBs + JSON manifests"]
-	A --> I["glTF Transform inspect"]
-	I --> T["Three.js browser check"]
+	E["Edit room.py"] --> P["Render a preview"]
+	P -->|Not right yet| E
+	P -->|Looks right| B["Bake the changed groups"]
+	B --> C["Build and browser check"]
 ```
 
-## Set up the tools
+## Before you start
 
-On a new machine, install Blender 4.5.3 and `uv`. Then install the addon and
-register the MCP server:
-
-```sh
-uvx --python 3.11 mcp-for-blender install-addon
-codex mcp add blender \
-	--env UV_PYTHON_PREFERENCE=only-managed \
-	--env BLENDER_MCP_SAFE_MODE=1 \
-	--env DISABLE_TELEMETRY=true \
-	-- uvx --python 3.11 mcp-for-blender
-```
-
-If the addon installer cannot find the macOS addon directory, create it and
-run the installer again:
-
-```sh
-mkdir -p "$HOME/Library/Application Support/Blender/4.5/scripts/addons"
-BLENDERMCP_ADDONS_DIR="$HOME/Library/Application Support/Blender/4.5/scripts/addons" \
-	uvx --python 3.11 mcp-for-blender install-addon
-```
-
-Enable **Interface: MCP for Blender** in Blender. Restart Codex after you change
-its MCP configuration.
-
-## Build a scene for live work
-
-Generate a `.blend` file and a Cycles preview from the checked-in source:
+Install Blender 4.5.3. The bake refuses any other version. Tell the scripts
+where it is:
 
 ```sh
 export BLENDER=/Applications/Blender.app/Contents/MacOS/Blender
-export BLENDER_VERSION=4.5.3
-export ROOM_WORK=/tmp/msaug-room
-bun run room:bake --preview
-open "$ROOM_WORK/living-room.blend"
 ```
 
-In Blender, open the 3D View sidebar. Open **MCP for Blender**, then click
-**Start MCP Server**.
+## Preview a change
 
-## Make and judge the change
+1. Edit `scripts/room.py`.
+2. Render the room camera at low quality:
 
-1. Confirm Blender MCP reports Blender 4.5.3 and the open file is exactly
-   `$ROOM_WORK/living-room.blend`. A connected stale `/tmp` scene is not useful.
-2. Inspect only the objects, transforms, camera, lights, and materials touched
-   by the change.
-3. Make one small change through Blender MCP and `bpy`.
-4. Judge geometry from a camera-framed viewport screenshot. For lighting,
-   camera, material, or bake work, render a small Cycles still.
-5. Repeat until the result is correct.
-6. Copy the accepted logic into `scripts/room.py` or `scripts/bake-room.mjs`.
+   ```sh
+   bun run room:bake --preview --samples 32
+   ```
 
-Use screenshots to judge the scene. Use MCP and `bpy` to change it. Use GUI
-clicks only when an addon has no API.
+3. Open `preview.png` in the work directory the command prints.
 
-The live app avoids relaunching Blender between small edits and gives the agent
-viewport screenshots. It does not cache Cycles bakes or make a long bake safe
-to run through a tool call. Keep final bakes in the logged headless command.
-See the [MCP efficiency note](./research/blender-mcp-efficiency.md) for the
-socket, timeout, safe-mode, and telemetry limits.
+Each run makes a new work directory, so previews in separate terminals or
+worktrees never overwrite each other. To keep the preview at a fixed path, set
+`ROOM_WORK=/tmp/room` first.
 
-Use Blender MCP only to inspect and test changes. If a problem appears only in
-the browser, debug it with the existing Playwright room check instead of adding
-another browser driver or more Blender machinery.
+For close-ups, or for many small changes in a row, open `living-room.blend`
+from the work directory and change it live through Blender MCP. See
+[Set up Blender MCP](#set-up-blender-mcp). Before you judge anything, check
+that MCP reports Blender 4.5.3 and has that exact file open. A stale scene from
+an earlier run is a common mistake. When a change looks right, copy it back
+into `room.py`.
 
-## Bake the checked-in assets
+## Bake the groups you changed
 
-Choose the smallest valid bake:
+Each group is one GLB file in `src/assets/room/`. Bake only the groups your
+change touches:
 
-| Change | Command |
+| If you changed | Run |
 |---|---|
-| Any light, book position, or shared dimension | `bun run room:bake` |
-| Static room groups and printed spines | `bun run room:bake --only shell,furniture,objects,moving,spines` |
-| Manuscripts | `bun run room:bake --only sheets` |
-| Front covers for notes | `bun run room:bake --only covers` |
+| A light, a book's position, the cabinet, or anything every group shares | `bun run room:bake` |
+| Room geometry or materials, but no lights | `bun run room:bake --only shell,furniture,objects,moving,spines` |
+| Spine artwork | `bun run room:bake --only spines` |
 | Book bodies | `bun run room:bake --only books` |
-| Printed spines | `bun run room:bake --only spines` |
-| Bookmark | `bun run room:bake --only bookmark` |
-| JSON manifests only | `bun run room:bake --layout-only` |
+| A note, added or removed | `bun run room:bake --only covers` |
+| An English post, added or removed | `bun run room:bake --only sheets` |
+| The bookmark | `bun run room:bake --only bookmark` |
 
-`--room-only`, `--books-only`, and `--spines-only` remain aliases for old
-commands. Use `--only` for new work. It accepts a comma-separated list such as
-`--only books,covers`.
+A change to what someone is reading needs no bake. The browser places the
+bookmark itself.
 
-Use `--no-publish` for pipeline experiments. It performs the requested bake
-and validation but leaves the repository assets unchanged.
+If book positions or cabinet dimensions changed, a partial bake stops and asks
+for a full one, because every group is placed from them.
 
-Use a partial bake only when book positions and cabinet dimensions did not
-change. The command rejects a partial bake if either manifest changed. It
-builds into the work directory, validates every selected GLB, and replaces the
-checked-in files only after Blender exits successfully.
+The bake validates each GLB before it copies it into the repository. A failed
+bake leaves the checked-in files unchanged. If export fails after baking, the
+work directory keeps a `-baked.blend` file with the finished bake.
 
-The work directory keeps both the generated source scene and a `-baked.blend`
-checkpoint made before export. Keep that directory if export fails; the
-checkpoint contains the finished bake and can be reopened without running
-Cycles again.
+To test the pipeline without touching the repository, add `--no-publish`. The
+`--samples` and `--size` options lower quality for fast experiments, so they
+work only with `--no-publish` or `--preview`.
 
 ## Check the result
 
-The bake validates every changed GLB. If the room overview changed, rebuild the
-poster. Then inspect the changed GLBs and test the browser result with the same
-target list used for the bake:
+```sh
+bun run build                  # includes the baked-content check
+bun run room:check chromium    # the room in a real browser
+```
+
+`bun run build` runs `bun run room:assets`, which takes under a second. It
+fails if a book, note, or post has no baked node, or if the GLBs exceed 11 MB.
+
+`room:check` starts a dev server and loads the room at desktop, laptop, and
+phone sizes. Add `--shots` to save frames in `/tmp/room-check`, or `--metrics`
+to print load time and transfer size. Replace `chromium` with `webkit` to test
+Safari's engine.
+
+If the overview changed, regenerate the poster that shows before the room
+loads:
 
 ```sh
 bun run room:poster
-bun run room:verify --only shell,furniture
 ```
 
-`room:verify` prints glTF mesh, texture, and extension reports, captures browser
-frames in `/tmp/room-check`, reports first-frame timing and transfer size, and
-enforces the nine-file contract and 11 MB initial GLB budget. It defaults to
-Chromium; pass `webkit` for the WebKit path. Run `bun run build` when site code
-also changed.
+A change is done when its bake, `bun run build`, and `room:check` all pass.
 
-The runtime does not configure Draco or Meshopt decoders. Keep compression out
-of the checked-in pipeline until the measured saving justifies the decoder and
-the compressed asset passes the browser checks.
+## Set up Blender MCP
 
-Read the [asset reference](../src/assets/room/README.md) for output ownership.
+Blender MCP lets an agent inspect and change a running Blender scene. It is
+optional. The headless preview covers most work.
+
+1. Install `uv`, then the Blender addon:
+
+   ```sh
+   uvx --python 3.11 mcp-for-blender install-addon
+   ```
+
+   If the installer can't find the addon folder, create
+   `~/Library/Application Support/Blender/4.5/scripts/addons`, set
+   `BLENDERMCP_ADDONS_DIR` to it, and run the installer again.
+
+2. Register the server with your agent. For Claude Code:
+
+   ```sh
+   claude mcp add blender -e BLENDER_MCP_SAFE_MODE=1 -e DISABLE_TELEMETRY=true \
+   	-- uvx --python 3.11 mcp-for-blender
+   ```
+
+   For Codex, run `codex mcp add blender` with the same variables and command.
+
+3. In Blender, enable **Interface: MCP for Blender**. In the 3D View sidebar,
+   click **Start MCP Server**.
+
+MCP calls time out long before a production bake ends. Always bake through
+`bun run room:bake`.

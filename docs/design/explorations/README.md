@@ -1,21 +1,17 @@
-# Visual direction explorations
+# Visual directions we explored
 
-These sketches record considered directions. They are not implementation specifications.
+These sketches record directions we considered for the site. They are not
+specifications. [DESIGN.md](../../../DESIGN.md) is the design system.
 
-## Quiet personal index — shipped direction
+## Quiet personal index, the shipped direction
 
-The shipped site is a quiet, text-first personal index: identity, current work,
-projects, writing, and reading remain visible in one scrollable surface. The
-shared shell and reading styles carry the same language into every route.
+The site is a quiet, text-first personal index. One scrolling page shows who
+Mathieu is, his current work, projects, writing, and reading. Every other page
+uses the same shell and reading styles.
 
-## Editorial Standard — preserved alternative
+## Editorial standard, kept for reference
 
-![Editorial Standard direction sketch](./editorial-standard.webp)
+![Sketch of the Editorial Standard direction](./editorial-standard.webp)
 
-A conventional responsive editorial grid for introduction, work, writing, reading, and contact.
-
-## Status
-
-- Quiet personal index: shipped direction.
-- Editorial Standard: retained as a clarity reference.
-- `DESIGN.md`: canonical design system.
+A conventional responsive editorial grid for the introduction, work, writing,
+reading, and contact. We kept it as a reference for clarity.
