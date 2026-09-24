@@ -247,6 +247,9 @@ try {
 	await run(blender, [
 		'--background',
 		'--factory-startup',
+		// Without it, a Python exception in room.py still exits 0.
+		'--python-exit-code',
+		'1',
 		'--python',
 		resolve('scripts/room.py'),
 		'--',
