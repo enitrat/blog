@@ -6,8 +6,6 @@ the exported glTF materials are unlit. No reference-site assets are included.
 import bpy
 import json
 import math
-import os
-import random
 import sys
 import time
 from pathlib import Path
@@ -24,14 +22,8 @@ minimal_art = '--minimal-art' in args
 group_names = ('shell', 'furniture', 'objects', 'moving', 'spines', 'books', 'covers', 'bookmark', 'sheets')
 only_index = args.index('--only')
 targets = set(args[only_index + 1].split(','))
-unknown_targets = targets.difference(group_names)
-if unknown_targets:
-    raise RuntimeError(f'Unknown room groups: {sorted(unknown_targets)}')
-expected_blender = os.environ.get('BLENDER_VERSION', '4.5.3')
-actual_blender = '.'.join(map(str, bpy.app.version))
-if actual_blender != expected_blender:
-    raise RuntimeError(f'Blender {expected_blender} required; found {bpy.app.version_string}')
-random.seed(28)
+if bpy.app.version != (4, 5, 3):
+    raise RuntimeError(f'Blender 4.5.3 required; found {bpy.app.version_string}')
 bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
 scene = bpy.context.scene
@@ -49,9 +41,11 @@ try:
     prefs.get_devices()
     for device in prefs.devices:
         device.use = device.type == 'METAL'
-    scene.cycles.device = 'GPU'
+    scene.cycles.device = 'GPU' if any(device.use for device in prefs.devices) else 'CPU'
 except (TypeError, RuntimeError):
     scene.cycles.device = 'CPU'
+# A CPU bake is far slower at the same samples; say which one ran.
+print('DEVICE', scene.cycles.device, flush=True)
 scene.world.use_nodes = True
 scene.world.node_tree.nodes['Background'].inputs[0].default_value = (0.018, 0.028, 0.045, 1)
 scene.world.node_tree.nodes['Background'].inputs[1].default_value = 0.10

@@ -11,36 +11,18 @@
  * It also has to be right for the devices that never load the 3D at all: on a
  * phone this image *is* the hero, with the two controls annotated over it.
  *
- * Starts its own dev server unless ROOM_URL points at one already.
+ * Starts its own dev server unless DEV_URL points at one already.
  */
-import { spawn } from 'node:child_process';
 import { chromium } from 'playwright';
 import sharp from 'sharp';
+import { serve } from './dev-server.mjs';
 
 const OUT = 'src/assets/living-room.png';
 const WIDTH = 1440;
 const HEIGHT = 1080;
 
-async function serve() {
-	if (process.env.ROOM_URL) return { url: process.env.ROOM_URL, stop: () => {} };
-	const port = 4390;
-	const child = spawn(
-		process.execPath,
-		['node_modules/astro/astro.js', 'dev', '--port', String(port)],
-		{ stdio: 'ignore' },
-	);
-	const url = `http://localhost:${port}/`;
-	for (let i = 0; i < 60; i++) {
-		try {
-			if ((await fetch(url)).ok) return { url, stop: () => child.kill() };
-		} catch {}
-		await new Promise((resolve) => setTimeout(resolve, 500));
-	}
-	child.kill();
-	throw new Error('dev server never came up');
-}
-
-const { url, stop } = await serve();
+const { base, stop } = await serve();
+const url = `${base}/`;
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--enable-gpu'] });
 try {
 	/* Tall enough that the hero is not below the fold, and at 2x so the poster

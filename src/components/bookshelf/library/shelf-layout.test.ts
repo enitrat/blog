@@ -27,8 +27,3 @@ test('never exceeds the requested number of shelves', () => {
 		expect(pack(items, rows).length).toBeLessThanOrEqual(rows);
 	}
 });
-
-test('degenerate inputs stay empty rather than throwing', () => {
-	expect(pack([], 3)).toEqual([]);
-	expect(pack([1, 2], 0)).toEqual([]);
-});

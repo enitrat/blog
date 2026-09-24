@@ -166,8 +166,10 @@ export async function mountRoom(
 			const jacket = printed.owned.get(slot.isbn);
 			const body = scene.getObjectByName(`Body_${slot.isbn}`);
 			// Only an annotated volume is baked a front cover, because only it opens.
+			// A note written since the last covers bake still opens, just without
+			// its cover swinging; `check-room-assets` fails the build before that ships.
 			const cover = scene.getObjectByName(`Cover_${slot.isbn}`);
-			if (!jacket || !body || (!cover && bookshelf.hasNotes(slot.isbn))) {
+			if (!jacket || !body) {
 				releaseAssets();
 				return null;
 			}

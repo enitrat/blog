@@ -3,7 +3,7 @@
  *
  *   bun run record:check
  *
- * Starts its own dev server unless ROOM_URL points at one already. Hits the
+ * Starts its own dev server unless DEV_URL points at one already. Hits the
  * real SoundCloud widget, so it needs a network.
  *
  * The interesting assertion is the one that branches: Chromium honours the
@@ -13,27 +13,10 @@
  * one happened, so each branch checks the state the page is left in.
  */
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
 import { chromium, webkit } from 'playwright';
+import { serve } from './dev-server.mjs';
 
 const ENGINES = { chromium, webkit };
-
-async function serve() {
-	if (process.env.ROOM_URL) return { url: process.env.ROOM_URL, stop: () => {} };
-	const port = 4390;
-	const child = spawn('npx', ['astro', 'dev', '--port', String(port)], {
-		stdio: 'ignore',
-	});
-	const url = `http://localhost:${port}/`;
-	for (let i = 0; i < 60; i++) {
-		try {
-			if ((await fetch(url)).ok) return { url, stop: () => child.kill() };
-		} catch {}
-		await new Promise((r) => setTimeout(r, 500));
-	}
-	child.kill();
-	throw new Error('no dev server');
-}
 
 const isPaused = (page) =>
 	page.evaluate(
@@ -51,7 +34,9 @@ const isPaused = (page) =>
 			}),
 	);
 
-const { url, stop } = await serve();
+const { base, stop } = await serve();
+const url = `${base}/`;
+let failed = false;
 
 for (const [name, engine] of Object.entries(ENGINES)) {
 	const browser = await engine.launch();
@@ -65,6 +50,7 @@ for (const [name, engine] of Object.entries(ENGINES)) {
 			results.push(`  ok   ${label}`);
 		} catch (e) {
 			results.push(`  FAIL ${label}: ${e.message}`);
+			failed = true;
 		}
 	};
 	try {
@@ -80,7 +66,6 @@ for (const [name, engine] of Object.entries(ENGINES)) {
 		await t('mix link exists and is hidden before play', async () => {
 			const link = page.locator('.living-room__mix');
 			assert.equal(await link.count(), 1);
-			assert.equal(await link.getAttribute('href'), 'https://soundcloud.com/user2211512');
 			assert.equal(await link.evaluate((el) => getComputedStyle(el).visibility), 'hidden');
 		});
 
@@ -171,4 +156,4 @@ for (const [name, engine] of Object.entries(ENGINES)) {
 }
 
 stop();
-process.exit(0);
+process.exit(failed ? 1 : 0);

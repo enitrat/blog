@@ -1,103 +1,39 @@
-# Living room asset reference
+# Living room assets
 
-The browser loads nine GLBs and three JSON manifests from this directory. The
-[room workflow](../../../docs/room-workflow.md) explains how to change and
-rebuild them.
-
-## Ownership
-
-```text
-scripts/
-├── room.py                 # Blender geometry, materials, lights, bake, export
-├── bake-room.mjs           # content input, layout, artwork, Blender process
-├── spine-art.mjs           # jacket and cover artwork
-└── sheet-art.mjs           # manuscript artwork
-
-src/assets/room/
-├── *.glb                   # baked browser assets
-├── book-slots.json         # book positions and dimensions
-├── cabinet.json            # bookcase dimensions
-└── sheets.json             # manuscript positions and link bounds
-
-src/components/home/
-├── LivingRoom.astro        # room host, poster, and manuscript links
-└── room/
-    ├── Bookshelf.astro     # controls, notes, and HTML fallback
-    ├── scene.ts            # Three.js loading, camera, and object movement
-    ├── bookshelf.ts        # navigation, focus, picking, and notes
-    └── shelves.ts          # frames and bounds derived from the manifests
-```
-
-`scripts/room.py` and `scripts/bake-room.mjs` are the source of truth. A live
-Blender scene is a disposable preview.
+`bun run room:bake` generates every file in this folder. Don't edit them by
+hand. [Change the living room](../../../docs/room-workflow.md) explains how to
+rebuild them. `bun run room:assets` checks them against the tables below.
 
 ## GLB files
 
-| File | Contents | Runtime contract |
-|---|---|---|
-| `shell.glb` | Walls, floor, and fixed room structure | One baked, unlit group |
-| `furniture.glb` | Cabinet, desk, chairs, and other furniture | Fixed geometry |
-| `objects.glb` | Lamps, desk objects, record player base, and fixed props | Fixed geometry |
-| `moving.glb` | Platter and tonearm | Separate nodes with usable pivot origins |
-| `spines.glb` | Printed book jackets | One shared atlas. `book-slots.json` owns identity |
-| `books.glb` | Book bodies | One `Body_<isbn>` node per book |
-| `covers.glb` | Front covers for books with notes | One `Cover_<isbn>` node per available note |
-| `bookmark.glb` | Reusable cloth bookmark | One `Bookmark` node with its origin at the book head |
-| `sheets.glb` | Published English writing | One `Sheet_<slug>` node per piece |
+Each GLB is one bake group. Its surfaces carry baked color and light on an
+unlit material. Units are metres, and Y points up.
 
-`scene.ts` loads all nine files. A failed load keeps the poster fallback in
-place.
+| File | Contents | What the browser needs from it |
+|---|---|---|
+| `shell.glb` | Walls, floor, window | Nothing beyond drawing |
+| `furniture.glb` | Bookcase, credenza, desk, chairs, sofa, table | Nothing beyond drawing |
+| `objects.glb` | Rug, curtains, lamps, turntable base, speakers, desk objects, shelf props | Nothing beyond drawing |
+| `moving.glb` | Record platter and tonearm | `Platter` and `Tonearm` nodes, each with its origin on its pivot |
+| `spines.glb` | Printed book jackets | One `spines` mesh. `book-slots.json` says which jacket is which book |
+| `books.glb` | Book bodies | One `Body_<isbn>` node per shelved book |
+| `covers.glb` | Front covers of books with a note | One `Cover_<isbn>` node per note |
+| `bookmark.glb` | Cloth bookmark | One `Bookmark` node, origin at the book's head |
+| `sheets.glb` | Manuscripts, one per English post | One `Sheet_<slug>` node per post |
+
+`src/components/home/room/scene.ts` loads all nine. If any file fails to load,
+the page keeps showing the poster.
+
+Books, covers, the bookmark, and the manuscripts are baked with the rest of the
+room hidden, so a surface that moves carries no shadow from where it stood.
 
 ## JSON manifests
 
-`bake-room.mjs` stages manifests and GLBs in the work directory. It validates
-selected GLBs before replacing checked-in assets. A full bake and
-`--layout-only` publish every manifest; `--only sheets` publishes `sheets.json`
-with its GLB.
-
-| File | Consumers | Contents |
+| File | Read by | Contents |
 |---|---|---|
-| `book-slots.json` | Blender, `Bookshelf.astro`, `shelves.ts` | ISBN, row, position, width, and height |
-| `cabinet.json` | Blender and `shelves.ts` | Cabinet bounds, faces, and shelf heights |
-| `sheets.json` | `LivingRoom.astro` and `scene.ts` | Slug, position, rotation, and visible link bounds |
+| `book-slots.json` | `room.py`, `Bookshelf.astro`, `shelves.ts` | Each book's ISBN, shelf row, position, width, and height |
+| `cabinet.json` | `room.py`, `shelves.ts` | Cabinet bounds, faces, and shelf heights |
+| `sheets.json` | `room.py`, `LivingRoom.astro`, `scene.ts` | Each manuscript's slug, position, rotation, and clickable area |
 
-The generator rejects a book that does not fit in the cabinet. The site build
-rejects a missing ISBN.
-
-## Bake settings
-
-| Setting | Value |
-|---|---|
-| Blender | 4.5.3 |
-| Units | Metres |
-| Source axes | Blender Z-up |
-| Renderer | Cycles |
-| Default samples | 256 |
-| Runtime material | Unlit glTF material with baked color and light |
-
-The default atlas sizes are:
-
-| Group | Size |
-|---|---:|
-| Shell and furniture | 2048 px |
-| Objects, spines, and sheets | 4096 px |
-| Books | 2048 px |
-| Covers | 2048 to 4096 px, based on the cover count |
-| Moving parts and bookmark | 1024 px |
-
-Books and the bookmark bake individually. Manuscript sheets share one isolated
-bake pass after their UVs are packed into separate atlas cells. This prevents
-nearby meshes from adding permanent occlusion to movable surfaces without
-running Cycles once per sheet. Source artwork UVs stay separate from bake UVs.
-
-## Content changes
-
-| Change | Required output |
-|---|---|
-| Add or reorder a book | Full bake and all manifests |
-| Add a note | `covers.glb` |
-| Change reading status | No bake. The runtime reuses `bookmark.glb` |
-| Publish English writing | `sheets.glb` and `sheets.json` |
-| Change cabinet dimensions | Full bake and all manifests |
-
-Vite fingerprints the GLBs. Astro generates the poster formats.
+The site build fails if a book in `src/booksData.ts` has no slot in
+`book-slots.json`.

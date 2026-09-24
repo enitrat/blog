@@ -5,7 +5,7 @@
  *   bun run library:check chromium        one engine
  *   bun run library:check webkit 390      one case, while iterating
  *
- * Starts its own dev server unless LIBRARY_URL points at one already.
+ * Starts its own dev server unless DEV_URL points at one already.
  *
  * Each case gets its OWN browser. Sharing one browser per engine used to pile
  * ~28 WebGL contexts into a single process — the shelf plus one per book
@@ -14,38 +14,19 @@
  * page. A fresh browser per case runs the same assertions in seconds.
  */
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
-import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readdir } from 'node:fs/promises';
 import { chromium, webkit } from 'playwright';
 import { books } from '../src/booksData.ts';
+import { serve } from './dev-server.mjs';
 
-/* Both halves of the shelf need a book to stand for them, and today no note is
-   written. So the checks own one: a fixture note, written before the server
-   starts and removed after, that makes exactly one volume annotated. */
+/* Both halves of the shelf need a book to stand for them: the checks read the
+   real notes rather than planting one, so they never write into content. */
 const NOTES = 'src/content/notes';
-const NOTED = '9780241252086'; // White Nights
+const NOTED = (await readdir(NOTES))
+	.filter((name) => /\.mdx?$/.test(name))
+	.map((name) => name.replace(/\.mdx?$/, ''));
+assert.ok(NOTED.length > 0, `${NOTES} needs at least one note to check the reader.`);
 const FLUSH = 'East of Eden';
-const FIXTURE = `${NOTES}/${NOTED}.md`;
-const FIXTURE_BODY = `---
----
-
-## A fixture, not a note
-
-Dostoevsky's narrator talks himself into a life over four nights and loses it
-on the fifth. The check needs enough prose to break across leaves, so here is
-a second paragraph doing exactly that and no more.
-
-The reader has to paginate this, fit it inside the page box, and land the back
-cover on the right-hand side.
-`;
-
-/** Take the shelf as it is if a real note already exists; otherwise plant one. */
-async function fixtureNote() {
-	const existing = await readdir(NOTES).catch(() => []);
-	if (existing.some((name) => name.startsWith(NOTED))) return { planted: false, clean: () => {} };
-	await writeFile(FIXTURE, FIXTURE_BODY);
-	return { planted: true, clean: () => rm(FIXTURE, { force: true }) };
-}
 
 const OUTPUT = '/tmp/library-check';
 /* Two at a time. Each case drives real WebGL, and at three the machine starves
@@ -55,7 +36,6 @@ const OUTPUT = '/tmp/library-check';
    motion is driven by absolute timestamps. Three was also slower, since the
    starved case sat burning step timeouts. */
 const CONCURRENCY = Number(process.env.LIBRARY_CONCURRENCY ?? 2);
-const PORT = 4321;
 /* Per-action and whole-case ceilings. Browser launch, newPage and close have no
    Playwright timeout of their own, and on this machine they do occasionally
    wedge for tens of minutes. A check that can hang forever is not a check. */
@@ -82,42 +62,6 @@ const CASES = [
 	{ engine: webkit, width: 1440, height: 900 },
 	{ engine: webkit, width: 390, height: 844 },
 ];
-
-const reachable = async (url) => {
-	try {
-		const response = await fetch(url, { signal: AbortSignal.timeout(2000) });
-		return response.ok;
-	} catch {
-		return false;
-	}
-};
-
-/** Use the caller's server if they gave one, otherwise run a private one. */
-async function serve() {
-	if (process.env.LIBRARY_URL) {
-		const base = process.env.LIBRARY_URL.replace(/\/$/, '');
-		assert.ok(await reachable(`${base}/bookshelf/`), `No dev server at ${base}`);
-		return { base, stop: () => {} };
-	}
-	const base = `http://127.0.0.1:${PORT}`;
-	if (await reachable(`${base}/bookshelf/`)) return { base, stop: () => {} };
-	// A stale Vite dep cache serves 504s that surface as unrelated selector
-	// timeouts, so a fresh server starts from a cleared one.
-	const server = spawn(
-		'bun',
-		['x', 'astro', 'dev', '--host', '127.0.0.1', '--port', String(PORT), '--force'],
-		{ stdio: 'ignore', detached: false },
-	);
-	for (let attempt = 0; attempt < 60; attempt++) {
-		if (await reachable(`${base}/bookshelf/`)) {
-			console.log(`dev server ready at ${base}`);
-			return { base, stop: () => server.kill() };
-		}
-		await new Promise((resolve) => setTimeout(resolve, 1000));
-	}
-	server.kill();
-	throw new Error('Dev server did not come up within 60s');
-}
 
 /** Run one engine/viewport pair. Throws with the step that failed. */
 async function check({ engine, width, height }, base) {
@@ -147,11 +91,13 @@ async function check({ engine, width, height }, base) {
 		await page.goto(`${base}/bookshelf/`);
 		await page.waitForSelector('#library-loading[hidden]', { state: 'attached' });
 
-		at('see the note the fixture planted');
+		at('see every written note');
 		assert.deepEqual(
-			await page.locator('#library-stage').evaluate((node) => JSON.parse(node.dataset.noted)),
-			[NOTED],
-			'The server is not serving the fixture note — a stale dev server on this port?',
+			(
+				await page.locator('#library-stage').evaluate((node) => JSON.parse(node.dataset.noted))
+			).sort(),
+			NOTED.sort(),
+			'The server is not serving the notes on disk — a stale dev server on this port?',
 		);
 
 		at('put the plain list away once the oak is up');
@@ -353,8 +299,6 @@ const selected = CASES.filter(
 assert.ok(selected.length > 0, `No cases match: ${filters.join(' ')}`);
 
 await mkdir(OUTPUT, { recursive: true });
-const fixture = await fixtureNote();
-if (fixture.planted) console.log(`fixture note planted at ${FIXTURE}`);
 const { base, stop } = await serve();
 await warm(base);
 console.log(`${selected.length} case(s), ${CONCURRENCY} at a time\n`);
@@ -377,7 +321,6 @@ try {
 	);
 } finally {
 	stop();
-	await fixture.clean();
 }
 
 console.log(`\n${((Date.now() - started) / 1000).toFixed(0)}s · screenshots in ${OUTPUT}`);

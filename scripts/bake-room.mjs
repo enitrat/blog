@@ -1,20 +1,12 @@
 /** Bake original room assets with Blender 4.5; the browser consumes only the exports. */
 import { spawn } from 'node:child_process';
-import {
-	copyFile,
-	mkdir,
-	mkdtemp,
-	readdir,
-	readFile,
-	rename,
-	rm,
-	writeFile,
-} from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { books } from '../src/booksData.ts';
 import { PLEIADE_HEX, pleiadeStyleFor } from '../src/utils/pleiade.ts';
+import { englishPieces, notedIsbns } from './room-content.mjs';
 import { ROOM_GROUPS, roomTargets } from './room-targets.mjs';
 import { SHEET, sheetSvg } from './sheet-art.mjs';
 import { ART_HEIGHT, coverSvg, spineSvg } from './spine-art.mjs';
@@ -30,24 +22,22 @@ const timed = (label, started) =>
 const targets = roomTargets(args);
 const targetSet = new Set(targets);
 const preview = args.includes('--preview');
-const layoutOnly = args.includes('--layout-only');
 const noPublish = args.includes('--no-publish');
-if (layoutOnly && targets.length !== ROOM_GROUPS.length)
-	throw new Error('--layout-only cannot be combined with a partial-bake selector.');
+// Checked-in assets are always production quality; tuning is for experiments.
+if (!preview && !noPublish && (option('--samples') || option('--size')))
+	throw new Error('--samples and --size need --no-publish or --preview.');
+// A fresh directory per run, so concurrent bakes never share intermediates.
+// Set ROOM_WORK only to open a preview at a known path.
 const work = process.env.ROOM_WORK ?? (await mkdtemp(join(tmpdir(), 'living-room-')));
-const out = resolve(option('--out', 'src/assets/room'));
+const out = resolve('src/assets/room');
 const stage = join(work, 'publish');
 await mkdir(work, { recursive: true });
 await rm(stage, { recursive: true, force: true });
 await mkdir(stage, { recursive: true });
 // Only an annotated volume can be opened, so only its front cover is ever seen
 // off the shelf. Baking the other fifty-odd spends the atlas on faces nobody
-// can reach. A note's filename is its ISBN, the same contract `notedIsbns()`
-// enforces against the shelves at build time; `astro:content` is not available
-// out here, so the directory is read directly.
-const noted = new Set(
-	(await readdir('src/content/notes')).map((file) => file.replace(/\.mdx?$/, '')),
-);
+// can reach.
+const noted = await notedIsbns();
 const library = books.map((book) => ({
 	isbn: book.edition.isbn13,
 	noted: noted.has(book.edition.isbn13),
@@ -101,36 +91,8 @@ const slots = library.map((book, index) => {
 		height: SPINE_HEIGHT,
 	};
 });
-// The writing lies on the desk, one manuscript per published piece. A piece is
-// a directory in the blog collection whose route is its directory name, and
-// the English original is what the index lists; `astro:content` is not
-// available out here, so the frontmatter is read directly, as the notes are.
-const pieces = [];
-for (const directory of (await readdir('src/content/blog', { withFileTypes: true })).filter(
-	(entry) => entry.isDirectory(),
-)) {
-	const files = (await readdir(join('src/content/blog', directory.name))).filter((file) =>
-		/\.mdx?$/.test(file),
-	);
-	for (const file of files) {
-		const source = await readFile(join('src/content/blog', directory.name, file), 'utf8');
-		const front = source.match(/^---\n([\s\S]*?)\n---/)?.[1] ?? '';
-		const field = (name) =>
-			front
-				.match(new RegExp(`^${name}:\\s*(.+)$`, 'm'))?.[1]
-				.trim()
-				.replace(/^(['"])(.*)\1$/, '$2');
-		if ((field('lang') ?? 'en') !== 'en') continue;
-		const date = new Date(field('pubDate'));
-		pieces.push({
-			slug: directory.name,
-			title: field('title'),
-			date: date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }),
-			time: date.valueOf(),
-		});
-	}
-}
-pieces.sort((a, b) => b.time - a.time);
+// The writing lies on the desk, one manuscript per published piece.
+const pieces = await englishPieces();
 // Two fanned piles on the leather, newest on top and nearest the chair, each
 // older sheet pushed a little further from the writer so its head -- where
 // the title is written -- shows past the sheet on top of it. Blender's axes:
@@ -185,16 +147,13 @@ const sheets = pieces.map((piece, index) => {
 
 // Blender reads these from the work directory; the browser imports the pair
 // written beside the GLBs.
-const publish = async (directory, pretty) => {
-	// Tabs, so the checked-in copies match what `bun run lint` expects.
-	const space = pretty ? '\t' : undefined;
-	const end = pretty ? '\n' : '';
-	await writeFile(join(directory, 'book-slots.json'), JSON.stringify(slots, null, space) + end);
-	await writeFile(join(directory, 'cabinet.json'), JSON.stringify(CABINET, null, space) + end);
-	await writeFile(join(directory, 'sheets.json'), JSON.stringify(sheets, null, space) + end);
-};
-await publish(work, false);
-await publish(stage, true);
+// Tabs, so the checked-in copies match what `bun run lint` expects.
+const manifests = { 'book-slots.json': slots, 'cabinet.json': CABINET, 'sheets.json': sheets };
+for (const [name, value] of Object.entries(manifests)) {
+	const text = `${JSON.stringify(value, null, '\t')}\n`;
+	await writeFile(join(work, name), text);
+	await writeFile(join(stage, name), text);
+}
 
 const sameFile = async (left, right) => {
 	try {
@@ -203,13 +162,9 @@ const sameFile = async (left, right) => {
 		return false;
 	}
 };
+// Copied only after every selected GLB validated; git is the rollback.
 const install = async (names) => {
-	await mkdir(out, { recursive: true });
-	for (const name of names) {
-		const temporary = join(out, `.${name}.${process.pid}.tmp`);
-		await copyFile(join(stage, name), temporary);
-		await rename(temporary, join(out, name));
-	}
+	for (const name of names) await copyFile(join(stage, name), join(out, name));
 };
 
 if (targets.length !== ROOM_GROUPS.length) {
@@ -219,56 +174,54 @@ if (targets.length !== ROOM_GROUPS.length) {
 		}
 	}
 }
-if (layoutOnly) {
-	if (!noPublish) await install(['book-slots.json', 'cabinet.json', 'sheets.json']);
-	timed('total', totalStarted);
-	process.exit(0);
-}
 await writeFile(join(work, 'books.json'), JSON.stringify(library));
 const artworkStarted = performance.now();
+// Groups baked in isolation never see the room's other artwork, so they skip it.
 const fullArtwork =
 	preview || targets.some((name) => !['books', 'covers', 'bookmark', 'sheets'].includes(name));
-for (const [index, book] of library.entries()) {
-	const slot = slots[index];
-	/* The jacket plane Blender builds is `width - .001` by `height - .003`, so
-	   the drawing is authored at that exact aspect and nothing on it is
-	   squeezed. Rasterised well above its nominal size: these jackets are the
-	   only type in the room a visitor is meant to actually read, and neither the
-	   bake nor the browser can invent detail the source does not have. */
-	if (fullArtwork || targetSet.has('spines')) {
-		const svg = spineSvg(book, (slot.width - 0.001) / (slot.height - 0.003));
-		const density =
-			96 * Math.max(2, 320 / (ART_HEIGHT * ((slot.width - 0.001) / (slot.height - 0.003))));
-		await sharp(Buffer.from(svg), { density })
-			.png()
-			.toFile(join(work, `book-${index}.png`));
-	}
-	if (book.noted && (fullArtwork || targetSet.has('covers'))) {
-		await sharp(Buffer.from(coverSvg(book)), { density: 192 })
-			.png()
-			.toFile(join(work, `cover-${index}.png`));
-	}
-}
-if (fullArtwork || targetSet.has('sheets')) {
-	for (const [index, piece] of pieces.entries()) {
-		// Four pixels per millimetre: a title read from the chair, not a texture.
-		await sharp(Buffer.from(sheetSvg(piece, index)), { density: 96 * (1600 / SHEET.height) })
-			.png()
-			.toFile(join(work, `sheet-${index}.png`));
-	}
-}
-// Original geometric artwork, with no invented attribution or borrowed cover art.
-if (fullArtwork) {
-	for (const [name, width, height] of [
+const raster = (svg, density, name) =>
+	sharp(Buffer.from(svg), { density }).png().toFile(join(work, name));
+await Promise.all([
+	...library.flatMap((book, index) => {
+		const slot = slots[index];
+		/* The jacket plane Blender builds is `width - .001` by `height - .003`, so
+		   the drawing is authored at that exact aspect and nothing on it is
+		   squeezed. Rasterised well above its nominal size: these jackets are the
+		   only type in the room a visitor is meant to actually read, and neither
+		   the bake nor the browser can invent detail the source does not have. */
+		const aspect = (slot.width - 0.001) / (slot.height - 0.003);
+		return [
+			fullArtwork &&
+				raster(
+					spineSvg(book, aspect),
+					96 * Math.max(2, 320 / (ART_HEIGHT * aspect)),
+					`book-${index}.png`,
+				),
+			book.noted &&
+				(fullArtwork || targetSet.has('covers')) &&
+				raster(coverSvg(book), 192, `cover-${index}.png`),
+		];
+	}),
+	...pieces.map(
+		(piece, index) =>
+			(fullArtwork || targetSet.has('sheets')) &&
+			// Four pixels per millimetre: a title read from the chair, not a texture.
+			raster(sheetSvg(piece, index), 96 * (1600 / SHEET.height), `sheet-${index}.png`),
+	),
+	// Original geometric artwork, with no invented attribution or borrowed cover art.
+	...[
 		['print', 720, 840],
 		['sleeve', 640, 640],
-	]) {
-		const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 720 840"><rect width="720" height="840" fill="#d7cbb2"/><rect x="70" y="70" width="580" height="640" fill="#3d5358"/><circle cx="360" cy="390" r="240" fill="#ae5940"/><path d="M120 390h480M120 440h480M145 490h430M185 540h350M245 590h230" stroke="#d7cbb2" stroke-width="17"/><circle cx="360" cy="390" r="55" fill="#d7cbb2"/><circle cx="360" cy="390" r="15" fill="#3d5358"/></svg>`;
-		await sharp(Buffer.from(svg))
-			.png()
-			.toFile(join(work, `${name}.png`));
-	}
-}
+	].map(
+		([name, width, height]) =>
+			fullArtwork &&
+			raster(
+				`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 720 840"><rect width="720" height="840" fill="#d7cbb2"/><rect x="70" y="70" width="580" height="640" fill="#3d5358"/><circle cx="360" cy="390" r="240" fill="#ae5940"/><path d="M120 390h480M120 440h480M145 490h430M185 540h350M245 590h230" stroke="#d7cbb2" stroke-width="17"/><circle cx="360" cy="390" r="55" fill="#d7cbb2"/><circle cx="360" cy="390" r="15" fill="#3d5358"/></svg>`,
+				72,
+				`${name}.png`,
+			),
+	),
+]);
 timed('artwork', artworkStarted);
 console.log(`Blender source and intermediate textures: ${work}`);
 const run = (command, commandArgs, silent = false) =>
@@ -289,8 +242,9 @@ const run = (command, commandArgs, silent = false) =>
 	});
 
 const blenderStarted = performance.now();
+const blender = process.env.BLENDER ?? 'blender';
 try {
-	await run(process.env.BLENDER ?? 'blender', [
+	await run(blender, [
 		'--background',
 		'--factory-startup',
 		'--python',
@@ -306,7 +260,8 @@ try {
 		...(!fullArtwork ? ['--minimal-art'] : []),
 	]);
 } catch (error) {
-	throw new Error(`Cannot run Blender: ${error.message}. Set BLENDER to its executable.`);
+	if (error.code === 'ENOENT') throw new Error(`Cannot find Blender at ${blender}. Set BLENDER.`);
+	throw error;
 }
 timed('blender', blenderStarted);
 
@@ -317,7 +272,7 @@ if (preview) {
 
 const validationStarted = performance.now();
 for (const name of targets) {
-	await run('bunx', ['@gltf-transform/cli', 'validate', join(stage, `${name}.glb`)], true);
+	await run('bunx', ['@gltf-transform/cli@4.5.0', 'validate', join(stage, `${name}.glb`)], true);
 }
 timed('validation', validationStarted);
 

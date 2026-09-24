@@ -1,7 +1,5 @@
 import { CABINET, ordered, rowName, rows, type ShelfFrame, type Slot } from './shelves';
 
-export type { ShelfFrame } from './shelves';
-
 type Point = { x: number; y: number; z: number };
 type Project = (x: number, y: number, z: number) => Point;
 type Section = { books: Slot[]; frame: ShelfFrame };

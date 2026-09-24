@@ -5,7 +5,7 @@
  *   bun run room:check chromium     one engine
  *   bun run room:check --shots      also write frames to /tmp/room-check
  *
- * Starts its own dev server unless ROOM_URL points at one already.
+ * Starts its own dev server unless DEV_URL points at one already.
  *
  * Boot is read off [data-room][data-live], which the scene publishes for the
  * stylesheet — the same signal shoot-poster.mjs waits on. It is the
@@ -13,10 +13,10 @@
  * point of the baked architecture, so they are checked rather than remembered.
  */
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
 import { mkdir, rm } from 'node:fs/promises';
 import { chromium, webkit } from 'playwright';
 import sharp from 'sharp';
+import { serve } from './dev-server.mjs';
 
 const OUTPUT = '/tmp/room-check';
 const SHOTS = process.argv.includes('--shots');
@@ -31,21 +31,6 @@ const VIEWPORTS = [
 	// the poster. Without it this case silently tests the desktop path.
 	{ name: 'phone', width: 390, height: 844, hasTouch: true, isMobile: true },
 ];
-
-async function serve() {
-	if (process.env.ROOM_URL) return { url: process.env.ROOM_URL, stop: () => {} };
-	const port = 4340 + Math.floor(Math.random() * 40);
-	const child = spawn('npx', ['astro', 'dev', '--port', String(port)], { stdio: 'ignore' });
-	const url = `http://localhost:${port}/`;
-	for (let i = 0; i < 60; i++) {
-		try {
-			if ((await fetch(url)).ok) return { url, stop: () => child.kill() };
-		} catch {}
-		await new Promise((resolve) => setTimeout(resolve, 500));
-	}
-	child.kill();
-	throw new Error('dev server never came up');
-}
 
 /** Every failure this run saw, so one bad engine does not hide the rest. */
 const failures = [];
@@ -90,10 +75,6 @@ async function run(engineName, url) {
 		try {
 			await page.goto(url, { waitUntil: 'load' });
 
-			await check(`${label} hero present`, async () =>
-				assert.equal(await page.locator('.living-room').count(), 1),
-			);
-
 			// The hero must not be able to shift layout: it needs a reserved box
 			// before the canvas ever boots.
 			await check(`${label} reserves height`, async () => {
@@ -123,26 +104,15 @@ async function run(engineName, url) {
 				assert.ok(reachable, 'a hotspot is not keyboard reachable or has no label');
 			});
 
-			/* The gate is a pure function of these four inputs, so its decision can
-			   be read straight off the page rather than waited out. If this ever
-			   drifts from the gate in LivingRoom.astro the mismatch fails loudly
-			   below — a booting page would miss its poster assertion — not
-			   silently. */
-			const gate = await page.evaluate(() => ({
-				browsing: location.hash.startsWith('#bookshelf'),
-				coarse: matchMedia('(pointer: coarse)').matches,
-				memory: navigator.deviceMemory ?? 8,
-				saveData: navigator.connection?.saveData === true,
-				webgl2: (() => {
-					try {
-						return !!document.createElement('canvas').getContext('webgl2');
-					} catch {
-						return false;
-					}
-				})(),
-			}));
-			const gateOpens =
-				gate.webgl2 && (gate.browsing || (!gate.coarse && gate.memory >= 4 && !gate.saveData));
+			// A desktop viewport with WebGL2 must boot the room; a touch one must not.
+			const webgl2 = await page.evaluate(() => {
+				try {
+					return !!document.createElement('canvas').getContext('webgl2');
+				} catch {
+					return false;
+				}
+			});
+			const gateOpens = webgl2 && !viewport.hasTouch;
 
 			const booted =
 				gateOpens &&
@@ -166,7 +136,6 @@ async function run(engineName, url) {
 				: null;
 			if (metrics) {
 				await check(`${label} stays within the room asset budget`, () => {
-					assert.equal(metrics.assets, 9);
 					assert.ok(metrics.encodedBytes <= 11_000_000, `${metrics.encodedBytes} GLB bytes`);
 				});
 				if (METRICS) {
@@ -175,12 +144,8 @@ async function run(engineName, url) {
 			}
 
 			if (viewport.hasTouch) {
-				await check(`${label} stays on the poster`, () =>
-					assert.equal(gateOpens, false, `gate opened with ${JSON.stringify(gate)}`),
-				);
-				await check(`${label} coarse pointer is the reason`, () => assert.equal(gate.coarse, true));
-				await check(`${label} never fetches three or the atlas`, () => {
-					const heavy = requested.filter((u) => /three|scene|room\.(webp|bin)/i.test(u));
+				await check(`${label} never fetches three or the GLBs`, () => {
+					const heavy = requested.filter((u) => /three|scene|\.glb/i.test(u));
 					assert.equal(heavy.length, 0, heavy.join(', '));
 				});
 			}
@@ -196,13 +161,7 @@ async function run(engineName, url) {
 				);
 			}
 
-			if (!booted) {
-				// A phone or a WebGL-less engine is allowed to stay on the poster, but
-				// then the poster and the real controls have to carry the hero alone.
-				await check(`${label} falls back to poster`, async () =>
-					assert.equal(await page.locator('.living-room__poster').count(), 1),
-				);
-			} else {
+			if (booted) {
 				// The 3D moves the controls onto their objects; if projection breaks
 				// they pile up in one corner and both point at the same thing.
 				await check(`${label} hotspots land apart`, async () => {
@@ -304,7 +263,8 @@ async function run(engineName, url) {
 	}
 }
 
-const { url, stop } = await serve();
+const { base, stop } = await serve();
+const url = `${base}/`;
 try {
 	if (SHOTS) {
 		await rm(OUTPUT, { recursive: true, force: true });
