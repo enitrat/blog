@@ -64,8 +64,9 @@ const manuscripts = sheets.flatMap((sheet) => {
 		))}
 	</nav>
 
-	<!-- Camera chrome lives over the artwork, not under it: one chevron asset,
-	     rotated, points back out and along the shelves. -->
+	<!-- The camera's controls for the keyboard and screen readers: hidden until
+	     focused, since a pointer or finger steers the room itself. One chevron
+	     asset, rotated, points back out and along the shelves. -->
 	<div class="room-controls">
 		<svg width="0" height="0" aria-hidden="true" focusable="false">
 			<symbol id="room-chevron" viewBox="0 0 24 24">
@@ -104,25 +105,29 @@ const manuscripts = sheets.flatMap((sheet) => {
 	const player = room?.querySelector<HTMLButtonElement>('[data-anchor="record"]');
 	const shelfPlayer = room?.querySelector<HTMLButtonElement>('[data-shelf-audio]');
 
-	// The rings carry no text; the caption at the lower edge names whatever the
-	// pointer or keyboard has reached, one at a time. That element has a single
-	// owner: while browsing, the bookshelf is naming rows and books with it, so
-	// the room asks through `label()` rather than writing to it.
+	// The targets carry no visible text; one small tag names whatever the
+	// pointer or keyboard has reached. That element has a single owner: the
+	// bookshelf, which names rows and books with it, so everyone else asks
+	// through `label()`. Once the room is live the scene names its own things.
 	const hotspots = room?.querySelector<HTMLElement>('.living-room__hotspots');
-	const label = (text: string) => bookshelf?.label(text);
+	const label = (text: string, over?: Element, now = false) => bookshelf?.label(text, over, now);
 	const named = (event: Event) => {
+		if (room?.hasAttribute('data-live')) return;
 		const spot = (event.target as Element).closest?.('.living-room__hotspot');
-		const ring = spot && !spot.classList.contains('living-room__mix');
-		label(ring ? (spot.textContent ?? '').trim() : '');
+		const target = spot && !spot.classList.contains('living-room__mix') ? spot : undefined;
+		label((target?.textContent ?? '').trim(), target, event.type === 'focusin');
 	};
 	const pointed = () =>
 		room?.querySelector<HTMLElement>(
 			'.living-room__hotspot:is(:hover, :focus-visible):not(.living-room__mix)',
 		);
 	hotspots?.addEventListener('pointerover', named);
-	hotspots?.addEventListener('pointerout', () => label(''));
+	const unnamed = () => {
+		if (!room?.hasAttribute('data-live')) label('');
+	};
+	hotspots?.addEventListener('pointerout', unnamed);
 	hotspots?.addEventListener('focusin', named);
-	hotspots?.addEventListener('focusout', () => label(''));
+	hotspots?.addEventListener('focusout', unnamed);
 
 	/** Surface noise, built once and left in place. Creating and closing an
 	 *  AudioContext per play races its own teardown: a second press inside the
@@ -202,7 +207,7 @@ const manuscripts = sheets.flatMap((sheet) => {
 		// The button's own label just changed. If it is the thing being pointed
 		// at, the caption is naming it and has to say the new thing.
 		const spot = pointed();
-		if (spot) label((spot.textContent ?? '').trim());
+		if (spot) label((spot.textContent ?? '').trim(), spot, true);
 	}
 
 	async function connect() {
@@ -338,15 +343,32 @@ const manuscripts = sheets.flatMap((sheet) => {
 					bookshelf.fallback();
 				} finally {
 					room.removeAttribute('aria-busy');
+					// A desk that could not be sat at still leads to the writing.
+					if (!room.hasAttribute('data-live') && room.dataset.intent === 'desk')
+						location.assign('/writing/');
+					delete room.dataset.intent;
 				}
 			})();
 			return loading;
 		};
 		// Explicit activation always loads; the eager path stays off touch, where
-		// the poster and the list already answer the page.
+		// the poster already answers the page. A tap on the record or the desk
+		// before the room is there is remembered, and the scene flies to it on
+		// arrival; the record starts playing at once either way.
 		room.querySelector('[data-anchor="bookshelf"]')?.addEventListener('click', () => {
 			if (canRender) void load();
 		});
+		for (const anchor of ['record', 'desk'] as const) {
+			room.querySelector(`.living-room__hotspot:not(.living-room__mix)[data-anchor="${anchor}"]`)
+				?.addEventListener('click', (event) => {
+					if (!canRender || room.hasAttribute('data-live')) return;
+					const plain = !(event as MouseEvent).metaKey && !(event as MouseEvent).ctrlKey;
+					if (anchor === 'desk' && !plain) return;
+					event.preventDefault();
+					room.dataset.intent = anchor;
+					void load();
+				});
+		}
 		addEventListener('hashchange', () => {
 			if (bookshelf.active && canRender) void load();
 		});

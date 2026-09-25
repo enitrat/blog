@@ -211,6 +211,20 @@ async function visit(browser, engineName, url, viewport) {
 				});
 			}
 
+			// The room is its own affordance: pointing at the cabinet lights it and
+			// the cursor says it can be clicked, with no ring drawn over it.
+			await check(`${label} cabinet answers the pointer`, async () => {
+				const spot = await page.locator('[data-anchor="bookshelf"]').boundingBox();
+				assert.ok(spot);
+				await page.mouse.move(spot.x + spot.width / 2, spot.y + spot.height / 2);
+				await page.waitForFunction(
+					() => document.querySelector('.living-room__canvas')?.style.cursor === 'pointer',
+					null,
+					{ timeout: 3000 },
+				);
+				await page.mouse.move(0, 0);
+			});
+
 			await check(`${label} sofa leaves the bookshelf clear`, async () => {
 				await page.locator('[data-anchor="bookshelf"]').click();
 				await page.waitForFunction(
@@ -243,7 +257,8 @@ async function visit(browser, engineName, url, viewport) {
 					const covered = oxblood / (data.length / info.channels);
 					assert.ok(covered < 0.2, `${Math.round(covered * 100)}% of the bottom row is sofa`);
 				} finally {
-					await page.locator('[data-shelf-exit]').click();
+					// The way out is a keyboard control, hidden from the pointer.
+					await page.locator('[data-shelf-exit]').dispatchEvent('click');
 					await page.waitForFunction(
 						() =>
 							document.querySelector('[data-room]')?.getAttribute('data-view') === 'room' &&

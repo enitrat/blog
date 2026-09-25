@@ -246,6 +246,57 @@
 	transition: opacity 160ms ease;
 }
 
+/* Each thing's control stands on the thing: a real link or button with no
+   visible chrome, because the object answers for it. Live, the scene lights
+   what the pointer is over and a tag names it; on the poster, it is a place
+   to tap. */
+.living-room__hotspot:not(.living-room__mix) {
+	width: 3.5rem;
+	height: 3.5rem;
+	padding: 0;
+	border-radius: 50%;
+	background: none;
+	color: transparent;
+	font-size: 0;
+	opacity: 1;
+	-webkit-tap-highlight-color: transparent;
+}
+
+/* The poster's version of the live room's idle lamplight: each thing glows
+   low, rising and falling out of step, until the room takes over. */
+.living-room__hotspot:not(.living-room__mix)::before {
+	content: "";
+	position: absolute;
+	inset: -70%;
+	border-radius: 50%;
+	background: radial-gradient(
+		closest-side,
+		rgb(255 214 150 / 0.42),
+		rgb(255 180 110 / 0.14) 55%,
+		transparent
+	);
+	opacity: 0.45;
+	pointer-events: none;
+	animation: living-room-glow 1.1s ease-in-out infinite alternate;
+}
+.living-room__hotspot[data-anchor="record"]::before {
+	animation-delay: -0.37s;
+}
+.living-room__hotspot[data-anchor="desk"]::before {
+	animation-delay: -0.73s;
+}
+.living-room[data-live] .living-room__hotspot::before {
+	content: none;
+}
+@keyframes living-room-glow {
+	from {
+		opacity: 0.2;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
 .living-room__hotspot[data-anchor="bookshelf"] {
 	left: 45.49%;
 	top: 40.40%;
@@ -258,73 +309,10 @@
 	left: 60.2%;
 	top: 67.5%;
 }
-.living-room:hover .living-room__hotspot,
-.living-room__hotspot:focus-visible,
-.living-room[data-playing] button.living-room__hotspot {
-	opacity: 1;
-}
-
 .living-room__hotspot:focus-visible,
 .living-room__canvas:focus-visible {
 	outline: 3px solid var(--home-cobalt);
 	outline-offset: 3px;
-}
-
-@media (hover: hover) and (min-width: 40.0625rem) {
-	.living-room__hotspot:not(.living-room__mix) {
-		width: 2.5rem;
-		height: 2.5rem;
-		padding: 0;
-		background: none;
-		opacity: 1;
-		overflow: hidden;
-		text-indent: 110%;
-	}
-}
-
-/* One ivory ring marks every reachable thing in the room — the hi-fi, the
-   cabinet, a shelf, a single spine — and fills when it is under the pointer.
-   Dark-rimmed so it reads on oak as well as in shadow. Defined once here
-   because the room owns its own chrome; bookshelf.css owns the reader. */
-.living-room__hotspot:not(.living-room__mix)::before,
-.room-library__row::before,
-.room-library__spine::before,
-.room-desk__sheet::before {
-	content: "";
-	position: absolute;
-	left: 50%;
-	top: 50%;
-	width: 0.6rem;
-	height: 0.6rem;
-	translate: -50% -50%;
-	border: 1px solid rgb(255 247 231 / 0.7);
-	border-radius: 50%;
-	background: rgb(255 247 231 / 0.1);
-	box-shadow: 0 0 0 1px rgb(33 29 23 / 0.3);
-	pointer-events: none;
-	transition:
-		background-color 160ms ease,
-		border-color 160ms ease,
-		opacity 160ms ease,
-		scale 160ms ease;
-}
-
-.living-room__hotspot:not(.living-room__mix):is(:hover, :focus-visible)::before,
-.room-library__row:is(:hover, :focus-visible)::before,
-.room-library__spine:is(:hover, :focus-visible)::before,
-.room-desk__sheet:is(:hover, :focus-visible)::before {
-	border-color: #fff7e7;
-	background: rgb(255 247 231 / 0.85);
-	scale: 1.15;
-}
-
-/* A whole row of standing rings would read as noise, so a spine only shows
-   its own once it is reached. */
-.room-library__spine::before {
-	opacity: 0;
-}
-.room-library__spine:is(:hover, :focus-visible)::before {
-	opacity: 1;
 }
 
 /* The manuscripts, seated at the desk: a link laid over each sheet's exposed
@@ -354,10 +342,9 @@
 	display: none;
 }
 
-/* Keyboard focus is the site's one cobalt outline (site.css); the ring only
-   has to fill, exactly as it does under the pointer. */
-
-/* In-frame camera chrome: one way out, one pair of arrows per axis. */
+/* Camera controls for the keyboard and screen readers. A pointer and a
+   finger have the room itself, Escape, and history; each control shows where
+   it stands only once it has focus. The one that stops the music stays. */
 .room-controls {
 	position: absolute;
 	inset: 0;
@@ -393,6 +380,12 @@
 	cursor: default;
 }
 
+.room-controls > button:not(.room-controls__audio, :focus-visible) {
+	clip-path: inset(50%);
+	opacity: 0;
+	pointer-events: none;
+}
+
 .room-controls > button {
 	min-width: 44px;
 	min-height: 44px;
@@ -415,10 +408,6 @@
 .room-controls__audio {
 	top: 1rem;
 	right: 1rem;
-}
-
-.living-room[data-browsing] .room-controls__audio {
-	top: 4.5rem;
 }
 
 /* The chevron asset points left; each direction is that one glyph turned. */
@@ -455,7 +444,7 @@
 	rotate: 180deg;
 }
 
-/* Announced, not drawn: the caption already carries this visually. */
+/* Announced, not drawn: the room itself shows where the camera is. */
 .room-controls__status {
 	width: 1px;
 	height: 1px;
@@ -475,29 +464,45 @@
 	display: none;
 }
 
-/* With a live room the list is redundant; without one it is the bookshelf. */
-.living-room[data-live] :is(.room-library__catalog, .room-library__legend) {
+/* With a room, or one on its way, the list is redundant; without one it is
+   the bookshelf. */
+.living-room:is([data-live], [data-can-render]) :is(.room-library__catalog, .room-library__legend) {
 	display: none;
 }
 
+/* The one label: a small tag over whatever is pointed at, placed by the
+   bookshelf, which also decides when it shows. */
 .living-room__caption {
 	position: absolute;
-	bottom: 1rem;
 	left: 50%;
-	translate: -50%;
+	top: 50%;
+	z-index: 2;
+	translate: -50% calc(-100% - 0.5rem);
+	width: max-content;
+	max-width: min(22rem, calc(100% - 1rem));
 	margin: 0;
-	padding: 0.5rem 0.75rem;
+	padding: 0.35rem 0.6rem;
 	border-radius: 3px;
-	background: rgb(33 29 23 / 0.92);
+	background: rgb(33 29 23 / 0.9);
+	box-shadow: 0 4px 14px rgb(10 7 4 / 0.35);
 	color: #fff7e7;
-	font-size: 0.8125rem;
-	white-space: nowrap;
+	font-size: 0.75rem;
+	line-height: 1.45;
+	text-align: center;
+	white-space: pre-line;
 	pointer-events: none;
 	opacity: 0;
-	transition: opacity 140ms ease;
+	transition: opacity 100ms ease;
 }
-.living-room__caption:not(:empty) {
+.living-room__caption[data-shown] {
 	opacity: 1;
+	transition-duration: 180ms;
+}
+.living-room__caption::first-line {
+	font-weight: 600;
+}
+.living-room[data-traveling] .living-room__caption {
+	opacity: 0;
 }
 
 .living-room__mix {
@@ -509,45 +514,7 @@
 	opacity: 1;
 }
 
-/* Touch controls sit below the image so labels cannot cover each other or the objects. */
-@media (hover: none), (max-width: 40rem) {
-	.living-room__stage {
-		box-sizing: content-box;
-		padding-bottom: 3.3rem;
-	}
-	.living-room__poster,
-	.living-room__canvas {
-		height: calc(100% - 3.3rem);
-	}
-	.living-room__hotspots {
-		inset: auto 0 0;
-		height: 3.3rem;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		gap: 0.5rem;
-	}
-	.living-room__hotspot {
-		position: static;
-		transform: none;
-		opacity: 1;
-		font-size: 0.75rem;
-	}
-	/* Below the frame the hotspots are named buttons, so they drop the ring. */
-	.living-room__hotspot::before {
-		content: none;
-	}
-	.living-room__mix {
-		position: absolute;
-		bottom: 3.6rem;
-		left: 50% !important;
-		top: auto !important;
-		transform: translateX(-50%);
-	}
-}
-
-/* A narrow frame has no room for a label beside the top arrow, nor for a
-   caption beneath the bottom one. */
+/* A narrow frame has no room for a label beside the way out. */
 @media (max-width: 40rem) {
 	.room-controls__back {
 		padding: 0.6rem;
@@ -559,22 +526,12 @@
 		overflow: hidden;
 		clip-path: inset(50%);
 	}
-	.living-room[data-browsing] .living-room__caption {
-		bottom: 4.5rem;
-	}
 }
 
 .living-room[data-browsing][data-live] .living-room__stage {
 	aspect-ratio: auto;
 	height: clamp(30rem, calc(100svh - 4rem), 52rem);
 	padding-bottom: 0;
-}
-.living-room[data-browsing][data-live] .living-room__canvas,
-.living-room[data-browsing][data-live] .living-room__poster {
-	height: calc(100% - 8rem);
-}
-.living-room[data-browsing] .room-book-targets {
-	bottom: 8rem;
 }
 .living-room[data-browsing] .room-controls__back {
 	top: auto;
@@ -586,6 +543,27 @@
 	cursor: zoom-out;
 	touch-action: pan-y;
 }
+
+/* On a phone, the shelves take the whole screen, the way a photo opens: every
+   swipe then belongs to the room, and nothing has to share it with the page.
+   The room keeps its place in the page while it is away. */
+@media (hover: none), (max-width: 40rem) {
+	.living-room[data-browsing][data-live]::before {
+		content: "";
+		display: block;
+		aspect-ratio: 4 / 3;
+	}
+	.living-room[data-browsing][data-live] .living-room__stage {
+		position: fixed;
+		inset: 0;
+		z-index: 40;
+		height: 100dvh;
+		touch-action: none;
+	}
+	:root:has(.living-room[data-browsing][data-live]) {
+		overflow: hidden;
+	}
+}
 .living-room[data-live][data-browsing] .living-room__hotspots {
 	display: none;
 }
@@ -593,7 +571,8 @@
 /* Which level a target belongs to is decided here, once, from the attribute
    sync() publishes. JavaScript only ever sets `hidden` to mean "no valid
    position on screen" — the two never contend for the same fact. */
-.living-room:not([data-shelf-level="cabinet"]) .room-library__row,
+.living-room:not([data-shelf-level]) .room-library__row,
+.living-room[data-shelf-level="row"] .room-library__row:not([data-adjacent]),
 .living-room:not([data-shelf-level="row"]) :is(.room-library__spine, .room-library__gaps),
 .living-room:not([data-shelf-level="row"]) :is(.room-controls__step, .room-controls__pan) {
 	display: none;
@@ -606,35 +585,14 @@
 .living-room[data-book-moving] :is(.room-book-targets, .room-controls, .living-room__caption) {
 	visibility: hidden;
 }
-/* Browsing, the caption is a standing label for what is under the pointer, so
-   it sits in the corner rather than over the spines it is naming. */
-.living-room[data-browsing] .living-room__caption {
-	left: 1rem;
-	bottom: 4.5rem;
-	translate: none;
-	max-width: calc(100% - 2rem);
-	max-height: 3.6em;
-	display: -webkit-box;
-	-webkit-box-orient: vertical;
-	-webkit-line-clamp: 2;
-	white-space: pre-line;
-	line-height: 1.5;
-	overflow: hidden;
-	padding: 0;
-	background: none;
-	color: #352a1d;
-}
-
-.living-room[data-browsing] .living-room__caption::first-line {
-	font-weight: 600;
-}
-
 @media (prefers-reduced-motion: reduce) {
 	.living-room__canvas,
 	.living-room__hotspot,
-	.living-room__hotspot::before,
 	.living-room__caption {
 		transition: none;
+	}
+	.living-room__hotspot::before {
+		animation: none;
 	}
 }
 

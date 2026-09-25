@@ -192,18 +192,15 @@
 	outline-offset: 3px;
 }
 
-.room-library__spine:not([data-noted])::before {
-	display: none;
+/* The peeking edge of the next row is a way there. */
+.room-library__row[data-adjacent] {
+	cursor: pointer;
 }
 
-.room-library__spine[data-noted]::before {
-	opacity: 1;
-	border-color: #fff7e7;
-	background: rgb(255 247 231 / 0.5);
-	box-shadow: 0 0 9px 3px rgb(245 198 117 / 0.5);
+.room-library__row:focus-visible {
+	outline: 2px solid var(--home-cobalt);
+	outline-offset: 3px;
 }
-
-/* The ring these wear is the room's, defined once in home.css. */
 
 @media (max-width: 40rem) {
 	.room-library__book {
@@ -242,6 +239,8 @@
 
 .room-library__book[data-spatial] {
 	position: fixed;
+	/* Above a stage that has taken over a phone's screen. */
+	z-index: 50;
 	inset: 0;
 	width: 100%;
 	height: 100%;
@@ -269,6 +268,13 @@
 .room-library__book[data-spatial]::backdrop {
 	background: transparent;
 	transition: none;
+}
+
+/* Clicking clear of the pages or Escape closes the book; the button is for
+   the keyboard and screen readers, and shows itself once it has focus. */
+.room-library__book[data-spatial] form:not(:focus-within) {
+	clip-path: inset(50%);
+	opacity: 0;
 }
 
 .room-library__book[data-spatial] form {

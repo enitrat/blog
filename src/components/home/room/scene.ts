@@ -14,8 +14,8 @@ import shellUrl from '../../../assets/room/shell.glb?url';
 // The printed jackets carry the only type in the room meant to be read, so they
 // own an atlas instead of sharing one with nine square metres of leather.
 import spinesUrl from '../../../assets/room/spines.glb?url';
-import type { Bookshelf } from './bookshelf';
-import { BOOKSHELF_ANCHOR, CABINET_BOX, ordered, type ShelfFrame } from './shelves';
+import type { Bookshelf, Hint, Pointed } from './bookshelf';
+import { BOOKSHELF_ANCHOR, CABINET_BOX, ordered, rows, type ShelfFrame } from './shelves';
 
 const VIEWS = {
 	room: { position: new THREE.Vector3(5.5, 5.7, 8.5), target: new THREE.Vector3(0, 1, -0.2) },
@@ -43,6 +43,19 @@ const ANCHORS = {
 };
 
 type View = keyof typeof VIEWS | 'shelf';
+/** The three things in the room that do something. */
+const THINGS = ['bookshelf', 'record', 'desk'] as const;
+type Thing = (typeof THINGS)[number];
+
+/** Once per visit, not once per page: a flag in session storage, which may be
+ *  missing or refuse, in which case the moment simply plays again. */
+function once(key: string) {
+	try {
+		if (sessionStorage.getItem(key)) return false;
+		sessionStorage.setItem(key, '1');
+	} catch {}
+	return true;
+}
 
 /** Mount a room, or leave its poster in place if an asset or WebGL fails. */
 export async function mountRoom(
@@ -103,6 +116,8 @@ export async function mountRoom(
 
 	const books = new Map<string, THREE.Group>();
 	const covers = new Map<string, THREE.Object3D>();
+	/** The annotated jackets' own materials, which breathe while browsing. */
+	const breathing: THREE.MeshBasicMaterial[] = [];
 
 	const bookmark = scene.getObjectByName('Bookmark');
 	if (bookmark) bookmark.visible = false;
@@ -136,6 +151,7 @@ export async function mountRoom(
 				surface.material = surface.material.clone();
 				surface.material.color.setRGB(1.12, 1.07, 1.02);
 				materials.add(surface.material);
+				breathing.push(surface.material);
 			}
 		}
 		if (bookshelf.isReading(slot.isbn) && bookmark) {
@@ -174,6 +190,76 @@ export async function mountRoom(
 	ANCHORS.record.set(axis.x, axis.y + 0.07, axis.z);
 	VIEWS.record.target.set(axis.x, axis.y + 0.09, axis.z);
 
+	/* The room's one highlight. Every surface inside a box warms, fading out a
+	   little past its faces. It works on world position in the shader, so one
+	   merged mesh with one baked atlas can still light a single object on it,
+	   and nothing has to be rebaked to change what lights. Slots: the three
+	   things, then whatever row or volume the shelves say is pointed at. */
+	const glow = {
+		glowMin: { value: Array.from({ length: 4 }, () => new THREE.Vector3()) },
+		glowMax: { value: Array.from({ length: 4 }, () => new THREE.Vector3()) },
+		glowSoft: { value: [0.08, 0.06, 0.08, 0.012] },
+		glowAmount: { value: [0, 0, 0, 0] },
+	};
+	const boxes: Record<Thing, THREE.Box3> = {
+		// Off the floor, which would otherwise light in a strip under the plinth.
+		bookshelf: new THREE.Box3(
+			new THREE.Vector3(CABINET_BOX.min[0], 0.05, CABINET_BOX.min[2]),
+			new THREE.Vector3(...CABINET_BOX.max),
+		),
+		// The deck and its arm, down to the plinth they stand on.
+		record: new THREE.Box3()
+			.setFromObject(platter)
+			.union(new THREE.Box3().setFromObject(tonearm))
+			.expandByVector(new THREE.Vector3(0.05, 0.03, 0.05)),
+		// The pedestal desk and its lamp, as bake-room.mjs stands it; Blender's
+		// (x, y, z) is the glTF's (x, z, -y).
+		desk: new THREE.Box3(new THREE.Vector3(1.4, 0.05, -0.11), new THREE.Vector3(2.04, 1.1, 1.21)),
+	};
+	boxes.record.min.y -= 0.05;
+	THINGS.forEach((thing, index) => {
+		glow.glowMin.value[index].copy(boxes[thing].min);
+		glow.glowMax.value[index].copy(boxes[thing].max);
+	});
+	// Aiming need not be exact: the pick volumes are a little larger.
+	const reach = Object.fromEntries(
+		THINGS.map((thing) => [thing, boxes[thing].clone().expandByScalar(0.03)]),
+	) as Record<Thing, THREE.Box3>;
+	for (const material of materials) {
+		material.onBeforeCompile = (shader) => {
+			Object.assign(shader.uniforms, glow);
+			shader.vertexShader = shader.vertexShader
+				.replace('#include <common>', '#include <common>\nvarying vec3 vGlowWorld;')
+				.replace(
+					'#include <project_vertex>',
+					'#include <project_vertex>\nvGlowWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;',
+				);
+			shader.fragmentShader = shader.fragmentShader
+				.replace(
+					'#include <common>',
+					`#include <common>
+varying vec3 vGlowWorld;
+uniform vec3 glowMin[4];
+uniform vec3 glowMax[4];
+uniform float glowSoft[4];
+uniform float glowAmount[4];`,
+				)
+				.replace(
+					'#include <map_fragment>',
+					`#include <map_fragment>
+float glow = 0.0;
+for (int i = 0; i < 4; i++) {
+	vec3 outside = max(max(glowMin[i] - vGlowWorld, vGlowWorld - glowMax[i]), 0.0);
+	glow += glowAmount[i] * (1.0 - smoothstep(0.0, glowSoft[i], length(outside)));
+}
+// Lamplight, not a flash: the baked colour lifts, reds and ambers most, and
+// a little warm light reaches even the surfaces the bake left in shadow.
+diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow * vec3(0.03, 0.016, 0.004);`,
+				);
+		};
+		material.customProgramCacheKey = () => 'room-glow';
+	}
+
 	let renderer: THREE.WebGLRenderer;
 	try {
 		renderer = new THREE.WebGLRenderer({
@@ -201,6 +287,10 @@ export async function mountRoom(
 	const destinationTarget = target.clone();
 	const offset = new THREE.Vector2();
 	const wantedOffset = new THREE.Vector2();
+	/** A pan of camera and aim together: the arrival hint that there is more. */
+	const nudge = new THREE.Vector3();
+	const wantedNudge = new THREE.Vector3();
+	let nudgeHint: Hint = null;
 	const projected = new THREE.Vector3();
 	const shelfPosition = new THREE.Vector3();
 	const shelfTarget = new THREE.Vector3();
@@ -218,10 +308,13 @@ export async function mountRoom(
 	let lastTime = 0;
 	const raycaster = new THREE.Raycaster();
 	const pointer = new THREE.Vector2();
-	const cabinet = new THREE.Box3(
-		new THREE.Vector3(...CABINET_BOX.min),
-		new THREE.Vector3(...CABINET_BOX.max),
-	);
+	/** What the pointer is on, and what keyboard focus is on: either lights it. */
+	let hovered: Thing | null = null;
+	let focused: Thing | null = null;
+	let pointedWanted = 0;
+	let breathed = false;
+	/** 1 when the tonearm has just been reached for, running down to 0. */
+	let twitch = 0;
 
 	// The platter and the arm are their own nodes in moving.glb, turning about
 	// their own axis. Blender's Z became the node's Y in the glTF conversion.
@@ -329,18 +422,61 @@ export async function mountRoom(
 			if (Math.abs(spin - (cueing ? SPEED : 0)) < 0.01) spin = cueing ? SPEED : 0;
 			if (platter) platter.rotation.y -= spin * dt;
 		}
+		// Reached for while parked, the arm lifts a hair toward the record and
+		// settles back: the tell that it will play.
+		twitch = motion.matches ? 0 : Math.max(0, twitch - dt / 0.7);
 		if (tonearm) {
-			tonearm.rotation.y = CUED * cue;
+			tonearm.rotation.y = CUED * cue - 0.05 * Math.sin(Math.PI * twitch);
 			tonearm.rotation.x = DROP * cue;
 		}
-		return spin !== 0 || cue !== wanted;
+		return spin !== 0 || cue !== wanted || twitch > 0;
+	}
+
+	/** Seen from across the room, each thing keeps a low lamplight that rises
+	 *  and falls, out of step with the others, so what can be clicked is plain
+	 *  without searching for it. Reduced motion holds it still, mid-range. */
+	function idle(now: number, index: number) {
+		if (bookshelf.active || (view !== 'room' && view !== 'closer')) return 0;
+		if (motion.matches) return 0.35;
+		return 0.35 + 0.22 * Math.sin((now / 1000) * ((2 * Math.PI) / 2.2) - index * 1.9);
+	}
+
+	function light(now: number, dt: number) {
+		let moving = false;
+		const amounts = glow.glowAmount.value;
+		const wanted = [
+			...THINGS.map((thing, index) =>
+				hovered === thing || focused === thing ? 1 : idle(now, index),
+			),
+			pointedWanted,
+		];
+		wanted.forEach((to, index) => {
+			const rate = index === 3 ? 18 : 10;
+			amounts[index] = motion.matches ? to : THREE.MathUtils.damp(amounts[index], to, rate, dt);
+			if (Math.abs(amounts[index] - to) < 0.002) amounts[index] = to;
+			moving ||= amounts[index] !== to;
+		});
+		// ponytail: breathing redraws the whole room every frame while a row is
+		// framed. A pulse baked into the jacket's own shader would spare the rest.
+		const breathe =
+			view === 'shelf' && !motion.matches && !bookshelf.openBook && breathing.length > 0;
+		if (breathe || breathed) {
+			const k = breathe ? 1 + 0.05 * Math.sin((now / 1000) * ((2 * Math.PI) / 3.2)) : 1;
+			for (const material of breathing) material.color.setRGB(1.12 * k, 1.07 * k, 1.02 * k);
+			breathed = breathe;
+		}
+		// ponytail: the idle glow keeps the room view redrawing every frame
+		// while it is on screen, same as the breathing jackets.
+		const idling = !motion.matches && idle(now, 0) > 0;
+		return moving || breathe || idling;
 	}
 
 	function draw() {
 		camera.position.copy(position);
 		camera.position.x += offset.x;
 		camera.position.y += offset.y;
-		lookAt.copy(target);
+		camera.position.add(nudge);
+		lookAt.copy(target).add(nudge);
 		if (reading && opening > 0) {
 			readingTarget.set(
 				shelfFrame?.x ?? reading.x,
@@ -424,11 +560,22 @@ export async function mountRoom(
 		}
 		offset.lerp(wantedOffset, motion.matches ? 1 : 1 - Math.exp(-8 * dt));
 		if (offset.distanceToSquared(wantedOffset) < 0.000001) offset.copy(wantedOffset);
+		nudge.lerp(wantedNudge, motion.matches ? 1 : 1 - Math.exp(-11 * dt));
+		if (nudge.distanceToSquared(wantedNudge) < 0.0000001) nudge.copy(wantedNudge);
 		const turning = turntable(dt);
 		const pulling = pull(dt);
 		const lifting = lift(dt);
+		const lighting = light(now, dt);
 		draw();
-		if (transitionStart !== null || turning || pulling || lifting || !offset.equals(wantedOffset))
+		if (
+			transitionStart !== null ||
+			turning ||
+			pulling ||
+			lifting ||
+			lighting ||
+			!offset.equals(wantedOffset) ||
+			!nudge.equals(wantedNudge)
+		)
 			requestDraw();
 	}
 
@@ -458,12 +605,14 @@ export async function mountRoom(
 		destination.copy(nextPosition);
 		destinationTarget.copy(nextTarget);
 		transitionDuration = duration;
+		hover(null);
 		view = next;
-		canvas.style.cursor = '';
 		transitionStart = duration > 0 ? performance.now() : null;
 		host.toggleAttribute('data-traveling', transitionStart !== null);
 		wantedOffset.set(0, 0);
 		offset.set(0, 0);
+		wantedNudge.set(0, 0, 0);
+		nudge.set(0, 0, 0);
 		publish(view);
 		arm(next !== 'shelf');
 		if (transitionStart === null) {
@@ -495,7 +644,41 @@ export async function mountRoom(
 			return { x: projected.x, y: projected.y, z: projected.z };
 		});
 		placeManuscripts();
+		// The first row a visitor reaches drifts a little toward what lies past
+		// its edge and springs back: the only sign, with no arrows, that it goes on.
+		if (view === 'shelf' && shelfFrame?.view === 'row' && nudgeHint && !motion.matches) {
+			const hint = nudgeHint;
+			nudgeHint = null;
+			if (once('room-nudged')) {
+				wantedNudge.set(hint === 'right' ? 0.035 : 0, hint === 'down' ? -0.03 : 0, 0);
+				setTimeout(() => {
+					wantedNudge.set(0, 0, 0);
+					requestDraw();
+				}, 320);
+				requestDraw();
+			}
+		}
 	}
+
+	/** Point at a thing: it lights, names itself after a moment, and gives
+	 *  its own small tell. */
+	function hover(next: Thing | null) {
+		if (next === hovered) return;
+		hovered = next;
+		canvas.style.cursor = next ? 'pointer' : '';
+		if (next === 'record' && !cueing) twitch = 1;
+		// From across the room, the top sheet stirs on the pile.
+		if (view !== 'desk') lifted = next === 'desk' ? (manuscripts[0]?.sheet.slug ?? null) : null;
+		const spot = next ? spotFor(next) : undefined;
+		bookshelf.label(spot?.textContent?.trim() ?? '', spot);
+		if (!frame) lastTime = performance.now();
+		requestDraw();
+	}
+
+	const spotFor = (thing: Thing) =>
+		hotspots.find(
+			(spot) => spot.dataset.anchor === thing && !spot.classList.contains('living-room__mix'),
+		);
 
 	/** Lay each link over the exposed head of its sheet, as the desk view shows
 	 *  it. Anywhere else the pile is scenery, and the links leave the tab order. */
@@ -532,6 +715,12 @@ export async function mountRoom(
 		a.z === b.z &&
 		a.width === b.width &&
 		a.height === b.height;
+
+	/** The shelves' listener: where to look, and which way there is more. */
+	function follow(shelf: ShelfFrame | null, hint: Hint) {
+		nudgeHint = hint;
+		frameShelf(shelf);
+	}
 
 	function frameShelf(shelf: ShelfFrame | null, duration?: number) {
 		// `layout()` rebuilds its frames on every resize, so the same shelf arrives
@@ -639,10 +828,20 @@ export async function mountRoom(
 	};
 	// ponytail: one traversal per frame, and only when the pointer has really
 	// moved. Pointer events arrive far faster than frames, and the traversal
-	// walks every triangle in every loaded GLB. A dedicated low-poly pick mesh for
-	// the cabinet is the upgrade if the room ever grows.
-	let lastPick = { at: -1, x: 0, y: 0, hit: false };
-	function pointsAtCabinet(event: MouseEvent) {
+	// walks every triangle in every loaded GLB. Low-poly pick meshes are the
+	// upgrade if the room ever grows.
+	let lastPick: { at: number; x: number; y: number; hit: Thing | null } = {
+		at: -1,
+		x: 0,
+		y: 0,
+		hit: null,
+	};
+	/** The thing under the pointer that this view lets you act on. */
+	function pick(event: MouseEvent): Thing | null {
+		if (transitionStart !== null || bookshelf.active) return null;
+		const allowed: readonly Thing[] =
+			view === 'room' || view === 'closer' ? THINGS : view === 'record' ? ['record'] : [];
+		if (!allowed.length) return null;
 		const bounds = canvas.getBoundingClientRect();
 		const x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
 		const y = 1 - ((event.clientY - bounds.top) / bounds.height) * 2;
@@ -655,12 +854,14 @@ export async function mountRoom(
 			return lastPick.hit;
 		pointer.set(x, y);
 		raycaster.setFromCamera(pointer, camera);
-		// Cheap analytic reject first: most of the room is not the cabinet.
-		const hit = raycaster.ray.intersectsBox(cabinet)
-			? raycaster.intersectObjects(scene.children, true)[0]
+		// Cheap analytic reject first: most of the room is none of them.
+		const near = allowed.filter((thing) => raycaster.ray.intersectsBox(reach[thing]));
+		const point = near.length
+			? raycaster.intersectObjects(scene.children, true)[0]?.point
 			: undefined;
-		lastPick = { at: now, x, y, hit: hit !== undefined && cabinet.containsPoint(hit.point) };
-		return lastPick.hit;
+		const hit = (point && near.find((thing) => reach[thing].containsPoint(point))) || null;
+		lastPick = { at: now, x, y, hit };
+		return hit;
 	}
 	// Focusable only while the scene is actually there to steer: an invisible
 	// canvas must not keep a tab stop.
@@ -687,7 +888,11 @@ export async function mountRoom(
 				bookshelf.background();
 				return;
 			}
-			if (pointsAtCabinet(event)) bookshelf.enter();
+			const thing = pick(event);
+			if (thing === 'bookshelf') bookshelf.enter();
+			// The hidden button carries playback as well as the camera.
+			else if (thing === 'record') spotFor('record')?.click();
+			else if (thing === 'desk') changeView('desk');
 			else step();
 		},
 		{ signal: events.signal },
@@ -723,7 +928,7 @@ export async function mountRoom(
 		'pointermove',
 		(event) => {
 			if (bookshelf.active || event.pointerType !== 'mouse') return;
-			canvas.style.cursor = pointsAtCabinet(event) ? 'pointer' : '';
+			hover(pick(event));
 			if (motion.matches) return;
 			const bounds = canvas.getBoundingClientRect();
 			wantedOffset.set(
@@ -737,7 +942,32 @@ export async function mountRoom(
 	host.addEventListener(
 		'pointerleave',
 		() => {
+			hover(null);
 			wantedOffset.set(0, 0);
+			requestDraw();
+		},
+		{ signal: events.signal },
+	);
+	// Keyboard focus on a thing's control lights the thing and names it at once.
+	host.addEventListener(
+		'focusin',
+		(event) => {
+			const spot = (event.target as Element).closest?.<HTMLElement>('[data-anchor]');
+			const thing = THINGS.find((name) => spot && spotFor(name) === spot) ?? null;
+			if (thing === focused) return;
+			focused = thing;
+			if (spot && thing) bookshelf.label(spot.textContent?.trim() ?? '', spot, true);
+			if (!frame) lastTime = performance.now();
+			requestDraw();
+		},
+		{ signal: events.signal },
+	);
+	host.addEventListener(
+		'focusout',
+		() => {
+			if (!focused) return;
+			focused = null;
+			bookshelf.label('');
 			requestDraw();
 		},
 		{ signal: events.signal },
@@ -817,7 +1047,7 @@ export async function mountRoom(
 			arm(view !== 'shelf');
 			requestDraw();
 			host.dataset.live = '';
-			bookshelf.connect(frameShelf);
+			bookshelf.connect(follow);
 		},
 		{ signal: events.signal },
 	);
@@ -855,8 +1085,34 @@ export async function mountRoom(
 		reached = isbn;
 		requestDraw();
 	});
-	bookshelf.connect(frameShelf);
+	bookshelf.points((pointed: Pointed) => {
+		// Close up, a spine or a row needs far less light to stand out.
+		pointedWanted = pointed ? 0.45 : 0;
+		if (pointed) {
+			const slots =
+				'row' in pointed
+					? (rows.find(({ row }) => row === pointed.row)?.books ?? [])
+					: ordered.filter((slot) => slot.isbn === pointed.isbn);
+			if (slots.length) {
+				const first = slots[0];
+				const last = slots[slots.length - 1];
+				glow.glowMin.value[3].set(first.x - first.width / 2, first.y, first.z - 0.2);
+				glow.glowMax.value[3].set(
+					last.x + last.width / 2,
+					first.y + Math.max(...slots.map((slot) => slot.height)),
+					first.z + 0.2,
+				);
+			}
+		}
+		if (!frame) lastTime = performance.now();
+		requestDraw();
+	});
+	bookshelf.connect(follow);
 	draw();
 	performance.mark('room-live');
+	// A tap on the poster that arrived before the room did is carried out now.
+	const intent = host.dataset.intent;
+	delete host.dataset.intent;
+	if (intent === 'record' || intent === 'desk') changeView(intent);
 	return dispose;
 }

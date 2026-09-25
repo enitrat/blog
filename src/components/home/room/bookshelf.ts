@@ -3,6 +3,11 @@ import { CABINET, ordered, rowName, rows, type ShelfFrame, type Slot } from './s
 type Point = { x: number; y: number; z: number };
 type Project = (x: number, y: number, z: number) => Point;
 type Section = { books: Slot[]; frame: ShelfFrame };
+/** What the pointer or focus is on, for the room to light: a whole row from
+ *  the cabinet, or one volume from its row. */
+export type Pointed = { row: number } | { isbn: string } | null;
+/** Which way there is more to see from a freshly framed row. */
+export type Hint = 'right' | 'down' | null;
 /** The four levels the visitor moves through, one arm each. A book is its own
  *  level rather than a field on the row, so `kind` alone answers every question
  *  the controls ask. */
@@ -57,7 +62,8 @@ export function mountBookshelf(host: HTMLElement) {
 	let location: Location | null = null;
 	let disposed = false;
 	// The renderer's listener doubles as the answer to "is the room live?".
-	let frameChanged: ((frame: ShelfFrame | null) => void) | undefined;
+	let frameChanged: ((frame: ShelfFrame | null, hint: Hint) => void) | undefined;
+	let pointChanged: ((pointed: Pointed) => void) | undefined;
 	/** Which volume is under the pointer. The shelves know; the room draws it. */
 	let pullChanged: ((isbn: string | null) => void) | undefined;
 	// Which record is currently on loan to the dialog. A DOM bookkeeping detail:
@@ -76,6 +82,10 @@ export function mountBookshelf(host: HTMLElement) {
 	let swipedAt = -1;
 	const fromSwipe = () => performance.now() - swipedAt < 500;
 	let touch: { x: number; y: number } | undefined;
+	/** Fingers down on the stage, for the pinch that steps back. */
+	const fingers = new Map<number, { x: number; y: number }>();
+	let pinch: number | undefined;
+	let whisperTimer: ReturnType<typeof setTimeout> | undefined;
 
 	/** Both of these are read back on every resize tick, and `status` is a live
 	 *  region: writing the value it already holds would announce it again. */
@@ -222,13 +232,35 @@ export function mountBookshelf(host: HTMLElement) {
 		);
 	}
 
-	function captionFor(slot?: Slot) {
-		const record = slot && records.get(slot.isbn);
-		if (!record) return 'Choose a row to look closer.\nGlowing books hold notes.';
+	function captionFor(slot: Slot) {
+		const record = records.get(slot.isbn);
+		if (!record) return '';
 		return `${record.dataset.title}\n${record.dataset.author} · ${record.hasAttribute('data-noted') ? `Read notes${record.hasAttribute('data-reading') ? ' · Reading now' : ''}` : record.dataset.facts}`;
 	}
 
-	const describe = (slot?: Slot) => write(caption, captionFor(slot));
+	/** The one label in the room: a small tag over whatever is pointed at. A
+	 *  pointer has to linger before it appears, focus names it at once, and once
+	 *  one is showing, skimming to the next thing keeps it up, as tooltips do. */
+	function whisper(text: string, over?: Element, now = false) {
+		clearTimeout(whisperTimer);
+		if (!text || !over) {
+			caption.removeAttribute('data-shown');
+			return;
+		}
+		write(caption, text);
+		const bounds = stage.getBoundingClientRect();
+		const target = over.getBoundingClientRect();
+		const half = caption.offsetWidth / 2 + 8;
+		const x = target.left + target.width / 2 - bounds.left;
+		caption.style.left = `${Math.min(Math.max(x, half), bounds.width - half)}px`;
+		caption.style.top = `${Math.max(target.top - bounds.top, caption.offsetHeight + 8)}px`;
+		const show = () => caption.setAttribute('data-shown', '');
+		if (now || caption.hasAttribute('data-shown')) show();
+		else whisperTimer = setTimeout(show, 700);
+	}
+
+	const describe = (slot: Slot, now = false) =>
+		whisper(captionFor(slot), links.get(slot.isbn), now);
 
 	function layout() {
 		const width = Math.max(
@@ -292,14 +324,12 @@ export function mountBookshelf(host: HTMLElement) {
 	/** What the chrome should say at this level, decided before anything is
 	 *  written, so the writing below has no branches of its own. */
 	function chromeFor(place: Location | null) {
-		if (!place)
-			return { level: null, exit: 'Back to the room', status: '', caption: '', pan: null, row: -1 };
+		if (!place) return { level: null, exit: 'Back to the room', status: '', pan: null, row: -1 };
 		if (place.kind === 'cabinet')
 			return {
 				level: 'cabinet',
 				exit: 'Back to the room',
 				status: 'Bookshelf',
-				caption: captionFor(),
 				pan: null,
 				row: -1,
 			};
@@ -308,7 +338,6 @@ export function mountBookshelf(host: HTMLElement) {
 			level: 'row',
 			exit: 'Back to the bookshelf',
 			status: rowName(place.anchor.row),
-			caption: captionFor(place.kind === 'book' ? place.book : place.anchor),
 			pan: {
 				previous: sections[index - 1]?.books[0].row === place.anchor.row,
 				next: sections[index + 1]?.books[0].row === place.anchor.row,
@@ -326,7 +355,8 @@ export function mountBookshelf(host: HTMLElement) {
 		else host.removeAttribute('data-shelf-level');
 		write(leaveLabel, chrome.exit);
 		write(status, chrome.status);
-		write(caption, chrome.caption);
+		// A new level is a new picture: whatever the tag named has moved.
+		whisper('');
 		previous.disabled = !chrome.pan?.previous;
 		next.disabled = !chrome.pan?.next;
 		// A row that fits in one frame has nowhere to pan to.
@@ -397,8 +427,18 @@ export function mountBookshelf(host: HTMLElement) {
 		applyChrome(chromeFor(shown));
 		// Arriving at a row reaches for nothing yet; arriving at a book took it out.
 		pullChanged?.(shown?.kind === 'book' ? shown.book.isbn : null);
+		// The shelves are taller than the room: stepping in brings all of them
+		// into view, rather than leaving the lower rows below the fold.
+		if (frameChanged && shown && !before)
+			stage.scrollIntoView({ block: 'center', behavior: motion.matches ? 'instant' : 'smooth' });
 		if (frameChanged) {
-			frameChanged(frameFor(shown));
+			const chrome = chromeFor(shown);
+			const hint: Hint = chrome.pan?.next
+				? 'right'
+				: chrome.row >= 0 && chrome.row < rows.length - 1
+					? 'down'
+					: null;
+			frameChanged(frameFor(shown), hint);
 			// The way out is display:none until the camera publishes its view, so
 			// parking focus there any earlier puts it on the floor instead.
 			if (stranded && !mounted) leave.focus({ preventScroll: true });
@@ -442,29 +482,43 @@ export function mountBookshelf(host: HTMLElement) {
 	for (const { row, books } of rows) {
 		const link = document.createElement('a');
 		link.className = 'room-library__row';
+		link.draggable = false;
 		link.href = address(books[0]);
 		link.hidden = true;
 		link.setAttribute(
 			'aria-label',
 			`Look closer at the ${rowName(row).toLowerCase()}, ${books.length} books`,
 		);
-		const describeRow = () => {
-			const notes = books.filter((slot) =>
-				records.get(slot.isbn)?.hasAttribute('data-noted'),
-			).length;
-			write(
-				caption,
-				`${rowName(row)} · ${books.length} books\nLook closer${notes ? ` · ${notes} with notes inside` : ''}`,
+		const notes = books.filter((slot) => records.get(slot.isbn)?.hasAttribute('data-noted')).length;
+		const describeRow = (now: boolean) => {
+			whisper(
+				`${rowName(row)}\n${books.length} books${notes ? ` · ${notes} with notes inside` : ''}`,
+				link,
+				now,
 			);
+			pointChanged?.({ row });
 		};
-		link.addEventListener('pointerenter', describeRow, { signal: events.signal });
-		link.addEventListener('focus', describeRow, { signal: events.signal });
+		const leaveRow = () => {
+			whisper('');
+			pointChanged?.(null);
+		};
+		link.addEventListener('pointerenter', () => describeRow(false), { signal: events.signal });
+		link.addEventListener(
+			'focus',
+			() => {
+				if (link.matches(':focus-visible')) describeRow(true);
+			},
+			{ signal: events.signal },
+		);
+		link.addEventListener('pointerleave', leaveRow, { signal: events.signal });
+		link.addEventListener('blur', leaveRow, { signal: events.signal });
 		link.addEventListener(
 			'click',
 			(event) => {
 				if (!plainClick(event)) return;
 				event.preventDefault();
-				if (location?.kind === 'cabinet') focusRow(row);
+				// From the cabinet, any row; from a row, the one peeking past its edge.
+				if (location && location.kind !== 'book') focusRow(row);
 			},
 			{ signal: events.signal },
 		);
@@ -478,6 +532,8 @@ export function mountBookshelf(host: HTMLElement) {
 		const noted = record.hasAttribute('data-noted');
 		const link: HTMLElement = document.createElement(noted ? 'a' : 'span');
 		link.className = 'room-library__spine';
+		// A drag along the row pans it; a link must not start dragging itself.
+		link.draggable = false;
 		if (link instanceof HTMLAnchorElement) {
 			link.href = address(slot, slot);
 			link.setAttribute('aria-haspopup', 'dialog');
@@ -494,21 +550,27 @@ export function mountBookshelf(host: HTMLElement) {
 		link.toggleAttribute('data-reading', record.hasAttribute('data-reading'));
 		const reach = () => {
 			clearTimeout(reachTimer);
-			describe(slot);
+			// Focus moved by a tap or by arriving at a row is not a question.
+			if (link.matches(':focus-visible')) describe(slot, true);
 			pullChanged?.(noted ? slot.isbn : null);
+			pointChanged?.({ isbn: slot.isbn });
 		};
 		// A volume you are no longer reaching for goes back, unless it is the one
 		// you already took down: an open record keeps its book out of the row.
 		const release = () => {
 			clearTimeout(reachTimer);
+			whisper('');
+			pointChanged?.(null);
 			pullChanged?.(location?.kind === 'book' ? location.book.isbn : null);
 		};
 		link.addEventListener(
 			'pointerenter',
 			(event) => {
 				describe(slot);
+				pointChanged?.({ isbn: slot.isbn });
 				clearTimeout(reachTimer);
-				if (event.pointerType === 'mouse') reachTimer = setTimeout(reach, 100);
+				if (event.pointerType === 'mouse')
+					reachTimer = setTimeout(() => pullChanged?.(noted ? slot.isbn : null), 100);
 			},
 			{ signal: events.signal },
 		);
@@ -627,35 +689,120 @@ export function mountBookshelf(host: HTMLElement) {
 		},
 		{ signal: events.signal },
 	);
+	/* Gestures stand in for the arrows. Along a row, a horizontal swipe or drag
+	   pans and a vertical one changes row; past the last row in that direction
+	   the gesture steps back out, the way a nested scroller hands its scroll to
+	   the page. Two fingers pinching in step back from anywhere. */
+	function swipe(dx: number, dy: number, pointerType: string) {
+		if (!location || location.kind === 'book') return;
+		const across = Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.5;
+		const down = Math.abs(dy) > 45 && Math.abs(dy) > Math.abs(dx) * 1.5;
+		// A mouse drags only along a row; vertically it is just a sloppy click.
+		if (!across && (!down || pointerType === 'mouse')) return;
+		swipedAt = performance.now();
+		if (location.kind === 'cabinet') {
+			if (down && dy > 0) back();
+			return;
+		}
+		const { row: current } = location.anchor;
+		if (across) move(dx < 0 ? 1 : -1);
+		else if (dy < 0) moveRow(1);
+		else if (rows.findIndex(({ row }) => row === current) > 0) moveRow(-1);
+		else back();
+	}
 	stage.addEventListener(
 		'pointerdown',
 		(event) => {
 			swipedAt = -1;
-			if (location?.kind === 'row' && event.pointerType === 'touch')
+			if (event.pointerType === 'touch')
+				fingers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+			if (fingers.size > 1) {
+				touch = undefined;
+				const [a, b] = [...fingers.values()];
+				pinch = Math.hypot(a.x - b.x, a.y - b.y);
+				return;
+			}
+			if (
+				location &&
+				location.kind !== 'book' &&
+				(event.pointerType === 'touch' || event.button === 0)
+			)
 				touch = { x: event.clientX, y: event.clientY };
 		},
 		{ signal: events.signal },
 	);
 	stage.addEventListener(
+		'pointermove',
+		(event) => {
+			if (!fingers.has(event.pointerId)) return;
+			fingers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+			if (pinch === undefined || fingers.size < 2) return;
+			const [a, b] = [...fingers.values()];
+			if (Math.hypot(a.x - b.x, a.y - b.y) < pinch * 0.7) {
+				pinch = undefined;
+				swipedAt = performance.now();
+				back();
+			}
+		},
+		{ signal: events.signal },
+	);
+	const lift = (event: PointerEvent) => {
+		fingers.delete(event.pointerId);
+		if (fingers.size < 2) pinch = undefined;
+	};
+	stage.addEventListener(
 		'pointerup',
 		(event) => {
+			lift(event);
 			if (!touch) return;
 			const dx = event.clientX - touch.x;
 			const dy = event.clientY - touch.y;
 			touch = undefined;
-			if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-				swipedAt = performance.now();
-				move(dx < 0 ? 1 : -1);
-			}
+			swipe(dx, dy, event.pointerType);
 		},
 		{ signal: events.signal },
 	);
 	stage.addEventListener(
 		'pointercancel',
-		() => {
+		(event) => {
+			lift(event);
 			touch = undefined;
 		},
 		{ signal: events.signal },
+	);
+	// A trackpad or wheel moves one step per gesture: the travel accumulates
+	// until it is decisive, then the rest of the gesture, inertia included, is
+	// spent. Vertical travel with no row left that way belongs to the page.
+	let wheel = { x: 0, y: 0, spent: false };
+	let wheelIdle: ReturnType<typeof setTimeout> | undefined;
+	stage.addEventListener(
+		'wheel',
+		(event) => {
+			if (location?.kind !== 'row' || event.ctrlKey) return;
+			const { row: current } = location.anchor;
+			const scale = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? stage.clientHeight : 1;
+			const dx = event.deltaX * scale;
+			const dy = event.deltaY * scale;
+			const index = rows.findIndex(({ row }) => row === current);
+			const across = Math.abs(dx) > Math.abs(dy);
+			if (!across && !wheel.spent && !rows[index + Math.sign(dy)]) return;
+			event.preventDefault();
+			clearTimeout(wheelIdle);
+			wheelIdle = setTimeout(() => {
+				wheel = { x: 0, y: 0, spent: false };
+			}, 180);
+			if (wheel.spent) return;
+			wheel.x += dx;
+			wheel.y += dy;
+			if (Math.abs(wheel.x) > 50) {
+				wheel.spent = true;
+				move(Math.sign(wheel.x));
+			} else if (Math.abs(wheel.y) > 50) {
+				wheel.spent = true;
+				moveRow(Math.sign(wheel.y));
+			}
+		},
+		{ signal: events.signal, passive: false },
 	);
 	const historyChanged = () => {
 		if (window.location.hash !== lastHash) sync();
@@ -736,8 +883,12 @@ export function mountBookshelf(host: HTMLElement) {
 		},
 		/** The room's own hotspots name themselves through here, so the caption
 		 *  has a single owner: while browsing, the shelves keep it. */
-		label(text: string) {
-			if (!location) write(caption, text);
+		label(text: string, over?: Element, now = false) {
+			if (!location) whisper(text, over, now);
+		},
+		/** The room lights whatever row or volume is being pointed at. */
+		points(listener: (pointed: Pointed) => void) {
+			pointChanged = listener;
 		},
 		/** The room comes to collect the volume being reached for. */
 		pulls(listener: (isbn: string | null) => void) {
@@ -751,7 +902,7 @@ export function mountBookshelf(host: HTMLElement) {
 		isReading(isbn: string) {
 			return records.get(isbn)?.hasAttribute('data-reading') ?? false;
 		},
-		connect(listener: (frame: ShelfFrame | null) => void) {
+		connect(listener: (frame: ShelfFrame | null, hint: Hint) => void) {
 			frameChanged = listener;
 			sync();
 		},
@@ -768,25 +919,35 @@ export function mountBookshelf(host: HTMLElement) {
 		 *  the way: the settled camera stays still and parallax is off while
 		 *  browsing, so per-frame projection would recompute identical numbers. */
 		place(project: Project) {
-			for (const { row, books } of rows) {
-				const link = rowLinks.get(row);
-				if (!link) continue;
-				// The target is the run of books, not the whole board, so the
-				// centred dot lands on the row it stands for.
-				const first = books[0];
-				const last = books[books.length - 1];
-				placeBox(link, project, {
-					left: first.x - first.width / 2 - 0.02,
-					bottom: first.y - 0.012,
-					right: last.x + last.width / 2 + 0.02,
-					top: first.y + 0.3,
-					z: first.z,
-				});
-				link.href = address(rowAnchors.get(row) ?? books[0]);
-			}
 			// Spines outside the framed row have no position to hold, and would
 			// otherwise keep the one they had before the camera moved.
 			const framed = location && location.kind !== 'cabinet' ? location.anchor.row : -1;
+			const framedIndex = rows.findIndex(({ row }) => row === framed);
+			rows.forEach(({ row, books }, index) => {
+				const link = rowLinks.get(row);
+				if (!link) return;
+				// From a row, only its neighbours are targets, and only the part of
+				// them that peeks past the frame's edge: clipped, not all-or-nothing.
+				const adjacent = framedIndex >= 0 && Math.abs(index - framedIndex) === 1;
+				link.toggleAttribute('data-adjacent', adjacent);
+				const first = books[0];
+				const last = books[books.length - 1];
+				placeBox(
+					link,
+					project,
+					{
+						left: first.x - first.width / 2 - 0.02,
+						bottom: first.y - 0.012,
+						right: last.x + last.width / 2 + 0.02,
+						// Just over the tallest jacket, so the tag names the row it sits on.
+						top: first.y + 0.25,
+						z: first.z,
+					},
+					adjacent,
+				);
+				if (framedIndex >= 0 && !adjacent) link.hidden = true;
+				link.href = address(rowAnchors.get(row) ?? books[0]);
+			});
 			for (const slot of ordered)
 				if (slot.row !== framed) {
 					const link = links.get(slot.isbn);
