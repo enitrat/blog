@@ -26,7 +26,10 @@ const NOTED = (await readdir(NOTES))
 	.filter((name) => /\.mdx?$/.test(name))
 	.map((name) => name.replace(/\.mdx?$/, ''));
 assert.ok(NOTED.length > 0, `${NOTES} needs at least one note to check the reader.`);
-const FLUSH = 'East of Eden';
+// One book that opens and one that only has a record, whichever those are today.
+const OPENS = books.find((book) => NOTED.includes(book.edition.isbn13)).title;
+const FLUSH = books.find((book) => !NOTED.includes(book.edition.isbn13)).title;
+const literal = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const OUTPUT = '/tmp/library-check';
 /* Two at a time. Each case drives real WebGL, and at three the machine starves
@@ -79,7 +82,10 @@ async function check({ engine, width, height }, base) {
 		const errors = [];
 		page.on('pageerror', (error) => errors.push(error.message));
 		page.on('console', (message) => {
-			if (message.type() === 'error') errors.push(`console: ${message.text()}`);
+			// Vercel's analytics script 403s against the dev server; only this
+			// origin's failures are the page's problem.
+			if (message.type() === 'error' && message.location().url.startsWith(base))
+				errors.push(`console: ${message.text()}`);
 		});
 		page.on('response', (response) => {
 			// 504 "Outdated Optimize Dep" means the dev server's dependency cache went
@@ -123,11 +129,13 @@ async function check({ engine, width, height }, base) {
 		await page.evaluate(() => scrollTo(0, 0));
 
 		at('hand over a reading record for a book with no note');
-		const flush = page.getByRole('button', { name: new RegExp(`${FLUSH}.*reading record`) });
+		const flush = page.getByRole('button', {
+			name: new RegExp(`${literal(FLUSH)}.*reading record`),
+		});
 		await flush.scrollIntoViewIfNeeded();
 		await flush.click();
 		await page.waitForSelector('#book-record:popover-open');
-		assert.match(await page.locator('#record-title').textContent(), new RegExp(FLUSH));
+		assert.match(await page.locator('#record-title').textContent(), new RegExp(literal(FLUSH)));
 		assert.match(await page.locator('#record-facts').textContent(), /\d+ pages/);
 		assert.equal(
 			await page.locator('#book-reader').evaluate((node) => node.open),
@@ -145,7 +153,7 @@ async function check({ engine, width, height }, base) {
 		await page.evaluate(() => scrollTo(0, 0));
 
 		at('open a book from the keyboard');
-		const book = page.getByRole('button', { name: /Open White Nights/ });
+		const book = page.getByRole('button', { name: new RegExp(`Open ${literal(OPENS)}`) });
 		await book.focus();
 		await page.keyboard.press('Enter');
 		await page.waitForSelector('#book-reader[data-phase="reading"]');

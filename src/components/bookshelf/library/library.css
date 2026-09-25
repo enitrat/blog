@@ -478,7 +478,7 @@ body:has(.library) {
 /* While the volume is flying between the shelf and the reader, the paper pages
    underneath it must not show. `closing` still needs its toolbar. */
 #book-reader:is([data-phase="extracting"], [data-phase="returning"])
-:is(#reader-mount, .reader-controls),
+	:is(#reader-mount, .reader-controls),
 #book-reader[data-phase="closing"] .reader-controls {
 	visibility: hidden;
 }

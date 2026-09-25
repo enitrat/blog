@@ -110,8 +110,12 @@ would ship with no cover, and nothing would say so.
 
 ## Evidence
 
-- A full bake at 256 samples takes about 25 minutes.
-- A production `--only sheets` bake took 257 seconds, 241 of them baking the
-  eight manuscripts.
+- A full bake at 256 samples takes about 6 minutes. It took 25 before the
+  `bmesh` build and the per-book cells.
+- The nine GLBs total 7.84 MB, down from 10.46 MB before Meshopt and the
+  per-book cells.
+- Rebaked with the new pipeline, the room's browser frames differ from the
+  old ones by a mean of 0.6 to 0.9 on the 0 to 255 scale, at overview and
+  shelf distance.
 - Two bakes of the same input produced byte-identical geometry. Their
   textures differed by a mean of 0.00005 on the 0 to 255 scale.
