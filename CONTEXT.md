@@ -13,7 +13,7 @@ The concise narrative sequence that orients a first-time visitor before offering
 _Avoid_: Funnel, landing-page flow
 
 **Portal**:
-A clear entry from the Guided Path into a deeper content area such as Work, Writing, Bookshelf, or About. A Portal is explicit navigation, not a hidden hotspot or puzzle.
+A clear entry from the Guided Path into a deeper content area such as Work, Writing, or About. A Portal is explicit navigation, not a hidden hotspot or puzzle.
 _Avoid_: Feature card, secret interaction
 
 **Work**:
@@ -29,7 +29,7 @@ The single collection for Mathieu's authored essays, technical guides, project r
 _Avoid_: Blog, Notes and Essays
 
 **Bookshelf**:
-Mathieu's reading record, combining a complete personal archive with a curated layer that helps visitors understand his interests. It holds reading metadata; substantial responses to books are Writing.
+Mathieu's reading record, shelved in the home page's living room rather than on its own route, combining a complete personal archive with a curated layer that helps visitors understand his interests. It holds reading metadata; substantial responses to books are Writing.
 _Avoid_: Reads, content feed
 
 **Book Reflection**:

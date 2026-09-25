@@ -3,6 +3,7 @@ title: 'Kakarot'
 summary: 'Efficient zero-knowledge proving systems for client-side proving'
 kind: 'work'
 role: 'CTO'
+period: 'August 2023 – October 2025'
 site: 'https://kakarot.org/'
 order: 1
 ---

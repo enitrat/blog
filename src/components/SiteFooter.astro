@@ -11,8 +11,8 @@ const { contact = true, lang = 'en' } = Astro.props;
 const year = new Date().getFullYear();
 
 const labels: Record<string, Record<string, string>> = {
-	en: { work: 'Work', writing: 'Writing', bookshelf: 'Bookshelf', about: 'About' },
-	fr: { work: 'Travaux', writing: 'Écrits', bookshelf: 'Bibliothèque', about: 'À propos' },
+	en: { work: 'Work', writing: 'Writing', about: 'About' },
+	fr: { work: 'Travaux', writing: 'Écrits', about: 'À propos' },
 };
 const t = labels[lang] ?? labels.en;
 ---
@@ -22,9 +22,16 @@ const t = labels[lang] ?? labels.en;
 	<nav aria-label="Footer navigation">
 		<a href="/work">{t.work}</a>
 		<a href="/writing">{t.writing}</a>
-		<a href="/bookshelf">{t.bookshelf}</a>
 		<a href="/about">{t.about}</a>
 	</nav>
 	{contact && <ContactLinks />}
 	<span>© {year}</span>
 </footer>
+
+<style>
+	/* Pin the nav beside the name so the row keeps one shape with or without
+	   the contact links; otherwise space-between centres it when they are off. */
+	nav {
+		margin-right: auto;
+	}
+</style>

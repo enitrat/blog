@@ -110,7 +110,11 @@ for (const [name, engine] of Object.entries(ENGINES)) {
 			await page.waitForTimeout(1200);
 			// A browser that refuses autoplay has withdrawn the mix by now, and
 			// the refusal checks below cover that path.
-			if (!(await page.evaluate(() => document.querySelector('[data-room]')?.hasAttribute('data-mix'))))
+			if (
+				!(await page.evaluate(() =>
+					document.querySelector('[data-room]')?.hasAttribute('data-mix'),
+				))
+			)
 				return;
 			assert.equal(await mix.evaluate((el) => getComputedStyle(el).visibility), 'visible');
 			assert.equal(await mix.evaluate((el) => getComputedStyle(el).opacity), '1');

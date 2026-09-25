@@ -9,14 +9,9 @@
 	--color-cobalt-rule: #dededc;
 	--color-cobalt-wash: #f1f4fb;
 	--color-cobalt-underline: color-mix(in srgb, #3567d8 45%, transparent);
-	--font-sans: "Commissioner Variable", Arial, sans-serif;
 	--font-serif: "Literata Variable", Georgia, serif;
+	--font-sans: "Commissioner Variable", Arial, sans-serif;
 	--font-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-	--type-headline-size: clamp(2.8rem, 7vw, 6.4rem);
-	--type-headline-weight: 620;
-	--type-headline-leading: 0.95;
-	--type-headline-tracking: -0.065em;
-	--type-headline-family: var(--font-sans);
 	--type-headline-article-size: clamp(2.7rem, 6vw, 5.2rem);
 	--type-headline-article-weight: 560;
 	--type-headline-article-leading: 0.98;

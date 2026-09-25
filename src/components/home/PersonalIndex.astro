@@ -1,7 +1,5 @@
 ---
-import type { Book } from '../../booksData';
-import type { PageRange } from '../../utils/pleiade';
-import PleiadeShelf from '../bookshelf/PleiadeShelf.astro';
+import ArrowIcon from '../ArrowIcon.astro';
 import LivingRoom from './LivingRoom.astro';
 
 interface Item {
@@ -15,11 +13,9 @@ interface Props {
 	work: Item[];
 	projects: Item[];
 	writing: Item[];
-	bookshelf: Book[];
-	pageRange: PageRange;
 }
 
-const { work, projects, writing, bookshelf, pageRange } = Astro.props;
+const { work, projects, writing } = Astro.props;
 
 const sections = [
 	{ id: 'work', label: 'Work', href: '/work', items: work },
@@ -33,7 +29,7 @@ const sections = [
 		<h1 id="personal-index-title">Mathieu Saugier</h1>
 		<p class="personal-index__role">Software engineer</p>
 		<div class="personal-index__copy">
-			<p>Hi, I'm Mathieu. I like building products end to end, and I keep building outside of work.</p>
+			<p>Hi, I'm Mathieu. I build cool stuff with agents, with end-to-end ownership of products, and I sometimes DJ and write what goes through my head</p>
 			<p>I currently work as a Senior Protocol Engineer at <a href="/work/zama/">Zama</a>.</p>
 		</div>
 	</section>
@@ -45,7 +41,7 @@ const sections = [
 			<section class="personal-index__section" aria-labelledby={`personal-index-${section.id}`}>
 				<div class="personal-index__section-heading">
 					<h2 id={`personal-index-${section.id}`}>{section.label}</h2>
-					<a href={section.href}>View all&nbsp; ↗</a>
+					<a href={section.href}>View all <ArrowIcon /></a>
 				</div>
 				<ul class="personal-index__list">
 					{section.items.map((item) => (
@@ -55,20 +51,12 @@ const sections = [
 									<strong>{item.title}</strong>
 									<small>{item.description}</small>
 								</span>
-								<span aria-hidden="true">↗</span>
+								<span aria-hidden="true"><ArrowIcon /></span>
 							</a>
 						</li>
 					))}
 				</ul>
 			</section>
 		))}
-
-		<section class="personal-index__section" aria-labelledby="personal-index-bookshelf">
-			<div class="personal-index__section-heading">
-				<h2 id="personal-index-bookshelf">Bookshelf</h2>
-				<a href="/bookshelf">View all&nbsp; ↗</a>
-			</div>
-			<PleiadeShelf shelfBooks={bookshelf} label="Books read" href="/bookshelf" {pageRange} />
-		</section>
 	</div>
 </div>

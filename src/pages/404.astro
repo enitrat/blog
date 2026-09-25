@@ -6,7 +6,6 @@ const destinations = [
 	{ href: '/', meta: 'Home', title: 'Mathieu Saugier' },
 	{ href: '/work', meta: 'Work', title: 'What I have worked on' },
 	{ href: '/writing', meta: 'Writing', title: 'Writing' },
-	{ href: '/bookshelf', meta: 'Bookshelf', title: 'My personal library' },
 	{ href: '/about', meta: 'About', title: 'About' },
 ];
 ---
@@ -15,7 +14,7 @@ const destinations = [
 	<div class="measure">
 		<header class="page-head">
 			<h1>Not found</h1>
-			<p>This address doesn't name anything here. Try one of these five pages:</p>
+			<p>This address doesn't name anything here. Try one of these four pages:</p>
 		</header>
 
 		<div class="writing-ledger">
@@ -24,7 +23,7 @@ const destinations = [
 					<a class="writing-ledger__row" href={destination.href}>
 						<span class="writing-ledger__meta">{destination.meta}</span>
 						<div>
-							<h3>{destination.title}</h3>
+							<h2>{destination.title}</h2>
 						</div>
 						<span class="writing-ledger__arrow" aria-hidden="true">
 							<ArrowIcon />
@@ -41,5 +40,20 @@ const destinations = [
 		margin-top: clamp(2rem, 3.5vw, 3rem);
 		padding-bottom: clamp(4rem, 8vw, 7rem);
 		border-top: 0;
+	}
+
+	/* The rows are h2 under the page's h1; keep the shared ledger title look. */
+	.writing-ledger h2 {
+		margin: 0;
+		font-family: var(--home-sans);
+		font-size: var(--type-title-ledger-size);
+		font-weight: var(--type-title-ledger-weight);
+		line-height: var(--type-title-ledger-leading);
+		letter-spacing: var(--type-title-ledger-tracking);
+	}
+
+	.writing-ledger__row:hover h2,
+	.writing-ledger__row:focus-visible h2 {
+		color: var(--home-cobalt);
 	}
 </style>

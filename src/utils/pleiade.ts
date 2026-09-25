@@ -60,35 +60,8 @@ export const PLEIADE_AUTHOR_COLORS: Record<string, PleiadeAuthorStyle> = {
 	'Stephen King': { label: 'Stephen King', color: 'violet' },
 };
 
-export interface PageRange {
-	min: number;
-	max: number;
-}
-
-export const pageRangeFor = (books: { edition: { pageCount: number } }[]): PageRange => {
-	if (books.length === 0) return { min: 0, max: 0 };
-	const counts = books.map((book) => book.edition.pageCount);
-	return { min: Math.min(...counts), max: Math.max(...counts) };
-};
-
 export const pleiadeStyleFor = (author: string): PleiadeAuthorStyle => {
 	const style = PLEIADE_AUTHOR_COLORS[author];
 	if (!style) throw new Error(`Missing Pléiade spine style for author: ${author}`);
 	return style;
-};
-
-/** Where this book sits between the thinnest and the thickest on the shelves, 0..1. */
-export const thicknessRatioFor = (pageCount: number, pageRange: PageRange): number =>
-	pageRange.max <= pageRange.min
-		? 0.5
-		: (pageCount - pageRange.min) / (pageRange.max - pageRange.min);
-
-export const spineWidthFor = (
-	pageCount: number,
-	pageRange: PageRange,
-	variant: 'showcase' | 'extended',
-): number => {
-	const minWidth = variant === 'extended' ? 58 : 42;
-	const widthRange = variant === 'extended' ? 60 : 48;
-	return Math.round(minWidth + thicknessRatioFor(pageCount, pageRange) * widthRange);
 };

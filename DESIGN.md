@@ -11,12 +11,6 @@ colors:
   cobalt-wash: "#f1f4fb"
   cobalt-underline: "color-mix(in srgb, #3567d8 45%, transparent)"
 typography:
-  headline:
-    fontFamily: "Commissioner Variable, Arial, sans-serif"
-    fontSize: "clamp(2.8rem, 7vw, 6.4rem)"
-    fontWeight: 620
-    lineHeight: 0.95
-    letterSpacing: "-0.065em"
   headline-article:
     fontFamily: "Literata Variable, Georgia, serif"
     fontSize: "clamp(2.7rem, 6vw, 5.2rem)"
@@ -174,5 +168,5 @@ one scrollable surface; archive pages provide depth without changing worlds.
 ## Content constraints
 
 Mathieu's own prose is rendered from Markdown and must not be rewritten as part
-of a visual change. Work, writing, bookshelf, and about remain real routes;
+of a visual change. Work, writing, and about remain real routes, and the bookshelf lives in the living room;
 the home page is a curated index into them, not a replacement for them.

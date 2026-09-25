@@ -54,6 +54,11 @@ const groups = [
 		padding-top: clamp(2rem, 3.5vw, 3rem);
 	}
 
+	/* The page head already spaces itself from the first group. */
+	.page-head + .group {
+		padding-top: 0;
+	}
+
 	.group:last-of-type {
 		padding-bottom: clamp(4rem, 8vw, 7rem);
 	}

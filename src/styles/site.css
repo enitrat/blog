@@ -201,17 +201,20 @@ html.site body {
 }
 
 .page-head {
-	padding-block: var(--space-surface-head-block) clamp(2rem, 4vw, 3rem);
+	padding-block: var(--space-surface-head-block) var(--space-reading-block);
 }
 
+/* Same voice as a detail page's title (.sheet__head h1), so an index and
+   the pages it lists read as one site. */
 .page-head h1 {
-	max-width: 18ch;
+	max-width: 20ch;
 	margin: 0;
-	font-family: var(--home-sans);
-	font-size: var(--type-headline-size);
-	font-weight: var(--type-headline-weight);
-	line-height: var(--type-headline-leading);
-	letter-spacing: var(--type-headline-tracking);
+	font-family: var(--home-display);
+	font-size: var(--type-headline-article-size);
+	font-weight: var(--type-headline-article-weight);
+	line-height: var(--type-headline-article-leading);
+	letter-spacing: var(--type-headline-article-tracking);
+	text-wrap: balance;
 }
 
 .page-head p {

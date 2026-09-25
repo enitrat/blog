@@ -57,6 +57,11 @@ const byYear = years.map((year) => ({
 		padding-top: clamp(2rem, 3.5vw, 3rem);
 	}
 
+	/* The page head already spaces itself from the first group. */
+	.page-head + .year {
+		padding-top: 0;
+	}
+
 	.year:last-of-type {
 		padding-bottom: clamp(4rem, 8vw, 7rem);
 	}

@@ -12,9 +12,7 @@
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",
 		"format": "biome format --write .",
-		"library": "astro dev --host 127.0.0.1 --open /bookshelf/",
-		"library:check": "bun scripts/check-library.mjs",
-		"test": "bun test",
+		"test": "bun test --pass-with-no-tests",
 		"room": "astro dev --host 127.0.0.1 --open /",
 		"room:bake": "bun scripts/bake-room.mjs",
 		"room:check": "bun scripts/check-room.mjs",
@@ -31,7 +29,6 @@
 		"@fontsource-variable/literata": "^5.3.0",
 		"@vercel/analytics": "^1.5.0",
 		"astro": "^5.14.1",
-		"page-flip": "^2.0.7",
 		"rehype-mermaid": "^3.0.0",
 		"sharp": "^0.34.3",
 		"three": "^0.185.1"

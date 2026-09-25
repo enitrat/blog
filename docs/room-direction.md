@@ -63,8 +63,8 @@ is the only sign that it goes on.
 ## What must stay true
 
 - The page works without the room. The poster, the plain links, and the
-  Bookshelf page carry everything. If the room cannot render, the book list
-  comes back.
+  room's own book catalog carry everything. If the room cannot render, the
+  book list comes back.
 - Every clickable thing is a real link or button. Keyboard focus lights it and
   names it at once. Camera controls appear only when they have focus.
 - With reduced motion, the light holds still and nothing drifts. Labels still

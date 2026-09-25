@@ -12,19 +12,9 @@ import { dirname, join, posix, relative, resolve, sep } from 'node:path';
 const DIST = 'dist';
 
 /**
- * Pages allowed to pull three in eagerly. /bookshelf/ IS a 3D bookcase — there
- * is no poster to fall back to, so deferring three there would only add a round
- * trip. The homepage is the opposite: its hero has a real poster as its LCP
- * element, and three must stay behind the dynamic import. Hence an explicit
- * per-page allowlist rather than a global off switch.
- */
-const EAGER_THREE_OK = new Set(['bookshelf/index.html']);
-
-/**
  * Content markers, not filenames: Vite is free to name the chunk carrying three
- * anything at all (it currently lands in `pleiade-paint.*.js`). The license
- * banner survives minification; the renderer's own error prefix is the backup
- * in case a future build strips legal comments.
+ * anything at all. The license banner survives minification; the renderer's
+ * own error prefix is the backup in case a future build strips legal comments.
  */
 const THREE_MARKERS = [/Three\.js Authors/, /THREE\.WebGLRenderer/];
 
@@ -107,7 +97,6 @@ for (const file of pages) {
 	for (const [entry, source] of entries) {
 		const chain = chainToThree(entry, source);
 		if (!chain) continue;
-		if (EAGER_THREE_OK.has(page)) continue;
 		offenders.push(`${page}\n      entry: ${entry}\n      chain: ${chain.join('\n          -> ')}`);
 	}
 }
@@ -115,9 +104,6 @@ for (const file of pages) {
 if (offenders.length) {
 	console.error('three.js is eagerly loaded — it must stay behind a dynamic import:');
 	for (const offender of offenders) console.error(`  - ${offender}`);
-	console.error(`\n  Allowed to load three eagerly: ${[...EAGER_THREE_OK].join(', ')}`);
 	process.exit(1);
 }
-console.log(
-	`bundle check passed (${pages.length} pages, three stays lazy outside ${[...EAGER_THREE_OK].join(', ')})`,
-);
+console.log(`bundle check passed (${pages.length} pages, three stays lazy on every page)`);

@@ -32,10 +32,10 @@ The site supports two speeds of use: a direct path for a busy visitor verifying 
 
 ## Capabilities and Constraints
 
-- The primary content areas are Work, Writing, Bookshelf, and About.
+- The primary content areas are Work, Writing, and About. The home page's living room holds the bookshelf, the record player, and the desk.
 - Work uses a small number of Field Reports to show the situation, Mathieu's role, consequential architectural or product decisions, outcomes, and lessons.
 - Writing is one collection. Essays, technical guides, project reflections, and book reflections are not divided into separate publishing systems unless a later need justifies it.
-- Bookshelf combines a complete personal reading archive with a curated visitor-facing layer. Substantial commentary on a book belongs in Writing.
+- The bookshelf lives in the living room and has no route of its own. It combines a complete personal reading archive with a curated visitor-facing layer. Substantial commentary on a book belongs in Writing.
 - About provides a concise professional and personal orientation. A career timeline and downloadable résumé are out of scope for now.
 - Art shapes and connects the experience but is not an independent gallery or portfolio category.
 - The site invites conversation through X and Telegram. It does not use a lead form, scheduling funnel, service packages, or job-seeking calls to action.

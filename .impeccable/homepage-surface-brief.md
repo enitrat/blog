@@ -9,10 +9,10 @@
 
 ## Structure
 
-1. Shared header with Mathieu, Work, Writing, Bookshelf, and About.
+1. Shared header with Mathieu, Work, Writing, and About.
 2. Large identity, role, and two short orientation paragraphs.
 3. A small “Now” row pointing to current work and the latest writing.
-4. Separate Work, Projects, Writing, and Bookshelf sections visible on one scrollable page.
+4. Separate Work, Projects, and Writing sections visible on one scrollable page.
 5. Every section has a simple “View all” route and open list rows.
 6. Shared footer with contact links.
 

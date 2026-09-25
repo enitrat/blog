@@ -17,12 +17,13 @@ export default defineConfig({
 	site: 'https://msaug.dev',
 	integrations: [mdx(), sitemap()],
 
-	// Keeps inbound links and already-indexed pages working after the rename.
+	// Keeps inbound links and already-indexed pages working after renames and removals.
 	redirects: {
 		'/blog': '/writing',
 		'/blog/[...slug]': '/writing/[...slug]',
-		'/reads': '/bookshelf',
-		'/bookshelf/archive': '/bookshelf',
+		'/reads': '/',
+		'/bookshelf': '/',
+		'/bookshelf/archive': '/',
 	},
 
 	markdown: {

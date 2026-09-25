@@ -36,7 +36,6 @@ bunx playwright install chromium webkit   # once, for checks
 | How the room looks and behaves | [Room direction](./docs/room-direction.md) |
 | Why the room bakes this way | [ADR 0002](./docs/adr/0002-room-bake-pipeline.md) |
 | Room asset files | [Room assets](./src/assets/room/README.md) |
-| `/bookshelf/` | [Bookshelf page](./docs/design/bookshelf-page.md) |
 | Book spines | [Pléiade spines](./docs/design/pleiade-spines.md) |
 
 ## Content rules

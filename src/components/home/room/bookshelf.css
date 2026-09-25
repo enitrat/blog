@@ -67,7 +67,7 @@
 	overflow-wrap: anywhere;
 }
 
-.room-library article h3 {
+.room-library article .room-library__title {
 	margin: 0 0 0.75rem;
 	font-family: var(--home-display);
 	font-size: clamp(1.5rem, 3vw, 2rem);
@@ -311,7 +311,7 @@
 	line-height: 1.6;
 }
 
-.room-library__book[data-spatial] article h3 {
+.room-library__book[data-spatial] article .room-library__title {
 	font-size: clamp(1.125rem, 5cqi, 2rem);
 }
 

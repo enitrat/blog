@@ -88,8 +88,18 @@
 }
 
 .personal-index__section-heading a {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
 	color: var(--home-muted);
 	font-size: var(--type-action-link-size);
+}
+
+/* Same arrow, same size as the ledger rows on /work and /writing. */
+.personal-index__section-heading svg,
+.personal-index__list li > a > span:last-child svg {
+	width: 1.05rem;
+	height: 1.05rem;
 }
 
 .personal-index__list {
@@ -135,8 +145,11 @@
 }
 
 .personal-index__list li > a > span:last-child {
+	display: grid;
+	place-items: center;
+	width: 2.75rem;
+	height: 2.75rem;
 	color: var(--home-muted);
-	font-size: 1.25rem;
 }
 
 @media (max-width: 720px) {

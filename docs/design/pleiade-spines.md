@@ -7,12 +7,11 @@ Gallimard's or NRF's marks, logos, or covers.
 
 | Where | Drawn by | How |
 |---|---|---|
-| Homepage "Bookshelf" row | `PleiadeShelf.astro`, `PleiadeSpine.astro` | HTML and CSS |
-| `/bookshelf/` bookcase | `src/components/bookshelf/library/pleiade-paint.ts` | Canvas textures in Three.js |
 | Living room bookcase | `scripts/spine-art.mjs` | SVG, baked into `spines.glb` |
+| Living room book catalog | `src/components/home/room/Bookshelf.astro` | CSS binding color |
 
-All three take colors from `PLEIADE_HEX` in `src/utils/pleiade.ts`, because
-copies drifted apart.
+Both take colors from `PLEIADE_HEX` in `src/utils/pleiade.ts`, so they
+cannot drift apart.
 
 ## What a Pléiade spine looks like
 
@@ -31,10 +30,10 @@ The reference photograph shows:
 - **Color comes from the author.** `PLEIADE_AUTHOR_COLORS` gives each author
   one of eight leathers, so one author's books match. The colors are
   screen-tuned starting points, not measurements.
-- **Width comes from page count.** Homepage spines are 42 to 90 pixels wide.
-  Living room volumes are 237 mm tall and 17 to 47 mm thick.
-- **Text stays text** where possible. CSS spines use selectable HTML. Every
-  spine's accessible name holds the full title and author.
+- **Width comes from page count.** Living room volumes are 237 mm tall and
+  17 to 47 mm thick.
+- **Text stays text** where possible. Every spine's accessible name holds the
+  full title and author.
 - **Lettering fits the spine.** Living room lettering is sized to fit each
   spine's proportions. The renderer behind `sharp` ignores SVG's
   `textLength`, so long text would overflow, not shrink.
@@ -56,4 +55,4 @@ Compare a row of six to ten spines with the photograph:
 - [Gallimard's 2025 Pléiade catalogue](https://www.gallimard.fr/system/files/inline-files/Catalogue-Pleiade-2025.pdf),
   for the collection's naming.
 - [petargyurov/virtual-bookshelf](https://github.com/petargyurov/virtual-bookshelf),
-  Unlicense. We took its idea of a CSS-gradient spine, not its code.
+  Unlicense. We took its idea of a gradient spine, not its code.

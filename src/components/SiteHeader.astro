@@ -7,15 +7,14 @@ const { lang = 'en' } = Astro.props;
 const path = Astro.url.pathname;
 
 const labels: Record<string, Record<string, string>> = {
-	en: { work: 'Work', writing: 'Writing', bookshelf: 'Bookshelf', about: 'About' },
-	fr: { work: 'Travaux', writing: 'Écrits', bookshelf: 'Bibliothèque', about: 'À propos' },
+	en: { work: 'Work', writing: 'Writing', about: 'About' },
+	fr: { work: 'Travaux', writing: 'Écrits', about: 'À propos' },
 };
 const t = labels[lang] ?? labels.en;
 
 const links = [
 	{ label: t.work, href: '/work', match: '/work' },
 	{ label: t.writing, href: '/writing', match: '/writing' },
-	{ label: t.bookshelf, href: '/bookshelf', match: '/bookshelf' },
 	{ label: t.about, href: '/about', match: '/about' },
 ];
 ---

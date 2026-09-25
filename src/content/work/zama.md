@@ -3,6 +3,7 @@ title: 'Zama'
 summary: 'Scaling blockchain infrastructure and building products with Fully Homomorphic Encryption'
 kind: 'work'
 role: 'Senior Protocol Engineer'
+period: 'October 2025 – present'
 site: 'https://zama.org'
 order: 0
 ---

@@ -228,7 +228,10 @@ export async function mountRoom(
 		// (x, y, z) is the glTF's (x, z, -y).
 		desk: new THREE.Box3(new THREE.Vector3(1.4, 0.05, -0.11), new THREE.Vector3(2.04, 1.1, 1.21)),
 		// Just the sleeve, a little turned on the table top.
-		sleeve: new THREE.Box3(new THREE.Vector3(-0.61, 0.44, 0.41), new THREE.Vector3(-0.25, 0.48, 0.77)),
+		sleeve: new THREE.Box3(
+			new THREE.Vector3(-0.61, 0.44, 0.41),
+			new THREE.Vector3(-0.25, 0.48, 0.77),
+		),
 	};
 	boxes.record.min.y -= 0.05;
 	THINGS.forEach((thing, index) => {
