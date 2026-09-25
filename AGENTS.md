@@ -2,21 +2,16 @@
 
 ## Authored content
 
-Keep Mathieu's prose, claims, contact details, and artwork as he wrote them.
-Ask before you replace any of it.
-
-Don't edit `DESIGN.md`, `CONTEXT.md`, or `PRODUCT.md` by hand. They use the
-impeccable skill's formats, and `DESIGN.md`'s frontmatter generates
-`src/styles/tokens.css`.
+- Keep Mathieu's prose, claims, contact details, and artwork as he wrote them.
+  Ask before you replace it.
+- Change `DESIGN.md`, `CONTEXT.md`, and `PRODUCT.md` only through the
+  impeccable skill. `DESIGN.md` generates `src/styles/tokens.css`.
 
 ## Blender room
 
-Before you change the living room's geometry, materials, lights, camera,
-bake, or assets, read `docs/room-workflow.md`.
+Read `docs/room-workflow.md` before any room change.
 
-- Change `scripts/room.py` and `scripts/bake-room.mjs`. A live Blender scene is
-  only a preview.
-- Publish assets only through `bun run room:bake --only <the groups you
-  changed>`.
+- Change `scripts/room.py` or `scripts/bake-room.mjs`, not live Blender.
+- Publish assets only with `bun run room:bake --only <changed groups>`.
 - A visual change is done when its bake, `bun run build`, and
-  `bun run room:check chromium` all pass.
+  `bun run room:check chromium` pass.

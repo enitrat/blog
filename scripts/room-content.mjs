@@ -7,8 +7,7 @@ const NOTES = 'src/content/notes';
 const BLOG = 'src/content/blog';
 const markdown = /\.mdx?$/;
 
-/** ISBNs with a written note. A note's filename is its ISBN, the same contract
- * `notedIsbns()` enforces against the shelves at build time. */
+/** ISBNs with a written note; a note's filename is its ISBN. */
 export async function notedIsbns() {
 	const files = await readdir(NOTES);
 	return new Set(

@@ -10,6 +10,7 @@ import numpy as np
 import math
 import sys
 import time
+from contextlib import contextmanager, nullcontext
 from pathlib import Path
 from mathutils import Matrix, Vector
 
@@ -21,7 +22,10 @@ samples = int(args[2])
 size = int(args[3])
 preview_only = '--preview' in args
 minimal_art = '--minimal-art' in args
-group_names = ('shell', 'furniture', 'objects', 'moving', 'spines', 'books', 'covers', 'bookmark', 'sheets')
+# room-targets.mjs owns the groups: their names, in bake order, and which bake alone.
+group_names = json.loads((work / 'groups.json').read_text())
+isolated_groups = set(group_names['isolated'])
+group_names = group_names['all']
 only_index = args.index('--only')
 targets = set(args[only_index + 1].split(','))
 if bpy.app.version != (4, 5, 3):
@@ -275,10 +279,9 @@ tube('Window arched head', window_arch, .025, darkwood)
 
 group = 'furniture'
 # Bookcase: thinner shelves and a recessed back give each bay depth. Its
-# dimensions come from bake-room.mjs, which also ships them to the browser, so
-# the frame, the anchor and the pick volume there cannot drift from this box.
-# That file uses the runtime's axes -- Y up, depth along -Z -- and this one is
-# Blender's Z up, so the front plane comes back across as +y.
+# dimensions come from the manifest the browser also reads, so the frame, anchor
+# and pick volume there cannot drift from this box. The manifest uses the
+# runtime's axes (Y up, depth along -Z), so its front plane comes back as +y.
 cabinet = json.loads((work / 'cabinet.json').read_text())
 cx, cw, cd = cabinet['x'], cabinet['width'], cabinet['depth']
 cy = -cabinet['face'] + cd / 2
@@ -296,8 +299,7 @@ for x in [cx-cw/2-.005, cx+cw/2+.005]:
     box('Bookcase face stile', (x, 1.073, .92), (.055, .035, 1.66), walnut, .006)
 
 # Join the active cabinet and the listening console into one wall of millwork.
-# The interactive shelf keeps its manifest dimensions; these parts are only the
-# architectural surround, so redesigning them cannot move a book target.
+# These parts are only the surround, so redesigning them cannot move a book target.
 box('Library left pilaster', (-1.79, 1.28, 1.22), (.14, .28, 2.36), darkwood, .008)
 box('Library centre pilaster', (-.49, 1.28, 1.22), (.12, .28, 2.36), darkwood, .008)
 box('Library right pilaster', (1.57, 1.28, 1.22), (.14, .28, 2.36), darkwood, .008)
@@ -347,8 +349,9 @@ fumed = material('Fumed oak', '#352016', .40, 'wood')
 fumed_shadow = material('Fumed oak shadow', '#25160f', .55, 'wood')
 hide = material('Bottle-green writing leather', '#2b3f33', .55, 'fabric')
 chair_leather = material('Burgundy chair leather', '#4a1717', .52, 'fabric')
-# bake-room.mjs owns where the desk stands, so the manuscripts it lays out land on it.
-dx, dy, dz = json.loads((work / 'desk.json').read_text())['centre']  # centre, underside of the top
+# The bake script owns where the desk stands, so the manuscripts it lays out land on it.
+desk = json.loads((work / 'desk.json').read_text())
+dx, dy, dz = desk['centre']  # centre, underside of the top
 for py in [dy-.45, dy+.45]:
     box('Pedestal plinth', (dx, py, .035), (.585, .425, .07), fumed_shadow, .004)
     box('Pedestal carcass', (dx, py, .3975), (.56, .40, .655), fumed, .004)
@@ -416,8 +419,8 @@ for y in [qy-.09, qy+.09]:
         sphere('Chair back button', (qx-.198, y, z), (.008, .008, .008), fumed_shadow)
 turn(groups['furniture']['furniture'][chair_start:], (qx, qy, 0), -.2)
 
-# A low round library table leaves more of the rug visible and matches the
-# heavier period furniture better than the old rectangular mid-century top.
+# A low round library table leaves more of the rug visible and suits the
+# heavier period furniture.
 table_x, table_y = -.28, -.59
 marble = material('Brown marble', '#59483a', .30, 'plaster')
 cylinder('Round coffee table top', (table_x, table_y, .415), .43, .065, marble, 64)
@@ -430,7 +433,7 @@ for angle in [0, math.pi/2, math.pi, math.pi*1.5]:
     tube('Coffee table splayed foot', [(table_x, table_y, .10), foot], .024, walnut)
 
 # A compact oxblood listening sofa runs along the open left edge and faces the
-# writing desk. Its low back preserves the existing shelf camera sightline.
+# writing desk. Its low back keeps the shelf camera's sightline clear.
 velvet = material('Oxblood cotton velvet', '#42040b', .72, 'velvet')
 velvet_dark = material('Oxblood velvet shadow', '#240207', .80, 'velvet')
 sofa_x, sofa_y = -1.42, -.61
@@ -523,9 +526,9 @@ for bay in range(3):
         box('Pleiade back cover', (x+.00075, 1.145, z+h/2), (.0015, .15, h), cover, .0005)
         box('Pleiade leather spine', (x+width/2, 1.072, z+h/2), (width, .004, h), cover, .001)
         box('Bible paper edges', (x+width/2, 1.145, z+h/2), (width-.003, .142, h-.004), cream, .0005)
-        # A cover only ever leaves the row on an annotated volume. The rest would
-        # divide this atlas fifty ways for faces the reader cannot reach, which
-        # is what once left the openable one lettered at eight pixels per centimetre.
+        # Only an annotated volume gets a cover. Baking them all would split this
+        # atlas fifty ways for faces nobody reaches, leaving the openable one
+        # lettered at about eight pixels per centimetre.
         if book.get('noted'):
             group = 'covers'
             part = 'Cover_'+book['isbn']
@@ -671,7 +674,7 @@ for i, end in enumerate([(-.43, 1.08, 1.63), (-.30, 1.06, 1.57), (-.16, 1.08, 1.
         leaf = sphere('Trailing plant leaf', a, (.045, .018, .070), green)
         leaf.rotation_euler.y = (-.45 + i*.25) * (1 if step != .55 else -1)
 
-# Turntable. The platter and tonearm are exported as their own movable nodes.
+# Turntable.
 tx, ty, tz = .26, 1.16, .712
 box('Turntable walnut plinth', (tx, ty, tz), (.50, .38, .052), walnut, .014)
 box('Turntable charcoal deck', (tx, ty, tz+.030), (.473, .356, .013), black, .005)
@@ -808,7 +811,7 @@ glass = material('Emerald lamp glass', '#1d6a3c', .18)
 bsdf = glass.node_tree.nodes.get('Principled BSDF')
 bsdf.inputs['Emission Color'].default_value = (*linear('#2f9a55'), 1)
 bsdf.inputs['Emission Strength'].default_value = .45
-top = dz + .037
+top = desk['top']
 cylinder('Banker lamp base', (1.86, -.25, top+.007), .058, .014, brass, 48)
 sphere('Banker lamp base dome', (1.86, -.25, top+.014), (.04, .04, .02), brass)
 cylinder('Banker lamp stem', (1.86, -.25, top+.014+.125), .008, .25, brass, 24)
@@ -855,7 +858,7 @@ cylinder('Inkwell lid', (1.88, -.12, top+.040), .012, .012, brass, 24)
 
 # The writing, one manuscript per published piece, fanned in two piles so the
 # head of every sheet shows. Each is its own node: the runtime lifts the one a
-# reader reaches for. bake-room.mjs lays them out in the runtime's axes.
+# reader reaches for. Their layout arrives in the runtime's axes.
 for index, sheet in enumerate(json.loads((work/'sheets.json').read_text())):
     group = 'sheets'
     part = 'Sheet_' + sheet['slug']
@@ -928,6 +931,29 @@ if preview_only:
     print(f'TIMING preview {time.perf_counter()-render_started:.2f}s', flush=True)
     sys.exit(0)
 
+@contextmanager
+def isolated():
+    """Hide every mesh from the render, and restore them even if a bake fails."""
+    hidden = [(obj, obj.hide_render) for obj in scene.objects if obj.type == 'MESH']
+    for obj, _ in hidden:
+        obj.hide_render = True
+    try:
+        yield
+    finally:
+        for obj, was_hidden in hidden:
+            obj.hide_render = was_hidden
+
+def pack_grid(meshes, columns, source_layer):
+    """Lay each mesh's bake UVs, taken from `source_layer`, into its own padded grid cell."""
+    rows = math.ceil(len(meshes)/columns)
+    padding = 10/(size*2)
+    for index, obj in enumerate(meshes):
+        for source, baked_uv in zip(obj.data.uv_layers[source_layer].data, obj.data.uv_layers[-1].data):
+            baked_uv.uv = (
+                (index % columns)/columns + padding + source.uv.x*(1/columns-2*padding),
+                (index // columns)/rows + padding + source.uv.y*(1/rows-2*padding),
+            )
+
 for name, parts in groups.items():
     if name not in targets:
         continue
@@ -950,8 +976,8 @@ for name, parts in groups.items():
         obj.data.uv_layers.new(name='BakeUV')
         obj.data.uv_layers.active_index = len(obj.data.uv_layers)-1
         obj.data.uv_layers.active.active_render = True
-    # Books bake one at a time into a cell of their own (below), so each one
-    # is unwrapped alone to fill it.
+    # Books bake one at a time into their own atlas cell, so each is unwrapped
+    # alone to fill it.
     for batch in [[obj] for obj in meshes] if name == 'books' else [meshes]:
         bpy.ops.object.select_all(action='DESELECT')
         for obj in batch:
@@ -966,30 +992,13 @@ for name, parts in groups.items():
     if name == 'sheets':
         # Smart Project packs each object separately, so their UVs otherwise
         # overlap and later sheet bakes overwrite the earlier ones.
-        columns = math.ceil(math.sqrt(len(meshes)))
-        rows = math.ceil(len(meshes)/columns)
-        padding = 10/(size*2)
-        for index, obj in enumerate(meshes):
-            for baked_uv in obj.data.uv_layers[-1].data:
-                baked_uv.uv = (
-                    (index % columns)/columns + padding + baked_uv.uv.x*(1/columns-2*padding),
-                    (index // columns)/rows + padding + baked_uv.uv.y*(1/rows-2*padding),
-                )
+        pack_grid(meshes, math.ceil(math.sqrt(len(meshes))), -1)
     if name == 'spines':
-        # A regular print atlas spends its pixels on lettering rather than the
-        # empty bands produced by packing tall, narrow islands automatically.
-        # Cells are shaped roughly like a spine, about one to twelve: cap height
-        # runs along the tall axis, so a squarer cell starves the only type in
-        # the room a visitor is meant to read.
-        columns = math.ceil(math.sqrt(len(meshes)*12))
-        rows = math.ceil(len(meshes)/columns)
-        padding = 10/(size*2)
-        for index, obj in enumerate(meshes):
-            for source, baked_uv in zip(obj.data.uv_layers[0].data, obj.data.uv_layers[-1].data):
-                baked_uv.uv = (
-                    (index % columns)/columns + padding + source.uv.x*(1/columns-2*padding),
-                    (index // columns)/rows + padding + source.uv.y*(1/rows-2*padding),
-                )
+        # A regular grid spends its pixels on lettering, not on the empty bands
+        # auto-packing leaves around tall, narrow islands. Cells are spine-shaped,
+        # about one to twelve: a squarer cell starves the only type in the room a
+        # visitor is meant to read.
+        pack_grid(meshes, math.ceil(math.sqrt(len(meshes)*12)), 0)
     # A cover is read at arm's length, so it is sized from how many are actually
     # baked rather than from a fixed sheet: one note wants a whole one to itself.
     # ponytail: doubles per four covers, capped; revisit if the shelf ever carries
@@ -1015,95 +1024,75 @@ for name, parts in groups.items():
     print('BAKING', name, resolution, samples, flush=True)
     # Moving surfaces cannot inherit shadows from their neighbours. Bake each
     # volume in the same room light, with only its own covers shading its pages.
-    if name in ('covers', 'sheets'):
-        hidden = [(obj, obj.hide_render) for obj in scene.objects if obj.type == 'MESH']
-        for obj, _ in hidden:
-            obj.hide_render = True
-        bpy.ops.object.duplicate(linked=False)
-        if len(meshes) > 1:
+    # Moving surfaces bake with the rest of the room hidden, so none keeps the
+    # shadow of where it stood.
+    with isolated() if name in isolated_groups else nullcontext():
+        if name in ('covers', 'sheets'):
+            bpy.ops.object.duplicate(linked=False)
+            if len(meshes) > 1:
+                bpy.ops.object.join()
+            combined = bpy.context.object
+            combined.hide_render = False
+            # These flat surfaces need no self-shadowing. Exclude them from
+            # secondary rays; a joined copy bakes once while the originals retain
+            # their runtime transforms.
+            combined.visible_shadow = False
+            combined.visible_diffuse = False
+            combined.visible_glossy = False
+            bpy.ops.object.bake(type='COMBINED')
+            bpy.data.objects.remove(combined, do_unlink=True)
+        elif name == 'spines':
+            # Each jacket stays its own `Book_<isbn>` node for the browser. A joined
+            # copy bakes them all in one pass, with the originals out of its light.
+            bpy.ops.object.duplicate(linked=False)
             bpy.ops.object.join()
-        combined = bpy.context.object
-        combined.hide_render = False
-        # These flat surfaces need no self-shadowing. Exclude them from
-        # secondary rays; a joined copy bakes once while the originals retain
-        # their runtime transforms.
-        combined.visible_shadow = False
-        combined.visible_diffuse = False
-        combined.visible_glossy = False
-        bpy.ops.object.bake(type='COMBINED')
-        bpy.data.objects.remove(combined, do_unlink=True)
-        for obj, was_hidden in hidden:
-            obj.hide_render = was_hidden
-    elif name == 'spines':
-        # Each jacket stays its own `Book_<isbn>` node for the browser. A joined
-        # copy bakes them all in one pass, with the originals out of its light.
-        bpy.ops.object.duplicate(linked=False)
-        bpy.ops.object.join()
-        combined = bpy.context.object
-        for obj in meshes:
-            obj.hide_render = True
-        bpy.ops.object.bake(type='COMBINED')
-        bpy.data.objects.remove(combined, do_unlink=True)
-        for obj in meshes:
-            obj.hide_render = False
-    elif name == 'books':
-        # Each volume bakes alone into a small image, then lands in its own
-        # cell of the atlas. Cycles denoises the whole target image on every
-        # bake, so baking straight into the atlas denoised it 55 times.
-        hidden = [(obj, obj.hide_render) for obj in scene.objects if obj.type == 'MESH']
-        for obj, _ in hidden:
-            obj.hide_render = True
-        columns = math.ceil(math.sqrt(len(meshes)))
-        rows = math.ceil(len(meshes)/columns)
-        cell_w, cell_h = resolution // columns, resolution // rows
-        # Inset each unwrap a few pixels inside its cell, so filtering in the
-        # browser never samples the neighbouring book.
-        inset_x, inset_y = 4/cell_w, 4/cell_h
-        cell = bpy.data.images.new('book cell', width=cell_w, height=cell_h, float_buffer=True)
-        pixels = np.empty(cell_w*cell_h*4, dtype=np.float32)
-        atlas = np.zeros((resolution, resolution, 4), dtype=np.float32)
-        scene.render.bake.use_clear = True
-        for index, obj in enumerate(meshes):
-            col, row = index % columns, index // columns
-            baked_uv = obj.data.uv_layers[-1].data
-            for loop in baked_uv:
-                loop.uv = (inset_x + loop.uv.x*(1-2*inset_x), inset_y + loop.uv.y*(1-2*inset_y))
-            for mat in obj.data.materials:
-                mat.node_tree.nodes.active.image = cell
-            bpy.ops.object.select_all(action='DESELECT')
-            obj.hide_render = False
-            obj.select_set(True)
-            bpy.context.view_layer.objects.active = obj
+            combined = bpy.context.object
+            for obj in meshes:
+                obj.hide_render = True
             bpy.ops.object.bake(type='COMBINED')
-            obj.hide_render = True
-            cell.pixels.foreach_get(pixels)
-            atlas[row*cell_h:(row+1)*cell_h, col*cell_w:(col+1)*cell_w] = pixels.reshape(cell_h, cell_w, 4)
-            for loop in baked_uv:
-                loop.uv = ((col + loop.uv.x)*cell_w/resolution, (row + loop.uv.y)*cell_h/resolution)
-            for mat in obj.data.materials:
-                mat.node_tree.nodes.active.image = image
-        image.pixels.foreach_set(atlas.ravel())
-        image.update()
-        bpy.data.images.remove(cell)
-        for obj, was_hidden in hidden:
-            obj.hide_render = was_hidden
-    elif name == 'bookmark':
-        hidden = [(obj, obj.hide_render) for obj in scene.objects if obj.type == 'MESH']
-        for obj, _ in hidden:
-            obj.hide_render = True
-        for obj in meshes:
-            bpy.ops.object.select_all(action='DESELECT')
-            obj.hide_render = False
-            obj.select_set(True)
-            bpy.context.view_layer.objects.active = obj
-            scene.render.bake.use_clear = obj == meshes[0]
+            bpy.data.objects.remove(combined, do_unlink=True)
+            for obj in meshes:
+                obj.hide_render = False
+        elif name == 'books':
+            # Each volume bakes alone into a small image, then lands in its own
+            # cell of the atlas. Cycles denoises the whole target image on every
+            # bake, so baking straight into the atlas would denoise it once per book.
+            columns = math.ceil(math.sqrt(len(meshes)))
+            rows = math.ceil(len(meshes)/columns)
+            cell_w, cell_h = resolution // columns, resolution // rows
+            # Inset each unwrap a few pixels inside its cell, so filtering in the
+            # browser never samples the neighbouring book.
+            inset_x, inset_y = 4/cell_w, 4/cell_h
+            cell = bpy.data.images.new('book cell', width=cell_w, height=cell_h, float_buffer=True)
+            pixels = np.empty(cell_w*cell_h*4, dtype=np.float32)
+            atlas = np.zeros((resolution, resolution, 4), dtype=np.float32)
+            scene.render.bake.use_clear = True
+            for index, obj in enumerate(meshes):
+                col, row = index % columns, index // columns
+                baked_uv = obj.data.uv_layers[-1].data
+                for loop in baked_uv:
+                    loop.uv = (inset_x + loop.uv.x*(1-2*inset_x), inset_y + loop.uv.y*(1-2*inset_y))
+                for mat in obj.data.materials:
+                    mat.node_tree.nodes.active.image = cell
+                bpy.ops.object.select_all(action='DESELECT')
+                obj.hide_render = False
+                obj.select_set(True)
+                bpy.context.view_layer.objects.active = obj
+                bpy.ops.object.bake(type='COMBINED')
+                obj.hide_render = True
+                cell.pixels.foreach_get(pixels)
+                atlas[row*cell_h:(row+1)*cell_h, col*cell_w:(col+1)*cell_w] = pixels.reshape(cell_h, cell_w, 4)
+                for loop in baked_uv:
+                    loop.uv = ((col + loop.uv.x)*cell_w/resolution, (row + loop.uv.y)*cell_h/resolution)
+                for mat in obj.data.materials:
+                    mat.node_tree.nodes.active.image = image
+            image.pixels.foreach_set(atlas.ravel())
+            image.update()
+            bpy.data.images.remove(cell)
+        else:
+            for obj in meshes:
+                obj.hide_render = False
             bpy.ops.object.bake(type='COMBINED')
-            obj.hide_render = True
-        for obj, was_hidden in hidden:
-            obj.hide_render = was_hidden
-        scene.render.bake.use_clear = True
-    else:
-        bpy.ops.object.bake(type='COMBINED')
     # Color-manage once here. Runtime emission materials are display-referred.
     scene.render.image_settings.file_format = 'JPEG'
     scene.render.image_settings.color_mode = 'RGB'

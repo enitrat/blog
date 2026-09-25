@@ -5,10 +5,8 @@ import sheets from '../../assets/room/sheets.json';
 import { getWritingIndex, postUrl } from '../../utils/writing';
 import Bookshelf from './room/Bookshelf.astro';
 
-// The manuscripts on the desk are baked, one per piece the bake knew about.
-// A piece published since is on /writing/ but not yet on the desk; the bake
-// is the only thing that can put it there, so it is left off rather than
-// given a target with nothing under it.
+// Only pieces the bake knew about have a manuscript on the desk. A newer piece
+// stays off it rather than getting a target with nothing under it.
 const posts = await getWritingIndex();
 const manuscripts = sheets.flatMap((sheet) => {
 	const post = posts.find((entry) => entry.id === sheet.slug);
@@ -30,7 +28,7 @@ const manuscripts = sheets.flatMap((sheet) => {
 		fetchpriority="high"
 		decoding="sync"
 	/>
-	<!-- The scene itself is the camera control once it is live: scene.ts names it
+	<!-- The scene itself is the camera control once it is live: the scene names it
 	     and makes it focusable, so there is no chrome over the artwork. -->
 	<canvas class="living-room__canvas" aria-hidden="true"></canvas>
 
@@ -127,8 +125,8 @@ const manuscripts = sheets.flatMap((sheet) => {
 	hotspots?.addEventListener('focusout', () => label(''));
 
 	/** Surface noise, built once and left in place. Creating and closing an
-	 *  AudioContext per play raced its own teardown: a second press inside the
-	 *  fade could leave two contexts running and one of them unreachable. */
+	 *  AudioContext per play races its own teardown: a second press inside the
+	 *  fade can leave two contexts running and one of them unreachable. */
 	function surface() {
 		const context = new AudioContext();
 		const buffer = context.createBuffer(1, context.sampleRate * 2, context.sampleRate);
@@ -186,9 +184,8 @@ const manuscripts = sheets.flatMap((sheet) => {
 	let widget: Widget | null = null;
 	let connecting: Promise<Widget> | null = null;
 
-	/** One state, not two booleans that could disagree. `cueing` is the honest
-	 *  name for what the old code told the room was playing: the needle is down
-	 *  and the surface noise is audible, but the mix has not started yet. */
+	/** One state, not two booleans that could disagree. `cueing`: the needle is
+	 *  down and the surface noise is audible, but the mix has not started yet. */
 	type Playback = 'stopped' | 'cueing' | 'playing';
 	let playback: Playback = 'stopped';
 

@@ -7,7 +7,13 @@ import sharp from 'sharp';
 import { books } from '../src/booksData.ts';
 import { PLEIADE_HEX, pleiadeStyleFor } from '../src/utils/pleiade.ts';
 import { englishPieces, notedIsbns } from './room-content.mjs';
-import { ROOM_GROUPS, roomTargets } from './room-targets.mjs';
+import {
+	COMPRESSED_GROUPS,
+	ISOLATED_GROUPS,
+	ROOM_GROUPS,
+	readGlb,
+	roomTargets,
+} from './room-targets.mjs';
 import { SHEET, sheetSvg } from './sheet-art.mjs';
 import { ART_HEIGHT, coverSvg, spineSvg } from './spine-art.mjs';
 
@@ -47,10 +53,8 @@ const library = books.map((book) => ({
 	pages: book.edition.pageCount ?? 500,
 }));
 // The bookcase, in the runtime's coordinates: metres, Y up, the camera down +Z.
-// Blender is Z up and its Y is depth, so room.py negates `face` to get back to
-// its own axes. This is the only description of the cabinet anywhere: room.py
-// builds it from the copy written beside the assets, and the browser frames,
-// anchors and picks it from the same file.
+// This is its single source: Blender builds it from the copy written beside the
+// assets, and the browser frames, anchors and picks it from the same file.
 const CABINET = {
 	x: -1.12, // centre of the carcass
 	width: 1.08, // outer width, side panel to side panel
@@ -64,7 +68,7 @@ const CABINET = {
 	bays: [0.55, 0.91, 1.27], // the shelves the library stands on; 0.18 holds records
 };
 // A Pléiade volume is one height, whatever it holds; only its thickness varies,
-// with the number of leaves. Both are the same numbers Blender builds from.
+// with the number of leaves.
 const SPINE_HEIGHT = 0.237;
 const widthOf = (entry) => 0.017 + (Math.min(entry.pages, 1400) / 1400) * 0.03;
 const leftmost = CABINET.x - CABINET.usable / 2;
@@ -91,14 +95,13 @@ const slots = library.map((book, index) => {
 		height: SPINE_HEIGHT,
 	};
 });
-// The writing lies on the desk, one manuscript per published piece.
 const pieces = await englishPieces();
 // Two fanned piles on the leather, newest on top and nearest the chair, each
 // older sheet pushed a little further from the writer so its head -- where
 // the title is written -- shows past the sheet on top of it. Blender's axes:
 // the desk runs along y, the writer sits at -x and reads towards +x.
 const DESK = {
-	// The desk's centre and the underside of its top; room.py builds it here.
+	// The desk's centre and the underside of its top; Blender builds it here.
 	centre: [1.72, -0.55, 0.725],
 	top: 0.762, // the leather writing surface
 	x: 1.5,
@@ -147,12 +150,15 @@ const sheets = pieces.map((piece, index) => {
 	};
 });
 
-// Blender reads these from the work directory; the browser imports the pair
-// written beside the GLBs.
-// Tabs, so the checked-in copies match what `bun run lint` expects.
+// Blender reads these from the work directory; the browser imports the copies
+// written beside the GLBs. Tabs match what `bun run lint` expects.
 const manifests = { 'book-slots.json': slots, 'cabinet.json': CABINET, 'sheets.json': sheets };
 // Blender alone needs the desk; the browser finds it through the sheets.
 await writeFile(join(work, 'desk.json'), JSON.stringify(DESK));
+await writeFile(
+	join(work, 'groups.json'),
+	JSON.stringify({ all: ROOM_GROUPS, isolated: ISOLATED_GROUPS }),
+);
 for (const [name, value] of Object.entries(manifests)) {
 	const text = `${JSON.stringify(value, null, '\t')}\n`;
 	await writeFile(join(work, name), text);
@@ -168,10 +174,7 @@ const sameFile = async (left, right) => {
 };
 /** The embedded images of a GLB, in glTF order. */
 const glbImages = async (path) => {
-	const glb = await readFile(path);
-	const length = glb.readUInt32LE(12);
-	const gltf = JSON.parse(glb.subarray(20, 20 + length).toString());
-	const bin = glb.subarray(20 + length + 8);
+	const { gltf, bin } = await readGlb(path);
 	return (gltf.images ?? []).map((image) => {
 		const view = gltf.bufferViews[image.bufferView];
 		return bin.subarray(view.byteOffset ?? 0, (view.byteOffset ?? 0) + view.byteLength);
@@ -192,18 +195,16 @@ if (targets.length !== ROOM_GROUPS.length) {
 await writeFile(join(work, 'books.json'), JSON.stringify(library));
 const artworkStarted = performance.now();
 // Groups baked in isolation never see the room's other artwork, so they skip it.
-const fullArtwork =
-	preview || targets.some((name) => !['books', 'covers', 'bookmark', 'sheets'].includes(name));
+const fullArtwork = preview || targets.some((name) => !ISOLATED_GROUPS.includes(name));
 const raster = (svg, density, name) =>
 	sharp(Buffer.from(svg), { density }).png().toFile(join(work, name));
 await Promise.all([
 	...library.flatMap((book, index) => {
 		const slot = slots[index];
-		/* The jacket plane Blender builds is `width - .001` by `height - .003`, so
-		   the drawing is authored at that exact aspect and nothing on it is
-		   squeezed. Rasterised well above its nominal size: these jackets are the
-		   only type in the room a visitor is meant to actually read, and neither
-		   the bake nor the browser can invent detail the source does not have. */
+		/* Drawn at the aspect of Blender's jacket plane, `width - .001` by
+		   `height - .003`, so nothing is squeezed. Rasterised well above nominal
+		   size: these are the only type in the room a visitor is meant to read,
+		   and neither the bake nor the browser can add detail the source lacks. */
 		const aspect = (slot.width - 0.001) / (slot.height - 0.003);
 		return [
 			fullArtwork &&
@@ -293,7 +294,7 @@ if (preview) {
 const compressStarted = performance.now();
 await Promise.all(
 	targets
-		.filter((name) => ['shell', 'furniture', 'objects'].includes(name))
+		.filter((name) => COMPRESSED_GROUPS.includes(name))
 		.map((name) => {
 			const glb = join(stage, `${name}.glb`);
 			return run('bunx', ['@gltf-transform/cli@4.5.0', 'meshopt', glb, glb], true);
@@ -301,9 +302,11 @@ await Promise.all(
 );
 timed('meshopt', compressStarted);
 const validationStarted = performance.now();
-for (const name of targets) {
-	await run('bunx', ['@gltf-transform/cli@4.5.0', 'validate', join(stage, `${name}.glb`)], true);
-}
+await Promise.all(
+	targets.map((name) =>
+		run('bunx', ['@gltf-transform/cli@4.5.0', 'validate', join(stage, `${name}.glb`)], true),
+	),
+);
 timed('validation', validationStarted);
 
 if (noPublish) {

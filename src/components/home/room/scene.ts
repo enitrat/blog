@@ -111,7 +111,7 @@ export async function mountRoom(
 		const body = scene.getObjectByName(`Body_${slot.isbn}`);
 		// Only an annotated volume is baked a front cover, because only it opens.
 		// A note written since the last covers bake still opens, just without
-		// its cover swinging; `check-room-assets` fails the build before that ships.
+		// its cover swinging; the build's asset check fails before that ships.
 		const cover = scene.getObjectByName(`Cover_${slot.isbn}`);
 		if (!jacket || !body) {
 			releaseAssets();
@@ -161,6 +161,18 @@ export async function mountRoom(
 		}
 		return [{ link, node, sheet, rest: node.position.y }];
 	});
+
+	const platter = scene.getObjectByName('Platter');
+	const tonearm = scene.getObjectByName('Tonearm');
+	if (!platter || !tonearm) {
+		releaseAssets();
+		return null;
+	}
+	// The platter's origin is the spindle axis, so the record's ring and close-up
+	// follow the turntable wherever the bake puts it.
+	const axis = platter.getWorldPosition(new THREE.Vector3());
+	ANCHORS.record.set(axis.x, axis.y + 0.07, axis.z);
+	VIEWS.record.target.set(axis.x, axis.y + 0.09, axis.z);
 
 	let renderer: THREE.WebGLRenderer;
 	try {
@@ -213,15 +225,6 @@ export async function mountRoom(
 
 	// The platter and the arm are their own nodes in moving.glb, turning about
 	// their own axis. Blender's Z became the node's Y in the glTF conversion.
-	const platter = scene.getObjectByName('Platter');
-	const tonearm = scene.getObjectByName('Tonearm');
-	// The platter's origin is the spindle axis, so the record's ring and close-up
-	// follow the turntable wherever the bake puts it.
-	if (platter) {
-		const axis = platter.getWorldPosition(new THREE.Vector3());
-		ANCHORS.record.set(axis.x, axis.y + 0.07, axis.z);
-		VIEWS.record.target.set(axis.x, axis.y + 0.09, axis.z);
-	}
 	const SPEED = (100 * Math.PI) / 90; // 33 1/3 rpm
 	const CUED = -0.1846; // the headshell reaches the lead-in groove
 	const DROP = 0.1; // and noses down onto it
@@ -636,7 +639,7 @@ export async function mountRoom(
 	};
 	// ponytail: one traversal per frame, and only when the pointer has really
 	// moved. Pointer events arrive far faster than frames, and the traversal
-	// walks every triangle in all five GLBs. A dedicated low-poly pick mesh for
+	// walks every triangle in every loaded GLB. A dedicated low-poly pick mesh for
 	// the cabinet is the upgrade if the room ever grows.
 	let lastPick = { at: -1, x: 0, y: 0, hit: false };
 	function pointsAtCabinet(event: MouseEvent) {

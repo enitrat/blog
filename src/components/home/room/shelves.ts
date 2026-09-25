@@ -1,6 +1,6 @@
 /** Every fact about where the bookcase and its books are. Both come from the
- *  bake: `bake-room.mjs` writes them and `room.py` builds the furniture from the
- *  same numbers, so a constant here cannot fall behind the geometry on screen. */
+ *  bake's manifests, which Blender also builds from, so a constant here cannot
+ *  fall behind the geometry on screen. */
 
 import slots from '../../../assets/room/book-slots.json';
 import cabinet from '../../../assets/room/cabinet.json';

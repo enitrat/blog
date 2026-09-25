@@ -3,13 +3,9 @@
  *
  *   bun run room:poster
  *
- * The poster is the homepage's LCP element — a <canvas> is never an LCP
- * candidate, so this PNG is what the metric actually measures, and it has to be
- * the scene's own frame rather than an approximation of it. Which means it can
- * only be produced from the scene. Re-run it whenever the room is re-baked.
- *
- * It also has to be right for the devices that never load the 3D at all: on a
- * phone this image *is* the hero, with the two controls annotated over it.
+ * The poster is the homepage's LCP element (a <canvas> never is), so it has to
+ * be the scene's own frame. Re-run it whenever the room is re-baked. On phones,
+ * which never load the 3D, this image is the hero, with the controls over it.
  *
  * Starts its own dev server unless DEV_URL points at one already.
  */
@@ -46,7 +42,7 @@ try {
 
 	// The locator's own screenshot, not a viewport clip: `clip` is measured from
 	// the viewport, and the hero sits below the fold on anything but a very tall
-	// window — which is how the first poster came out as a corner of the wall.
+	// window, so a clip captures a corner of the wall.
 	const shot = await page.locator('.living-room__canvas').screenshot();
 	await sharp(shot)
 		.resize(WIDTH, HEIGHT, { fit: 'cover' })

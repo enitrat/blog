@@ -7,37 +7,34 @@
  *
  * Starts its own dev server unless DEV_URL points at one already.
  *
- * Each case gets its OWN browser. Sharing one browser per engine used to pile
- * ~28 WebGL contexts into a single process — the shelf plus one per book
- * opened, across every viewport. Past WebKit's per-process limit it does not
- * error, it just blocks: 20+ minute stalls with no request ever leaving the
- * page. A fresh browser per case runs the same assertions in seconds.
+ * Each case gets its own browser. One browser per engine piles ~28 WebGL
+ * contexts into a single process (the shelf plus one per book opened, across
+ * every viewport). Past WebKit's per-process limit it blocks rather than
+ * erroring: 20+ minute stalls with no request leaving the page.
  */
 import assert from 'node:assert/strict';
-import { mkdir, readdir } from 'node:fs/promises';
+import { mkdir } from 'node:fs/promises';
 import { chromium, webkit } from 'playwright';
 import { books } from '../src/booksData.ts';
 import { serve } from './dev-server.mjs';
+import { notedIsbns } from './room-content.mjs';
 
 /* Both halves of the shelf need a book to stand for them: the checks read the
    real notes rather than planting one, so they never write into content. */
 const NOTES = 'src/content/notes';
-const NOTED = (await readdir(NOTES))
-	.filter((name) => /\.mdx?$/.test(name))
-	.map((name) => name.replace(/\.mdx?$/, ''));
+const NOTED = [...(await notedIsbns())];
 assert.ok(NOTED.length > 0, `${NOTES} needs at least one note to check the reader.`);
 // One book that opens and one that only has a record, whichever those are today.
-const OPENS = books.find((book) => NOTED.includes(book.edition.isbn13)).title;
-const FLUSH = books.find((book) => !NOTED.includes(book.edition.isbn13)).title;
+const OPENS = books.find((book) => NOTED.includes(book.edition.isbn13))?.title;
+const FLUSH = books.find((book) => !NOTED.includes(book.edition.isbn13))?.title;
+assert.ok(OPENS && FLUSH, 'The checks need one shelved book with a note and one without.');
 const literal = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const OUTPUT = '/tmp/library-check';
-/* Two at a time. Each case drives real WebGL, and at three the machine starves
-   a page badly enough that WebKit throttles its requestAnimationFrame — the
-   return animation stalls mid-flight and the dialog never reaches its terminal
-   phase. That is starvation, not a defect: the app resumes correctly because
-   motion is driven by absolute timestamps. Three was also slower, since the
-   starved case sat burning step timeouts. */
+/* Two at a time. Each case drives real WebGL; at three, WebKit throttles a
+   starved page's requestAnimationFrame, the return animation stalls and the
+   dialog never reaches its terminal phase. That is starvation, not a defect,
+   and three was slower overall as the starved case burned step timeouts. */
 const CONCURRENCY = Number(process.env.LIBRARY_CONCURRENCY ?? 2);
 /* Per-action and whole-case ceilings. Browser launch, newPage and close have no
    Playwright timeout of their own, and on this machine they do occasionally

@@ -766,7 +766,7 @@ export function mountBookshelf(host: HTMLElement) {
 		/** Project every target once, when the camera has arrived. The shelves are
 		 *  a function of where the camera is going, not of the frames it draws on
 		 *  the way: the settled camera stays still and parallax is off while
-		 *  browsing, so re-running this per frame recomputed identical numbers. */
+		 *  browsing, so per-frame projection would recompute identical numbers. */
 		place(project: Project) {
 			for (const { row, books } of rows) {
 				const link = rowLinks.get(row);

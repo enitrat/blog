@@ -4,20 +4,17 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { englishPieces, notedIsbns } from './room-content.mjs';
-import { ROOM_GROUPS } from './room-targets.mjs';
+import { GLB_BUDGET, ROOM_GROUPS, readGlb } from './room-targets.mjs';
 
 const DIR = 'src/assets/room';
-const BUDGET = 11_000_000;
 const json = async (name) => JSON.parse(await readFile(`${DIR}/${name}`, 'utf8'));
 
 let bytes = 0;
 const nodes = new Set();
 for (const group of ROOM_GROUPS) {
-	const glb = await readFile(`${DIR}/${group}.glb`);
-	bytes += glb.length;
-	// GLB: 12-byte header, then the JSON chunk's length, type, and body.
-	const gltf = JSON.parse(glb.subarray(20, 20 + glb.readUInt32LE(12)).toString());
-	for (const node of gltf.nodes ?? []) nodes.add(node.name);
+	const glb = await readGlb(`${DIR}/${group}.glb`);
+	bytes += glb.bytes;
+	for (const node of glb.gltf.nodes ?? []) nodes.add(node.name);
 }
 
 const slots = await json('book-slots.json');
@@ -44,5 +41,5 @@ assert.deepEqual(
 	pieces.map((piece) => piece.slug),
 	'sheets.json is out of date; run `bun run room:bake --only sheets`.',
 );
-assert.ok(bytes <= BUDGET, `Room GLBs are ${bytes} bytes; the budget is ${BUDGET}.`);
+assert.ok(bytes <= GLB_BUDGET, `Room GLBs are ${bytes} bytes; the budget is ${GLB_BUDGET}.`);
 console.log(`room assets ok: ${nodes.size} nodes, ${(bytes / 1e6).toFixed(2)} MB`);

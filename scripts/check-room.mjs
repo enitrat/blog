@@ -8,15 +8,15 @@
  * Starts its own dev server unless DEV_URL points at one already.
  *
  * Boot is read off [data-room][data-live], which the scene publishes for the
- * stylesheet — the same signal shoot-poster.mjs waits on. It is the
- * contract this file asserts against: the budgets it reports are the whole
- * point of the baked architecture, so they are checked rather than remembered.
+ * stylesheet. The budgets reported here are the point of the baked
+ * architecture, so they are asserted rather than remembered.
  */
 import assert from 'node:assert/strict';
 import { mkdir, rm } from 'node:fs/promises';
 import { chromium, webkit } from 'playwright';
 import sharp from 'sharp';
 import { serve } from './dev-server.mjs';
+import { GLB_BUDGET } from './room-targets.mjs';
 
 const OUTPUT = '/tmp/room-check';
 const SHOTS = process.argv.includes('--shots');
@@ -147,7 +147,7 @@ async function visit(browser, engineName, url, viewport) {
 			: null;
 		if (metrics) {
 			await check(`${label} stays within the room asset budget`, () => {
-				assert.ok(metrics.encodedBytes <= 11_000_000, `${metrics.encodedBytes} GLB bytes`);
+				assert.ok(metrics.encodedBytes <= GLB_BUDGET, `${metrics.encodedBytes} GLB bytes`);
 			});
 			if (METRICS) {
 				console.log(`ROOM_METRICS ${label} ${JSON.stringify(metrics)}`);
@@ -161,11 +161,9 @@ async function visit(browser, engineName, url, viewport) {
 			});
 		}
 
-		// A desktop viewport with WebGL2 has no excuse: if the gate opened and the
-		// room still did not mount, something threw inside it and the catch in
-		// LivingRoom.astro swallowed it. That is exactly the failure this check
-		// exists for, and letting it pass as "falls back to poster" is how a
-		// misaligned mesh header shipped once already.
+		// If the gate opened and the room did not mount, something threw inside
+		// it and the component's catch swallowed it. Falling back to the poster
+		// must not pass as success here.
 		if (gateOpens) {
 			await check(`${label} mounts the room`, () =>
 				assert.equal(booted, true, 'the gate opened but the room never went live'),
@@ -264,8 +262,8 @@ async function visit(browser, engineName, url, viewport) {
 			}
 		}
 
-		// Also on the poster path: a page error thrown by the gate script used to
-		// slip through here, and every phone viewport takes that path.
+		// Also on the poster path, which every phone takes: a page error from the
+		// gate script must fail here too.
 		await check(`${label} console clean`, () => assert.deepEqual(errors, []));
 	} finally {
 		await context.close();
