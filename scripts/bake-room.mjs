@@ -98,7 +98,9 @@ const pieces = await englishPieces();
 // the title is written -- shows past the sheet on top of it. Blender's axes:
 // the desk runs along y, the writer sits at -x and reads towards +x.
 const DESK = {
-	top: 0.762,
+	// The desk's centre and the underside of its top; room.py builds it here.
+	centre: [1.72, -0.55, 0.725],
+	top: 0.762, // the leather writing surface
 	x: 1.5,
 	piles: [-0.55, -0.88],
 	step: 0.05,
@@ -149,6 +151,8 @@ const sheets = pieces.map((piece, index) => {
 // written beside the GLBs.
 // Tabs, so the checked-in copies match what `bun run lint` expects.
 const manifests = { 'book-slots.json': slots, 'cabinet.json': CABINET, 'sheets.json': sheets };
+// Blender alone needs the desk; the browser finds it through the sheets.
+await writeFile(join(work, 'desk.json'), JSON.stringify(DESK));
 for (const [name, value] of Object.entries(manifests)) {
 	const text = `${JSON.stringify(value, null, '\t')}\n`;
 	await writeFile(join(work, name), text);
@@ -161,6 +165,17 @@ const sameFile = async (left, right) => {
 	} catch {
 		return false;
 	}
+};
+/** The embedded images of a GLB, in glTF order. */
+const glbImages = async (path) => {
+	const glb = await readFile(path);
+	const length = glb.readUInt32LE(12);
+	const gltf = JSON.parse(glb.subarray(20, 20 + length).toString());
+	const bin = glb.subarray(20 + length + 8);
+	return (gltf.images ?? []).map((image) => {
+		const view = gltf.bufferViews[image.bufferView];
+		return bin.subarray(view.byteOffset ?? 0, (view.byteOffset ?? 0) + view.byteLength);
+	});
 };
 // Copied only after every selected GLB validated; git is the rollback.
 const install = async (names) => {
@@ -273,6 +288,18 @@ if (preview) {
 	process.exit(0);
 }
 
+// Meshopt shrinks the geometry of the static groups. Its quantization moves
+// node origins, so the groups the browser turns, lifts or places are left alone.
+const compressStarted = performance.now();
+await Promise.all(
+	targets
+		.filter((name) => ['shell', 'furniture', 'objects'].includes(name))
+		.map((name) => {
+			const glb = join(stage, `${name}.glb`);
+			return run('bunx', ['@gltf-transform/cli@4.5.0', 'meshopt', glb, glb], true);
+		}),
+);
+timed('meshopt', compressStarted);
 const validationStarted = performance.now();
 for (const name of targets) {
 	await run('bunx', ['@gltf-transform/cli@4.5.0', 'validate', join(stage, `${name}.glb`)], true);
@@ -280,6 +307,34 @@ for (const name of targets) {
 timed('validation', validationStarted);
 
 if (noPublish) {
+	// Say how far each staged atlas moved from the checked-in one, so a
+	// refactor can show it changed nothing a visitor would see.
+	for (const name of targets) {
+		const [staged, current] = await Promise.all(
+			[join(stage, `${name}.glb`), join(out, `${name}.glb`)].map(glbImages),
+		);
+		for (const [index, image] of staged.entries()) {
+			const [a, b] = await Promise.all(
+				[image, current[index]].map(
+					(buffer) => buffer && sharp(buffer).raw().toBuffer({ resolveWithObject: true }),
+				),
+			);
+			if (!b || a.info.width !== b.info.width || a.info.height !== b.info.height) {
+				console.log(`DIFF ${name}[${index}] new image size or count`);
+				continue;
+			}
+			let sum = 0;
+			let changed = 0;
+			for (let i = 0; i < a.data.length; i += 1) {
+				const delta = Math.abs(a.data[i] - b.data[i]);
+				sum += delta;
+				if (delta > 16) changed += 1;
+			}
+			console.log(
+				`DIFF ${name}[${index}] mean ${(sum / a.data.length).toFixed(2)}/255, ${((100 * changed) / a.data.length).toFixed(2)}% of channels off by >16`,
+			);
+		}
+	}
 	console.log(`Validated assets remain staged in ${stage}`);
 	timed('total', totalStarted);
 	process.exit(0);

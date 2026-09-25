@@ -1,5 +1,6 @@
 /** Display the baked room and frame its navigable bookshelf. */
 import * as THREE from 'three';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import bookmarkUrl from '../../../assets/room/bookmark.glb?url';
 import booksUrl from '../../../assets/room/books.glb?url';
@@ -24,7 +25,7 @@ const VIEWS = {
 	},
 	record: {
 		position: new THREE.Vector3(0.98, 1.48, 0.55),
-		target: new THREE.Vector3(0.21, 0.8, -1.16),
+		target: new THREE.Vector3(), // above the platter, once it has loaded
 	},
 	// Seated: over the chair, looking down the leather at the two piles.
 	desk: {
@@ -36,7 +37,7 @@ const VIEWS = {
 const ANCHORS = {
 	// The cabinet's ring sits on its books, and the bake owns where those are.
 	bookshelf: new THREE.Vector3(BOOKSHELF_ANCHOR.x, BOOKSHELF_ANCHOR.y, BOOKSHELF_ANCHOR.z),
-	record: new THREE.Vector3(0.21, 0.78, -1.16),
+	record: new THREE.Vector3(), // above the platter, once it has loaded
 	// On the top sheet of the nearer pile, where the bake put it.
 	desk: new THREE.Vector3(sheets[0]?.x ?? 1.65, sheets[0]?.y ?? 0.77, sheets[0]?.z ?? 0.55),
 };
@@ -53,7 +54,8 @@ export async function mountRoom(
 	const materials = new Set<THREE.Material>();
 	const textures = new Set<THREE.Texture>();
 	const geometries = new Set<THREE.BufferGeometry>();
-	const loader = new GLTFLoader();
+	// The static room groups ship Meshopt-compressed geometry.
+	const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
 	const releaseAssets = () => {
 		for (const geometry of geometries) geometry.dispose();
 		for (const material of materials) material.dispose();
@@ -102,110 +104,47 @@ export async function mountRoom(
 	const books = new Map<string, THREE.Group>();
 	const covers = new Map<string, THREE.Object3D>();
 
-	/** Recover each printed jacket from the shared atlas using its ISBN slot. */
-	function slice(mesh: THREE.Mesh, depth: number) {
-		mesh.updateWorldMatrix(true, false);
-		const flat = mesh.geometry.clone().toNonIndexed().applyMatrix4(mesh.matrixWorld);
-		const position = flat.getAttribute('position');
-		const uv = flat.getAttribute('uv');
-		const mine = new Map<string, number[]>();
-		const rest: number[] = [];
-		for (let first = 0; first < position.count; first += 3) {
-			let x = 0;
-			let y = 0;
-			let z = 0;
-			for (let corner = 0; corner < 3; corner += 1) {
-				x += position.getX(first + corner) / 3;
-				y += position.getY(first + corner) / 3;
-				z += position.getZ(first + corner) / 3;
-			}
-			// A book stands in its slot, so the slot it stands in names it. Rows
-			// share the run of x, hence the height as well; the shelf and what
-			// else the room leaves on it are behind or below every slot.
-			const slot = ordered.find(
-				(candidate) =>
-					Math.abs(x - candidate.x) <= candidate.width / 2 &&
-					y >= candidate.y - 0.004 &&
-					y <= candidate.y + candidate.height + 0.004 &&
-					z <= candidate.z + 0.005 &&
-					z >= candidate.z - depth,
-			);
-			if (!slot) rest.push(first);
-			else mine.set(slot.isbn, [...(mine.get(slot.isbn) ?? []), first]);
-		}
-		const build = (corners: number[]) => {
-			const geometry = new THREE.BufferGeometry();
-			const points = new Float32Array(corners.length * 9);
-			const texture = new Float32Array(corners.length * 6);
-			let vertex = 0;
-			for (const first of corners)
-				for (let corner = 0; corner < 3; corner += 1, vertex += 1) {
-					points[vertex * 3] = position.getX(first + corner);
-					points[vertex * 3 + 1] = position.getY(first + corner);
-					points[vertex * 3 + 2] = position.getZ(first + corner);
-					texture[vertex * 2] = uv.getX(first + corner);
-					texture[vertex * 2 + 1] = uv.getY(first + corner);
-				}
-			geometry.setAttribute('position', new THREE.BufferAttribute(points, 3));
-			geometry.setAttribute('uv', new THREE.BufferAttribute(texture, 2));
-			return geometry;
-		};
-		const owned = new Map([...mine].map(([isbn, corners]) => [isbn, build(corners)] as const));
-		const left = build(rest);
-		flat.dispose();
-		return { owned, left };
-	}
-
-	const atlas = scene.getObjectByName('spines');
 	const bookmark = scene.getObjectByName('Bookmark');
 	if (bookmark) bookmark.visible = false;
-	if (atlas instanceof THREE.Mesh) {
-		const printed = slice(atlas, 0.006);
-
-		for (const slot of ordered) {
-			const jacket = printed.owned.get(slot.isbn);
-			const body = scene.getObjectByName(`Body_${slot.isbn}`);
-			// Only an annotated volume is baked a front cover, because only it opens.
-			// A note written since the last covers bake still opens, just without
-			// its cover swinging; `check-room-assets` fails the build before that ships.
-			const cover = scene.getObjectByName(`Cover_${slot.isbn}`);
-			if (!jacket || !body) {
-				releaseAssets();
-				return null;
-			}
-			const book = new THREE.Group();
-			book.position.set(slot.x, slot.y, slot.z);
-			jacket.translate(-slot.x, -slot.y, -slot.z);
-			geometries.add(jacket);
-			book.add(new THREE.Mesh(jacket, atlas.material));
-			scene.add(book);
-			book.attach(body);
-			if (cover) {
-				book.attach(cover);
-				covers.set(slot.isbn, cover);
-			}
-			if (bookshelf.hasNotes(slot.isbn)) {
-				for (const surface of book.children) {
-					if (
-						!(surface instanceof THREE.Mesh) ||
-						!(surface.material instanceof THREE.MeshBasicMaterial)
-					)
-						continue;
-					surface.material = surface.material.clone();
-					surface.material.color.setRGB(1.12, 1.07, 1.02);
-					materials.add(surface.material);
-				}
-			}
-			if (bookshelf.isReading(slot.isbn) && bookmark) {
-				const ribbon = bookmark.clone();
-				ribbon.visible = true;
-				ribbon.position.set(slot.width * 0.12, slot.height, 0);
-				book.add(ribbon);
-			}
-			books.set(slot.isbn, book);
+	for (const slot of ordered) {
+		const jacket = scene.getObjectByName(`Book_${slot.isbn}`);
+		const body = scene.getObjectByName(`Body_${slot.isbn}`);
+		// Only an annotated volume is baked a front cover, because only it opens.
+		// A note written since the last covers bake still opens, just without
+		// its cover swinging; `check-room-assets` fails the build before that ships.
+		const cover = scene.getObjectByName(`Cover_${slot.isbn}`);
+		if (!jacket || !body) {
+			releaseAssets();
+			return null;
 		}
-		atlas.visible = false;
-		printed.left.dispose();
+		const book = new THREE.Group();
+		book.position.set(slot.x, slot.y, slot.z);
+		scene.add(book);
+		book.attach(jacket);
+		book.attach(body);
+		if (cover) {
+			book.attach(cover);
+			covers.set(slot.isbn, cover);
+		}
+		if (bookshelf.hasNotes(slot.isbn)) {
+			for (const surface of book.children) {
+				if (
+					!(surface instanceof THREE.Mesh) ||
+					!(surface.material instanceof THREE.MeshBasicMaterial)
+				)
+					continue;
+				surface.material = surface.material.clone();
+				surface.material.color.setRGB(1.12, 1.07, 1.02);
+				materials.add(surface.material);
+			}
+		}
+		if (bookshelf.isReading(slot.isbn) && bookmark) {
+			const ribbon = bookmark.clone();
+			ribbon.visible = true;
+			ribbon.position.set(slot.width * 0.12, slot.height, 0);
+			book.add(ribbon);
+		}
+		books.set(slot.isbn, book);
 	}
 
 	// The manuscripts: a baked node under each real link. A link whose sheet is
@@ -276,6 +215,13 @@ export async function mountRoom(
 	// their own axis. Blender's Z became the node's Y in the glTF conversion.
 	const platter = scene.getObjectByName('Platter');
 	const tonearm = scene.getObjectByName('Tonearm');
+	// The platter's origin is the spindle axis, so the record's ring and close-up
+	// follow the turntable wherever the bake puts it.
+	if (platter) {
+		const axis = platter.getWorldPosition(new THREE.Vector3());
+		ANCHORS.record.set(axis.x, axis.y + 0.07, axis.z);
+		VIEWS.record.target.set(axis.x, axis.y + 0.09, axis.z);
+	}
 	const SPEED = (100 * Math.PI) / 90; // 33 1/3 rpm
 	const CUED = -0.1846; // the headshell reaches the lead-in groove
 	const DROP = 0.1; // and noses down onto it

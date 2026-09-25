@@ -3,13 +3,15 @@
 Dimensions are metres, Z is up. Cycles resolves the materials and illumination;
 the exported glTF materials are unlit. No reference-site assets are included.
 """
+import bmesh
 import bpy
 import json
+import numpy as np
 import math
 import sys
 import time
 from pathlib import Path
-from mathutils import Vector
+from mathutils import Matrix, Vector
 
 started = time.perf_counter()
 args = sys.argv[sys.argv.index('--') + 1:]
@@ -141,30 +143,64 @@ def finish(obj, name, mat, bevel=0):
     groups[group].setdefault(part or group, []).append(obj)
     return obj
 
+# Primitives are built with bmesh rather than bpy.ops.mesh.primitive_*: every
+# operator call refreshes the whole view layer, which made building the room
+# take half a minute. Each one matches its operator's vertices, faces and UVs.
+def mesh_object(name, bm, at, rotation=(0, 0, 0)):
+    mesh = bpy.data.meshes.new(name)
+    bm.to_mesh(mesh)
+    bm.free()
+    obj = bpy.data.objects.new(name, mesh)
+    obj.location = at
+    obj.rotation_euler = rotation
+    scene.collection.objects.link(obj)
+    return obj
+
+def new_bmesh():
+    bm = bmesh.new()
+    bm.loops.layers.uv.new('UVMap')
+    return bm
+
 def box(name, at, dims, mat, bevel=.008, rotation=0):
-    bpy.ops.mesh.primitive_cube_add(size=1, location=at)
-    obj = bpy.context.object
-    obj.dimensions = dims
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-    obj.rotation_euler.z = rotation
-    return finish(obj, name, mat, bevel)
+    bm = new_bmesh()
+    bmesh.ops.create_cube(bm, size=1, matrix=Matrix.Diagonal((*dims, 1)), calc_uvs=True)
+    return finish(mesh_object(name, bm, at, (0, 0, rotation)), name, mat, bevel)
 
 def cylinder(name, at, radius, depth, mat, vertices=48, radius2=None):
-    bpy.ops.mesh.primitive_cone_add(vertices=vertices, radius1=radius if radius2 is None else radius2,
-                                  radius2=radius, depth=depth, location=at)
-    obj = finish(bpy.context.object, name, mat, .002)
+    bm = new_bmesh()
+    bmesh.ops.create_cone(bm, cap_ends=True, cap_tris=False, segments=vertices,
+                          radius1=radius if radius2 is None else radius2, radius2=radius,
+                          depth=depth, calc_uvs=True)
+    obj = finish(mesh_object(name, bm, at), name, mat, .002)
     for p in obj.data.polygons:
         p.use_smooth = len(p.vertices) == 4
     return obj
 
 def sphere(name, at, scale, mat):
-    bpy.ops.mesh.primitive_uv_sphere_add(segments=24, ring_count=12, location=at)
-    obj = bpy.context.object
-    obj.scale = scale
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    bm = new_bmesh()
+    bmesh.ops.create_uvsphere(bm, u_segments=24, v_segments=12, radius=1,
+                              matrix=Matrix.Diagonal((*scale, 1)), calc_uvs=True)
+    obj = mesh_object(name, bm, at)
     for p in obj.data.polygons:
         p.use_smooth = True
     return finish(obj, name, mat)
+
+def torus(name, at, major_radius, minor_radius, major_segments, minor_segments, mat, rotation=(0, 0, 0)):
+    """The rings and winding of bpy.ops.mesh.primitive_torus_add, without its UVs."""
+    bm = new_bmesh()
+    verts = []
+    for i in range(major_segments):
+        a = 2 * math.pi * i / major_segments
+        for j in range(minor_segments):
+            b = 2 * math.pi * j / minor_segments
+            d = major_radius + minor_radius * math.cos(b)
+            verts.append(bm.verts.new((d * math.cos(a), d * math.sin(a), minor_radius * math.sin(b))))
+    for i in range(major_segments):
+        ring, next_ring = i * minor_segments, (i + 1) % major_segments * minor_segments
+        for j in range(minor_segments):
+            k = (j + 1) % minor_segments
+            bm.faces.new((verts[ring + j], verts[next_ring + j], verts[next_ring + k], verts[ring + k]))
+    return finish(mesh_object(name, bm, at, rotation), name, mat)
 
 def tube(name, points, radius, mat):
     curve = bpy.data.curves.new(name, 'CURVE')
@@ -191,10 +227,10 @@ def plane_image(name, at, width, height, path, flat=None):
         mat.node_tree.links.new(tex.outputs['Color'], mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'])
     elif not minimal_art or group in targets:
         raise FileNotFoundError(path)
-    bpy.ops.mesh.primitive_plane_add(size=1, location=at, rotation=(math.pi/2, 0, 0) if flat is None else (0, 0, flat))
-    obj = bpy.context.object
-    obj.scale = (width, height, 1)
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    bm = new_bmesh()
+    bmesh.ops.create_grid(bm, x_segments=1, y_segments=1, size=.5,
+                          matrix=Matrix.Diagonal((width, height, 1, 1)), calc_uvs=True)
+    obj = mesh_object(name, bm, at, (math.pi/2, 0, 0) if flat is None else (0, 0, flat))
     return finish(obj, name, mat)
 
 # A dark, panelled cutaway room. Short parquet blocks give the floor scale in
@@ -311,7 +347,8 @@ fumed = material('Fumed oak', '#352016', .40, 'wood')
 fumed_shadow = material('Fumed oak shadow', '#25160f', .55, 'wood')
 hide = material('Bottle-green writing leather', '#2b3f33', .55, 'fabric')
 chair_leather = material('Burgundy chair leather', '#4a1717', .52, 'fabric')
-dx, dy, dz = 1.72, -.55, .725  # centre of the desk and the underside of its top
+# bake-room.mjs owns where the desk stands, so the manuscripts it lays out land on it.
+dx, dy, dz = json.loads((work / 'desk.json').read_text())['centre']  # centre, underside of the top
 for py in [dy-.45, dy+.45]:
     box('Pedestal plinth', (dx, py, .035), (.585, .425, .07), fumed_shadow, .004)
     box('Pedestal carcass', (dx, py, .3975), (.56, .40, .655), fumed, .004)
@@ -384,9 +421,7 @@ turn(groups['furniture']['furniture'][chair_start:], (qx, qy, 0), -.2)
 table_x, table_y = -.28, -.59
 marble = material('Brown marble', '#59483a', .30, 'plaster')
 cylinder('Round coffee table top', (table_x, table_y, .415), .43, .065, marble, 64)
-bpy.ops.mesh.primitive_torus_add(major_segments=64, minor_segments=10,
-    location=(table_x, table_y, .442), major_radius=.405, minor_radius=.012)
-finish(bpy.context.object, 'Coffee table moulded rim', darkwood)
+torus('Coffee table moulded rim', (table_x, table_y, .442), .405, .012, 64, 10, darkwood)
 cylinder('Coffee table upper collar', (table_x, table_y, .365), .12, .055, darkwood, 32, .09)
 cylinder('Coffee table turned pedestal', (table_x, table_y, .225), .065, .27, walnut, 32, .10)
 cylinder('Coffee table lower collar', (table_x, table_y, .095), .16, .045, darkwood, 32, .12)
@@ -501,8 +536,7 @@ for bay in range(3):
             artwork.rotation_euler.z = math.pi/2
         group = 'spines'
         part = 'Book_'+book['isbn']
-        jacket = plane_image(part, (slot['x'], -slot['z'], z+h/2), width-.001, h-.003, work/f'book-{idx}.png')
-        jacket['isbn'] = book['isbn']
+        plane_image(part, (slot['x'], -slot['z'], z+h/2), width-.001, h-.003, work/f'book-{idx}.png')
         part = None
         group = 'objects'
     used_right = max((s['x']+s['width']/2 for s in slots if s['row'] == bay), default=cx-.49)
@@ -606,9 +640,7 @@ gx, gy, gz = -.08, 1.18, 1.705
 cylinder('Globe turned base', (gx, gy, 1.565), .055, .025, darkwood, 32, .042)
 cylinder('Globe brass stem', (gx, gy, 1.625), .008, .11, brass, 20)
 sphere('Antique library globe', (gx, gy, gz), (.082, .082, .082), globe)
-bpy.ops.mesh.primitive_torus_add(major_segments=48, minor_segments=8,
-    location=(gx, gy, gz), rotation=(math.pi/2, 0, 0), major_radius=.091, minor_radius=.003)
-finish(bpy.context.object, 'Globe meridian ring', brass)
+torus('Globe meridian ring', (gx, gy, gz), .091, .003, 48, 8, brass, (math.pi/2, 0, 0))
 
 bx, by = 1.42, 1.17
 box('Classical bust plinth', (bx, by, 1.565), (.13, .11, .025), darkwood, .004)
@@ -654,8 +686,7 @@ cylinder('Vinyl LP', (tx-.052, ty, tz+.056), .147, .004, black, 96)
 label = material('Record label brick red', '#a54e36', .8)
 cylinder('Record paper label', (tx-.052, ty, tz+.059), .043, .001, label)
 for radius in [.065, .078, .091, .108, .12, .134, .143]:
-    bpy.ops.mesh.primitive_torus_add(major_segments=96, minor_segments=4, location=(tx-.052, ty, tz+.058), major_radius=radius, minor_radius=.00045)
-    finish(bpy.context.object, 'Pressed vinyl groove', metal)
+    torus('Pressed vinyl groove', (tx-.052, ty, tz+.058), radius, .00045, 96, 4, metal)
 
 part = 'Tonearm'
 pivots[part] = (tx+.183, ty+.125, tz)
@@ -703,8 +734,7 @@ for x, y, z in [(-.31, 1.17, .71), (1.67, 1.15, .025)]:
         obj = cylinder('Speaker cone', (x, y-.164, z+h), radius, .018, soil, 48, radius*.72)
         obj.rotation_euler.x = math.pi/2
         sphere('Speaker dust cap', (x, y-.182, z+h), (radius*.40, .018, radius*.40), black)
-        bpy.ops.mesh.primitive_torus_add(major_segments=48, minor_segments=8, location=(x,y-.174,z+h), rotation=(math.pi/2,0,0), major_radius=radius*.92, minor_radius=.006)
-        finish(bpy.context.object, 'Speaker rubber surround', black)
+        torus('Speaker rubber surround', (x,y-.174,z+h), radius*.92, .006, 48, 8, black, (math.pi/2,0,0))
 
 # Pleated linen shade with visible ribs, a brass stem and a broad warm practical.
 lx, ly = -1.69, .18
@@ -724,8 +754,7 @@ shade = bpy.data.objects.new('Pleated linen shade', mesh)
 scene.collection.objects.link(shade)
 finish(shade, 'Pleated linen shade', linen)
 for z, radius in [(1.4,.265),(1.79,.145)]:
-    bpy.ops.mesh.primitive_torus_add(major_segments=96, minor_segments=6, location=(lx,ly,z), major_radius=radius, minor_radius=.004)
-    finish(bpy.context.object, 'Shade sewn binding', cream)
+    torus('Shade sewn binding', (lx,ly,z), radius, .004, 96, 6, cream)
 bulb = material('Lamp glowing bulb', '#ffe3a6')
 bulb.node_tree.nodes['Principled BSDF'].inputs['Emission Color'].default_value = (1,.66,.28,1)
 bulb.node_tree.nodes['Principled BSDF'].inputs['Emission Strength'].default_value = 3
@@ -810,12 +839,10 @@ pen = Vector((1.56, -.715, top+.0065))
 along = Vector((math.cos(-.12), math.sin(-.12), 0))
 def pen_point(t): return pen + along*t
 tube('Fountain pen barrel', [pen_point(.0), pen_point(.045), pen_point(.075)], .0058, black)
-cylinder('Fountain pen cap', (0, 0, 0), .0068, .058, black, 32, .0055)
-cap = bpy.context.object
+cap = cylinder('Fountain pen cap', (0, 0, 0), .0068, .058, black, 32, .0055)
 cap.location = pen_point(.104)
 cap.rotation_euler = along.to_track_quat('Z', 'Y').to_euler()
-cylinder('Pen cap band', (0, 0, 0), .0072, .004, brass, 32)
-band = bpy.context.object
+band = cylinder('Pen cap band', (0, 0, 0), .0072, .004, brass, 32)
 band.location = pen_point(.077)
 band.rotation_euler = cap.rotation_euler
 sphere('Pen cap finial', pen_point(.134), (.004, .004, .004), brass)
@@ -923,10 +950,19 @@ for name, parts in groups.items():
         obj.data.uv_layers.new(name='BakeUV')
         obj.data.uv_layers.active_index = len(obj.data.uv_layers)-1
         obj.data.uv_layers.active.active_render = True
-    bpy.ops.object.mode_set(mode='EDIT')
-    bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.uv.smart_project(angle_limit=math.radians(66), island_margin=.006)
-    bpy.ops.object.mode_set(mode='OBJECT')
+    # Books bake one at a time into a cell of their own (below), so each one
+    # is unwrapped alone to fill it.
+    for batch in [[obj] for obj in meshes] if name == 'books' else [meshes]:
+        bpy.ops.object.select_all(action='DESELECT')
+        for obj in batch:
+            obj.select_set(True)
+        bpy.context.view_layer.objects.active = batch[0]
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.uv.smart_project(angle_limit=math.radians(66), island_margin=.006)
+        bpy.ops.object.mode_set(mode='OBJECT')
+    for obj in meshes:
+        obj.select_set(True)
     if name == 'sheets':
         # Smart Project packs each object separately, so their UVs otherwise
         # overlap and later sheet bakes overwrite the earlier ones.
@@ -954,14 +990,6 @@ for name, parts in groups.items():
                     (index % columns)/columns + padding + source.uv.x*(1/columns-2*padding),
                     (index // columns)/rows + padding + source.uv.y*(1/rows-2*padding),
                 )
-        # The ISBN manifest owns picking. Join the printed planes after packing
-        # so Cycles bakes once and the browser draws this atlas once.
-        bpy.ops.object.join()
-        joined = bpy.context.object
-        joined.name = 'spines'
-        meshes = [joined]
-        parts.clear()
-        parts['spines'] = meshes
     # A cover is read at arm's length, so it is sized from how many are actually
     # baked rather than from a fixed sheet: one note wants a whole one to itself.
     # ponytail: doubles per four covers, capped; revisit if the shelf ever carries
@@ -1006,7 +1034,60 @@ for name, parts in groups.items():
         bpy.data.objects.remove(combined, do_unlink=True)
         for obj, was_hidden in hidden:
             obj.hide_render = was_hidden
-    elif name in ('books', 'bookmark'):
+    elif name == 'spines':
+        # Each jacket stays its own `Book_<isbn>` node for the browser. A joined
+        # copy bakes them all in one pass, with the originals out of its light.
+        bpy.ops.object.duplicate(linked=False)
+        bpy.ops.object.join()
+        combined = bpy.context.object
+        for obj in meshes:
+            obj.hide_render = True
+        bpy.ops.object.bake(type='COMBINED')
+        bpy.data.objects.remove(combined, do_unlink=True)
+        for obj in meshes:
+            obj.hide_render = False
+    elif name == 'books':
+        # Each volume bakes alone into a small image, then lands in its own
+        # cell of the atlas. Cycles denoises the whole target image on every
+        # bake, so baking straight into the atlas denoised it 55 times.
+        hidden = [(obj, obj.hide_render) for obj in scene.objects if obj.type == 'MESH']
+        for obj, _ in hidden:
+            obj.hide_render = True
+        columns = math.ceil(math.sqrt(len(meshes)))
+        rows = math.ceil(len(meshes)/columns)
+        cell_w, cell_h = resolution // columns, resolution // rows
+        # Inset each unwrap a few pixels inside its cell, so filtering in the
+        # browser never samples the neighbouring book.
+        inset_x, inset_y = 4/cell_w, 4/cell_h
+        cell = bpy.data.images.new('book cell', width=cell_w, height=cell_h, float_buffer=True)
+        pixels = np.empty(cell_w*cell_h*4, dtype=np.float32)
+        atlas = np.zeros((resolution, resolution, 4), dtype=np.float32)
+        scene.render.bake.use_clear = True
+        for index, obj in enumerate(meshes):
+            col, row = index % columns, index // columns
+            baked_uv = obj.data.uv_layers[-1].data
+            for loop in baked_uv:
+                loop.uv = (inset_x + loop.uv.x*(1-2*inset_x), inset_y + loop.uv.y*(1-2*inset_y))
+            for mat in obj.data.materials:
+                mat.node_tree.nodes.active.image = cell
+            bpy.ops.object.select_all(action='DESELECT')
+            obj.hide_render = False
+            obj.select_set(True)
+            bpy.context.view_layer.objects.active = obj
+            bpy.ops.object.bake(type='COMBINED')
+            obj.hide_render = True
+            cell.pixels.foreach_get(pixels)
+            atlas[row*cell_h:(row+1)*cell_h, col*cell_w:(col+1)*cell_w] = pixels.reshape(cell_h, cell_w, 4)
+            for loop in baked_uv:
+                loop.uv = ((col + loop.uv.x)*cell_w/resolution, (row + loop.uv.y)*cell_h/resolution)
+            for mat in obj.data.materials:
+                mat.node_tree.nodes.active.image = image
+        image.pixels.foreach_set(atlas.ravel())
+        image.update()
+        bpy.data.images.remove(cell)
+        for obj, was_hidden in hidden:
+            obj.hide_render = was_hidden
+    elif name == 'bookmark':
         hidden = [(obj, obj.hide_render) for obj in scene.objects if obj.type == 'MESH']
         for obj, _ in hidden:
             obj.hide_render = True

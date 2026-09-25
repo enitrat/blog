@@ -73,6 +73,8 @@ bake leaves the checked-in files unchanged. If export fails after baking, the
 work directory keeps a `-baked.blend` file with the finished bake.
 
 To test the pipeline without touching the repository, add `--no-publish`. The
+command then prints a `DIFF` line per atlas: how far it moved from the
+checked-in one. Use it to show that a refactor changed nothing. The
 `--samples` and `--size` options lower quality for fast experiments, so they
 work only with `--no-publish` or `--preview`.
 

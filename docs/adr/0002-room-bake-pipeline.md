@@ -23,6 +23,10 @@ The cost is that the lighting is fixed. Moving a lamp means baking again.
 materials, lights, and camera. Headless Blender runs it, bakes, and exports.
 A `.blend` file exists only as a disposable preview.
 
+The script builds meshes with `bmesh` rather than `bpy.ops` operators. Every
+operator call refreshes the whole scene, and 2,232 of them made building the
+room take 32 seconds. With `bmesh` it takes about 2.
+
 The two published rooms we studied, Bruno Simon's *My Room in 3D* and Henry
 Heffernan's portfolio, were baked by hand from `.blend` files that were never
 committed. Neither can rebuild its own assets. Because ours is a script, any
@@ -55,12 +59,24 @@ The groups exist for baking, not for loading. They differ in two ways:
 
 Because each group is its own file, a change rebakes only the groups it
 touches, and the other files stay as they are. A new note rebakes only the
-covers, in about 40 seconds. Rebaking all 55 book bodies takes about 21
-minutes.
+covers, in about 40 seconds.
+
+Each book body bakes alone into a small image, which is then copied into its
+own cell of the books atlas. Cycles denoises the whole target image after
+every bake, so baking the 55 books straight into the 2048-pixel atlas spent
+most of its time denoising it 55 times. The cells cut a 32-sample books bake
+from 457 to 29 seconds, and gave each book about twice the texture pixels.
 
 The browser still downloads all nine files at start. We measured deferring
 the covers, bookmark, and manuscripts. The first frame arrived only 60 to 100
 ms sooner, so we kept the simpler eager load.
+
+## A refactor must show it changed nothing
+
+`--no-publish` prints how far each staged atlas is from the checked-in one:
+the mean channel difference and the share of channels off by more than 16.
+At production samples, a refactor that changes no geometry or lighting
+should show only Cycles noise.
 
 ## Only validated files reach the repository
 
@@ -76,17 +92,18 @@ would ship with no cover, and nothing would say so.
 
 ## What we chose not to do
 
-- **Compress the geometry yet.** Meshopt compression shrank the gzipped files
-  from 7.48 to 6.12 MB in a trial, mostly in the furniture, objects, and shell.
-  Adopting it means adding `MeshoptDecoder` to `scene.ts` and comparing
-  `room:check --metrics` before and after. Never run glTF Transform's
-  `optimize` or a default `prune` on these files. Both delete nodes and names
-  that the browser code looks up.
+- **Compress every group.** The bake compresses `shell`, `furniture`, and
+  `objects` with Meshopt, which cut their gzipped size from 3.24 to 1.83 MB.
+  The other groups stay uncompressed. Meshopt quantizes positions and moves
+  each node's origin to do it, and the browser turns, lifts, or places those
+  nodes by their origins. Never run glTF Transform's `optimize` or a default
+  `prune` on these files either. Both delete nodes and names that the
+  browser code looks up.
 - **Use GPU texture formats (KTX2).** The three 4096-pixel atlases take about
   90 MB of GPU memory each. A 2048-pixel atlas uses a quarter of that, so try
   smaller atlases first. Revisit KTX2 if a real phone runs short of memory.
 - **Split the scene into linked `.blend` libraries.** That would add a second
-  source of truth. One script rebuilds the scene in about 15 seconds.
+  source of truth. One script rebuilds the scene in about 2 seconds.
 - **Bake several groups at once.** Cycles on one Apple GPU gains little from
   parallel processes. Each run has its own work directory, so separate
   terminals, agents, or worktrees can still bake without clashing.

@@ -26,11 +26,10 @@ const noted = await notedIsbns();
 const pieces = await englishPieces();
 const shelved = new Set(slots.map((slot) => slot.isbn));
 const expected = [
-	'spines',
 	'Platter',
 	'Tonearm',
 	'Bookmark',
-	...slots.map((slot) => `Body_${slot.isbn}`),
+	...slots.flatMap((slot) => [`Book_${slot.isbn}`, `Body_${slot.isbn}`]),
 	...[...noted].filter((isbn) => shelved.has(isbn)).map((isbn) => `Cover_${isbn}`),
 	...pieces.map((piece) => `Sheet_${piece.slug}`),
 ];

@@ -7,7 +7,8 @@ rebuild them. `bun run room:assets` checks them against the tables below.
 ## GLB files
 
 Each GLB is one bake group. Its surfaces carry baked color and light on an
-unlit material. Units are metres, and Y points up.
+unlit material. Units are metres, and Y points up. `shell`, `furniture`, and
+`objects` use Meshopt geometry compression, which `scene.ts` decodes.
 
 | File | Contents | What the browser needs from it |
 |---|---|---|
@@ -15,7 +16,7 @@ unlit material. Units are metres, and Y points up.
 | `furniture.glb` | Bookcase, credenza, desk, chairs, sofa, table | Nothing beyond drawing |
 | `objects.glb` | Rug, curtains, lamps, turntable base, speakers, desk objects, shelf props | Nothing beyond drawing |
 | `moving.glb` | Record platter and tonearm | `Platter` and `Tonearm` nodes, each with its origin on its pivot |
-| `spines.glb` | Printed book jackets | One `spines` mesh. `book-slots.json` says which jacket is which book |
+| `spines.glb` | Printed book jackets | One `Book_<isbn>` node per shelved book, all sharing one atlas |
 | `books.glb` | Book bodies | One `Body_<isbn>` node per shelved book |
 | `covers.glb` | Front covers of books with a note | One `Cover_<isbn>` node per note |
 | `bookmark.glb` | Cloth bookmark | One `Bookmark` node, origin at the book's head |
