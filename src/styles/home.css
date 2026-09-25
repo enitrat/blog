@@ -250,7 +250,7 @@
    visible chrome, because the object answers for it. Live, the scene lights
    what the pointer is over and a tag names it; on the poster, it is a place
    to tap. */
-.living-room__hotspot:not(.living-room__mix) {
+.living-room__hotspot:not(.living-room:not([data-live]) .living-room__mix) {
 	width: 3.5rem;
 	height: 3.5rem;
 	padding: 0;
@@ -264,7 +264,7 @@
 
 /* The poster's version of the live room's idle lamplight: each thing glows
    low, rising and falling out of step, until the room takes over. */
-.living-room__hotspot:not(.living-room__mix)::before {
+.living-room__hotspot:not(.living-room:not([data-live]) .living-room__mix)::before {
 	content: "";
 	position: absolute;
 	inset: -70%;
@@ -301,7 +301,8 @@
 	left: 45.49%;
 	top: 40.40%;
 }
-.living-room__hotspot[data-anchor="record"] {
+/* Without the room, the mix credit stands over the record player too. */
+.living-room__hotspot:is([data-anchor="record"], .living-room__mix) {
 	left: 56.63%;
 	top: 48.43%;
 }
@@ -380,7 +381,7 @@
 	cursor: default;
 }
 
-.room-controls > button:not(.room-controls__audio, :focus-visible) {
+.room-controls > button:not(:focus-visible) {
 	clip-path: inset(50%);
 	opacity: 0;
 	pointer-events: none;
@@ -505,9 +506,13 @@
 	opacity: 0;
 }
 
+/* Without the room, the credit is a tag over the record player. With it, the
+   sleeve on the coffee table carries it, lit while the mix plays. */
 .living-room__mix {
-	transform: translate(-50%, -260%);
 	visibility: hidden;
+}
+.living-room:not([data-live]) .living-room__mix {
+	transform: translate(-50%, -260%);
 }
 .living-room[data-mix] .living-room__mix {
 	visibility: visible;

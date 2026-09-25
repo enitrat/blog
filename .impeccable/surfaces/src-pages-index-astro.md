@@ -20,6 +20,6 @@ See `.impeccable/homepage-surface-brief.md` for the current brief. This sidecar 
 - Shared header and explicit Work, Projects, Writing, Bookshelf, and About routes.
 - Separate Work, Projects, and Writing indexes; never a mixed feed.
 - Visible Work, Projects, Writing, and Bookshelf sections with View all routes.
-- No artwork, cards, or decorative stage on the homepage.
+- No cards, and no artwork or stage other than the living room, which follows `docs/room-direction.md`.
 - Essential content works without JavaScript; reduced motion preserves a still state.
 - Follow `DESIGN.md`'s shared primitives and responsive rules.

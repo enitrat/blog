@@ -28,7 +28,8 @@ this way.
 - **No `timeout` on macOS.** The checks carry their own limits. `room:check`
   stops after 10 minutes.
 - **WebKit relaunch race.** WebKit relaunched after a WebGL session can exit
-  mid-boot and hang Playwright. `room:check` keeps one browser per engine.
+  mid-boot and hang Playwright. `room:check` runs each engine in its own
+  process, with one browser per engine.
 - **MCP timeouts.** MCP calls time out before a bake ends. Use
   `bun run room:bake`.
 

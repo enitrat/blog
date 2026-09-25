@@ -12,7 +12,7 @@
  * architecture, so they are asserted rather than remembered.
  */
 import assert from 'node:assert/strict';
-import { mkdir, rm } from 'node:fs/promises';
+import { mkdir, readdir, rm } from 'node:fs/promises';
 import { chromium, webkit } from 'playwright';
 import sharp from 'sharp';
 import { serve } from './dev-server.mjs';
@@ -159,6 +159,77 @@ async function visit(browser, engineName, url, viewport) {
 				const heavy = requested.filter((u) => /three|scene|\.glb/i.test(u));
 				assert.equal(heavy.length, 0, heavy.join(', '));
 			});
+
+			// A tap on the cabinet in the poster loads the room and opens the
+			// shelves full screen, where swipes stand in for the arrows.
+			if (webgl2) {
+				await check(`${label} shelves open full screen and follow swipes`, async () => {
+					const room = page.locator('[data-room]');
+					await room.scrollIntoViewIfNeeded();
+					await page.locator('[data-anchor="bookshelf"]').tap();
+					const settled = () =>
+						page.waitForFunction(
+							() => {
+								const host = document.querySelector('[data-room]');
+								return host?.hasAttribute('data-live') && !host.hasAttribute('data-traveling');
+							},
+							null,
+							{ timeout: 60000 },
+						);
+					await settled();
+					const stage = await page.evaluate(() => {
+						const element = document.querySelector('[data-room-stage]');
+						return {
+							position: getComputedStyle(element).position,
+							height: element.getBoundingClientRect().height,
+							viewport: innerHeight,
+						};
+					});
+					assert.equal(stage.position, 'fixed');
+					assert.ok(Math.abs(stage.height - stage.viewport) < 2, JSON.stringify(stage));
+
+					const status = () => page.locator('[data-shelf-status]').textContent();
+					const swipe = (dy) =>
+						page.evaluate((dy) => {
+							const stage = document.querySelector('[data-room-stage]');
+							const { left, top, width, height } = stage.getBoundingClientRect();
+							const x = left + width / 2;
+							const y = top + height / 2;
+							const at = (type, clientY) =>
+								stage.dispatchEvent(
+									new PointerEvent(type, {
+										pointerId: 7,
+										pointerType: 'touch',
+										isPrimary: true,
+										clientX: x,
+										clientY,
+										bubbles: true,
+									}),
+								);
+							at('pointerdown', y);
+							at('pointermove', y + dy);
+							at('pointerup', y + dy);
+						}, dy);
+					await page.locator('.room-library__row:not([hidden])').first().tap();
+					await settled();
+					assert.equal(await status(), 'Top row');
+					await swipe(-120);
+					await settled();
+					assert.equal(await status(), 'Middle row');
+					// Both neighbours peek in, and each is a target.
+					assert.equal(
+						await page.locator('.room-library__row[data-adjacent]:not([hidden])').count(),
+						2,
+					);
+					await swipe(120);
+					await settled();
+					assert.equal(await status(), 'Top row');
+					// Past the top row, swiping down steps back out to the cabinet.
+					await swipe(120);
+					await settled();
+					assert.equal(await status(), 'Bookshelf');
+				});
+			}
 		}
 
 		// If the gate opened and the room did not mount, something threw inside
@@ -195,9 +266,21 @@ async function visit(browser, engineName, url, viewport) {
 							bounds.y + bounds.height * (i % 4 < 2 ? 0.05 : 0.95),
 						);
 						await page.waitForTimeout(16);
+						// The desk target stands on the top sheet wherever the camera and
+						// the bake put it, so the sample follows the manuscripts.
+						const [canvasBox, sheet] = await Promise.all([
+							page.locator('.living-room__canvas').boundingBox(),
+							page.locator('a[data-anchor="desk"]').boundingBox(),
+						]);
+						assert.ok(canvasBox && sheet);
 						const frame = await page.locator('.living-room__canvas').screenshot();
 						const { data, info } = await sharp(frame)
-							.extract({ left: 555, top: 325, width: 105, height: 85 })
+							.extract({
+								left: Math.round(sheet.x + sheet.width / 2 - canvasBox.x - 40),
+								top: Math.round(sheet.y + sheet.height / 2 - canvasBox.y - 18),
+								width: 80,
+								height: 36,
+							})
 							.removeAlpha()
 							.raw()
 							.toBuffer({ resolveWithObject: true });
@@ -207,7 +290,7 @@ async function visit(browser, engineName, url, viewport) {
 						}
 						darkest = Math.max(darkest, dark);
 					}
-					assert.ok(darkest < 900, `${darkest} near-black pixels over the manuscripts`);
+					assert.ok(darkest < 290, `${darkest} of 2880 pixels over the manuscripts are near-black`);
 				});
 			}
 
@@ -223,6 +306,23 @@ async function visit(browser, engineName, url, viewport) {
 					{ timeout: 3000 },
 				);
 				await page.mouse.move(0, 0);
+			});
+
+			// Sitting at the desk hides its own control; Escape must still stand up.
+			await check(`${label} escape leaves the desk`, async () => {
+				const view = (name) =>
+					page.waitForFunction(
+						(name) => {
+							const host = document.querySelector('[data-room]');
+							return host?.dataset.view === name && !host.hasAttribute('data-traveling');
+						},
+						name,
+						{ timeout: 5000 },
+					);
+				await page.locator('a[data-anchor="desk"]').click();
+				await view('desk');
+				await page.keyboard.press('Escape');
+				await view('room');
 			});
 
 			await check(`${label} sofa leaves the bookshelf clear`, async () => {
@@ -289,6 +389,24 @@ const report = () => {
 	console.error(`\n${failures.length} failure(s):`);
 	for (const failure of failures) console.error(`  - ${failure}`);
 };
+// Every engine gets its own process. WebKit launched in a process that has
+// just driven a WebGL-heavy Chromium session can exit mid-boot, and the run
+// then hangs until its ceiling; separate processes never share that state.
+if (!only) {
+	const { spawnSync } = await import('node:child_process');
+	if (SHOTS) {
+		await rm(OUTPUT, { recursive: true, force: true });
+		await mkdir(OUTPUT, { recursive: true });
+	}
+	let failed = false;
+	for (const engine of Object.keys(ENGINES)) {
+		const run = spawnSync(process.execPath, [process.argv[1], engine, ...process.argv.slice(2)], {
+			stdio: 'inherit',
+		});
+		failed ||= run.status !== 0;
+	}
+	process.exit(failed ? 1 : 0);
+}
 // A browser that dies silently leaves Playwright calls pending forever, so the
 // run as a whole has a ceiling that reports what it saw instead of hanging.
 const { base, stop } = await serve();
@@ -300,11 +418,13 @@ setTimeout(() => {
 }, 600_000).unref();
 const url = `${base}/`;
 try {
+	// An engine's own frames only: a run of every engine cleared the folder once.
 	if (SHOTS) {
-		await rm(OUTPUT, { recursive: true, force: true });
 		await mkdir(OUTPUT, { recursive: true });
+		for (const file of await readdir(OUTPUT))
+			if (file.startsWith(`${only}-`)) await rm(`${OUTPUT}/${file}`);
 	}
-	for (const engine of only ? [only] : Object.keys(ENGINES)) await run(engine, url);
+	await run(only, url);
 } finally {
 	stop();
 }

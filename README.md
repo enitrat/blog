@@ -33,7 +33,7 @@ bunx playwright install chromium webkit   # once, for checks
 | Colors, type, and layout | [DESIGN.md](./DESIGN.md) |
 | Why Astro | [ADR 0001](./docs/adr/0001-keep-astro-as-the-experience-shell.md) |
 | Changing the living room | [Room workflow](./docs/room-workflow.md) |
-| The room's target look | [Room direction](./docs/room-direction.md) |
+| How the room looks and behaves | [Room direction](./docs/room-direction.md) |
 | Why the room bakes this way | [ADR 0002](./docs/adr/0002-room-bake-pipeline.md) |
 | Room asset files | [Room assets](./src/assets/room/README.md) |
 | `/bookshelf/` | [Bookshelf page](./docs/design/bookshelf-page.md) |

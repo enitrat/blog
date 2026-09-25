@@ -40,11 +40,14 @@ const ANCHORS = {
 	record: new THREE.Vector3(), // above the platter, once it has loaded
 	// On the top sheet of the nearer pile, where the bake put it.
 	desk: new THREE.Vector3(sheets[0]?.x ?? 1.65, sheets[0]?.y ?? 0.77, sheets[0]?.z ?? 0.55),
+	// The sleeve left on the coffee table, as room.py lays it.
+	sleeve: new THREE.Vector3(-0.43, 0.46, 0.59),
 };
 
 type View = keyof typeof VIEWS | 'shelf';
-/** The three things in the room that do something. */
-const THINGS = ['bookshelf', 'record', 'desk'] as const;
+/** The things in the room that do something. The sleeve only while the mix
+ *  plays: it is where the room says what is on, and who made it. */
+const THINGS = ['bookshelf', 'record', 'desk', 'sleeve'] as const;
 type Thing = (typeof THINGS)[number];
 
 /** Once per visit, not once per page: a flag in session storage, which may be
@@ -175,7 +178,15 @@ export async function mountRoom(
 			link.remove();
 			return [];
 		}
-		return [{ link, node, sheet, rest: node.position.y }];
+		// Each sheet warms on its own, so each gets its own copy of the shared
+		// material: the same atlas, a separate colour.
+		let paper: THREE.MeshBasicMaterial | undefined;
+		if (node instanceof THREE.Mesh && node.material instanceof THREE.MeshBasicMaterial) {
+			paper = node.material.clone();
+			node.material = paper;
+			materials.add(paper);
+		}
+		return [{ link, node, sheet, rest: node.position.y, paper, warmth: 0 }];
 	});
 
 	const platter = scene.getObjectByName('Platter');
@@ -195,11 +206,12 @@ export async function mountRoom(
 	   merged mesh with one baked atlas can still light a single object on it,
 	   and nothing has to be rebaked to change what lights. Slots: the three
 	   things, then whatever row or volume the shelves say is pointed at. */
+	const POINTED = THINGS.length;
 	const glow = {
-		glowMin: { value: Array.from({ length: 4 }, () => new THREE.Vector3()) },
-		glowMax: { value: Array.from({ length: 4 }, () => new THREE.Vector3()) },
-		glowSoft: { value: [0.08, 0.06, 0.08, 0.012] },
-		glowAmount: { value: [0, 0, 0, 0] },
+		glowMin: { value: Array.from({ length: 5 }, () => new THREE.Vector3()) },
+		glowMax: { value: Array.from({ length: 5 }, () => new THREE.Vector3()) },
+		glowSoft: { value: [0.08, 0.06, 0.08, 0.015, 0.012] },
+		glowAmount: { value: [0, 0, 0, 0, 0] },
 	};
 	const boxes: Record<Thing, THREE.Box3> = {
 		// Off the floor, which would otherwise light in a strip under the plinth.
@@ -215,6 +227,8 @@ export async function mountRoom(
 		// The pedestal desk and its lamp, as bake-room.mjs stands it; Blender's
 		// (x, y, z) is the glTF's (x, z, -y).
 		desk: new THREE.Box3(new THREE.Vector3(1.4, 0.05, -0.11), new THREE.Vector3(2.04, 1.1, 1.21)),
+		// Just the sleeve, a little turned on the table top.
+		sleeve: new THREE.Box3(new THREE.Vector3(-0.61, 0.44, 0.41), new THREE.Vector3(-0.25, 0.48, 0.77)),
 	};
 	boxes.record.min.y -= 0.05;
 	THINGS.forEach((thing, index) => {
@@ -239,16 +253,16 @@ export async function mountRoom(
 					'#include <common>',
 					`#include <common>
 varying vec3 vGlowWorld;
-uniform vec3 glowMin[4];
-uniform vec3 glowMax[4];
-uniform float glowSoft[4];
-uniform float glowAmount[4];`,
+uniform vec3 glowMin[5];
+uniform vec3 glowMax[5];
+uniform float glowSoft[5];
+uniform float glowAmount[5];`,
 				)
 				.replace(
 					'#include <map_fragment>',
 					`#include <map_fragment>
 float glow = 0.0;
-for (int i = 0; i < 4; i++) {
+for (int i = 0; i < 5; i++) {
 	vec3 outside = max(max(glowMin[i] - vGlowWorld, vGlowWorld - glowMax[i]), 0.0);
 	glow += glowAmount[i] * (1.0 - smoothstep(0.0, glowSoft[i], length(outside)));
 }
@@ -302,6 +316,8 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 	let visible = true;
 	let lost = false;
 	let frame = 0;
+	/** Whether the next frame only carries slow light, and may wait for it. */
+	let ambient = false;
 	let transitionStart: number | null = null;
 	let transitionDuration = 750;
 	let shelfFrame: ShelfFrame | null = null;
@@ -322,6 +338,7 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 	const CUED = -0.1846; // the headshell reaches the lead-in groove
 	const DROP = 0.1; // and noses down onto it
 	let cueing = host.hasAttribute('data-playing');
+	let mixing = host.hasAttribute('data-mix');
 	let cue = 0; // 0 parked, 1 on the record
 	let spin = 0; // rad/s, spinning up and down like a real platter
 
@@ -437,12 +454,38 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 	 *  without searching for it. Reduced motion holds it still, mid-range. */
 	function idle(now: number, index: number) {
 		if (bookshelf.active || (view !== 'room' && view !== 'closer')) return 0;
-		if (motion.matches) return 0.35;
-		return 0.35 + 0.22 * Math.sin((now / 1000) * ((2 * Math.PI) / 2.2) - index * 1.9);
+		if (THINGS[index] === 'sleeve' && !mixing) return 0;
+		// A record that is playing keeps its deck lit, still breathing: it is on.
+		const floor = THINGS[index] === 'record' && cueing ? 0.6 : 0.35;
+		if (motion.matches) return floor;
+		return floor + 0.22 * Math.sin((now / 1000) * ((2 * Math.PI) / 2.2) - index * 1.9);
+	}
+
+	/** Seated at the desk, the sheets are what can be clicked, so they breathe
+	 *  the way the three things do across the room, and the one a hand is over
+	 *  warms fully as it lifts. Paper is near white, so the light shows as a
+	 *  warm cast more than as brightness. */
+	function warmSheets(now: number, dt: number) {
+		const seated = view === 'desk' && transitionStart === null;
+		const breath = motion.matches
+			? 0.3
+			: 0.3 + 0.2 * Math.sin((now / 1000) * ((2 * Math.PI) / 2.2));
+		let settling = false;
+		for (const manuscript of manuscripts) {
+			if (!manuscript.paper) continue;
+			const to = !seated ? 0 : lifted === manuscript.sheet.slug ? 1 : breath;
+			manuscript.warmth = motion.matches ? to : THREE.MathUtils.damp(manuscript.warmth, to, 12, dt);
+			if (Math.abs(manuscript.warmth - to) < 0.002) manuscript.warmth = to;
+			settling ||= manuscript.warmth !== to;
+			const a = manuscript.warmth;
+			manuscript.paper.color.setRGB(1 + 0.22 * a, 1 + 0.1 * a, 1 - 0.12 * a);
+		}
+		return settling || (seated && !motion.matches);
 	}
 
 	function light(now: number, dt: number) {
 		let moving = false;
+		let settling = false;
 		const amounts = glow.glowAmount.value;
 		const wanted = [
 			...THINGS.map((thing, index) =>
@@ -451,10 +494,13 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 			pointedWanted,
 		];
 		wanted.forEach((to, index) => {
-			const rate = index === 3 ? 18 : 10;
+			const rate = index === POINTED ? 18 : 10;
 			amounts[index] = motion.matches ? to : THREE.MathUtils.damp(amounts[index], to, rate, dt);
 			if (Math.abs(amounts[index] - to) < 0.002) amounts[index] = to;
-			moving ||= amounts[index] !== to;
+			// Trailing the slow idle sine, or the tail of a fade, can wait for an
+			// ambient frame; the bulk of a hover's rise or fall cannot.
+			moving ||= Math.abs(amounts[index] - to) > 0.1;
+			settling ||= amounts[index] !== to;
 		});
 		// ponytail: breathing redraws the whole room every frame while a row is
 		// framed. A pulse baked into the jacket's own shader would spare the rest.
@@ -465,10 +511,9 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 			for (const material of breathing) material.color.setRGB(1.12 * k, 1.07 * k, 1.02 * k);
 			breathed = breathe;
 		}
-		// ponytail: the idle glow keeps the room view redrawing every frame
-		// while it is on screen, same as the breathing jackets.
 		const idling = !motion.matches && idle(now, 0) > 0;
-		return moving || breathe || idling;
+		const papers = warmSheets(now, dt);
+		return { moving, ambient: breathe || idling || settling || papers };
 	}
 
 	function draw() {
@@ -517,12 +562,11 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 		}
 		for (const hotspot of hotspots) {
 			const name = hotspot.dataset.anchor;
-			if (name !== 'bookshelf' && name !== 'record' && name !== 'desk') continue;
-			projected.copy(ANCHORS[name]).project(camera);
+			if (!(name && name in ANCHORS)) continue;
+			projected.copy(ANCHORS[name as keyof typeof ANCHORS]).project(camera);
 			// A close view leaves the other object off frame: take its ring out of
 			// the picture and out of the tab order rather than parking it outside.
-			// The wide mix credit needs more room than a ring before it fits.
-			const slack = hotspot.classList.contains('living-room__mix') ? 0.6 : 0.98;
+			const slack = 0.98;
 			// At reading distance the ring has nothing left to offer, so it steps aside.
 			// Seated at the desk, the sheets themselves are the targets.
 			hotspot.hidden =
@@ -540,6 +584,13 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 	function tick(now: number) {
 		frame = 0;
 		if (!alive || lost || !visible || document.hidden) return;
+		// ponytail: slow light is drawn at 24 fps; anything a visitor does asks
+		// for full rate through requestDraw(). Shader-only animation of the glow
+		// uniforms would still redraw the room, so this is where the cost goes.
+		if (ambient && now - lastTime < 1000 / 24) {
+			frame = requestAnimationFrame(tick);
+			return;
+		}
 		// A frame's timestamp is the moment it began, which can precede a
 		// `performance.now()` taken while scheduling it. Time never runs backwards:
 		// damping would undo itself, and dividing a negative step by a negative
@@ -567,19 +618,24 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 		const lifting = lift(dt);
 		const lighting = light(now, dt);
 		draw();
-		if (
+		const urgent =
 			transitionStart !== null ||
 			turning ||
 			pulling ||
 			lifting ||
-			lighting ||
+			lighting.moving ||
 			!offset.equals(wantedOffset) ||
-			!nudge.equals(wantedNudge)
-		)
+			!nudge.equals(wantedNudge);
+		if (urgent) requestDraw();
+		else if (lighting.ambient) {
 			requestDraw();
+			ambient = true;
+		}
 	}
 
+	/** Ask for a frame at full rate. The loop alone marks one as ambient. */
 	function requestDraw() {
+		ambient = false;
 		if (!frame && alive && visible && !lost && !document.hidden)
 			frame = requestAnimationFrame(tick);
 	}
@@ -675,10 +731,7 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 		requestDraw();
 	}
 
-	const spotFor = (thing: Thing) =>
-		hotspots.find(
-			(spot) => spot.dataset.anchor === thing && !spot.classList.contains('living-room__mix'),
-		);
+	const spotFor = (thing: Thing) => hotspots.find((spot) => spot.dataset.anchor === thing);
 
 	/** Lay each link over the exposed head of its sheet, as the desk view shows
 	 *  it. Anywhere else the pile is scenery, and the links leave the tab order. */
@@ -773,7 +826,11 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 			if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0)
 				return;
 			event.preventDefault();
-			if (!bookshelf.active) changeView('desk');
+			if (bookshelf.active) return;
+			// Seated, this link leaves the picture; focus it leaves behind would
+			// fall to the page, where Escape no longer reaches the room.
+			canvas.focus({ preventScroll: true });
+			changeView('desk');
 		},
 		{ signal: events.signal },
 	);
@@ -808,10 +865,12 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 	// The DOM owns playback; the room follows the state it publishes.
 	const playing = new MutationObserver(() => {
 		cueing = host.hasAttribute('data-playing');
+		mixing = host.hasAttribute('data-mix');
+		if (!mixing && hovered === 'sleeve') hover(null);
 		lastTime = performance.now();
 		requestDraw();
 	});
-	playing.observe(host, { attributeFilter: ['data-playing'] });
+	playing.observe(host, { attributeFilter: ['data-playing', 'data-mix'] });
 
 	function publish(current: View) {
 		host.dataset.view = current;
@@ -840,7 +899,11 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 	function pick(event: MouseEvent): Thing | null {
 		if (transitionStart !== null || bookshelf.active) return null;
 		const allowed: readonly Thing[] =
-			view === 'room' || view === 'closer' ? THINGS : view === 'record' ? ['record'] : [];
+			view === 'room' || view === 'closer'
+				? THINGS.filter((thing) => thing !== 'sleeve' || mixing)
+				: view === 'record'
+					? ['record']
+					: [];
 		if (!allowed.length) return null;
 		const bounds = canvas.getBoundingClientRect();
 		const x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
@@ -893,6 +956,7 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 			// The hidden button carries playback as well as the camera.
 			else if (thing === 'record') spotFor('record')?.click();
 			else if (thing === 'desk') changeView('desk');
+			else if (thing === 'sleeve') spotFor('sleeve')?.click();
 			else step();
 		},
 		{ signal: events.signal },
@@ -1096,8 +1160,8 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 			if (slots.length) {
 				const first = slots[0];
 				const last = slots[slots.length - 1];
-				glow.glowMin.value[3].set(first.x - first.width / 2, first.y, first.z - 0.2);
-				glow.glowMax.value[3].set(
+				glow.glowMin.value[POINTED].set(first.x - first.width / 2, first.y, first.z - 0.2);
+				glow.glowMax.value[POINTED].set(
 					last.x + last.width / 2,
 					first.y + Math.max(...slots.map((slot) => slot.height)),
 					first.z + 0.2,

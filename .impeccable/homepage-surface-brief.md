@@ -26,4 +26,7 @@ essential meaning.
 - Warm white, near-black type, restrained blue links, and thin neutral rules.
 - Commissioner carries direct reading; Literata carries section headings and article titles.
 - No cards, gradients, glass, hard shadows, dense dashboards, or decorative stages.
+  The living room is the one stage: the way into the shelves, the music, and
+  the writing, never the only way. [Room direction](../docs/room-direction.md)
+  describes how it looks and behaves.
 - Essential content works without JavaScript; reduced motion leaves a stable still state.

@@ -47,7 +47,7 @@ const manuscripts = sheets.flatMap((sheet) => {
 		<a
 			class="living-room__hotspot living-room__mix"
 			href="https://soundcloud.com/user2211512"
-			data-anchor="record"
+			data-anchor="sleeve"
 			rel="noopener"
 		>
 			Latest mix from my SoundCloud&nbsp;<span aria-hidden="true">↗</span>
@@ -155,10 +155,13 @@ const manuscripts = sheets.flatMap((sheet) => {
 		source.connect(low).connect(high).connect(gain).connect(context.destination);
 		source.start();
 		let idle: ReturnType<typeof setTimeout> | undefined;
+		let level = 0;
+		let reach = 1;
 		const ramp = (to: number, seconds: number) => {
+			level = to;
 			gain.gain.cancelScheduledValues(context.currentTime);
 			gain.gain.setValueAtTime(gain.gain.value, context.currentTime);
-			gain.gain.linearRampToValueAtTime(to, context.currentTime + seconds);
+			gain.gain.linearRampToValueAtTime(to * reach, context.currentTime + seconds);
 		};
 		return {
 			needle() {
@@ -173,6 +176,12 @@ const manuscripts = sheets.flatMap((sheet) => {
 				ramp(0, 0.25);
 				idle = setTimeout(() => void context.suspend(), 400);
 			},
+			/** Across the room, quieter and duller. */
+			far(on: boolean) {
+				reach = on ? 0.55 : 1;
+				high.frequency.setTargetAtTime(on ? 2400 : 6000, context.currentTime, 0.15);
+				ramp(level, 0.5);
+			},
 		};
 	}
 	let noise: ReturnType<typeof surface> | null = null;
@@ -180,6 +189,7 @@ const manuscripts = sheets.flatMap((sheet) => {
 	type Widget = {
 		play(): void;
 		pause(): void;
+		setVolume(volume: number): void;
 		getPosition(callback: (ms: number) => void): void;
 		bind(event: string, handler: () => void): void;
 	};
@@ -251,7 +261,10 @@ const manuscripts = sheets.flatMap((sheet) => {
 		created.bind(events.FINISH, stop);
 		created.bind(events.ERROR, stop);
 
-		created.bind(events.READY, () => playback !== 'stopped' && created.play());
+		created.bind(events.READY, () => {
+			created.setVolume(volume);
+			if (playback !== 'stopped') created.play();
+		});
 		return created;
 	}
 
@@ -292,6 +305,27 @@ const manuscripts = sheets.flatMap((sheet) => {
 
 	player?.addEventListener('click', toggle);
 	shelfPlayer?.addEventListener('click', toggle);
+
+	// At the shelves the speakers are across the room: the record plays on,
+	// quieter and duller, and comes back when the visitor steps back. That is
+	// the reminder that it is on, and where to turn it off.
+	let volume = 100;
+	let fading: ReturnType<typeof setInterval> | undefined;
+	new MutationObserver(() => {
+		const far = room?.dataset.view === 'shelf';
+		const to = far ? 55 : 100;
+		if (to === volume && !fading) return;
+		noise?.far(far);
+		clearInterval(fading);
+		fading = setInterval(() => {
+			volume += Math.sign(to - volume) * Math.min(5, Math.abs(to - volume));
+			widget?.setVolume(volume);
+			if (volume === to) {
+				clearInterval(fading);
+				fading = undefined;
+			}
+		}, 30);
+	}).observe(room ?? document.body, { attributeFilter: ['data-view'] });
 
 	let resume = false;
 	document.addEventListener('visibilitychange', () => {

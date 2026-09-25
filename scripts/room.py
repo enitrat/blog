@@ -90,9 +90,14 @@ def material(name, color, rough=.6, texture=None, metal=0):
         mapping.inputs[1].default_value = (
             (3, 55, 4) if texture == 'wood' else
             (5, 5, 5) if texture == 'plaster' else
+            # Abrash: hand-dyed wool changes shade from one dye lot to the next,
+            # in bands across the rug's length. Broad enough to survive the bake.
+            (7, 1.6, 2) if texture == 'rug' else
             (180, 180, 180)
         )
-        links.new(coord.outputs['Generated'], mapping.inputs[0])
+        # The rug is many stacked layers; world space keeps its bands continuous.
+        links.new(nodes.new('ShaderNodeNewGeometry').outputs['Position'] if texture == 'rug'
+                  else coord.outputs['Generated'], mapping.inputs[0])
         noise = nodes.new('ShaderNodeTexNoise')
         noise.inputs['Scale'].default_value = 2.5
         noise.inputs['Detail'].default_value = 3
@@ -100,12 +105,27 @@ def material(name, color, rough=.6, texture=None, metal=0):
         links.new(mapping.outputs[0], noise.inputs['Vector'])
         ramp = nodes.new('ShaderNodeValToRGB')
         ramp.color_ramp.elements[0].position = .2
-        dark, light = (.78, 1.08) if texture == 'plaster' else (.65, 1.2)
+        dark, light = (.78, 1.08) if texture == 'plaster' else (.55, 1.38) if texture == 'rug' else (.65, 1.2)
         ramp.color_ramp.elements[0].color = (*(v * dark for v in base), 1)
         ramp.color_ramp.elements[1].position = .8
         ramp.color_ramp.elements[1].color = (*(min(1, v * light) for v in base), 1)
         links.new(noise.outputs['Fac'], ramp.inputs[0])
         links.new(ramp.outputs[0], bsdf.inputs['Base Color'])
+        if texture == 'wood':
+            # Each board is cut from a different part of the tree. `finish()`
+            # stores its shade before the parts join, when it is still one board.
+            board = nodes.new('ShaderNodeAttribute')
+            board.attribute_name = 'board'
+            shade = nodes.new('ShaderNodeMath')
+            shade.operation = 'MULTIPLY_ADD'
+            shade.inputs[1].default_value = .28
+            shade.inputs[2].default_value = 1
+            links.new(board.outputs['Fac'], shade.inputs[0])
+            tinted = nodes.new('ShaderNodeVectorMath')
+            tinted.operation = 'SCALE'
+            links.new(ramp.outputs[0], tinted.inputs[0])
+            links.new(shade.outputs[0], tinted.inputs['Scale'])
+            links.new(tinted.outputs[0], bsdf.inputs['Base Color'])
         bump = nodes.new('ShaderNodeBump')
         bump.inputs['Strength'].default_value = .10 if texture == 'plaster' else .18
         bump.inputs['Distance'].default_value = .0015 if texture == 'wood' else .003 if texture == 'plaster' else .0007
@@ -128,13 +148,20 @@ ceramic = material('Porcelain', '#bdbca9', .24)
 green = material('Rubber plant leaves', '#405b31', .45)
 soil = material('Potting soil', '#302821', 1)
 terra = material('Terracotta', '#a66a48', .9, 'fabric')
-rug_red = material('Kilim madder', '#6f2526', .98, 'fabric')
-rug_blue = material('Kilim deep green', '#203b33', .98, 'fabric')
-rug_cream = material('Kilim tobacco', '#ad875e', .98, 'fabric')
+rug_red = material('Kilim madder', '#6f2526', .98, 'rug')
+rug_blue = material('Kilim deep green', '#203b33', .98, 'rug')
+rug_cream = material('Kilim tobacco', '#ad875e', .98, 'rug')
 
 def finish(obj, name, mat, bevel=0):
     obj.name = name
     obj.data.materials.append(mat)
+    if isinstance(obj.data, bpy.types.Mesh):
+        # A shade in [-1, 1] from where the board stands, so every bake,
+        # partial or full, gives each board the same one.
+        x, y, z = obj.location
+        shade = math.sin(x*12.9898 + y*78.233 + z*37.719) * 43758.5453 % 1 * 2 - 1
+        obj.data.attributes.new('board', 'FLOAT', 'POINT').data.foreach_set(
+            'value', [shade] * len(obj.data.vertices))
     if bevel:
         for polygon in obj.data.polygons:
             polygon.use_smooth = True

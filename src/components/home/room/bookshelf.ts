@@ -265,7 +265,7 @@ export function mountBookshelf(host: HTMLElement) {
 	function layout() {
 		const width = Math.max(
 			0.06,
-			Math.min(0.48, (canvas.clientWidth * 0.3) / Math.max(1, canvas.clientHeight)),
+			Math.min(0.48, (canvas.clientWidth * 0.47) / Math.max(1, canvas.clientHeight)),
 		);
 		sections = [];
 		for (const { books } of rows) {
@@ -283,10 +283,12 @@ export function mountBookshelf(host: HTMLElement) {
 					frame: {
 						view: 'row',
 						x: (first.x - first.width / 2 + right.x + right.width / 2) / 2,
-						y: first.y + Math.max(...visible.map((slot) => slot.height)) / 2,
+						// Tall enough for both neighbouring rows to peek in, the one below
+						// by its tops and the one above by its feet, while spines stay legible.
+						y: first.y + Math.max(...visible.map((slot) => slot.height)) / 2 + 0.03,
 						z: first.z,
 						width,
-						height: 0.32,
+						height: 0.5,
 					},
 				});
 				if (end === books.length) break;
@@ -517,7 +519,7 @@ export function mountBookshelf(host: HTMLElement) {
 			(event) => {
 				if (!plainClick(event)) return;
 				event.preventDefault();
-				// From the cabinet, any row; from a row, the one peeking past its edge.
+				// From the cabinet, any row; from a row, either one peeking past its edges.
 				if (location && location.kind !== 'book') focusRow(row);
 			},
 			{ signal: events.signal },
