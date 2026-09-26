@@ -63,26 +63,21 @@ for (const [name, engine] of Object.entries(ENGINES)) {
 				[],
 			);
 		});
-		await t('mix link exists and is hidden before play', async () => {
-			const link = page.locator('.living-room__mix');
-			assert.equal(await link.count(), 1);
-			assert.equal(await link.evaluate((el) => getComputedStyle(el).visibility), 'hidden');
+		await t('there is no SoundCloud link on the table', async () => {
+			assert.equal(await page.locator('a[href*="soundcloud.com"]').count(), 0);
 		});
 
 		const button = page.locator('button.living-room__hotspot');
-		const mix = page.locator('.living-room__mix');
 		await button.click();
 
 		await t('crackle starts immediately', async () => {
 			assert.equal(await button.getAttribute('aria-pressed'), 'true');
 		});
 
-		await t('widget reaches PLAY', async () => {
-			// data-mix is set from the widget's own PLAY event, never from the click.
-			await page.waitForFunction(
-				() => document.querySelector('[data-room]')?.hasAttribute('data-mix'),
-				{ timeout: 30000 },
-			);
+		await t('widget loads Bouncyx Seven', async () => {
+			const frame = page.locator('.living-room__widget');
+			await frame.waitFor({ timeout: 30000 });
+			assert.match(await frame.getAttribute('src'), /user2211512\/bouncyx-seven/);
 		});
 
 		await t('soundcloud only requested after the click', () => {
@@ -91,42 +86,6 @@ for (const [name, engine] of Object.entries(ENGINES)) {
 
 		await t('button label flipped', async () => {
 			assert.equal(await button.textContent(), 'Stop the record');
-		});
-
-		// The record close-up leaves the coffee table off frame; back in the
-		// room, the sleeve on it carries the credit. A click on empty space
-		// steps back.
-		await page.locator('.living-room__canvas').click({ position: { x: 8, y: 8 } });
-		await page.waitForFunction(
-			() => {
-				const room = document.querySelector('[data-room]');
-				return !room?.hasAttribute('data-live') || room.dataset.view === 'room';
-			},
-			null,
-			{ timeout: 10000 },
-		);
-
-		await t('mix link is visible on PLAY', async () => {
-			await page.waitForTimeout(1200);
-			// A browser that refuses autoplay has withdrawn the mix by now, and
-			// the refusal checks below cover that path.
-			if (
-				!(await page.evaluate(() =>
-					document.querySelector('[data-room]')?.hasAttribute('data-mix'),
-				))
-			)
-				return;
-			assert.equal(await mix.evaluate((el) => getComputedStyle(el).visibility), 'visible');
-			assert.equal(await mix.evaluate((el) => getComputedStyle(el).opacity), '1');
-		});
-
-		await t('mix link stands apart from the record', async () => {
-			const a = await mix.boundingBox();
-			const b = await button.boundingBox();
-			if (!a) return; // withdrawn, as above
-			const overlap =
-				a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
-			assert.equal(overlap, false, `mix ${JSON.stringify(a)} vs button ${JSON.stringify(b)}`);
 		});
 
 		await t('button stays visible while playing', async () => {
@@ -152,17 +111,11 @@ for (const [name, engine] of Object.entries(ENGINES)) {
 				assert.equal(await button.getAttribute('aria-pressed'), 'false');
 				assert.equal(await button.textContent(), 'Play the record');
 			});
-			await t('mix link hides again', async () => {
-				assert.equal(await mix.evaluate((el) => getComputedStyle(el).visibility), 'hidden');
-			});
 		} else {
 			// The browser refused. The record still has to play, truthfully.
 			await t('refusal leaves the crackle running', async () => {
 				assert.equal(await button.getAttribute('aria-pressed'), 'true');
 				assert.equal(await button.textContent(), 'Stop the record');
-			});
-			await t('refusal hides the mix link', async () => {
-				assert.equal(await mix.evaluate((el) => getComputedStyle(el).visibility), 'hidden');
 			});
 			await button.click();
 			await page.waitForTimeout(500);

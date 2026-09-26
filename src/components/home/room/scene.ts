@@ -40,14 +40,11 @@ const ANCHORS = {
 	record: new THREE.Vector3(), // above the platter, once it has loaded
 	// On the top sheet of the nearer pile, where the bake put it.
 	desk: new THREE.Vector3(sheets[0]?.x ?? 1.65, sheets[0]?.y ?? 0.77, sheets[0]?.z ?? 0.55),
-	// The sleeve left on the coffee table, as room.py lays it.
-	sleeve: new THREE.Vector3(-0.43, 0.46, 0.59),
 };
 
 type View = keyof typeof VIEWS | 'shelf';
-/** The things in the room that do something. The sleeve only while the mix
- *  plays: it is where the room says what is on, and who made it. */
-const THINGS = ['bookshelf', 'record', 'desk', 'sleeve'] as const;
+/** The things in the room that do something. */
+const THINGS = ['bookshelf', 'record', 'desk'] as const;
 type Thing = (typeof THINGS)[number];
 
 /** Once per visit, not once per page: a flag in session storage, which may be
@@ -208,10 +205,10 @@ export async function mountRoom(
 	   things, then whatever row or volume the shelves say is pointed at. */
 	const POINTED = THINGS.length;
 	const glow = {
-		glowMin: { value: Array.from({ length: 5 }, () => new THREE.Vector3()) },
-		glowMax: { value: Array.from({ length: 5 }, () => new THREE.Vector3()) },
-		glowSoft: { value: [0.08, 0.06, 0.08, 0.015, 0.012] },
-		glowAmount: { value: [0, 0, 0, 0, 0] },
+		glowMin: { value: Array.from({ length: 4 }, () => new THREE.Vector3()) },
+		glowMax: { value: Array.from({ length: 4 }, () => new THREE.Vector3()) },
+		glowSoft: { value: [0.08, 0.06, 0.08, 0.012] },
+		glowAmount: { value: [0, 0, 0, 0] },
 	};
 	const boxes: Record<Thing, THREE.Box3> = {
 		// Off the floor, which would otherwise light in a strip under the plinth.
@@ -227,11 +224,6 @@ export async function mountRoom(
 		// The pedestal desk and its lamp, as bake-room.mjs stands it; Blender's
 		// (x, y, z) is the glTF's (x, z, -y).
 		desk: new THREE.Box3(new THREE.Vector3(1.4, 0.05, -0.11), new THREE.Vector3(2.04, 1.1, 1.21)),
-		// Just the sleeve, a little turned on the table top.
-		sleeve: new THREE.Box3(
-			new THREE.Vector3(-0.61, 0.44, 0.41),
-			new THREE.Vector3(-0.25, 0.48, 0.77),
-		),
 	};
 	boxes.record.min.y -= 0.05;
 	THINGS.forEach((thing, index) => {
@@ -256,16 +248,16 @@ export async function mountRoom(
 					'#include <common>',
 					`#include <common>
 varying vec3 vGlowWorld;
-uniform vec3 glowMin[5];
-uniform vec3 glowMax[5];
-uniform float glowSoft[5];
-uniform float glowAmount[5];`,
+uniform vec3 glowMin[4];
+uniform vec3 glowMax[4];
+uniform float glowSoft[4];
+uniform float glowAmount[4];`,
 				)
 				.replace(
 					'#include <map_fragment>',
 					`#include <map_fragment>
 float glow = 0.0;
-for (int i = 0; i < 5; i++) {
+for (int i = 0; i < 4; i++) {
 	vec3 outside = max(max(glowMin[i] - vGlowWorld, vGlowWorld - glowMax[i]), 0.0);
 	glow += glowAmount[i] * (1.0 - smoothstep(0.0, glowSoft[i], length(outside)));
 }
@@ -341,7 +333,6 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 	const CUED = -0.1846; // the headshell reaches the lead-in groove
 	const DROP = 0.1; // and noses down onto it
 	let cueing = host.hasAttribute('data-playing');
-	let mixing = host.hasAttribute('data-mix');
 	let cue = 0; // 0 parked, 1 on the record
 	let spin = 0; // rad/s, spinning up and down like a real platter
 
@@ -457,7 +448,6 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 	 *  without searching for it. Reduced motion holds it still, mid-range. */
 	function idle(now: number, index: number) {
 		if (bookshelf.active || (view !== 'room' && view !== 'closer')) return 0;
-		if (THINGS[index] === 'sleeve' && !mixing) return 0;
 		// A record that is playing keeps its deck lit, still breathing: it is on.
 		const floor = THINGS[index] === 'record' && cueing ? 0.6 : 0.35;
 		if (motion.matches) return floor;
@@ -811,8 +801,6 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 		);
 	}
 
-	// The mix link shares the record's anchor but leaves the page: only the
-	// button in front of the turntable moves the camera.
 	host.querySelector<HTMLButtonElement>('button[data-anchor="record"]')?.addEventListener(
 		'click',
 		() => {
@@ -868,12 +856,10 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 	// The DOM owns playback; the room follows the state it publishes.
 	const playing = new MutationObserver(() => {
 		cueing = host.hasAttribute('data-playing');
-		mixing = host.hasAttribute('data-mix');
-		if (!mixing && hovered === 'sleeve') hover(null);
 		lastTime = performance.now();
 		requestDraw();
 	});
-	playing.observe(host, { attributeFilter: ['data-playing', 'data-mix'] });
+	playing.observe(host, { attributeFilter: ['data-playing'] });
 
 	function publish(current: View) {
 		host.dataset.view = current;
@@ -902,11 +888,7 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 	function pick(event: MouseEvent): Thing | null {
 		if (transitionStart !== null || bookshelf.active) return null;
 		const allowed: readonly Thing[] =
-			view === 'room' || view === 'closer'
-				? THINGS.filter((thing) => thing !== 'sleeve' || mixing)
-				: view === 'record'
-					? ['record']
-					: [];
+			view === 'room' || view === 'closer' ? THINGS : view === 'record' ? ['record'] : [];
 		if (!allowed.length) return null;
 		const bounds = canvas.getBoundingClientRect();
 		const x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
@@ -959,7 +941,6 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 			// The hidden button carries playback as well as the camera.
 			else if (thing === 'record') spotFor('record')?.click();
 			else if (thing === 'desk') changeView('desk');
-			else if (thing === 'sleeve') spotFor('sleeve')?.click();
 			else step();
 		},
 		{ signal: events.signal },

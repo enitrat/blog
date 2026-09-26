@@ -44,14 +44,6 @@ const manuscripts = sheets.flatMap((sheet) => {
 			Sit at the desk
 		</a>
 
-		<a
-			class="living-room__hotspot living-room__mix"
-			href="https://soundcloud.com/user2211512"
-			data-anchor="sleeve"
-			rel="noopener"
-		>
-			Latest mix from my SoundCloud&nbsp;<span aria-hidden="true">↗</span>
-		</a>
 	</div>
 
 	<p class="living-room__caption" aria-hidden="true"></p>
@@ -114,13 +106,9 @@ const manuscripts = sheets.flatMap((sheet) => {
 	const named = (event: Event) => {
 		if (room?.hasAttribute('data-live')) return;
 		const spot = (event.target as Element).closest?.('.living-room__hotspot');
-		const target = spot && !spot.classList.contains('living-room__mix') ? spot : undefined;
-		label((target?.textContent ?? '').trim(), target, event.type === 'focusin');
+		label((spot?.textContent ?? '').trim(), spot ?? undefined, event.type === 'focusin');
 	};
-	const pointed = () =>
-		room?.querySelector<HTMLElement>(
-			'.living-room__hotspot:is(:hover, :focus-visible):not(.living-room__mix)',
-		);
+	const pointed = () => room?.querySelector<HTMLElement>('.living-room__hotspot:is(:hover, :focus-visible)');
 	hotspots?.addEventListener('pointerover', named);
 	const unnamed = () => {
 		if (!room?.hasAttribute('data-live')) label('');
@@ -211,9 +199,8 @@ const manuscripts = sheets.flatMap((sheet) => {
 		if (shelfPlayer) shelfPlayer.hidden = !on;
 		if (player) player.textContent = on ? 'Stop the record' : 'Play the record';
 		// The platter turns from `cueing` on, because by then something really is
-		// coming out of the speaker. `data-mix` is the one that means the mix.
+		// coming out of the speaker.
 		room?.toggleAttribute('data-playing', on);
-		if (next !== 'playing') room?.removeAttribute('data-mix');
 		// The button's own label just changed. If it is the thing being pointed
 		// at, the caption is naming it and has to say the new thing.
 		const spot = pointed();
@@ -223,11 +210,11 @@ const manuscripts = sheets.flatMap((sheet) => {
 	async function connect() {
 		const frame = document.createElement('iframe');
 		frame.className = 'living-room__widget';
-		frame.title = 'SoundCloud player: Bounce Nationale by eni';
+		frame.title = 'SoundCloud player: Bouncyx Seven by eni';
 
 		frame.allow = 'autoplay; encrypted-media';
 		frame.src =
-			'https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/2360410595&auto_play=false&hide_related=true&show_comments=false&show_teaser=false';
+			'https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/user2211512/bouncyx-seven&auto_play=false&hide_related=true&show_comments=false&show_teaser=false';
 		document.body.append(frame);
 
 		await new Promise((resolve, reject) => {
@@ -247,15 +234,12 @@ const manuscripts = sheets.flatMap((sheet) => {
 			if (playback === 'stopped') return created.pause();
 			set('playing');
 			noise?.bed();
-
-			room?.setAttribute('data-mix', '');
 		});
 		created.bind(events.PAUSE, () => {
 			if (document.hidden) return;
 
 			created.getPosition((position) => {
 				if (position > 0) stop();
-				else room?.removeAttribute('data-mix');
 			});
 		});
 		created.bind(events.FINISH, stop);
@@ -393,7 +377,7 @@ const manuscripts = sheets.flatMap((sheet) => {
 			if (canRender) void load();
 		});
 		for (const anchor of ['record', 'desk'] as const) {
-			room.querySelector(`.living-room__hotspot:not(.living-room__mix)[data-anchor="${anchor}"]`)
+			room.querySelector(`.living-room__hotspot[data-anchor="${anchor}"]`)
 				?.addEventListener('click', (event) => {
 					if (!canRender || room.hasAttribute('data-live')) return;
 					const plain = !(event as MouseEvent).metaKey && !(event as MouseEvent).ctrlKey;

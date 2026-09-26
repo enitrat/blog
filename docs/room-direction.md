@@ -25,7 +25,7 @@ rings, arrows, captions, or buttons.
 |---|---|
 | Resting | Each clickable thing breathes a low lamplight, out of step with the others |
 | Pointed at, or focused | Full lamplight and a pointer, then a small name tag |
-| Music playing | The turntable stays lit, and the sleeve on the coffee table joins the glow; it names the mix and leads to SoundCloud |
+| Music playing | The turntable stays lit |
 | At the shelves, music playing | The record plays on, quieter and duller, as if from across the room |
 | A book with notes | Its jacket breathes on the shelf |
 
@@ -40,7 +40,6 @@ flowchart LR
   Cabinet -->|a row| Row
   Row -->|a book with notes| Book
   Room -->|the turntable| Record["Record: the mix plays"]
-  Room -->|the sleeve, while it plays| SoundCloud
   Room -->|the desk| Desk
   Desk -->|a sheet| Piece["The piece, on its own page"]
 ```
@@ -71,4 +70,3 @@ is the only sign that it goes on.
   appear.
 - A phone downloads the 3D room only after a tap.
 - A new clickable thing joins the glow. It does not get a widget of its own.
-- Without the room, the SoundCloud credit is a tag over the record player.
