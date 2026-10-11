@@ -14,7 +14,8 @@ const { order } = Astro.props;
 <Tile span={{ md: 6, lg: 5 }} rows={{ lg: 4 }} {order} as="section" aria-labelledby="bio-title">
 	<div class="bio">
 		<h1 id="bio-title">
-			Hi, I'm Mathieu. I build cool stuff with agents, with end-to-end ownership of products, and I sometimes DJ and write what goes through my head
+			<span>Hi, I'm Mathieu.</span>
+			<span>I build cool stuff with agents, with end-to-end ownership of products, and I sometimes DJ and write what goes through my head</span>
 		</h1>
 		<div class="foot">
 			<p>
@@ -36,7 +37,9 @@ const { order } = Astro.props;
 		height: 100%;
 	}
 	h1 {
-		font-size: var(--text-display);
+		display: grid;
+		gap: var(--space-3);
+		font-size: var(--text-title);
 		font-weight: var(--weight-ui);
 		line-height: var(--leading-display);
 		letter-spacing: var(--tracking-display);

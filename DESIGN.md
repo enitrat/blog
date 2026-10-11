@@ -6,6 +6,7 @@ colors:
   grey-50: "#f5f5f3"
   grey-100: "#eaeaed"
   grey-200: "#dcdde0"
+  sand-200: "#ebe7da"
   grey-300: "#c3c5c9"
   grey-400: "#8e939a"
   grey-500: "#6b6f76"
@@ -99,7 +100,7 @@ motion:
 
 **Creative North Star: "The Bench"**
 
-The site is a cool grey workbench on which small, real objects from Mathieu's life are laid out: a bio, what he is doing now, the book he is reading, the latest essay, a trip, the work. Each object is a flat tile and each tile is a door. Recognisable with the content removed: a grey field, flat near-white rectangles of varied size, mono caps labels, one orange dot. Geist does all the talking; Geist Mono labels and counts.
+The site is a sand-tinted workbench on which small, real objects from Mathieu's life are laid out: a bio, what he is doing now, the book he is reading, the latest essay, a trip, the work. Each object is a flat tile and each tile is a door. Recognisable with the content removed: a sand field, flat near-white rectangles of varied size, mono caps labels, one orange dot. Geist does all the talking; Geist Mono labels and counts.
 
 The system is flat on purpose. Tiles are separated by space and a 1px hairline, never by shadow, glass or gradient. Orange is a signal for state (playing, current, latest, pressed, focus), not decoration. The only dark, textured, lit object on the bench is the 3D living room. Everything else is paper and graphite.
 
@@ -122,7 +123,7 @@ A cool grey scale does nearly all the work; one signal orange marks state. Two s
 - **Burnt Orange** (`orange-600`): the accent for small marks and focus rings on paper, so dots, underlines and rings reach 3:1 on the near-white surface. Exposed as `--accent-graphic` and `--ring`; on dark and inverse surfaces they swap to `orange-500` and `orange-400`.
 
 ### Neutral
-- **Bench Grey** (`grey-200` light, `grey-950` dark): the page field behind the tiles (`--background`).
+- **Bench Sand** (`sand-200` light, `grey-950` dark): the page field behind the tiles (`--background`), a light grey with a slight yellow tint. Every page sits on it, essays included.
 - **Paper** (`grey-50` light, `grey-850` dark): the tile surface (`--surface`).
 - **Graphite** (`grey-850` light, `grey-100` dark): the inverse surface (`--surface-inverse`), the one graphite tile family.
 - **Ink** (`grey-900` light, `grey-100` dark): text and neutral link colour. Links are not blue.
@@ -180,7 +181,7 @@ Every interactive target reaches 44px (`--target-min`); small controls extend an
 
 ## Elevation & Depth
 
-Flat. Depth is conveyed by the grey field behind near-white tiles and by a 1px hairline (`--border`). A linked tile darkens its hairline to `--foreground` on hover. Controls draw their outline with an inset 1px ring, not a shadow. Photos get their depth from dither, not from drop shadows.
+Flat. Depth is conveyed by the sand field behind near-white tiles and by a 1px hairline (`--border`). A linked tile darkens its hairline to `--foreground` on hover. Controls draw their outline with an inset 1px ring, not a shadow. Photos get their depth from dither, not from drop shadows.
 
 ### Named Rules
 **The No Shadow Rule.** No drop shadows, glass or blur on the bench or in the reading pages. The room's bookshelf carries its own painted shadows as part of the lit scene; that is the room's material, not a rule for the interface.

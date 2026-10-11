@@ -12,7 +12,7 @@ related_targets: ["src/pages/writing/index.astro","src/pages/about.astro","src/l
 
 ## Essay page direction contract
 THESIS: Plain and fast. An essay page is text set for long reading with an "In short" list at the top, so a reader with little time can skim before reading. It refuses the sidebar table of contents, the giant display title and the banner image.
-OWN-WORLD: The bench's paper and ink without its tiles: near-white page, near-black text, one orange accent for hover and the current link only. Geist 18px, line height ~1.62, measure ~38rem, text justified with `hyphens: auto` (left-aligned fallback where hyphenation is unavailable). Geist Mono for the meta line, section numbers, "In short" label and captions.
+OWN-WORLD: The bench's ground and ink without its tiles: the same sand ground as every page, near-black text, one orange accent for hover and the current link only. Geist 18px, line height ~1.62, measure ~38rem, text justified with `hyphens: auto` (left-aligned fallback where hyphenation is unavailable). Geist Mono for the meta line, section numbers, "In short" label and captions.
 STORY: The reader sees a small title and one mono meta line (name · date · read time), reads the "In short" list (numbered section titles, each with its first sentence verbatim), jumps to a section or reads straight through, and finds a quiet "↑ In short" at the end of each section.
 FIRST VIEWPORT: Mono meta line at the top; title at ~1.75rem semibold; the "In short" block directly under it, ending with a hairline; the first section begins below. No banner image, no sidebar, nothing sticky.
 FORM: Essay "In short", user-pinned (round 3, 5/5), with justified text from the Plain variant's note.

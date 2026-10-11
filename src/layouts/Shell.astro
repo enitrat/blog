@@ -4,8 +4,6 @@
  * on the `--background` bench.
  * @prop title Page title
  * @prop description Meta description
- * @prop ground "bench" | "paper" (default "bench"): the page sits on the grey bench, or on near-white
- *   paper (`--surface`) for long reading
  * @slot default Page content, inside <main id="main"> (the page lays out its own width)
  * @slot head Extra <head> content
  */
@@ -23,9 +21,8 @@ import Header from '../components/site/Header.astro';
 interface Props {
 	title: string;
 	description: string;
-	ground?: 'bench' | 'paper';
 }
-const { title, description, ground = 'bench' } = Astro.props;
+const { title, description } = Astro.props;
 ---
 
 <!doctype html>
@@ -34,7 +31,7 @@ const { title, description, ground = 'bench' } = Astro.props;
 		<BaseHead title={title} description={description} />
 		<slot name="head" />
 	</head>
-	<body data-ground={ground}>
+	<body>
 		<a class="skip" href="#main">Skip to content</a>
 		<div class="shell">
 			<Header />
@@ -44,13 +41,6 @@ const { title, description, ground = 'bench' } = Astro.props;
 		<Analytics />
 	</body>
 </html>
-
-<style is:global>
-	html:has(body[data-ground="paper"]),
-	body[data-ground="paper"] {
-		background: var(--surface);
-	}
-</style>
 
 <style>
 	.shell {
