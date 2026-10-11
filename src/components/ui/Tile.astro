@@ -1,0 +1,166 @@
+---
+/**
+ * Tile: a flat bench surface (1px hairline, no shadow) with an optional header.
+ * @prop variant "paper" | "inverse" | "media" (default "paper"). media = zero padding,
+ *   full-bleed content, header overlaid on a `--scrim`. inverse and media re-map the semantic
+ *   colour names (see theme.css), so every atom inside retints with no prop. A paper tile
+ *   nested in an inverse one resets.
+ * @prop span Column span per breakpoint inside `Bench`: md (6-col grid, default 6),
+ *   lg (12-col grid, default 12). The phone grid has one column, so there is no `base`.
+ * @prop rows { lg } Row span in the 12-col grid
+ * @prop order Position on the one-column phone grid (lower first); source order if omitted
+ * @prop label Header label text (renders a `Label`)
+ * @prop labelAs Element of the label: "span" (default), "h2" or "h3", for a real heading
+ * @prop dot Status dot before the label; `dotTone` "accent" (default) or "muted"
+ * @prop meta Right-aligned header text
+ * @prop href Makes the whole tile one link. A tile with href must not contain links or buttons.
+ * @prop as Root element (default "div", or "a" with href)
+ * @slot default Body
+ * @slot action Header action, e.g. `<Link variant="arrow">`
+ */
+import Label from './Label.astro';
+
+interface Props extends astroHTML.JSX.HTMLAttributes {
+	variant?: 'paper' | 'inverse' | 'media';
+	span?: { md?: number; lg?: number };
+	rows?: { lg?: number };
+	order?: number;
+	label?: string;
+	labelAs?: 'span' | 'h2' | 'h3';
+	dot?: boolean;
+	dotTone?: 'accent' | 'muted';
+	meta?: string;
+	href?: string;
+	as?: 'div' | 'section' | 'article' | 'a';
+}
+const {
+	variant = 'paper',
+	span = {},
+	rows = {},
+	order,
+	label,
+	labelAs,
+	dot,
+	dotTone,
+	meta,
+	href,
+	as,
+	class: cls,
+	style,
+	...rest
+} = Astro.props;
+const Root = (href ? 'a' : (as ?? 'div')) as 'div';
+const hasHead = Boolean(label || meta) || Astro.slots.has('action');
+const vars = [
+	`--span-md:${span.md ?? 6}`,
+	`--span-lg:${span.lg ?? 12}`,
+	rows.lg ? `--rows-lg:${rows.lg}` : '',
+	order !== undefined ? `--order:${order}` : '',
+	typeof style === 'string' ? style : '',
+]
+	.filter(Boolean)
+	.join(';');
+---
+
+<Root
+	class:list={['tile', cls]}
+	data-variant={variant}
+	data-linked={href ? '' : undefined}
+	href={href}
+	style={vars}
+	{...rest}
+>
+	{hasHead && (
+		<header class="head">
+			<Label as={labelAs} dot={dot} dotTone={dotTone} grow>
+				{label}
+				{meta && <Fragment slot="meta">{meta}</Fragment>}
+			</Label>
+			<slot name="action" />
+		</header>
+	)}
+	<div class="body"><slot /></div>
+</Root>
+
+<style>
+	.tile {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: var(--gap-bench);
+		min-width: 0;
+		overflow: hidden;
+		padding: var(--pad-tile);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-tile);
+		background: var(--surface);
+		color: var(--surface-foreground);
+		text-decoration: none;
+		order: var(--order, 0);
+	}
+	.tile[data-variant="media"] {
+		padding: 0;
+		gap: 0;
+		min-height: 14rem;
+	}
+	.head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--gap-bench);
+	}
+	.tile[data-variant="media"] .head {
+		position: absolute;
+		inset: 0 0 auto;
+		z-index: 1;
+		padding: var(--pad-tile);
+		/* the scrim is always dark, so the label and action stay bright in both themes */
+		--muted-foreground: var(--scrim-foreground);
+		--foreground: var(--scrim-foreground);
+		--link: var(--scrim-foreground);
+		background: linear-gradient(to bottom, var(--scrim), transparent);
+	}
+	.body {
+		flex: 1;
+		min-width: 0;
+		min-height: 0;
+	}
+	.tile[data-variant="media"] .body {
+		position: absolute;
+		inset: 0;
+	}
+	.tile[data-variant="media"] .body > :global(img),
+	.tile[data-variant="media"] .body > :global(picture),
+	.tile[data-variant="media"] .body > :global(canvas) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+	.tile[data-linked] {
+		transition: border-color var(--duration-fast) var(--ease-out);
+	}
+	.tile[data-linked]:hover {
+		border-color: var(--foreground);
+	}
+	.tile[data-linked]:focus-visible {
+		outline: 2px solid var(--ring);
+		outline-offset: 2px;
+	}
+	@media (min-width: 40rem) {
+		.tile {
+			order: 0;
+			grid-column: span var(--span-md);
+		}
+	}
+	@media (min-width: 64rem) {
+		.tile {
+			grid-column: span var(--span-lg);
+			grid-row: span var(--rows-lg, 1);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.tile[data-linked] {
+			transition: none;
+		}
+	}
+</style>

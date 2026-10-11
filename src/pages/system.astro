@@ -1,0 +1,89 @@
+---
+// Docs surface: renders every section in src/components/system/, sorted by filename.
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
+import Pill from '../components/ui/Pill.astro';
+import Shell from '../layouts/Shell.astro';
+
+const modules = import.meta.glob('../components/system/*.astro', { eager: true }) as Record<
+	string,
+	{ default: AstroComponentFactory }
+>;
+const sections = Object.entries(modules)
+	.sort(([a], [b]) => a.localeCompare(b))
+	.map(([path, m]) => ({ path, Section: m.default }));
+---
+
+<Shell title="Bench system" description="Component reference for the bench design system.">
+	<Fragment slot="head">
+		<meta name="robots" content="noindex" />
+		<script is:inline>
+			try {
+				var t = localStorage.getItem('system-theme');
+				if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+			} catch (e) {}
+		</script>
+	</Fragment>
+
+	<div class="system">
+		<header class="head">
+			<h1>Bench system</h1>
+			<div class="theme" role="group" aria-label="Theme">
+				<Pill variant="toggle" data-theme-set="light">Light</Pill>
+				<Pill variant="toggle" data-theme-set="dark">Dark</Pill>
+				<Pill variant="toggle" data-theme-set="system" pressed={true}>System</Pill>
+			</div>
+		</header>
+		{sections.map(({ Section }) => <Section />)}
+	</div>
+</Shell>
+
+<script>
+	const root = document.documentElement;
+	const buttons = document.querySelectorAll<HTMLElement>('[data-theme-set]');
+	const sync = () => {
+		const cur = root.dataset.theme ?? 'system';
+		buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themeSet === cur)));
+	};
+	buttons.forEach((b) =>
+		b.addEventListener('click', () => {
+			const v = b.dataset.themeSet!;
+			if (v === 'system') delete root.dataset.theme;
+			else root.dataset.theme = v;
+			try {
+				if (v === 'system') localStorage.removeItem('system-theme');
+				else localStorage.setItem('system-theme', v);
+			} catch {}
+			sync();
+		}),
+	);
+	sync();
+</script>
+
+<style>
+	.system {
+		max-width: var(--page-max);
+		margin: 0 auto;
+		padding: var(--space-8) var(--page-gutter) var(--space-24);
+		color: var(--foreground);
+		font-family: var(--font-body);
+		display: grid;
+		gap: var(--space-12);
+	}
+	.head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-4);
+	}
+	h1 {
+		font-size: var(--text-title);
+		font-weight: var(--weight-title);
+		letter-spacing: var(--tracking-title);
+		line-height: var(--leading-display);
+	}
+	.theme {
+		display: inline-flex;
+		gap: var(--space-2);
+	}
+</style>

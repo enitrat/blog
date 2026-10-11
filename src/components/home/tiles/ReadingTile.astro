@@ -1,0 +1,49 @@
+---
+/** ReadingTile: the books being read now, then the whole shelf. Links to /reading. */
+import { books } from '../../../booksData';
+import BookLine from '../../ui/BookLine.astro';
+import BookSpine from '../../ui/BookSpine.astro';
+import Link from '../../ui/Link.astro';
+import Shelf from '../../ui/Shelf.astro';
+import StatusDot from '../../ui/StatusDot.astro';
+import Tile from '../../ui/Tile.astro';
+
+interface Props {
+	order?: number;
+}
+const { order } = Astro.props;
+const current = books.filter((b) => b.status === 'reading');
+const shelf = [...current, ...books.filter((b) => b.status !== 'reading')];
+---
+
+<Tile label="Reading" labelAs="h2" span={{ md: 6, lg: 7 }} {order} as="section">
+	<Link slot="action" variant="arrow" href="/reading/">All books</Link>
+	<div class="reading">
+		<ul class="now">
+			{current.map((b) => (
+				<li>
+					<BookLine title={b.title} author={b.author}>
+						<StatusDot slot="tag" />
+						{b.edition.pageCount} pages
+					</BookLine>
+				</li>
+			))}
+		</ul>
+		<Shelf label="Books, linked to the reading page">
+			{shelf.map((b) => <BookSpine title={b.title} author={b.author} pages={b.edition.pageCount} status={b.status} href="/reading/" />)}
+		</Shelf>
+	</div>
+</Tile>
+
+<style>
+	.reading {
+		display: grid;
+		gap: var(--space-6);
+	}
+	.now {
+		display: grid;
+		gap: var(--space-4);
+		list-style: none;
+		padding: 0;
+	}
+</style>

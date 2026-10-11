@@ -8,21 +8,19 @@ related_targets: ["src/pages/writing/index.astro","src/pages/about.astro","src/l
 # Reading and index surfaces
 
 ## Mode
+`/writing/<slug>`, `/writing`, `/reading`, `/places`, `/about` are Read surfaces in the bench's world.
 
-`/writing/<slug>`, `/writing`, and `/about` are Read surfaces. They inherit the quiet personal-index world but prioritize comprehension and wayfinding.
+## Essay page direction contract
+THESIS: Plain and fast. An essay page is text set for long reading with an "In short" list at the top, so a reader with little time can skim before reading. It refuses the sidebar table of contents, the giant display title and the banner image.
+OWN-WORLD: The bench's paper and ink without its tiles: near-white page, near-black text, one orange accent for hover and the current link only. Geist 18px, line height ~1.62, measure ~38rem, text justified with `hyphens: auto` (left-aligned fallback where hyphenation is unavailable). Geist Mono for the meta line, section numbers, "In short" label and captions.
+STORY: The reader sees a small title and one mono meta line (name · date · read time), reads the "In short" list (numbered section titles, each with its first sentence verbatim), jumps to a section or reads straight through, and finds a quiet "↑ In short" at the end of each section.
+FIRST VIEWPORT: Mono meta line at the top; title at ~1.75rem semibold; the "In short" block directly under it, ending with a hairline; the first section begins below. No banner image, no sidebar, nothing sticky.
+FORM: Essay "In short", user-pinned (round 3, 5/5), with justified text from the Plain variant's note.
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
 
 ## Rules
-
-- Use real authored content from the blog collection and About page.
-- Keep `/writing` and `/about` as the visible route vocabulary; preserve legacy redirects.
-- Keep About prose verbatim; layout and typography may change.
-- Use one archive row per piece. Reach translations from the article, never as duplicate rows.
-- Keep the site usable without JavaScript. The margin is enhancement, not navigation.
-- Use the shared reading sheet: page head, measured prose, bounded margin, one contents list, and onward exits.
-- Use site-colour code on a transparent ground; do not import a terminal theme.
-- Homepage artwork does not appear on these surfaces.
-
-## Open decisions
-
-- Archive standfirsts remain placeholders until Mathieu writes them.
-- Contact destinations remain unresolved.
+- Use real authored content. Never paraphrase: hooks are the first sentence of each section, extracted at build time. A post may override one hook in front matter later.
+- Existing banner images are not shown on the essay page.
+- Keep `/writing` and `/about` routes and legacy redirects. The site is English only; there are no translations.
+- Usable without JavaScript: the "In short" block is generated at build time.
+- Code uses site colours on a transparent ground.

@@ -1,33 +1,32 @@
 ---
-import '../styles/home.css';
-
-import PersonalIndex from '../components/home/PersonalIndex.astro';
+import RoomTile from '../components/home/RoomTile.astro';
+import BioTile from '../components/home/tiles/BioTile.astro';
+import NowTile from '../components/home/tiles/NowTile.astro';
+import PlacesTile from '../components/home/tiles/PlacesTile.astro';
+import ReadingTile from '../components/home/tiles/ReadingTile.astro';
+import WorkTile from '../components/home/tiles/WorkTile.astro';
+import WritingTile from '../components/home/tiles/WritingTile.astro';
+import Bench from '../components/ui/Bench.astro';
 import { SITE_DESCRIPTION } from '../consts';
-import Page from '../layouts/Page.astro';
-import { getWorkIndex, workUrl } from '../utils/work';
-import { getWritingIndex, postUrl } from '../utils/writing';
+import { now } from '../data/now';
+import Shell from '../layouts/Shell.astro';
+import { getTrips } from '../utils/trips';
 
-const recentPosts = (await getWritingIndex()).slice(0, 3);
-const reports = await getWorkIndex();
+const trips = await getTrips();
 
-const toItem = (report: (typeof reports)[number]) => ({
-	id: `work-${report.id}`,
-	title: report.data.title,
-	href: workUrl(report),
-	description: report.data.summary,
-});
-
-const work = reports.filter((report) => report.data.kind === 'work').map(toItem);
-const projects = reports.filter((report) => report.data.kind === 'project').map(toItem);
-
-const writing = recentPosts.map((post) => ({
-	id: `writing-${post.id.replaceAll('/', '-')}`,
-	title: post.data.title,
-	href: postUrl(post),
-	description: post.data.description,
-}));
+// Row three shares the width between whichever of Now and Places exist.
+const both = now.length > 0 && trips.length > 0;
+const row3 = both ? { md: 3, lg: 6 } : { md: 6, lg: 12 };
 ---
 
-<Page title="Mathieu Saugier" description={SITE_DESCRIPTION}>
-	<PersonalIndex work={work} projects={projects} writing={writing} />
-</Page>
+<Shell title="Mathieu Saugier" description={SITE_DESCRIPTION}>
+	<Bench>
+		<BioTile order={0} />
+		<RoomTile />
+		<ReadingTile order={4} />
+		<WritingTile order={3} />
+		<NowTile span={row3} order={2} />
+		<PlacesTile trips={trips} span={row3} order={5} />
+		<WorkTile order={6} />
+	</Bench>
+</Shell>

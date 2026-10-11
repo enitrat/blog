@@ -1,8 +1,13 @@
 ---
 import { type CollectionEntry, getCollection, render } from 'astro:content';
-import ArrowIcon from '../../components/ArrowIcon.astro';
-import ContactLinks from '../../components/ContactLinks.astro';
-import Sheet from '../../layouts/Sheet.astro';
+import Prose from '../../components/reading/Prose.astro';
+import Label from '../../components/ui/Label.astro';
+import Link from '../../components/ui/Link.astro';
+import ListRow from '../../components/ui/ListRow.astro';
+import ListRows from '../../components/ui/ListRows.astro';
+import Page from '../../components/ui/Page.astro';
+import PageTitle from '../../components/ui/PageTitle.astro';
+import Shell from '../../layouts/Shell.astro';
 import { getWorkIndex, workUrl } from '../../utils/work';
 
 export async function getStaticPaths() {
@@ -16,62 +21,51 @@ export async function getStaticPaths() {
 type Props = { report: CollectionEntry<'work'> };
 
 const { report } = Astro.props;
-const { Content, headings } = await render(report);
+const { Content } = await render(report);
 const { title, summary, role, period, site } = report.data;
+const meta = [role, period].filter(Boolean).join(' · ');
 
 const siblings = (await getWorkIndex()).filter((r) => r.id !== report.id).slice(0, 2);
 ---
 
-<Sheet title={title} description={summary} headings={headings}>
-	<dl class="sheet__facts" slot="facts">
-		{role && (
-			<div>
-				<dt>Role</dt>
-				<dd>{role}</dd>
-			</div>
-		)}
-		{period && (
-			<div>
-				<dt>Period</dt>
-				<dd>{period}</dd>
-			</div>
-		)}
-		{site && (
-			<div>
-				<dt>Website</dt>
-				<dd>
-					<a href={site} rel="noreferrer" target="_blank">
-						Visit website
-						<span class="sr-only">(opens in a new tab)</span>
-					</a>
-				</dd>
-			</div>
-		)}
-	</dl>
+<Shell title={title} description={summary}>
+	<Page width="measure" as="article">
+		<PageTitle kicker={meta || undefined}>
+			{title}
+			<Fragment slot="lead">{summary}</Fragment>
+		</PageTitle>
+		{site && <p><Link variant="external" href={site}>Visit website</Link></p>}
 
-	<Content />
+		<Prose><Content /></Prose>
 
-	<Fragment slot="close">
-		{siblings.length > 0 && (
-			<nav class="sheet__onward" aria-label="More work">
-				{siblings.map((sibling) => (
-					<a class="sheet__onward-item" href={workUrl(sibling)}>
-						<span>More work</span>
-						<strong>{sibling.data.title}</strong>
-					</a>
-				))}
-			</nav>
-		)}
-		<div class="sheet__exits">
-			<a class="sheet__all" href="/work">
-				<ArrowIcon direction="left" />
-				All work
-			</a>
-			<a class="sheet__all" href="/writing">
-				<ArrowIcon />
-				Writing
-			</a>
-			<ContactLinks />
-		</div>
-	</Fragment>
-</Sheet>
+		<footer>
+			{
+				siblings.length > 0 && (
+					<nav aria-label="More work">
+						<Label as="h2" space="sm">More work</Label>
+						<ListRows>
+							{siblings.map((s) => (
+								<ListRow href={workUrl(s)} date={s.data.role} title={s.data.title} description={s.data.summary} />
+							))}
+						</ListRows>
+					</nav>
+				)
+			}
+			<p class="exits">
+				<Link variant="arrow" href="/work">All work</Link>
+				<Link variant="arrow" href="/writing">Writing</Link>
+			</p>
+		</footer>
+	</Page>
+</Shell>
+
+<style>
+	footer {
+		display: grid;
+		gap: var(--space-6);
+	}
+	.exits {
+		display: flex;
+		gap: var(--space-6);
+	}
+</style>

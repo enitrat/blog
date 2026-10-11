@@ -3,7 +3,7 @@
  * fails here instead of shipping a room that quietly lacks it. */
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { englishPieces, notedIsbns } from './room-content.mjs';
+import { notedIsbns, writingPieces } from './room-content.mjs';
 import { GLB_BUDGET, ROOM_GROUPS, readGlb } from './room-targets.mjs';
 
 const DIR = 'src/assets/room';
@@ -20,7 +20,7 @@ for (const group of ROOM_GROUPS) {
 const slots = await json('book-slots.json');
 const sheets = await json('sheets.json');
 const noted = await notedIsbns();
-const pieces = await englishPieces();
+const pieces = await writingPieces();
 const shelved = new Set(slots.map((slot) => slot.isbn));
 const expected = [
 	'Platter',

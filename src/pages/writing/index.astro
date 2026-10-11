@@ -1,78 +1,34 @@
 ---
-import WritingLedgerRow from '../../components/WritingLedgerRow.astro';
-import Page from '../../layouts/Page.astro';
-import { getTranslations, getWritingIndex } from '../../utils/writing';
+import ListRow from '../../components/ui/ListRow.astro';
+import ListRows from '../../components/ui/ListRows.astro';
+import Page from '../../components/ui/Page.astro';
+import PageTitle from '../../components/ui/PageTitle.astro';
+import Shell from '../../layouts/Shell.astro';
+import { getWritingIndex, postUrl } from '../../utils/writing';
 
 const posts = await getWritingIndex();
-
-const entries = await Promise.all(
-	posts.map(async (post) => ({
-		post,
-		extraLangs: (await getTranslations(post)).map((translation) => translation.lang),
-	})),
-);
-
-const years = [...new Set(posts.map((post) => post.data.pubDate.getFullYear()))].sort(
-	(a, b) => b - a,
-);
-
-const byYear = years.map((year) => ({
-	year,
-	entries: entries.filter((entry) => entry.post.data.pubDate.getFullYear() === year),
-}));
+const fmt = (d: Date) =>
+	d.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: '2-digit' });
 ---
 
-<Page
+<Shell
 	title="Writing"
 	description="I write about software, AI, Cairo, and what I learn while building with them."
 >
-	<div class="measure">
-		<header class="page-head">
-			<h1>Writing</h1>
-		</header>
-
-		{byYear.map((group) => (
-			<section class="year" aria-labelledby={`year-${group.year}`}>
-				<h2 class="label" id={`year-${group.year}`}>{group.year}</h2>
-				<div class="writing-ledger">
-					{group.entries.map((entry) => (
-						<WritingLedgerRow
-							post={entry.post}
-							showYear={false}
-							extraLangs={entry.extraLangs}
-						/>
-					))}
-				</div>
-			</section>
-		))}
-
-		{posts.length === 0 && (
-			<p class="empty">Nothing published yet.</p>
-		)}
-	</div>
-</Page>
-
-<style>
-	.year {
-		padding-top: clamp(2rem, 3.5vw, 3rem);
-	}
-
-	/* The page head already spaces itself from the first group. */
-	.page-head + .year {
-		padding-top: 0;
-	}
-
-	.year:last-of-type {
-		padding-bottom: clamp(4rem, 8vw, 7rem);
-	}
-
-	.year h2 {
-		margin: 0 0 1.1rem;
-		font-family: var(--home-sans);
-	}
-
-	.empty {
-		padding-block: 4rem 7rem;
-		color: var(--home-muted);
-	}
-</style>
+	<Page>
+		<PageTitle>Writing</PageTitle>
+		<ListRows>
+			{posts.map((post) => (
+				<ListRow
+					headingLevel="h2"
+					href={postUrl(post)}
+					date={fmt(post.data.pubDate)}
+					datetime={post.data.pubDate.toISOString()}
+					title={post.data.title}
+					description={post.data.description}
+				/>
+			))}
+		</ListRows>
+		{posts.length === 0 && <p>No posts yet.</p>}
+	</Page>
+</Shell>

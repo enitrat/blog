@@ -1,0 +1,130 @@
+{
+  "title": "Choose the visual world",
+  "question": "The roll assigned The Network. Keep it, take an alternate, or re-roll.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "The Network",
+      "kicker": "THE ROLL",
+      "lineage": "Transit wayfinding: Unimark-era signage, strip maps, departures boards",
+      "thesis": "Your life as a transit network: writing, reading, travel, work and music are lines, and every essay, book, trip and set is a stop on one.",
+      "palette": ["#121416", "#f3f3ef", "#d93a2b", "#1d8a52", "#2b63d0", "#f0b400", "#7b4fc4"],
+      "materials": ["enamel signage panels", "line bullets", "strip maps", "departures board"],
+      "viewport": "One strip map runs down the home page with five coloured lines, each naming its next stop (latest essay, current book, last trip, what you're building, the set), beside a small departures board on your local clock.",
+      "risk": "Turns into a gimmick if stops are forced; every line must still read as a plain list without the map.",
+      "raised": [
+        {"from": "challenger-mesophotic", "raise": "One vertical axis rules the home page: a single strip map, with every item hanging off its line."},
+        {"from": "challenger-pc98", "raise": "Locked palette: index thumbnails are printed as duotones in their line's colour, so mixed trip photos read as one set."},
+        {"from": "challenger-coffeehouse", "raise": "A mark system: each line's bullet heads every page on that line, so you always know where you are."},
+        {"from": "challenger-darkroom", "raise": "Photos arrive with one develop-in reveal, used only there, not scattered effects."},
+        {"from": "challenger-bricks", "raise": "One module, the line's stroke width, sets every gap and alignment on the site."}
+      ]
+    },
+    {
+      "id": "model-pick",
+      "label": "Liner Notes",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "Record sleeves, centre labels and liner notes from a DJ's crate",
+      "thesis": "The site as a record you're holding: your SoundCloud set is the record on the platter, essays are sleeves in the crate, and the reading list is what's in your bag.",
+      "palette": ["#0f0f10", "#5c1b22", "#f06a2a", "#e9e6df", "#2f5d50"],
+      "materials": ["printed sleeves", "vinyl centre labels", "liner-note type", "the room's turntable"],
+      "viewport": "Your name set as an album sleeve with a tracklist of what you're doing now. The Blender turntable sits beside it, and pressing play spins the set.",
+      "risk": "Familiar music-portfolio territory, and it gets cute if essays are forced into tracks. This is also where many personal sites with a music angle land."
+    },
+    {
+      "id": "challenger-algorave",
+      "label": "Source Floor",
+      "verdict": "competitive",
+      "lineage": "Algorave: live-coded music projected over a dance floor",
+      "thesis": "Engineer and DJ in one buffer: each section is a running pattern, and the set plays as the code ticks.",
+      "palette": ["#0b0d0c", "#39ff8a", "#ff3fa4", "#ffb020"],
+      "materials": ["projected code buffer", "cursor-line downbeat", "shared clock"],
+      "viewport": "A full-screen code buffer whose lines are your sections, with the set's waveform keeping time.",
+      "case": "It holds audience identification, since you're both engineer and DJ, but loses on clarity: essays, books and trips don't live naturally in a code buffer.",
+      "risk": "A terminal look is the tech-site default, and the shared clock is what's worth keeping.",
+      "hero": "https://impeccable.style/worlds/cards/medium-native-algorave-source-floor-hero.webp"
+    },
+    {
+      "id": "challenger-darkroom",
+      "label": "Safelight",
+      "verdict": "declined",
+      "lineage": "A photo printing darkroom under amber light",
+      "thesis": "Everything develops slowly, like a print in the tray.",
+      "palette": ["#c8611c", "#2a2420", "#d9d4cc"],
+      "materials": ["safelight", "test strips", "wet prints"],
+      "viewport": "Trip prints emerging under amber light.",
+      "case": "Good for photos, but essays and reading don't belong in a darkroom.",
+      "risk": "A single-subject world.",
+      "kept": "One develop-in reveal for photos.",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-darkroom-safelight-bay-hero.webp"
+    },
+    {
+      "id": "challenger-pc98",
+      "label": "Sixteen Colours",
+      "verdict": "declined",
+      "lineage": "Japanese PC-98 screens, dithered 16-colour art",
+      "thesis": "A fixed frame where only the contents change.",
+      "palette": ["#000000", "#ffffff", "#0055aa", "#aa5500"],
+      "materials": ["ordered dither", "bitmap type"],
+      "viewport": "A dithered portrait with a text window docked low.",
+      "case": "Retro novelty with nothing tying it to you.",
+      "risk": "Reads as a costume.",
+      "kept": "A locked palette that every image is rendered through.",
+      "hero": "https://impeccable.style/worlds/cards/digital-design-canon-pc98-sixteen-color-field-hero.webp"
+    },
+    {
+      "id": "challenger-mesophotic",
+      "label": "Deep Dive",
+      "verdict": "declined",
+      "lineage": "A technical dive down a reef wall",
+      "thesis": "Scroll as descent.",
+      "palette": ["#06142b", "#3fd0e0", "#f2f2ee"],
+      "materials": ["depth axis", "marine snow"],
+      "viewport": "A diver leaving the surface.",
+      "case": "Beautiful, but nothing in your life maps to depth.",
+      "risk": "Pure metaphor.",
+      "kept": "One vertical axis that rules every line of the page.",
+      "hero": "https://impeccable.style/worlds/cards/rivers-tides-ocean-depths-mesophotic-deep-dive-hero.webp"
+    },
+    {
+      "id": "challenger-coffeehouse",
+      "label": "Woodcut Sun",
+      "verdict": "declined",
+      "lineage": "Nineties earthy coffeehouse identity",
+      "thesis": "Warm, handmade, worldly.",
+      "palette": ["#b5532f", "#6b7a2e", "#d9a326"],
+      "materials": ["torn kraft", "woodcut marks"],
+      "viewport": "A woodcut mark over torn paper.",
+      "case": "Pastiche; it says nothing about an engineer.",
+      "risk": "Dated.",
+      "kept": "A mark per section that stamps the header.",
+      "hero": "https://impeccable.style/worlds/cards/brand-identity-canon-village-coffeehouse-identity-hero.webp"
+    },
+    {
+      "id": "challenger-bricks",
+      "label": "Build Steps",
+      "verdict": "declined",
+      "lineage": "Brick-toy instruction booklets",
+      "thesis": "Numbered steps on a stud grid.",
+      "palette": ["#7fb7e6", "#111111", "#d4202a", "#f4c400"],
+      "materials": ["stud grid", "exploded diagrams"],
+      "viewport": "Step 1 of you.",
+      "case": "Instructional; a personal site isn't a sequence.",
+      "risk": "Childlike.",
+      "kept": "One module unit governing all alignment.",
+      "hero": "https://impeccable.style/worlds/cards/games-toys-physics-play-brick-build-instructions-hero.webp"
+    }
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "buildPath": {"value": "code", "toggle": false},
+  "canon": true,
+  "canonCard": {
+    "label": "Quiet personal index",
+    "thesis": "The category standard, done carefully: one column, one voice, plain lists, a small now block, photos in a calm grid.",
+    "palette": ["#fafaf8", "#161616", "#6b6b6b", "#2f5bd3"],
+    "materials": ["single column", "type-led", "simple photo grid"],
+    "viewport": "Name and a two-line bio, then Now, Writing, Reading, Places, and the set as short lists.",
+    "risk": "Clean and forgettable; the room most likely goes."
+  },
+  "steer": true
+}

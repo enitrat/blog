@@ -1,0 +1,531 @@
+/* The room: one tile on the bench, and the live scene in a dialog it opens.
+   Colour for UI comes from semantic tokens. The room's art-direction colours
+   (lamplight, manuscript paper) are the one place components alias reference
+   tokens (--color-*) directly: they are painted into the render and do not
+   change with the theme. Aliased once here, used everywhere below and in
+   bookshelf.css. */
+.room-tile,
+.room-dialog {
+	--lamp-floor: var(--color-lamp-floor);
+	--lamp-banker: var(--color-lamp-banker);
+	--lamp-amber: var(--color-lamp-amber);
+	--lamp-glow: var(--color-lamp-glow);
+	--lamp-ember: var(--color-lamp-ember);
+	--manuscript-paper: var(--color-manuscript-paper);
+	--manuscript-ink: var(--color-manuscript-ink);
+	--manuscript-scroll: var(--color-manuscript-scroll);
+	--manuscript-rule: var(--color-manuscript-rule);
+	--manuscript-shade: var(--color-manuscript-shade);
+	--manuscript-shadow: var(--color-manuscript-shadow);
+	--manuscript-scrim: var(--color-manuscript-scrim);
+}
+
+/* ---- The tile --------------------------------------------------------- */
+
+/* The whole 4:3 render sets the tile's height, and on desktop the tile then
+   stretches to the full height of the row it shares with the bio. The hairline
+   and the fill are the paper tile's, not the inverse's: in dark mode the inverse
+   fill is light and its edge would show round the picture as a bright line. */
+.tile.room-tile[data-variant] {
+	aspect-ratio: 4 / 3;
+	align-self: stretch;
+	justify-self: stretch;
+	cursor: pointer;
+	border-color: var(--paper-border);
+	background: var(--paper-surface);
+}
+.tile.room-tile:not([data-ready]) {
+	cursor: default;
+}
+
+/* The poster covers the tile like object-fit: cover, but as a box, so the
+   lamps and the live stage can sit on the picture by percentage. */
+.room-tile__frame {
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+	container-type: size;
+}
+.room-tile__art {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: max(100cqw, 133.34cqh);
+	height: max(100cqh, 75cqw);
+	translate: -50% -50%;
+}
+.room-tile__art picture {
+	display: contents;
+}
+.room-tile__poster {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+/* Lamp light warms when the tile is pointed at: the floor lamp and the green
+   banker's lamp. Without motion it still warms, with no fade. */
+.room-tile__lamp {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	opacity: 0;
+	mix-blend-mode: screen;
+	background:
+		radial-gradient(
+			circle at 29% 33%,
+			color-mix(in srgb, var(--lamp-floor) 85%, transparent),
+			color-mix(in srgb, var(--lamp-floor) 30%, transparent) 14%,
+			transparent 32%
+		),
+		radial-gradient(
+			circle at 74% 66%,
+			color-mix(in srgb, var(--lamp-banker) 55%, transparent),
+			color-mix(in srgb, var(--lamp-amber) 32%, transparent) 14%,
+			transparent 30%
+		),
+		linear-gradient(color-mix(in srgb, var(--lamp-amber) 10%, transparent), transparent);
+	transition: opacity var(--duration-slow) var(--ease-out);
+}
+.room-tile__poster {
+	transition: filter var(--duration-slow) var(--ease-out);
+}
+.room-tile[data-ready]:is(:hover, :focus-within) .room-tile__lamp {
+	opacity: 1;
+}
+.room-tile[data-ready]:is(:hover, :focus-within) .room-tile__poster {
+	filter: brightness(1.06) saturate(1.12) sepia(0.12);
+}
+
+.room-tile:not([data-ready]) [data-room-open],
+.room-tile[data-ready] .room-tile__links {
+	display: none;
+}
+
+.room-tile__links {
+	position: absolute;
+	left: var(--pad-tile);
+	bottom: var(--pad-tile);
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--gap-bench);
+}
+
+/* Playing shows quietly in the header; the turntable in the scene is the rest. */
+.room-tile__actions {
+	display: flex;
+	align-items: center;
+	gap: var(--gap-bench);
+}
+.room-tile:not([data-playing]) .room-tile__playing {
+	display: none;
+}
+
+/* The live scene lives in the tile's art box, over the poster, which stays
+   underneath until the canvas is opaque. Its chrome belongs to the opened room. */
+.room-tile__art:has([data-live]) .room-tile__lamp {
+	display: none;
+}
+.living-room[data-mode="tile"] {
+	position: absolute;
+	inset: 0;
+}
+.living-room[data-mode="tile"] .living-room__stage {
+	position: absolute;
+	inset: 0;
+	aspect-ratio: auto;
+}
+.living-room[data-mode="tile"]
+	:is(.living-room__poster, .room-bar, .room-controls, .room-desk-targets, .room-book-targets) {
+	display: none;
+}
+.living-room[data-mode="tile"][data-live] .living-room__canvas {
+	cursor: pointer;
+}
+
+@keyframes room-glow {
+	from {
+		opacity: 0.25;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+/* ---- The opened room -------------------------------------------------- */
+
+.room-dialog {
+	box-sizing: border-box;
+	width: min(calc(100vw - 2rem), calc((100dvh - 2rem) * 4 / 3), 90rem);
+	max-width: none;
+	/* Never taller than the screen: a taller dialog centres off the top and
+	   takes its Close with it. What does not fit scrolls inside. */
+	max-height: calc(100dvh - 2rem);
+	padding: 0;
+	border: 0;
+	border-radius: var(--radius-tile);
+	overflow: auto;
+	overscroll-behavior: contain;
+	background: var(--scrim);
+	color: var(--scrim-foreground);
+	opacity: 1;
+	transition: opacity var(--duration-base) var(--ease-out);
+}
+.room-dialog::backdrop {
+	/* Opaque enough that the tile behind the dialog cannot read as part of it. */
+	background: var(--scrim-solid);
+}
+@starting-style {
+	.room-dialog[open] {
+		opacity: 0;
+	}
+}
+:root:has(.room-dialog[open]) {
+	overflow: hidden;
+}
+
+/* UI over the scene sits on the fixed-dark scrim, whatever the theme. */
+.room-ui {
+	--foreground: var(--scrim-foreground);
+	--muted-foreground: var(--scrim-foreground);
+	--border: var(--scrim-foreground);
+	background: var(--scrim);
+	color: var(--foreground);
+	border-radius: var(--radius-pill);
+}
+
+.living-room {
+	position: relative;
+}
+.living-room__stage {
+	position: relative;
+	aspect-ratio: 4 / 3;
+	overflow: hidden;
+	contain: layout paint;
+}
+.living-room picture {
+	display: contents;
+}
+.living-room__poster,
+.living-room__canvas {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+.living-room__canvas {
+	opacity: 0;
+	transition: opacity var(--duration-slow) var(--ease-out);
+}
+.living-room[data-live] .living-room__canvas {
+	opacity: 1;
+	cursor: zoom-in;
+}
+.living-room[data-live][data-view="closer"] .living-room__canvas,
+.living-room[data-live][data-view="record"] .living-room__canvas,
+.living-room[data-live][data-view="desk"] .living-room__canvas {
+	cursor: zoom-out;
+}
+.living-room[data-mode="tile"][data-live][data-view] .living-room__canvas {
+	cursor: pointer;
+}
+
+/* The top bar: what the room is, what is playing, and the way out. */
+.room-bar {
+	position: absolute;
+	inset: 1rem 1rem auto;
+	z-index: 3;
+	display: flex;
+	align-items: center;
+	gap: var(--gap-bench);
+	pointer-events: none;
+}
+.room-bar > * {
+	pointer-events: auto;
+}
+.room-bar__close {
+	margin-inline-start: auto;
+}
+.room-bar__title {
+	padding: 0.4rem 0.9rem;
+}
+.room-bar__playing {
+	display: inline-flex;
+	margin-inline-end: auto;
+}
+.living-room:not([data-playing]) .room-bar__playing {
+	display: none;
+}
+.room-bar__playing .pill-text {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5em;
+}
+
+.living-room__hotspots {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+/* Each thing's control stands on the thing: a real link or button with no
+   visible chrome, because the object answers for it. Live, the scene lights
+   what the pointer is over and a tag names it; on the poster, it is a place
+   to tap. */
+.living-room__hotspot {
+	position: absolute;
+	transform: translate(-50%, -50%);
+	width: 3.5rem;
+	height: 3.5rem;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: none;
+	color: transparent;
+	font-size: 0;
+	text-decoration: none;
+	cursor: pointer;
+	pointer-events: auto;
+	-webkit-tap-highlight-color: transparent;
+}
+
+/* The poster's version of the live room's idle lamplight: each thing glows
+   low, rising and falling out of step, until the room takes over. */
+.living-room__hotspot::before {
+	content: "";
+	position: absolute;
+	inset: -70%;
+	border-radius: 50%;
+	background: radial-gradient(
+		closest-side,
+		color-mix(in srgb, var(--lamp-glow) 42%, transparent),
+		color-mix(in srgb, var(--lamp-ember) 14%, transparent) 55%,
+		transparent
+	);
+	opacity: 0.45;
+	pointer-events: none;
+	animation: room-glow var(--duration-slower) var(--ease-in-out) infinite alternate;
+}
+.living-room__hotspot[data-anchor="record"]::before {
+	animation-delay: -0.37s;
+}
+.living-room__hotspot[data-anchor="desk"]::before {
+	animation-delay: -0.73s;
+}
+.living-room[data-live] .living-room__hotspot::before {
+	content: none;
+}
+.living-room__hotspot[data-anchor="bookshelf"] {
+	left: 45.49%;
+	top: 40.4%;
+}
+.living-room__hotspot[data-anchor="record"] {
+	left: 56.63%;
+	top: 48.43%;
+}
+.living-room__hotspot[data-anchor="desk"] {
+	left: 60.2%;
+	top: 67.5%;
+}
+.living-room__hotspot:focus-visible,
+.living-room__canvas:focus-visible {
+	outline: 3px solid var(--ring);
+	outline-offset: 3px;
+}
+
+/* The manuscripts, seated at the desk: a link laid over each sheet's exposed
+   head. Off the desk view the scene keeps the whole set hidden. */
+.room-desk-targets {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+.room-desk__sheet {
+	position: absolute;
+	box-sizing: border-box;
+	pointer-events: auto;
+	cursor: pointer;
+	border-radius: var(--radius-sm);
+	overflow: hidden;
+	text-indent: 110%;
+	white-space: nowrap;
+	color: transparent;
+}
+.room-desk__sheet:focus-visible {
+	outline: 2px solid var(--ring);
+	outline-offset: 3px;
+}
+.living-room[data-traveling] .room-desk-targets {
+	display: none;
+}
+
+/* Camera controls for the keyboard and screen readers. A pointer and a finger
+   have the room itself, Escape, and history; each control shows where it
+   stands only once it has focus. */
+.room-controls {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+.room-controls > .room-ui,
+.room-controls__status {
+	position: absolute;
+	pointer-events: auto;
+}
+.room-controls > .room-ui:not(:focus-within) {
+	clip-path: inset(50%);
+	opacity: 0;
+	pointer-events: none;
+}
+.living-room .room-controls [hidden] {
+	display: none;
+}
+.room-controls .flip {
+	display: inline-flex;
+}
+.room-controls__back {
+	top: 4.5rem;
+	left: 1rem;
+}
+.room-controls__audio {
+	top: 4.5rem;
+	right: 1rem;
+}
+.room-controls__rows {
+	bottom: 1rem;
+	right: 1rem;
+	display: flex;
+}
+.room-controls__pans {
+	bottom: 1rem;
+	left: 1rem;
+	display: flex;
+}
+.room-controls .flip[data-turn="up"] {
+	rotate: 0deg;
+}
+.room-controls .flip[data-turn="down"] {
+	rotate: 180deg;
+}
+
+/* Announced, not drawn: the room itself shows where the camera is. */
+.room-controls__status {
+	width: 1px;
+	height: 1px;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* The way out only exists once there is somewhere to go back to. */
+.living-room:not([data-live]) .room-controls,
+.living-room[data-live][data-view="room"] .room-controls__back,
+.living-room[data-view="room"] .room-controls__audio {
+	display: none;
+}
+
+/* The one label: a small tag over whatever is pointed at, placed by the
+   bookshelf, which also decides when it shows. */
+.living-room__caption {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	z-index: 2;
+	translate: -50% calc(-100% - 0.5rem);
+	width: max-content;
+	max-width: min(22rem, calc(100% - 1rem));
+	padding: 0.35rem 0.75rem;
+	border-radius: var(--radius-tile);
+	text-align: center;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity var(--duration-fast) var(--ease-out);
+}
+.living-room__caption [data-caption-text] {
+	display: block;
+	white-space: pre-line;
+}
+.living-room__caption [data-caption-text]::first-line {
+	font-weight: 700;
+}
+.living-room__caption[data-shown] {
+	opacity: 1;
+	transition-duration: var(--duration-fast);
+}
+.living-room[data-traveling] .living-room__caption {
+	opacity: 0;
+}
+
+.living-room[data-browsing][data-live] .living-room__canvas {
+	cursor: zoom-out;
+	touch-action: pan-y;
+}
+
+/* On a phone, the shelves take the whole screen, the way a photo opens: every
+   swipe then belongs to the room, and nothing has to share it with the page.
+   The room keeps its place in the dialog while it is away. */
+@media (hover: none), (max-width: 40rem) {
+	.living-room[data-browsing][data-live]:not([data-mode="tile"])::before {
+		content: "";
+		display: block;
+		aspect-ratio: 4 / 3;
+	}
+	.living-room[data-browsing][data-live]:not([data-mode="tile"]) .living-room__stage {
+		position: fixed;
+		inset: 0;
+		z-index: 40;
+		width: 100%;
+		height: 100dvh;
+		aspect-ratio: auto;
+		touch-action: none;
+	}
+}
+.living-room[data-live][data-browsing] .living-room__hotspots {
+	display: none;
+}
+
+/* Which level a target belongs to is decided here, once, from the attribute
+   sync() publishes. JavaScript only ever sets `hidden` to mean "no valid
+   position on screen". */
+.living-room:not([data-shelf-level]) .room-library__row,
+.living-room[data-shelf-level="row"] .room-library__row:not([data-adjacent]),
+.living-room:not([data-shelf-level="row"]) :is(.room-library__spine, .room-library__gaps),
+.living-room:not([data-shelf-level="row"]) :is(.room-controls__rows, .room-controls__pans) {
+	display: none;
+}
+
+/* Mid-flight the placed targets describe a view that is no longer on screen. */
+.living-room[data-traveling] .room-book-targets {
+	display: none;
+}
+.living-room[data-book-moving] :is(.room-book-targets, .room-controls, .living-room__caption) {
+	visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.room-tile__lamp,
+	.room-tile__poster,
+	.room-dialog,
+	.living-room__canvas,
+	.living-room__caption {
+		transition: none;
+	}
+	.living-room__hotspot::before {
+		animation: none;
+	}
+}
+
+/* Rendered, reachable by the Widget API, and out of the layout: the record
+   player is the visible control. Not display:none, since a hidden frame is
+   free not to load. */
+.living-room__widget {
+	position: absolute;
+	left: -9999px;
+	width: 320px;
+	height: 120px;
+	border: 0;
+}

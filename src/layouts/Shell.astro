@@ -1,0 +1,74 @@
+---
+/**
+ * Shell: base layout of the site. Loads only tokens, theme and base styles, so the page sits
+ * on the `--background` bench.
+ * @prop title Page title
+ * @prop description Meta description
+ * @prop ground "bench" | "paper" (default "bench"): the page sits on the grey bench, or on near-white
+ *   paper (`--surface`) for long reading
+ * @slot default Page content, inside <main id="main"> (the page lays out its own width)
+ * @slot head Extra <head> content
+ */
+import '@fontsource-variable/geist/wght.css';
+import '@fontsource-variable/geist-mono/wght.css';
+import '../styles/tokens.css';
+import '../styles/theme.css';
+import '../styles/base.css';
+
+import Analytics from '@vercel/analytics/astro';
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/site/Footer.astro';
+import Header from '../components/site/Header.astro';
+
+interface Props {
+	title: string;
+	description: string;
+	ground?: 'bench' | 'paper';
+}
+const { title, description, ground = 'bench' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={title} description={description} />
+		<slot name="head" />
+	</head>
+	<body data-ground={ground}>
+		<a class="skip" href="#main">Skip to content</a>
+		<div class="shell">
+			<Header />
+			<main id="main"><slot /></main>
+			<Footer />
+		</div>
+		<Analytics />
+	</body>
+</html>
+
+<style is:global>
+	html:has(body[data-ground="paper"]),
+	body[data-ground="paper"] {
+		background: var(--surface);
+	}
+</style>
+
+<style>
+	.shell {
+		width: min(100%, var(--page-max));
+		margin-inline: auto;
+		padding-inline: var(--page-gutter);
+	}
+	.skip {
+		position: absolute;
+		inset: var(--space-3) auto auto var(--space-3);
+		z-index: 10;
+		padding: var(--space-2) var(--space-4);
+		border-radius: var(--radius-pill);
+		background: var(--foreground);
+		color: var(--surface);
+		transform: translateY(-200%);
+	}
+	.skip:focus-visible {
+		transform: none;
+	}
+</style>

@@ -1,0 +1,30 @@
+---
+/**
+ * Bench: the tile grid. 12 columns from 64rem, 6 from 40rem, one column on phone.
+ * Children are `Tile`s that declare their own `span`, `rows` and phone `order`.
+ * @slot default Tiles
+ */
+interface Props extends astroHTML.JSX.HTMLAttributes {}
+const { class: cls, ...rest } = Astro.props;
+---
+
+<div class:list={['bench', cls]} {...rest}><slot /></div>
+
+<style>
+	.bench {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: var(--gap-bench);
+	}
+	@media (min-width: 40rem) {
+		.bench {
+			grid-template-columns: repeat(6, minmax(0, 1fr));
+		}
+	}
+	@media (min-width: 64rem) {
+		.bench {
+			grid-template-columns: repeat(12, minmax(0, 1fr));
+			grid-auto-rows: minmax(6rem, auto);
+		}
+	}
+</style>

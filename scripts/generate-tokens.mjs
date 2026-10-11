@@ -4,8 +4,9 @@
  * (exit 1) when the committed file differs from what the frontmatter
  * produces — the build runs that mode so docs and CSS cannot drift apart.
  *
- * Emits reference tokens only (colors, font stacks, type roles, spacing).
- * Intent-level aliases (--home-*) stay hand-written in site.css and must
+ * Emits reference tokens only (colors, font stacks, type scale, spacing,
+ * layout, radii, motion).
+ * Semantic aliases live in src/styles/theme.css and must
  * point at these.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -71,9 +72,29 @@ for (const [role, props] of Object.entries(spec.typography ?? {})) {
 	}
 }
 
-for (const [name, value] of Object.entries(spec.spacing ?? {})) {
+for (const name of Object.keys(spec.space ?? {})) {
+	if (name in (spec.spacing ?? {})) {
+		console.warn(`generate-tokens: "${name}" is in both space and spacing; spacing wins`);
+	}
+}
+for (const [name, value] of Object.entries({ ...spec.space, ...spec.spacing })) {
 	lines.push(`\t--space-${name}: ${value};`);
 }
+
+const flat = (group, prefix, map = (v) => v) => {
+	for (const [name, value] of Object.entries(group ?? {})) {
+		lines.push(`\t--${prefix}-${name}: ${map(value)};`);
+	}
+};
+flat(spec.fonts, 'font');
+flat(spec.fontSize, 'font-size');
+flat(spec.leading, 'leading');
+flat(spec.weight, 'weight');
+flat(spec.tracking, 'tracking');
+flat(spec.layout, 'layout');
+flat(spec.rounded, 'radius');
+flat(spec.motion?.duration, 'duration');
+flat(spec.motion?.ease, 'ease');
 
 lines.push('}', '');
 const output = lines.join('\n');

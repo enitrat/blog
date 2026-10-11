@@ -1,0 +1,60 @@
+.dither {
+	position: relative;
+	display: block;
+	aspect-ratio: var(--ratio, auto);
+	overflow: hidden;
+	border-radius: inherit;
+	background: var(--surface);
+}
+.dither button {
+	display: block;
+	position: relative;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+}
+.dither button:focus-visible {
+	outline: 2px solid var(--ring);
+	outline-offset: -2px;
+}
+.dither picture,
+.dither img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	object-fit: cover;
+}
+.dither canvas {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	image-rendering: pixelated;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity var(--duration-base) var(--ease-out);
+}
+.dither[data-ready] canvas {
+	opacity: 1;
+}
+.dither button[aria-pressed="true"] canvas,
+.dither button:focus-visible canvas {
+	opacity: 0;
+}
+@media (hover: hover) {
+	.dither button:hover canvas {
+		opacity: 0;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.dither canvas {
+		transition: none;
+	}
+}

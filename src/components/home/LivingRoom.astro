@@ -3,7 +3,13 @@ import { Picture } from 'astro:assets';
 import poster from '../../assets/living-room.png';
 import sheets from '../../assets/room/sheets.json';
 import { getWritingIndex, postUrl } from '../../utils/writing';
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+import Label from '../ui/Label.astro';
+import Pill from '../ui/Pill.astro';
+import StatusDot from '../ui/StatusDot.astro';
 import Bookshelf from './room/Bookshelf.astro';
+import './room/room.css';
 
 // Only pieces the bake knew about have a manuscript on the desk. A newer piece
 // stays off it rather than getting a target with nothing under it.
@@ -14,7 +20,11 @@ const manuscripts = sheets.flatMap((sheet) => {
 });
 ---
 
-<div class="living-room" data-room>
+<!-- The room: one live scene that lives in the tile and moves into this dialog
+     when it opens (the script below reparents `[data-room]` and the renderer
+     follows the new size). The tile and the dialog share one playing state. -->
+<dialog class="room-dialog" data-room-dialog aria-label="The room">
+<div class="living-room" data-room data-mode="open">
 	<div class="living-room__stage" data-room-stage>
 	<Picture
 		class="living-room__poster"
@@ -24,29 +34,38 @@ const manuscripts = sheets.flatMap((sheet) => {
 		sizes="(max-width: 64rem) 100vw, 64rem"
 		formats={['avif']}
 		fallbackFormat="webp"
-		loading="eager"
-		fetchpriority="high"
-		decoding="sync"
+		loading="lazy"
+		decoding="async"
 	/>
 	<!-- The scene itself is the camera control once it is live: the scene names it
 	     and makes it focusable, so there is no chrome over the artwork. -->
 	<canvas class="living-room__canvas" aria-hidden="true"></canvas>
 
 	<div class="living-room__hotspots">
-		<a class="living-room__hotspot" href="#room-library" data-anchor="bookshelf">
+		<a class="living-room__hotspot" href="/reading/" data-anchor="bookshelf">
 			Browse the bookshelf
 		</a>
 		<button class="living-room__hotspot" type="button" data-anchor="record" aria-pressed="false">
 			Play the record
 		</button>
-
 		<a class="living-room__hotspot" href="/writing/" data-anchor="desk">
 			Sit at the desk
 		</a>
-
 	</div>
 
-	<p class="living-room__caption" aria-hidden="true"></p>
+	<div class="room-bar">
+		<div class="room-ui room-bar__title"><Label as="p">The room</Label></div>
+		<div class="room-ui room-bar__playing">
+			<Pill variant="chip"><span class="pill-text"><StatusDot live />Now playing</span></Pill>
+		</div>
+		<div class="room-ui room-bar__close">
+			<Button variant="ghost" size="sm" type="button" data-room-close>Close</Button>
+		</div>
+	</div>
+
+	<div class="room-ui living-room__caption" aria-hidden="true">
+		<Label as="p"><span data-caption-text></span></Label>
+	</div>
 	<div class="room-book-targets" data-book-targets hidden aria-label="Books on this shelf"></div>
 	<!-- Real links over the baked manuscripts: the scene lays each over the
 	     sheet it names once the camera is at the desk. -->
@@ -57,41 +76,49 @@ const manuscripts = sheets.flatMap((sheet) => {
 	</nav>
 
 	<!-- The camera's controls for the keyboard and screen readers: hidden until
-	     focused, since a pointer or finger steers the room itself. One chevron
-	     asset, rotated, points back out and along the shelves. -->
+	     focused, since a pointer or finger steers the room itself. -->
 	<div class="room-controls">
-		<svg width="0" height="0" aria-hidden="true" focusable="false">
-			<symbol id="room-chevron" viewBox="0 0 24 24">
-				<path d="M15 4 7 12l8 8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
-			</symbol>
-		</svg>
-		<button class="room-controls__back" type="button" data-shelf-exit>
-			<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#room-chevron" /></svg>
-			<span data-shelf-exit-label>Back to the room</span>
-		</button>
+		<div class="room-ui room-controls__back">
+			<Button variant="ghost" size="sm" type="button" data-shelf-exit>
+				<Icon name="chevron-left" /><span data-shelf-exit-label>Back to the room</span>
+			</Button>
+		</div>
 		<p class="room-controls__status" role="status" data-shelf-status></p>
-		<button class="room-controls__step" type="button" data-row-previous aria-label="Look at the shelf above">
-			<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#room-chevron" /></svg>
-		</button>
-		<button class="room-controls__step" type="button" data-row-next aria-label="Look at the shelf below">
-			<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#room-chevron" /></svg>
-		</button>
-		<button class="room-controls__pan" type="button" data-shelf-previous aria-label="More books to the left" hidden>
-			<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#room-chevron" /></svg>
-		</button>
-		<button class="room-controls__pan" type="button" data-shelf-next aria-label="More books to the right" hidden>
-			<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#room-chevron" /></svg>
-		</button>
-		<button class="room-controls__audio" type="button" data-shelf-audio hidden>Stop the record</button>
+		<div class="room-ui room-controls__rows">
+			<Button variant="ghost" size="sm" type="button" data-row-previous aria-label="Look at the shelf above">
+				<span class="flip" data-turn="up"><Icon name="arrow-up" /></span>
+			</Button>
+			<Button variant="ghost" size="sm" type="button" data-row-next aria-label="Look at the shelf below">
+				<span class="flip" data-turn="down"><Icon name="arrow-up" /></span>
+			</Button>
+		</div>
+		<div class="room-ui room-controls__pans">
+			<Button variant="ghost" size="sm" type="button" data-shelf-previous aria-label="More books to the left" hidden>
+				<Icon name="chevron-left" />
+			</Button>
+			<Button variant="ghost" size="sm" type="button" data-shelf-next aria-label="More books to the right" hidden>
+				<Icon name="chevron-right" />
+			</Button>
+		</div>
+		<div class="room-ui room-controls__audio">
+			<Button variant="primary" size="sm" type="button" data-shelf-audio hidden>
+				<Icon name="pause" size="sm" />Stop the record
+			</Button>
+		</div>
 	</div>
 	</div>
 	<Bookshelf />
 </div>
+</dialog>
 
 <script>
 	import { mountBookshelf } from './room/bookshelf';
 
 	const room = document.querySelector<HTMLElement>('[data-room]');
+	const dialog = document.querySelector<HTMLDialogElement>('[data-room-dialog]');
+	// The tile on the bench: where the room lives until it is opened.
+	const tile = document.querySelector<HTMLElement>('[data-room-tile]');
+	const slot = tile?.querySelector<HTMLElement>('[data-room-slot]');
 	const canvas = room?.querySelector<HTMLCanvasElement>('.living-room__canvas');
 
 	const player = room?.querySelector<HTMLButtonElement>('[data-anchor="record"]');
@@ -201,6 +228,7 @@ const manuscripts = sheets.flatMap((sheet) => {
 		// The platter turns from `cueing` on, because by then something really is
 		// coming out of the speaker.
 		room?.toggleAttribute('data-playing', on);
+		tile?.toggleAttribute('data-playing', on);
 		// The button's own label just changed. If it is the thing being pointed
 		// at, the caption is naming it and has to say the new thing.
 		const spot = pointed();
@@ -342,12 +370,14 @@ const manuscripts = sheets.flatMap((sheet) => {
 		(navigator as { connection?: { saveData?: boolean } }).connection?.saveData === true;
 
 	// Tell the bookshelf a renderer is possible before it mounts, so an entrance
-	// click during the load still means "browse" rather than "jump to the list".
+	// click during the load still means "browse" rather than "go to /reading/".
 	if (room && canvas && canRender) room.dataset.canRender = '';
 	const bookshelf = room ? mountBookshelf(room) : undefined;
 
-	if (room && canvas && bookshelf) {
+	if (room && canvas && bookshelf && dialog) {
 		let loading: Promise<void> | undefined;
+		// The scene mounts where it is shown, so it is measured at its real size.
+		// A phone, or anyone who has not asked, never fetches it.
 		const load = () => {
 			if (loading) return loading;
 			room.setAttribute('aria-busy', 'true');
@@ -361,6 +391,12 @@ const manuscripts = sheets.flatMap((sheet) => {
 					bookshelf.fallback();
 				} finally {
 					room.removeAttribute('aria-busy');
+					// A room that could not start leaves the tile as the poster and
+					// its plain links.
+					if (!room.hasAttribute('data-live')) {
+						tile?.removeAttribute('data-ready');
+						settle('open');
+					}
 					// A desk that could not be sat at still leads to the writing.
 					if (!room.hasAttribute('data-live') && room.dataset.intent === 'desk')
 						location.assign('/writing/');
@@ -369,10 +405,60 @@ const manuscripts = sheets.flatMap((sheet) => {
 			})();
 			return loading;
 		};
-		// Explicit activation always loads; the eager path stays off touch, where
-		// the poster already answers the page. A tap on the record or the desk
-		// before the room is there is remembered, and the scene flies to it on
-		// arrival; the record starts playing at once either way.
+		/** One scene, two homes: the tile, and the open dialog. Moving the element
+		 *  keeps the WebGL context; the scene's observers see the new size. */
+		function settle(where: 'tile' | 'open') {
+			const home = where === 'tile' && slot ? slot : dialog;
+			room.dataset.mode = home === slot ? 'tile' : 'open';
+			if (room.parentElement !== home) home.append(room);
+		}
+		const open = () => {
+			settle('open');
+			if (!dialog.open) dialog.showModal();
+			void load();
+		};
+		if (canRender) {
+			tile?.setAttribute('data-ready', '');
+			// Whatever is clicked in the tile opens the room large. A glowing object
+			// has already been acted on by the scene by the time the click reaches
+			// here, so the dialog opens at that object's view; anything else opens
+			// at the overview.
+			tile?.addEventListener('click', open);
+			// A desktop runs the scene in the tile itself, once the page is idle.
+			// A phone, or a device that asked to save data, waits for a tap.
+			if (!coarse && memory >= 4 && !saveData) {
+				const start = () => {
+					if (dialog.open) return;
+					settle('tile');
+					void load();
+				};
+				if (document.readyState === 'complete') setTimeout(start, 0);
+				else addEventListener('load', () => setTimeout(start, 0), { once: true });
+			}
+		}
+		dialog.querySelector('[data-room-close]')?.addEventListener('click', () => dialog.close());
+		// Escape belongs to the room first: it steps back out of a shelf or the
+		// desk, and only from the overview does it close the dialog.
+		let atRoom = true;
+		dialog.addEventListener('keydown', (event) => {
+			if (event.key === 'Escape') atRoom = !bookshelf.active && (room.dataset.view ?? 'room') === 'room';
+		}, true);
+		dialog.addEventListener('keydown', (event) => {
+			if (event.key === 'Escape' && !atRoom) event.preventDefault();
+		});
+		dialog.addEventListener('close', () => {
+			// Closing from inside a shelf leaves the address at the room's door.
+			if (bookshelf.active) {
+				history.replaceState(history.state, '', location.pathname + location.search);
+				dispatchEvent(new PopStateEvent('popstate'));
+			}
+			// Back to the tile, at the overview. A phone's room stays in the dialog.
+			room.dispatchEvent(new Event('room:reset'));
+			if (room.hasAttribute('data-live') && !coarse) settle('tile');
+		});
+		// A tap on the record or the desk before the room is there is remembered,
+		// and the scene flies to it on arrival; the record starts playing at once
+		// either way.
 		room.querySelector('[data-anchor="bookshelf"]')?.addEventListener('click', () => {
 			if (canRender) void load();
 		});
@@ -387,15 +473,13 @@ const manuscripts = sheets.flatMap((sheet) => {
 					void load();
 				});
 		}
-		addEventListener('hashchange', () => {
-			if (bookshelf.active && canRender) void load();
-		});
-		const idle = window.requestIdleCallback ?? ((fn: () => void) => setTimeout(fn, 200));
-		if ((bookshelf.active || (!coarse && memory >= 4 && !saveData)) && canRender) {
-			const boot = () => idle(() => { void load(); }, { timeout: 3000 });
-			if (document.readyState === 'complete') boot();
-			else addEventListener('load', boot, { once: true });
-		}
+		// An address inside the shelves opens the room it points into.
+		const arrive = () => {
+			if (bookshelf.active && canRender) open();
+		};
+		addEventListener('hashchange', arrive);
+		if (document.readyState === 'complete') arrive();
+		else addEventListener('load', arrive, { once: true });
 		addEventListener('pagehide', (event) => { if (!event.persisted) bookshelf.dispose(); });
 	}
 </script>

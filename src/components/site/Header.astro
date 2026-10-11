@@ -1,0 +1,61 @@
+---
+/**
+ * Header: site name and primary navigation, built from atoms. The current section is marked
+ * with aria-current.
+ */
+import { getTrips } from '../../utils/trips';
+import Link from '../ui/Link.astro';
+
+const hasTrips = (await getTrips()).length > 0;
+
+const path = Astro.url.pathname.replace(/(.)\/$/, '$1');
+const current = (href: string) => path === href || path.startsWith(`${href}/`);
+const links = [
+	{ label: 'Writing', href: '/writing' },
+	{ label: 'Reading', href: '/reading' },
+	{ label: 'Places', href: '/places' },
+	{ label: 'About', href: '/about' },
+].filter((l) => l.href !== '/places' || hasTrips);
+---
+
+<header class="header">
+	<Link class="home" href="/" aria-label="Mathieu Saugier, home" aria-current={path === '/' ? 'page' : undefined}>Mathieu Saugier</Link>
+	<nav aria-label="Primary navigation">
+		{
+			links.map((l) => (
+				<Link variant="quiet" href={l.href} aria-current={current(l.href) ? 'page' : undefined}>
+					{l.label}
+				</Link>
+			))
+		}
+	</nav>
+</header>
+
+<style>
+	.header {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-2) var(--space-6);
+		padding-block: var(--space-6);
+	}
+	.header :global(.home) {
+		font-weight: var(--weight-title);
+		letter-spacing: var(--tracking-title);
+	}
+	nav {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2) var(--space-5);
+	}
+	/* Current page: full ink, medium weight and an accent underline; the rest stay muted. */
+	nav :global(a[aria-current="page"]) {
+		color: var(--link);
+		font-weight: var(--weight-ui);
+		text-decoration: underline;
+		text-decoration-color: var(--accent-graphic);
+		text-decoration-thickness: 2px;
+		text-underline-offset: 0.35em;
+	}
+</style>

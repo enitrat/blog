@@ -1,0 +1,257 @@
+---
+/**
+ * Prose: essay typography for rendered markdown. Wrap `<Content />` in it.
+ * Geist at --text-body, measure --measure, justified with hyphenation
+ * (left-aligned where hyphens:auto is unsupported). Each section ends with a quiet
+ * arrow-up Icon and "In short" Link (added by a small script from a template, absent without JS) pointing at InShort's `#in-short`.
+ * @prop ditherFigures Dither the images, revealed on hover/tap (default false: diagrams stay legible)
+ * @slot default The rendered markdown
+ */
+import '../ui/dither.css';
+import { IN_SHORT_LABEL } from '../../utils/inShort';
+import Icon from '../ui/Icon.astro';
+import Link from '../ui/Link.astro';
+
+interface Props {
+	ditherFigures?: boolean;
+}
+const { ditherFigures = false } = Astro.props;
+const back = IN_SHORT_LABEL;
+---
+
+<div class="prose" data-dither-figures={ditherFigures ? '' : undefined}><slot /></div>
+
+<template id="prose-up">
+	<p class="up">
+		<Link href="#in-short" variant="quiet"><Icon name="arrow-up" size="sm" /> {back}</Link>
+	</p>
+</template>
+
+<script>
+	import { ditherIn, wrapImages } from '../ui/dither';
+
+	const tpl = document.getElementById('prose-up') as HTMLTemplateElement | null;
+	for (const prose of document.querySelectorAll<HTMLElement>('.prose')) {
+		const h2s = [...prose.querySelectorAll(':scope > h2')];
+		if (tpl && document.getElementById('in-short')) {
+			for (const h2 of [...h2s.slice(1), null]) {
+				const up = tpl.content.cloneNode(true);
+				h2 ? h2.before(up) : prose.append(up);
+			}
+		}
+		if (prose.hasAttribute('data-dither-figures')) {
+			wrapImages(prose);
+			ditherIn(prose);
+		}
+	}
+</script>
+
+<style>
+	.prose {
+		--prose-flow: 1.15em;
+		max-width: var(--measure);
+		margin-inline: auto;
+		font-family: var(--font-body);
+		font-size: var(--text-body);
+		font-weight: var(--weight-body);
+		line-height: var(--leading-body);
+		color: var(--foreground);
+		text-align: justify;
+		hyphens: auto;
+		hyphenate-limit-chars: 6 3 3;
+		font-feature-settings: 'kern', 'liga';
+	}
+	@supports not (hyphens: auto) {
+		.prose { text-align: left; }
+	}
+	@media (max-width: 30rem) {
+		.prose { text-align: left; }
+	}
+
+	.prose :global(p),
+	.prose :global(ul),
+	.prose :global(ol) {
+		margin: 0 0 var(--prose-flow);
+	}
+	.prose :global(p) {
+		text-wrap: pretty;
+		hyphenate-limit-lines: 2;
+	}
+
+	/* Headings: left-aligned, never hyphenated. */
+	.prose :global(h2),
+	.prose :global(h3),
+	.prose :global(h4) {
+		text-align: left;
+		hyphens: manual;
+		text-wrap: balance;
+		font-weight: var(--weight-title);
+		scroll-margin-top: var(--space-6);
+	}
+	.prose :global(h2) {
+		margin: var(--space-16) 0 var(--space-5);
+		font-size: var(--text-heading);
+		line-height: var(--leading-snug);
+		letter-spacing: var(--tracking-title);
+	}
+	.prose :global(h2:first-of-type) {
+		margin-block-start: 0;
+	}
+	.prose :global(h3) {
+		margin: var(--space-10) 0 var(--space-3);
+		font-size: var(--text-body);
+		line-height: var(--leading-ui);
+	}
+	.prose :global(h4) {
+		margin: var(--space-8) 0 var(--space-2);
+		font-size: var(--text-ui);
+	}
+
+	/* Links in markdown: same look as Link inline. */
+	.prose :global(a:not(.link)) {
+		color: var(--link);
+		text-decoration: underline;
+		text-decoration-thickness: 1px;
+		text-underline-offset: 0.2em;
+		text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+	}
+	.prose :global(a:not(.link):hover) {
+		text-decoration-color: currentColor;
+	}
+	.prose :global(a:not(.link):focus-visible) {
+		outline: 2px solid var(--ring);
+		outline-offset: 2px;
+		border-radius: var(--radius-sm);
+	}
+
+	/* Lists */
+	.prose :global(ul),
+	.prose :global(ol) {
+		padding-inline-start: var(--space-5);
+	}
+	.prose :global(li) {
+		margin-block-end: var(--space-2);
+		padding-inline-start: var(--space-1);
+	}
+	.prose :global(li::marker) {
+		color: var(--muted-foreground);
+	}
+
+	/* Blockquote */
+	.prose :global(blockquote) {
+		margin: 0 0 var(--prose-flow);
+		padding-inline-start: var(--space-4);
+		border-inline-start: 2px solid var(--border);
+		color: var(--muted-foreground);
+	}
+	.prose :global(blockquote > :last-child) {
+		margin-block-end: 0;
+	}
+	.prose :global(hr) {
+		display: none; /* section breaks in the markdown; the h2 spacing carries them */
+	}
+
+	/* Code: Shiki inlines the light colour and `--shiki-dark` per token (code-theme*.json);
+	   the ground stays transparent. The dark rule must beat inline styles, hence !important. */
+	/* biome-ignore-start lint/complexity/noImportantStyles: overrides Shiki's inline colours */
+	@media (prefers-color-scheme: dark) {
+		:global(:root:not([data-theme="light"])) .prose :global(.astro-code span) {
+			color: var(--shiki-dark) !important;
+		}
+	}
+	:global(:root[data-theme="dark"]) .prose :global(.astro-code span) {
+		color: var(--shiki-dark) !important;
+	}
+	/* biome-ignore-end lint/complexity/noImportantStyles: overrides Shiki's inline colours */
+	.prose :global(code) {
+		font-family: var(--font-code);
+		font-size: 0.875em;
+		hyphens: manual;
+	}
+	.prose :global(:not(pre) > code) {
+		padding: 0.1em 0.35em;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-sm);
+	}
+	.prose :global(pre) {
+		position: relative;
+		margin: 0 0 var(--space-6);
+		padding: var(--space-4);
+		overflow-x: auto;
+		border-block: 1px solid var(--border);
+		background: transparent !important; /* Shiki inlines a background */
+		font-size: var(--text-small);
+		line-height: var(--leading-ui);
+		text-align: left;
+		tab-size: 2;
+	}
+	.prose :global(pre:focus-visible) {
+		outline: 2px solid var(--ring);
+		outline-offset: 4px;
+	}
+
+	/* Images, figures, captions */
+	.prose :global(img) {
+		display: block;
+		max-width: 100%;
+		height: auto;
+		margin: var(--space-6) 0;
+	}
+	.prose :global(figure) {
+		margin: var(--space-8) 0;
+	}
+	.prose :global(figure img) {
+		margin: 0;
+	}
+	.prose :global(figcaption) {
+		margin-block-start: var(--space-3);
+		font-family: var(--font-code);
+		font-size: var(--text-small);
+		line-height: var(--leading-ui);
+		color: var(--muted-foreground);
+		text-align: left;
+	}
+	.prose :global(.dither) {
+		margin: var(--space-6) 0;
+	}
+	.prose :global(.dither img) {
+		margin: 0;
+	}
+
+	/* Tables */
+	.prose :global(table) {
+		display: block;
+		width: fit-content;
+		max-width: 100%;
+		margin: 0 0 var(--space-6);
+		overflow-x: auto;
+		border-collapse: collapse;
+		font-size: var(--text-ui);
+		line-height: var(--leading-ui);
+	}
+	.prose :global(th),
+	.prose :global(td) {
+		padding: var(--space-2) var(--space-4) var(--space-2) 0;
+		border-block-end: 1px solid var(--border);
+		text-align: left;
+		vertical-align: top;
+		hyphens: manual;
+	}
+	.prose :global(th) {
+		border-block-end-color: var(--foreground);
+		font-family: var(--font-code);
+		font-size: var(--text-label);
+		font-weight: var(--weight-ui);
+		letter-spacing: var(--tracking-label);
+		text-transform: uppercase;
+		color: var(--muted-foreground);
+	}
+
+	/* Back link at the end of each section; the Link atom styles itself. */
+	.prose :global(.up) {
+		margin: var(--space-8) 0 0;
+		font-family: var(--font-code);
+		font-size: var(--text-small);
+		text-align: left;
+	}
+</style>

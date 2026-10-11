@@ -1,0 +1,143 @@
+---
+/**
+ * Button: pill action. Renders <a> with `href`, otherwise <button>.
+ * @prop variant "primary" | "ghost" | "inverse" (default "primary")
+ *   primary: accent fill. ghost: hairline outline. inverse: fill in `--foreground` (flips on dark surfaces).
+ * @prop size "md" | "sm" (default "md"); md is 44px tall, sm keeps a 44px hit area via a pseudo-element
+ * @prop href Renders an <a>
+ * @prop pressed Toggle state, mapped to aria-pressed (button only)
+ * @prop disabled Disabled button (aria-disabled on <a>)
+ * @slot default Label; may contain an <Icon>
+ */
+interface Props extends Omit<astroHTML.JSX.ButtonHTMLAttributes, 'type'> {
+	variant?: 'primary' | 'ghost' | 'inverse';
+	size?: 'md' | 'sm';
+	href?: string;
+	pressed?: boolean;
+	disabled?: boolean;
+	type?: 'button' | 'submit' | 'reset';
+}
+const {
+	variant = 'primary',
+	size = 'md',
+	href,
+	pressed,
+	disabled = false,
+	type = 'button',
+	class: cls,
+	...rest
+} = Astro.props;
+const common = {
+	class: ['button', cls].filter(Boolean).join(' '),
+	'data-variant': variant,
+	'data-size': size,
+};
+---
+
+{
+	href ? (
+		<a {...common} {...rest} href={disabled ? undefined : href} role={disabled ? 'link' : undefined} aria-disabled={disabled ? 'true' : undefined}>
+			<slot />
+		</a>
+	) : (
+		<button {...common} {...rest} type={type} disabled={disabled} aria-pressed={pressed === undefined ? undefined : String(pressed)}>
+			<slot />
+		</button>
+	)
+}
+
+<style>
+	.button {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		min-height: var(--control-height-md);
+		padding: 0 1.1rem;
+		border: 0;
+		border-radius: var(--radius-pill);
+		font-family: var(--font-ui);
+		font-size: var(--text-ui);
+		font-weight: var(--weight-ui);
+		line-height: 1;
+		white-space: nowrap;
+		text-decoration: none;
+		cursor: pointer;
+		background: var(--btn-bg);
+		color: var(--btn-fg);
+		box-shadow: inset 0 0 0 1px var(--btn-edge, transparent);
+		transition:
+			background var(--duration-fast) var(--ease-out),
+			color var(--duration-fast) var(--ease-out),
+			box-shadow var(--duration-fast) var(--ease-out);
+	}
+	.button[data-size="sm"] {
+		min-height: var(--control-height-sm);
+		padding: 0 0.85rem;
+		font-size: var(--text-small);
+	}
+	/* 44px target on small buttons, both axes, without growing the visual. */
+	.button::after {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: max(100%, var(--target-min));
+		height: max(100%, var(--target-min));
+		transform: translate(-50%, -50%);
+	}
+
+	.button[data-variant="primary"] {
+		--btn-bg: var(--accent);
+		--btn-fg: var(--accent-foreground);
+	}
+	.button[data-variant="primary"]:hover {
+		--btn-bg: color-mix(in srgb, var(--accent) 85%, var(--surface-foreground));
+	}
+	.button[data-variant="primary"][aria-pressed="true"] {
+		--btn-bg: var(--surface-foreground);
+		--btn-fg: var(--surface);
+	}
+
+	.button[data-variant="ghost"] {
+		--btn-bg: transparent;
+		--btn-fg: var(--foreground);
+		--btn-edge: var(--border);
+	}
+	.button[data-variant="ghost"]:hover {
+		--btn-edge: currentColor;
+	}
+	.button[data-variant="ghost"][aria-pressed="true"] {
+		--btn-bg: var(--foreground);
+		--btn-fg: var(--surface);
+		--btn-edge: transparent;
+	}
+
+	.button[data-variant="inverse"] {
+		--btn-bg: var(--foreground);
+		--btn-fg: var(--surface);
+	}
+	.button[data-variant="inverse"]:hover {
+		--btn-bg: var(--accent);
+		--btn-fg: var(--accent-foreground);
+	}
+	.button[data-variant="inverse"][aria-pressed="true"] {
+		--btn-bg: var(--accent);
+		--btn-fg: var(--accent-foreground);
+	}
+
+	.button:focus-visible {
+		outline: 2px solid var(--ring);
+		outline-offset: 2px;
+	}
+	.button:disabled,
+	.button[aria-disabled="true"] {
+		opacity: var(--opacity-disabled);
+		cursor: not-allowed;
+		pointer-events: none;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.button { transition: none; }
+	}
+</style>

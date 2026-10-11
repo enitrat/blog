@@ -1,0 +1,132 @@
+---
+/**
+ * ListRow: one hairline-separated row of a list (date, title, description, arrow on hover).
+ * Stack rows in any container; each draws its own top rule.
+ * @prop href Makes the row a link (arrow appears on hover and focus)
+ * @prop date Mono text in the left column; any string ("12 Mar", "Home")
+ * @prop datetime Machine value; renders the date as a <time>
+ * @prop title Row title
+ * @prop description Muted line under the title
+ * @prop headingLevel "h2" | "h3" (default "h3"): the row title's heading level; a page whose rows are
+ *   its top-level sections passes "h2"
+ * @prop tag Small status tag next to the title (accent tone), e.g. "Latest"
+ * @slot meta Extra text under the date (e.g. other languages)
+ * @slot default Extra content under the description (e.g. a note). No links when `href` is set.
+ */
+import Icon from './Icon.astro';
+import Tag from './Tag.astro';
+
+interface Props {
+	href?: string;
+	date?: string;
+	datetime?: string;
+	title: string;
+	description?: string;
+	tag?: string;
+	headingLevel?: 'h2' | 'h3';
+}
+const { href, date, datetime, title, description, tag, headingLevel: Heading = 'h3' } = Astro.props;
+const Root = href ? 'a' : 'div';
+---
+
+<article class="row">
+	<Root class="inner" href={href} data-nodate={date || Astro.slots.has('meta') ? undefined : ''}>
+		{(date || Astro.slots.has('meta')) && <div class="when">
+			{date && (datetime ? <time datetime={datetime}>{date}</time> : <span>{date}</span>)}
+			<slot name="meta" />
+		</div>}
+		<div class="what">
+			<Heading>{title}{tag && <Tag tone="accent">{tag}</Tag>}</Heading>
+			{description && <p>{description}</p>}
+			<slot />
+		</div>
+		{href && <span class="arrow"><Icon name="arrow-right" /></span>}
+	</Root>
+</article>
+
+<style>
+	.row {
+		border-top: 1px solid var(--border);
+	}
+	.inner {
+		display: grid;
+		grid-template-columns: var(--space-24) minmax(0, 1fr) var(--space-6);
+		align-items: baseline;
+		gap: var(--gap-bench);
+		padding-block: var(--space-4);
+		color: var(--foreground);
+		text-decoration: none;
+	}
+	div.inner {
+		grid-template-columns: var(--space-24) minmax(0, 1fr);
+	}
+	.inner[data-nodate] {
+		grid-template-columns: minmax(0, 1fr) var(--space-6);
+	}
+	div.inner[data-nodate] {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.when {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0 var(--space-2);
+		text-transform: uppercase;
+		font-family: var(--font-code);
+		font-size: var(--text-label);
+		letter-spacing: var(--tracking-label);
+		color: var(--muted-foreground);
+	}
+	h2,
+	h3 {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-2);
+		font-size: var(--text-ui);
+		font-weight: var(--weight-ui);
+		line-height: var(--leading-display);
+		letter-spacing: var(--tracking-title);
+		text-wrap: balance;
+	}
+	p {
+		margin-top: var(--space-1);
+		font-size: var(--text-small);
+		line-height: var(--leading-ui);
+		color: var(--muted-foreground);
+	}
+	.arrow {
+		display: inline-flex;
+		justify-self: end;
+		opacity: 0;
+		transform: translateX(calc(var(--space-2) * -1));
+		transition:
+			opacity var(--duration-fast) var(--ease-out),
+			transform var(--duration-fast) var(--ease-out);
+	}
+	a.inner:hover .arrow,
+	a.inner:focus-visible .arrow {
+		opacity: 1;
+		transform: none;
+	}
+	a.inner:focus-visible {
+		outline: 2px solid var(--ring);
+		outline-offset: -2px;
+	}
+	@media (max-width: 40rem) {
+		/* date above the title, so long titles keep the full width */
+		.inner,
+		div.inner {
+			grid-template-columns: minmax(0, 1fr);
+			gap: var(--space-1);
+		}
+		.arrow {
+			display: none;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.arrow {
+			transition: none;
+			transform: none;
+		}
+	}
+</style>

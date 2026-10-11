@@ -1,0 +1,25 @@
+---
+/**
+ * ListRows: the group that holds `ListRow`s. Owns the list's offset below its heading and its
+ * closing hairline, so a page or tile never styles the rows from outside.
+ * @prop variant "page" | "tile" (default "page"). page: capped at `--list-max`, closing rule.
+ *   tile: pulls up under the tile header, no rule (the tile has its own edge).
+ * @slot default `ListRow`s
+ */
+interface Props {
+	variant?: 'page' | 'tile';
+}
+const { variant = 'page' } = Astro.props;
+---
+
+<div class="rows" data-variant={variant}><slot /></div>
+
+<style>
+	.rows[data-variant="page"] {
+		max-width: var(--list-max);
+		border-bottom: 1px solid var(--border);
+	}
+	.rows[data-variant="tile"] {
+		margin-top: calc(var(--space-2) * -1);
+	}
+</style>

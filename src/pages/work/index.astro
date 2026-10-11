@@ -1,12 +1,15 @@
 ---
-import ArrowIcon from '../../components/ArrowIcon.astro';
-import Page from '../../layouts/Page.astro';
+import Label from '../../components/ui/Label.astro';
+import ListRow from '../../components/ui/ListRow.astro';
+import ListRows from '../../components/ui/ListRows.astro';
+import Page from '../../components/ui/Page.astro';
+import PageTitle from '../../components/ui/PageTitle.astro';
+import Shell from '../../layouts/Shell.astro';
 import { getWorkIndex, workUrl } from '../../utils/work';
 
 const reports = await getWorkIndex();
 
-// Same two groups as the homepage index: employment, then things built
-// alongside it. Each heading id doubles as the fragment the homepage index
+// Same two groups as the homepage index. Each heading id is the fragment the homepage
 // links to, so `/work/#projects` lands on the group it names.
 const groups = [
 	{ id: 'work', label: 'Work', reports: reports.filter((r) => r.data.kind === 'work') },
@@ -14,57 +17,25 @@ const groups = [
 ].filter((group) => group.reports.length > 0);
 ---
 
-<Page
-	title="Work"
-	description="What I have built and worked on."
->
-	<div class="measure">
-		<header class="page-head">
-			<h1>Work</h1>
-		</header>
-
-		{groups.map((group) => (
-			<section class="group" aria-labelledby={group.id}>
-				<h2 class="label" id={group.id}>{group.label}</h2>
-				<div class="writing-ledger">
-					{group.reports.map((report) => (
-						<article>
-							<a class="writing-ledger__row" href={workUrl(report)}>
-								<span class="writing-ledger__meta">
-									{[report.data.role, report.data.period].filter(Boolean).join(' · ') || 'Project'}
-								</span>
-								<div>
-									<h3>{report.data.title}</h3>
-									<p>{report.data.summary}</p>
-								</div>
-								<span class="writing-ledger__arrow" aria-hidden="true">
-									<ArrowIcon />
-								</span>
-							</a>
-						</article>
-					))}
-				</div>
-			</section>
-		))}
-	</div>
-</Page>
-
-<style>
-	.group {
-		padding-top: clamp(2rem, 3.5vw, 3rem);
-	}
-
-	/* The page head already spaces itself from the first group. */
-	.page-head + .group {
-		padding-top: 0;
-	}
-
-	.group:last-of-type {
-		padding-bottom: clamp(4rem, 8vw, 7rem);
-	}
-
-	.group h2 {
-		margin: 0 0 1.1rem;
-		font-family: var(--home-sans);
-	}
-</style>
+<Shell title="Work" description="What I have built and worked on.">
+	<Page>
+		<PageTitle>Work</PageTitle>
+		{
+			groups.map((group) => (
+				<section aria-labelledby={group.id}>
+					<Label as="h2" id={group.id} space="sm">{group.label}</Label>
+					<ListRows>
+						{group.reports.map((r) => (
+							<ListRow
+								href={workUrl(r)}
+								date={r.data.period ?? 'Project'}
+								title={r.data.title}
+								description={r.data.summary}
+							/>
+						))}
+					</ListRows>
+				</section>
+			))
+		}
+	</Page>
+</Shell>

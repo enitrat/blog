@@ -77,7 +77,7 @@ async function visit(browser, engineName, url, viewport) {
 		if (message.type() === 'error' || text.includes('THREE.')) errors.push(text);
 	});
 	page.on('response', (response) => {
-		if (response.status() >= 400 && response.url().startsWith(url)) {
+		if (response.status() >= 400 && response.url().startsWith(new URL(url).origin)) {
 			errors.push(`${response.status()} ${response.url()}`);
 		}
 	});
@@ -86,17 +86,17 @@ async function visit(browser, engineName, url, viewport) {
 	try {
 		await page.goto(url, { waitUntil: 'load' });
 
-		// The hero must not be able to shift layout: it needs a reserved box
-		// before the canvas ever boots.
+		// The room's tile must not be able to shift layout: it needs a reserved
+		// box before the poster or the dialog's canvas ever load.
 		await check(`${label} reserves height`, async () => {
-			const reserved = await page.locator('.living-room').evaluate((el) => el.clientHeight);
+			const reserved = await page.locator('.room-tile').evaluate((el) => el.clientHeight);
 			assert.ok(reserved > 200, `got ${reserved}px`);
 		});
 
 		// A <canvas> is never an LCP candidate; the poster is what the metric
 		// measures, so it has to be a real eager <img>.
 		await check(`${label} poster is eager`, async () => {
-			const poster = page.locator('.living-room__poster');
+			const poster = page.locator('.room-tile__poster');
 			assert.equal(await poster.count(), 1);
 			assert.equal(await poster.getAttribute('loading'), 'eager');
 			assert.ok((await poster.getAttribute('alt'))?.length > 20, 'poster needs real alt text');
@@ -105,8 +105,11 @@ async function visit(browser, engineName, url, viewport) {
 		// Both controls are real DOM, present and operable before any of the 3D
 		// exists — on every device, including the ones that never load it.
 		await check(`${label} controls are real`, async () => {
-			assert.equal(await page.locator('a.living-room__hotspot[href="#room-library"]').count(), 1);
+			assert.equal(await page.locator('a.living-room__hotspot[href="/reading/"]').count(), 1);
 			assert.equal(await page.locator('button.living-room__hotspot').count(), 1);
+			// The way in is real too: an Open button on the tile, and no play button.
+			assert.equal(await page.locator('button[data-room-open]').count(), 1);
+			assert.equal(await page.locator('[data-tile-record]').count(), 0);
 			const reachable = await page.evaluate(() =>
 				[...document.querySelectorAll('.living-room__hotspot')].every(
 					(el) => el.tabIndex >= 0 && el.textContent.trim().length > 0,
@@ -125,6 +128,18 @@ async function visit(browser, engineName, url, viewport) {
 		});
 		const gateOpens = webgl2 && !viewport.hasTouch;
 
+		// A desktop runs the scene in the tile itself; a phone's tap is what loads
+		// it, into the opened room.
+		const openRoom = async () => {
+			await page.locator('[data-room-open]').click();
+			await page.locator('[data-room-dialog][open]').waitFor({ timeout: 5000 });
+		};
+		const closeRoom = async () => {
+			await page.keyboard.press('Escape');
+			await page.waitForFunction(() => !document.querySelector('[data-room-dialog]')?.open, null, {
+				timeout: 5000,
+			});
+		};
 		const booted =
 			gateOpens &&
 			(await page
@@ -145,6 +160,157 @@ async function visit(browser, engineName, url, viewport) {
 					};
 				})
 			: null;
+		if (booted) {
+			const catalogue = /Browse books as a list|Glowing books hold notes/;
+			const dialogText = () => page.locator('[data-room-dialog]').evaluate((el) => el.textContent);
+			const view = (name) =>
+				page.waitForFunction(
+					(name) => {
+						const host = document.querySelector('[data-room]');
+						return host?.dataset.view === name && !host.hasAttribute('data-traveling');
+					},
+					name,
+					{ timeout: 8000 },
+				);
+			const home = () =>
+				page.evaluate(() => {
+					const host = document.querySelector('[data-room]');
+					return {
+						mode: host.dataset.mode,
+						inTile: !!host.closest('.room-tile'),
+						inDialog: !!host.closest('[data-room-dialog]'),
+						open: document.querySelector('[data-room-dialog]').open,
+						view: host.dataset.view,
+					};
+				});
+			const tileBox = () => page.locator('.room-tile').boundingBox();
+			const shot = async (name) => {
+				if (process.env.ROOM_SHOTS)
+					await page.screenshot({
+						path: `${process.env.ROOM_SHOTS}/${label.replace('/', '-')}-${name}.png`,
+					});
+			};
+
+			await check(`${label} the scene runs inside the tile`, async () => {
+				const at = await home();
+				assert.deepEqual([at.mode, at.inTile, at.open], ['tile', true, false], JSON.stringify(at));
+				const canvas = await page.locator('.living-room__canvas').boundingBox();
+				assert.ok(canvas && canvas.width > 200 && canvas.height > 150, JSON.stringify(canvas));
+				const [tile, bio] = await Promise.all([
+					tileBox(),
+					page
+						.locator('#bio-title')
+						.evaluate((el) => el.closest('.tile').getBoundingClientRect().toJSON()),
+				]);
+				// Equal rows: the tile ends where the bio tile does, on desktop.
+				if (viewport.width >= 1024) {
+					assert.ok(
+						Math.abs(tile.y + tile.height - (bio.y + bio.height)) < 2,
+						JSON.stringify({ tile, bio }),
+					);
+				}
+			});
+
+			// Pointing at a glowing thing in the tile lights it, shows the pointer
+			// and names it with the tag.
+			await check(`${label} tile objects answer hover with a name tag`, async () => {
+				for (const [anchor, name] of [
+					['bookshelf', /bookshelf/i],
+					['record', /record/i],
+					['desk', /desk/i],
+				]) {
+					const spot = await page.locator(`[data-anchor="${anchor}"]`).boundingBox();
+					assert.ok(spot, anchor);
+					await page.mouse.move(spot.x + spot.width / 2, spot.y + spot.height / 2);
+					await page.waitForSelector('.living-room__caption[data-shown]', { timeout: 3000 });
+					assert.match(await page.locator('[data-caption-text]').textContent(), name);
+					assert.equal(
+						await page.locator('.living-room__canvas').evaluate((el) => el.style.cursor),
+						'pointer',
+					);
+					await page.mouse.move(0, 0);
+					await page.waitForSelector('.living-room__caption:not([data-shown])', { timeout: 3000 });
+				}
+			});
+			await shot('tile-live');
+
+			// Empty space in the tile opens the room large at the overview.
+			await check(`${label} empty space in the tile opens the room at the overview`, async () => {
+				const tile = await tileBox();
+				await page.mouse.click(tile.x + tile.width * 0.94, tile.y + tile.height * 0.94);
+				await page.locator('[data-room-dialog][open]').waitFor({ timeout: 5000 });
+				await view('room');
+				const at = await home();
+				assert.deepEqual([at.mode, at.inDialog], ['open', true], JSON.stringify(at));
+				await shot('open-overview');
+				assert.doesNotMatch(await dialogText(), catalogue, 'catalogue text in the dialog');
+				assert.equal(await page.locator('[data-shelf-catalog], .room-library__legend').count(), 0);
+				await page.keyboard.press('Escape');
+				await page.waitForFunction(() => !document.querySelector('[data-room-dialog]').open);
+				const back = await home();
+				assert.deepEqual(
+					[back.mode, back.inTile, back.view],
+					['tile', true, 'room'],
+					JSON.stringify(back),
+				);
+			});
+
+			// The bookcase in the tile opens the room large and flies to the shelves.
+			await check(`${label} bookcase in the tile opens the dialog at the shelves`, async () => {
+				const spot = await page.locator('[data-anchor="bookshelf"]').boundingBox();
+				await page.mouse.click(spot.x + spot.width / 2, spot.y + spot.height / 2);
+				await page.locator('[data-room-dialog][open]').waitFor({ timeout: 5000 });
+				await view('shelf');
+				assert.match(await page.evaluate(() => location.hash), /^#bookshelf/);
+				await shot('open-shelves');
+			});
+
+			// Inside the dialog the room still takes clicks: a row, then a book.
+			await check(`${label} a row and a book work inside the dialog`, async () => {
+				await page.locator('.room-library__row:not([hidden])').first().click();
+				await page.waitForFunction(
+					() => document.querySelector('[data-shelf-status]').textContent === 'Top row',
+					null,
+					{ timeout: 8000 },
+				);
+				await view('shelf');
+				await shot('open-row');
+				const spine = page.locator('.room-library__spine[data-noted]:not([hidden])').first();
+				if (await spine.count()) {
+					await spine.click();
+					await page.locator('[data-room-book][open]').waitFor({ timeout: 8000 });
+					await shot('open-book');
+					await page.keyboard.press('Escape');
+					await page.waitForFunction(() => !document.querySelector('[data-room-book]').open, null, {
+						timeout: 5000,
+					});
+				}
+				assert.doesNotMatch(await dialogText(), catalogue, 'catalogue text in the dialog');
+			});
+
+			// Close returns the stage to the tile at the overview, whatever the level.
+			await check(`${label} close returns the room to the tile at the overview`, async () => {
+				await page.locator('[data-room-close]').click();
+				await page.waitForFunction(() => !document.querySelector('[data-room-dialog]').open);
+				await view('room');
+				const at = await home();
+				assert.deepEqual([at.mode, at.inTile], ['tile', true], JSON.stringify(at));
+				assert.equal(await page.evaluate(() => location.hash), '');
+				await shot('closed-tile');
+			});
+
+			// A canvas click is a real pick: the one at the desk lands in the desk view.
+			await check(`${label} desk in the tile opens the dialog at the desk`, async () => {
+				const spot = await page.locator('[data-anchor="desk"]').boundingBox();
+				await page.mouse.click(spot.x + spot.width / 2, spot.y + spot.height / 2);
+				await page.locator('[data-room-dialog][open]').waitFor({ timeout: 5000 });
+				await view('desk');
+				await page.locator('[data-room-close]').click();
+				await page.waitForFunction(() => !document.querySelector('[data-room-dialog]').open);
+				await view('room');
+			});
+		}
+
 		if (metrics) {
 			await check(`${label} stays within the room asset budget`, () => {
 				assert.ok(metrics.encodedBytes <= GLB_BUDGET, `${metrics.encodedBytes} GLB bytes`);
@@ -164,8 +330,7 @@ async function visit(browser, engineName, url, viewport) {
 			// shelves full screen, where swipes stand in for the arrows.
 			if (webgl2) {
 				await check(`${label} shelves open full screen and follow swipes`, async () => {
-					const room = page.locator('[data-room]');
-					await room.scrollIntoViewIfNeeded();
+					await page.locator('[data-room-open]').tap();
 					await page.locator('[data-anchor="bookshelf"]').tap();
 					const settled = () =>
 						page.waitForFunction(
@@ -323,6 +488,14 @@ async function visit(browser, engineName, url, viewport) {
 				await view('desk');
 				await page.keyboard.press('Escape');
 				await view('room');
+				// The dialog stayed: Escape stepped out of the desk and no further.
+				assert.equal(await page.locator('[data-room-dialog]').evaluate((el) => el.open), true);
+			});
+
+			// From the overview, Escape closes the dialog and the tile is back.
+			await check(`${label} escape closes the room from the overview`, async () => {
+				await closeRoom();
+				await openRoom();
 			});
 
 			await check(`${label} sofa leaves the bookshelf clear`, async () => {
@@ -416,7 +589,7 @@ setTimeout(() => {
 	stop();
 	process.exit(1);
 }, 600_000).unref();
-const url = `${base}/`;
+const url = `${base}${process.env.ROOM_PATH ?? '/'}`;
 try {
 	// An engine's own frames only: a run of every engine cleared the folder once.
 	if (SHOTS) {

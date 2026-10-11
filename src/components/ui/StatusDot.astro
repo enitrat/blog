@@ -1,0 +1,38 @@
+---
+/**
+ * StatusDot: state marker (`--dot-size`). Accent (`--accent-graphic`, 3:1) means playing, current or latest.
+ * @prop tone "accent" | "muted" (default "accent")
+ * @prop live Pulse softly; off under prefers-reduced-motion
+ */
+interface Props {
+	tone?: 'accent' | 'muted';
+	live?: boolean;
+}
+const { tone = 'accent', live = false } = Astro.props;
+---
+
+<span class="dot" data-tone={tone} data-live={live ? '' : undefined} aria-hidden="true"></span>
+
+<style>
+	.dot {
+		flex: none;
+		display: inline-block;
+		width: var(--dot-size);
+		height: var(--dot-size);
+		border-radius: var(--radius-pill);
+		background: var(--accent-graphic);
+	}
+	.dot[data-tone="muted"] {
+		background: var(--muted-foreground);
+		opacity: 0.6;
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		.dot[data-live] {
+			animation: pulse var(--duration-slower) var(--ease-in-out) infinite alternate;
+		}
+	}
+	@keyframes pulse {
+		from { opacity: 1; }
+		to { opacity: 0.35; }
+	}
+</style>

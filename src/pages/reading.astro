@@ -1,0 +1,118 @@
+---
+import { getCollection } from 'astro:content';
+import { type Book, type BookStatus, books } from '../booksData';
+import BookLine from '../components/ui/BookLine.astro';
+import BookSpine from '../components/ui/BookSpine.astro';
+import Label from '../components/ui/Label.astro';
+import ListRow from '../components/ui/ListRow.astro';
+import ListRows from '../components/ui/ListRows.astro';
+import Page from '../components/ui/Page.astro';
+import PageTitle from '../components/ui/PageTitle.astro';
+import Shelf from '../components/ui/Shelf.astro';
+import StatusDot from '../components/ui/StatusDot.astro';
+import Shell from '../layouts/Shell.astro';
+import { recordFacts } from '../utils/bookRecord';
+import { notedIsbns } from '../utils/notes';
+
+const noted = await notedIsbns();
+const notes = new Map((await getCollection('notes')).map((n) => [n.id, n.body?.trim()]));
+
+const time = (b: Book) => (b.dateFinished ?? b.dateStarted)?.getTime() ?? 0;
+const recent = (a: Book, b: Book) => time(b) - time(a);
+const reading = books.filter((b) => b.status === 'reading').sort(recent);
+// Reading first, then most recently finished: the order the room's shelf uses.
+const shelf = [...books].sort(
+	(a, b) => Number(b.status === 'reading') - Number(a.status === 'reading') || recent(a, b),
+);
+const groups: { status: BookStatus; label: string }[] = [
+	{ status: 'finished', label: 'Finished' },
+	{ status: 'want-to-read', label: 'Reading list' },
+];
+const archive = groups
+	.map((g) => ({ ...g, books: books.filter((b) => b.status === g.status).sort(recent) }))
+	.filter((g) => g.books.length > 0);
+
+const year = (b: Book) =>
+	b.readingPeriod === 'before-2020'
+		? 'Before 2020'
+		: (b.dateFinished ?? b.dateStarted)?.getFullYear().toString();
+const writingHref = (b: Book) => (b.writingSlug ? `/writing/${b.writingSlug}/` : undefined);
+---
+
+<Shell title="Reading" description="What I am reading, and everything I have read.">
+	<Page>
+		<PageTitle>Reading</PageTitle>
+
+		{
+			reading.length > 0 && (
+				<section aria-label="Reading now">
+					<ul class="now">
+						{reading.map((b) => (
+							<li>
+								<BookLine title={b.title} author={b.author} size="lg">
+									<StatusDot slot="tag" />
+									{b.edition.pageCount} pages
+								</BookLine>
+								{noted.has(b.edition.isbn13) && <p class="note">{notes.get(b.edition.isbn13)}</p>}
+							</li>
+						))}
+					</ul>
+				</section>
+			)
+		}
+
+		<section aria-label="The shelf">
+			<Shelf label="Books">
+				{
+					shelf.map((b) => (
+						<BookSpine
+							title={b.title}
+							author={b.author}
+							pages={b.edition.pageCount}
+							status={b.status}
+							href={writingHref(b)}
+						/>
+					))
+				}
+			</Shelf>
+		</section>
+
+		{
+			archive.map((g) => (
+				<section aria-labelledby={`g-${g.status}`}>
+					<Label as="h2" id={`g-${g.status}`} space="sm">
+						{g.label}
+						<Fragment slot="meta">{g.books.length}</Fragment>
+					</Label>
+					<ListRows>
+						{g.books.map((b) => (
+							<ListRow
+								date={year(b)}
+								title={b.title.replace(/\s*\(.*\)\s*$/, '')}
+								description={`${b.author} · ${recordFacts(b)}`}
+								href={writingHref(b)}
+							>
+								{noted.has(b.edition.isbn13) && <p class="note">{notes.get(b.edition.isbn13)}</p>}
+							</ListRow>
+						))}
+					</ListRows>
+				</section>
+			))
+		}
+	</Page>
+</Shell>
+
+<style>
+	.now {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: grid;
+		gap: var(--space-4);
+	}
+	.note {
+		margin-top: var(--space-1);
+		font-size: var(--text-small);
+		font-style: italic;
+	}
+</style>

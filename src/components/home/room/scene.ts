@@ -861,18 +861,35 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 	});
 	playing.observe(host, { attributeFilter: ['data-playing'] });
 
+	/** In the tile the scene is a door: its click opens the room large. */
+	const inTile = () => host.dataset.mode === 'tile';
 	function publish(current: View) {
 		host.dataset.view = current;
 		canvas.setAttribute(
 			'aria-label',
-			current === 'room' ? 'Step closer into the room' : 'Step back to the whole room',
+			inTile()
+				? 'Open the room'
+				: current === 'room'
+					? 'Step closer into the room'
+					: 'Step back to the whole room',
 		);
 	}
+	// The stage moves between the tile and the dialog; its name moves with it.
+	const homed = new MutationObserver(() => publish(view));
+	homed.observe(host, { attributeFilter: ['data-mode'] });
+	// Closing the room sends it back to the tile at the overview.
+	host.addEventListener(
+		'room:reset',
+		() => {
+			if (view !== 'room' && !bookshelf.active) changeView('room');
+		},
+		{ signal: events.signal },
+	);
 
 	// Clicking the room itself steps in, and steps back out from any close view.
 	// The canvas is the control, so the keyboard reaches it without any chrome.
 	const step = () => {
-		if (!bookshelf.active) changeView(view === 'room' ? 'closer' : 'room');
+		if (!bookshelf.active && !inTile()) changeView(view === 'room' ? 'closer' : 'room');
 	};
 	// ponytail: one traversal per frame, and only when the pointer has really
 	// moved. Pointer events arrive far faster than frames, and the traversal
@@ -950,7 +967,9 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 		(event) => {
 			if (event.key === 'Enter' || event.key === ' ') {
 				event.preventDefault();
-				step();
+				// In the tile, the keyboard's click is the same door as the pointer's.
+				if (inTile()) canvas.click();
+				else step();
 			}
 		},
 		{ signal: events.signal },
@@ -1108,6 +1127,7 @@ diffuseColor.rgb = diffuseColor.rgb * (1.0 + glow * vec3(0.8, 0.56, 0.3)) + glow
 		resize.disconnect();
 		intersection.disconnect();
 		playing.disconnect();
+		homed.disconnect();
 		releaseAssets();
 		renderer.dispose();
 		renderer.forceContextLoss();

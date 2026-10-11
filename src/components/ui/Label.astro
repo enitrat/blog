@@ -1,0 +1,93 @@
+---
+/**
+ * Label: mono caps caption, optional status dot and right-aligned meta.
+ * @prop dot Show a status dot before the text
+ * @prop dotTone "accent" | "muted" (default "accent")
+ * @prop as "span" | "p" | "h2" | "h3" (default "span")
+ * @prop id Anchor id (for aria-labelledby)
+ * @prop grow Fill the free width of a flex parent (e.g. a tile header)
+ * @prop space Gap below the label: "sm" | "md" (default none), so a page never reaches in with `:global(.label)`
+ * @prop separated Dot-separate the children (a meta line: name · date · read time); wraps
+ * @slot default The label text
+ * @slot meta Right-aligned secondary text
+ * Colour is `--muted-foreground`, so it retints on any inverse surface.
+ */
+import StatusDot from './StatusDot.astro';
+
+interface Props {
+	dot?: boolean;
+	dotTone?: 'accent' | 'muted';
+	as?: 'span' | 'p' | 'h2' | 'h3';
+	grow?: boolean;
+	space?: 'sm' | 'md';
+	separated?: boolean;
+	id?: string;
+}
+const {
+	dot = false,
+	dotTone = 'accent',
+	as: Tag = 'span',
+	grow = false,
+	space,
+	separated = false,
+	id,
+} = Astro.props;
+const hasMeta = Astro.slots.has('meta');
+---
+
+<Tag
+	id={id}
+	class="label"
+	data-meta={hasMeta ? '' : undefined}
+	data-grow={grow ? '' : undefined}
+	data-space={space}
+	data-separated={separated ? '' : undefined}
+>
+	<span class="text">{dot && <StatusDot tone={dotTone} />}<slot /></span>
+	{hasMeta && <span class="meta"><slot name="meta" /></span>}
+</Tag>
+
+<style>
+	.label {
+		display: flex;
+		align-items: center;
+		gap: var(--gap-bench);
+		margin: 0;
+		font-family: var(--font-code);
+		font-size: var(--text-label);
+		font-weight: var(--weight-ui);
+		line-height: var(--leading-ui);
+		letter-spacing: var(--tracking-label);
+		text-transform: uppercase;
+		color: var(--muted-foreground);
+	}
+	.label[data-grow] {
+		flex: 1;
+	}
+	.label[data-space="sm"] {
+		margin-block-end: var(--space-3);
+	}
+	.label[data-space="md"] {
+		margin-block-end: var(--space-4);
+	}
+	.text {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.6em;
+	}
+	.label[data-separated] .text {
+		flex-wrap: wrap;
+		gap: var(--space-1) var(--space-3);
+	}
+	.label[data-separated] .text > :global(a) {
+		color: var(--link);
+	}
+	.label[data-separated] .text > :global(:not(:first-child))::before {
+		content: '·';
+		margin-inline-end: var(--space-3);
+	}
+	.meta {
+		margin-inline-start: auto;
+		text-align: end;
+	}
+</style>

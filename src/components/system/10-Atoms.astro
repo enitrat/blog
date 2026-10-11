@@ -1,0 +1,204 @@
+---
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+// Every atom, every variant, size and state. Static "hover" and "focus" specimens use
+// the class names below, which mirror the atoms' own selectors through :global.
+import Label from '../ui/Label.astro';
+import Link from '../ui/Link.astro';
+import Pill from '../ui/Pill.astro';
+import Rule from '../ui/Rule.astro';
+import StatusDot from '../ui/StatusDot.astro';
+import Tag from '../ui/Tag.astro';
+import Tile from '../ui/Tile.astro';
+
+const surfaces = [
+	{ id: 'background', name: 'background' },
+	{ id: 'paper', name: 'paper' },
+	{ id: 'inverse', name: 'inverse' },
+] as const;
+const icons = [
+	'arrow-right',
+	'arrow-up',
+	'external',
+	'chevron-left',
+	'chevron-right',
+	'play',
+	'pause',
+] as const;
+---
+
+<section class="atoms" aria-labelledby="atoms-h">
+	<Label as="h2" id="atoms-h">Atoms</Label>
+
+	{
+		surfaces.map((s) => {
+			return (
+				<div class="surface" data-surface={s.id === 'inverse' ? 'inverse' : undefined} data-ground={s.id}>
+					<p class="surface-name">On {s.name}</p>
+
+					<div class="group">
+						<Label as="h3">Label</Label>
+						<div class="row stack">
+							<Label>Plain label</Label>
+							<Label dot>Now playing</Label>
+							<Label dot dotTone="muted">Idle</Label>
+							<Label dot><Fragment slot="meta">3 books</Fragment>With meta</Label>
+						</div>
+						<p class="note">Mono caps caption. Dot marks state; meta sits right. Colour is --muted-foreground, so it follows the surface.</p>
+					</div>
+
+					<div class="group">
+						<Label as="h3">StatusDot</Label>
+						<div class="row">
+							<StatusDot /><StatusDot tone="muted" /><StatusDot live />
+						</div>
+						<p class="note">Accent: playing, current, latest. Muted: idle. live pulses (still under reduced motion).</p>
+					</div>
+
+					<div class="group">
+						<Label as="h3">Icon</Label>
+						<div class="row">
+							{icons.map((n) => <span class="ic" title={n}><Icon name={n} /></span>)}
+							<span class="ic"><Icon name="arrow-right" size="sm" /></span>
+						</div>
+						<p class="note">Inline SVG in currentColor, aria-hidden. md and sm (last).</p>
+					</div>
+
+					<div class="group">
+						<Label as="h3">Link</Label>
+						<div class="row">
+							<Link href="#a">Inline link</Link>
+							<Link variant="quiet" href="#a">Quiet link</Link>
+							<Link variant="arrow" href="#a">Arrow link</Link>
+							<Link variant="external" href="https://example.com">External link</Link>
+							<Link variant="arrow" href="#a" class="is-focus">Focus</Link>
+						</div>
+						<p class="note">inline in prose, quiet for secondary, arrow for actions, external opens a new tab.</p>
+					</div>
+
+					<div class="group">
+						<Label as="h3">Button</Label>
+						<div class="row">
+							<Button href="#a">Primary</Button>
+							<Button variant="ghost" href="#a">Ghost</Button>
+							<Button variant="inverse" href="#a">Inverse</Button>
+							<Button size="sm">Small</Button>
+							<Button variant="ghost" size="sm">Small ghost</Button>
+						</div>
+						<div class="row">
+							<Button pressed={true}>Pressed</Button>
+							<Button disabled>Disabled</Button>
+							<Button class="is-focus">Focus</Button>
+							<Button variant="ghost"><Icon name="play" size="sm" />With icon</Button>
+						</div>
+						<p class="note">One primary per view. href gives an anchor; pressed sets aria-pressed. Inverse fills with --foreground, so it flips on dark surfaces.</p>
+					</div>
+
+					<div class="group">
+						<Label as="h3">Pill</Label>
+						<div class="row">
+							<Pill href="#a">Link pill</Pill>
+							<Pill variant="chip">Chip</Pill>
+							<Pill variant="chip" href="#a">Chip link</Pill>
+							<Pill variant="toggle">Toggle</Pill>
+							<Pill variant="toggle" pressed={true}>Pressed</Pill>
+							<Pill variant="toggle" class="is-focus">Focus</Pill>
+						</div>
+						<p class="note">Link pills navigate, chips label or filter, toggles carry aria-pressed.</p>
+					</div>
+
+					<div class="group">
+						<Label as="h3">Tag</Label>
+						<div class="row">
+							<Tag>Reading</Tag><Tag tone="accent">Latest</Tag><Tag>Finished</Tag>
+						</div>
+						<p class="note">Static status flag. Accent only for latest or current.</p>
+					</div>
+
+					<div class="group">
+						<Label as="h3">Rule</Label>
+						<Rule />
+						<p class="note">Hairline in --border; retints on inverse with no prop.</p>
+					</div>
+				</div>
+			);
+		})
+	}
+
+	<div class="surface" data-ground="background">
+		<div class="group">
+			<Label as="h3">Scoped inverse</Label>
+			<Tile label="Paper tile" dot labelAs="h3">
+				<p>Paper body.</p>
+				<Tile variant="inverse" label="Inverse inside paper" dotTone="muted">
+					<div class="row">
+						<Link href="#a">Link</Link>
+						<Button variant="ghost" size="sm">Ghost</Button>
+						<Pill href="#a">Pill</Pill>
+						<Tag>Tag</Tag>
+					</div>
+					<Tile label="Paper inside inverse" labelAs="h3">
+						<div class="row"><Link href="#a">Link</Link><Tag>Tag</Tag></div>
+					</Tile>
+				</Tile>
+			</Tile>
+			<p class="note">data-surface="inverse" (or an inverse or media tile) re-maps --surface, --foreground, --muted-foreground, --border, --link and --ring. Atoms never take an inverse prop. A paper tile resets.</p>
+		</div>
+	</div>
+</section>
+
+<style>
+	.atoms {
+		display: grid;
+		gap: var(--space-6);
+	}
+	.surface {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+		gap: var(--space-8) var(--space-10);
+		padding: var(--pad-tile);
+		border-radius: var(--radius-tile);
+		color: var(--foreground);
+		box-shadow: inset 0 0 0 1px var(--border);
+	}
+	.surface[data-ground="paper"],
+	.surface[data-surface="inverse"] {
+		background: var(--surface);
+		color: var(--surface-foreground);
+	}
+	.surface-name {
+		grid-column: 1 / -1;
+		font-size: var(--text-small);
+		font-weight: var(--weight-ui);
+	}
+	.group {
+		display: grid;
+		align-content: start;
+		gap: var(--space-3);
+	}
+	.row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-3) var(--space-5);
+	}
+	.row.stack {
+		flex-direction: column;
+		align-items: stretch;
+		gap: var(--space-3);
+	}
+	.ic {
+		display: inline-flex;
+		font-size: 1.5rem;
+	}
+	.note {
+		font-size: var(--text-small);
+		line-height: var(--leading-ui);
+		color: var(--muted-foreground);
+	}
+	/* Static focus specimen: mirrors the atoms' :focus-visible rings. */
+	.atoms :global(.is-focus) {
+		outline: 2px solid var(--ring);
+		outline-offset: 2px;
+	}
+</style>

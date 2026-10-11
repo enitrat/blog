@@ -6,7 +6,7 @@ import { join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { books } from '../src/booksData.ts';
 import { PLEIADE_HEX, pleiadeStyleFor } from '../src/utils/pleiade.ts';
-import { englishPieces, notedIsbns } from './room-content.mjs';
+import { notedIsbns, writingPieces } from './room-content.mjs';
 import {
 	COMPRESSED_GROUPS,
 	ISOLATED_GROUPS,
@@ -95,7 +95,7 @@ const slots = library.map((book, index) => {
 		height: SPINE_HEIGHT,
 	};
 });
-const pieces = await englishPieces();
+const pieces = await writingPieces();
 // Two fanned piles on the leather, newest on top and nearest the chair, each
 // older sheet pushed a little further from the writer so its head -- where
 // the title is written -- shows past the sheet on top of it. Blender's axes:

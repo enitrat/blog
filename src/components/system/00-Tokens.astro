@@ -1,0 +1,294 @@
+---
+import themeCss from '../../styles/theme.css?raw';
+// Semantic tokens: colour pairs with WCAG contrast (computed at build from tokens.css and
+// theme.css, so they cannot drift), type roles, spacing, radii and motion.
+import tokensCss from '../../styles/tokens.css?raw';
+import Label from '../ui/Label.astro';
+
+const hex: Record<string, string> = {};
+for (const [, n, v] of tokensCss.matchAll(/--color-([\w-]+):\s*(#[0-9a-f]{6})/gi)) hex[n] = v;
+
+/** Semantic name to hex for one theme: the :root block, then the dark block over it. */
+const read = (block: string, into: Record<string, string>) => {
+	for (const [, n, ref] of block.matchAll(/--([\w-]+):\s*var\(--color-([\w-]+)\)/g)) {
+		if (hex[ref]) into[n] = hex[ref];
+	}
+};
+const light: Record<string, string> = {};
+read(themeCss.split('@media')[0], light);
+const dark = { ...light };
+read(themeCss.split(':root[data-theme="dark"]')[1] ?? '', dark);
+
+const lin = (h: string) =>
+	[1, 3, 5]
+		.map((i) => Number.parseInt(h.slice(i, i + 2), 16) / 255)
+		.map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+const lum = (h: string) => {
+	const [r, g, b] = lin(h);
+	return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const ratio = (a: string, b: string) => {
+	const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+	return (hi + 0.05) / (lo + 0.05);
+};
+
+// [foreground token, background token, kind]; text needs 4.5, a mark or ring needs 3.
+const pairs: [string, string, 'text' | 'mark'][] = [
+	['foreground', 'background', 'text'],
+	['surface-foreground', 'surface', 'text'],
+	['muted-foreground', 'surface', 'text'],
+	['muted-foreground', 'background', 'text'],
+	['link', 'surface', 'text'],
+	['surface-inverse-foreground', 'surface-inverse', 'text'],
+	['surface-inverse-muted-foreground', 'surface-inverse', 'text'],
+	['accent-foreground', 'accent', 'text'],
+	['accent-graphic', 'surface', 'mark'],
+	['accent-graphic', 'background', 'mark'],
+	['accent-graphic-inverse', 'surface-inverse', 'mark'],
+	['ring', 'surface', 'mark'],
+	['ring-inverse', 'surface-inverse', 'mark'],
+];
+const rows = pairs.map(([fg, bg, kind]) => {
+	const need = kind === 'text' ? 4.5 : 3;
+	const cell = (t: Record<string, string>) => {
+		const r = ratio(t[fg], t[bg]);
+		return { r: r.toFixed(2), ok: r >= need };
+	};
+	return { fg, bg, kind, light: cell(light), dark: cell(dark) };
+});
+
+const roles = [
+	['display', 'text-display', 'weight-title'],
+	['title', 'text-title', 'weight-title'],
+	['heading', 'text-heading', 'weight-title'],
+	['body', 'text-body', 'weight-body'],
+	['ui', 'text-ui', 'weight-ui'],
+	['small', 'text-small', 'weight-ui'],
+] as const;
+const spaces = [1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24];
+const radii = ['sm', 'md', 'lg', 'xl', 'full'];
+const durations = ['fast', 'base', 'slow', 'slower'];
+---
+
+<section class="tokens" aria-labelledby="tokens-h">
+	<Label as="h2" id="tokens-h">Tokens</Label>
+
+	<div class="group">
+		<Label as="h3">Colour pairs</Label>
+		<table>
+			<thead>
+				<tr><th scope="col">Sample</th><th scope="col">Pair</th><th scope="col">Light</th><th scope="col">Dark</th></tr>
+			</thead>
+			<tbody>
+				{
+					rows.map((r) => (
+						<tr>
+							<td>
+								<span class="sample" style={`color:var(--${r.fg});background:var(--${r.bg})`}>
+									{r.kind === 'text' ? 'Aa' : '●'}
+								</span>
+							</td>
+							<td><code>--{r.fg}</code> on <code>--{r.bg}</code></td>
+							<td data-ok={r.light.ok ? '' : undefined}>{r.light.r}:1{r.light.ok ? '' : ' (low)'}</td>
+							<td data-ok={r.dark.ok ? '' : undefined}>{r.dark.r}:1{r.dark.ok ? '' : ' (low)'}</td>
+						</tr>
+					))
+				}
+			</tbody>
+		</table>
+		<p class="note">Text pairs need 4.5:1, marks and rings need 3:1. --accent-graphic is the accent for dots, bars and underlines (a darker orange in light); --accent stays for fills and never carries text on its own. Hairline --border and --scrim are translucent, so no ratio.</p>
+		<div class="swatches">
+			{
+				['background', 'surface', 'surface-inverse', 'muted', 'accent', 'accent-graphic', 'border', 'scrim'].map((n) => (
+					<div class="sw"><span style={`background:var(--${n})`}></span><code>--{n}</code></div>
+				))
+			}
+		</div>
+	</div>
+
+	<div class="group">
+		<Label as="h3">Type roles</Label>
+		<div class="ramp">
+			{
+				roles.map(([name, size, weight]) => (
+					<div class="role">
+						<code>--{size}</code>
+						<span style={`font-size:var(--${size});font-weight:var(--${weight})`}>{name}: Quiet, plain, in order</span>
+					</div>
+				))
+			}
+			<div class="role">
+				<code>--text-label</code>
+				<Label>Label: mono caps</Label>
+			</div>
+		</div>
+		<p class="note">Families: --font-body, --font-ui, --font-code. Text sizes come from these roles, never from --font-size-*.</p>
+	</div>
+
+	<div class="group">
+		<Label as="h3">Spacing</Label>
+		<div class="scale">
+			{spaces.map((n) => <div class="sp"><span style={`width:var(--space-${n})`}></span><code>--space-{n}</code></div>)}
+		</div>
+	</div>
+
+	<div class="group">
+		<Label as="h3">Radii</Label>
+		<div class="row">
+			{radii.map((n) => <div class="rad"><span style={`border-radius:var(--radius-${n})`}></span><code>--radius-{n}</code></div>)}
+		</div>
+		<p class="note">Semantic: --radius-tile (xl), --radius-pill (full).</p>
+	</div>
+
+	<div class="group">
+		<Label as="h3">Motion</Label>
+		<div class="motion">
+			{
+				durations.map((n) => (
+					<div class="mo"><span class="track"><span class="ball" style={`transition-duration:var(--duration-${n})`}></span></span><code>--duration-{n}</code></div>
+				))
+			}
+		</div>
+		<p class="note">Hover a row to run it with --ease-out. Reduced motion collapses every duration.</p>
+	</div>
+</section>
+
+<style>
+	.tokens {
+		display: grid;
+		gap: var(--space-10);
+	}
+	.group {
+		display: grid;
+		gap: var(--space-4);
+		min-width: 0;
+		padding: var(--pad-tile);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-tile);
+		background: var(--surface);
+		color: var(--surface-foreground);
+	}
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: var(--text-small);
+	}
+	th,
+	td {
+		padding: var(--space-2) var(--space-3) var(--space-2) 0;
+		border-top: 1px solid var(--border);
+		text-align: start;
+		font-variant-numeric: tabular-nums;
+	}
+	th {
+		border-top: 0;
+		color: var(--muted-foreground);
+		font-weight: var(--weight-ui);
+	}
+	td:not([data-ok]):nth-child(n + 3) {
+		color: var(--surface-foreground);
+		font-weight: var(--weight-title);
+	}
+	code {
+		font-family: var(--font-code);
+		font-size: var(--text-small);
+	}
+	.sample {
+		display: inline-grid;
+		place-items: center;
+		width: 3rem;
+		height: 2rem;
+		border-radius: var(--radius-sm);
+		box-shadow: inset 0 0 0 1px var(--border);
+		font-weight: var(--weight-title);
+	}
+	.note {
+		margin: 0;
+		font-size: var(--text-small);
+		color: var(--muted-foreground);
+	}
+	.swatches,
+	.row,
+	.motion {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-4);
+	}
+	.sw,
+	.rad,
+	.mo {
+		display: grid;
+		gap: var(--space-2);
+		justify-items: start;
+	}
+	.sw span {
+		width: 6rem;
+		height: 3rem;
+		border-radius: var(--radius-md);
+		box-shadow: inset 0 0 0 1px var(--border);
+	}
+	.rad span {
+		width: 4.5rem;
+		height: 4.5rem;
+		background: var(--muted);
+		box-shadow: inset 0 0 0 1px var(--border);
+	}
+	.ramp {
+		display: grid;
+		gap: var(--space-3);
+	}
+	.role {
+		display: grid;
+		grid-template-columns: minmax(0, 9rem) minmax(0, 1fr);
+		align-items: baseline;
+		gap: var(--space-4);
+	}
+	.scale {
+		display: grid;
+		gap: var(--space-2);
+	}
+	.sp {
+		display: grid;
+		grid-template-columns: 6rem minmax(0, 1fr);
+		align-items: center;
+	}
+	.sp span {
+		grid-column: 2;
+		grid-row: 1;
+		height: 0.75rem;
+		min-width: 1px;
+		background: var(--accent);
+	}
+	.sp code {
+		grid-column: 1;
+		grid-row: 1;
+	}
+	.mo {
+		min-width: 12rem;
+	}
+	.track {
+		display: block;
+		width: 10rem;
+		padding: 2px;
+		border-radius: var(--radius-pill);
+		background: var(--muted);
+	}
+	.ball {
+		display: block;
+		width: 1rem;
+		height: 1rem;
+		border-radius: var(--radius-pill);
+		background: var(--accent);
+		transition-property: transform;
+		transition-timing-function: var(--ease-out);
+	}
+	.mo:hover .ball {
+		transform: translateX(8.5rem);
+	}
+	@media (max-width: 40rem) {
+		.role {
+			grid-template-columns: minmax(0, 1fr);
+			gap: var(--space-1);
+		}
+	}
+</style>

@@ -1,7 +1,8 @@
 ---
 import { type CollectionEntry, getCollection, render } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
-import { getAdjacent, getRelated, getTranslations } from '../../utils/writing';
+import { inShort } from '../../utils/inShort';
+import { getAdjacent, getRelated } from '../../utils/writing';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('blog');
@@ -14,15 +15,17 @@ type Props = CollectionEntry<'blog'>;
 
 const post = Astro.props;
 const { Content, headings } = await render(post);
-const translations = await getTranslations(post);
 const { newer, older } = await getAdjacent(post);
 const related = await getRelated(post);
+// Sections without a paragraph (e.g. "Part 1:" headings) stay in the text but not in the skim list.
+const items = inShort(post, headings).filter((item) => item.hook);
+const minutes = Math.max(1, Math.round((post.body ?? '').split(/\s+/).length / 230));
 ---
 
 <BlogPost
 	{...post.data}
-	translations={translations}
-	headings={headings}
+	inShort={items}
+	minutes={minutes}
 	newer={newer}
 	older={older}
 	related={related}

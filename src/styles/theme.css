@@ -1,0 +1,155 @@
+/* Semantic layer: names intent, references only tokens.css values.
+ * Light on :root; dark twice (OS preference unless data-theme="light", and
+ * the explicit data-theme="dark"). Keep the two dark blocks identical. */
+
+:root {
+	color-scheme: light;
+
+	--font-body: var(--font-geist);
+	--font-ui: var(--font-geist);
+	--font-code: var(--font-geist-mono);
+
+	--text-display: var(--font-size-2xl);
+	--text-title: var(--font-size-xl);
+	--text-heading: var(--font-size-lg);
+	--text-body: var(--font-size-md);
+	--text-ui: var(--font-size-base);
+	--text-small: var(--font-size-sm);
+	--text-label: var(--font-size-xs);
+
+	--leading-display: var(--leading-tight);
+	--leading-body: var(--leading-relaxed);
+	--leading-ui: var(--leading-normal);
+	--tracking-display: var(--tracking-tight);
+	--tracking-title: var(--tracking-snug);
+	--tracking-label: var(--tracking-wide);
+	--weight-body: var(--weight-regular);
+	--weight-ui: var(--weight-medium);
+	--weight-title: var(--weight-semibold);
+
+	--radius-tile: var(--radius-xl);
+	--radius-pill: var(--radius-full);
+	--gap-bench: var(--layout-bench-gap);
+	--pad-tile: var(--layout-tile-pad);
+	--page-gutter: var(--layout-page-gutter);
+	--page-max: var(--layout-page-max);
+	--measure: var(--layout-measure);
+	/* Index lists stay readable inside the wide page container. */
+	--list-max: calc(var(--layout-measure) * 1.5);
+
+	--target-min: 44px;
+	--dot-size: 7px;
+	--opacity-disabled: 0.45;
+	--control-height-sm: 2rem;
+	--control-height-md: 2.75rem;
+
+	--background: var(--color-grey-200);
+	--foreground: var(--color-grey-900);
+	--surface: var(--color-grey-50);
+	--surface-foreground: var(--color-grey-900);
+	--surface-inverse: var(--color-grey-850);
+	--surface-inverse-foreground: var(--color-grey-100);
+	--surface-inverse-muted-foreground: var(--color-grey-400);
+	--muted: var(--color-grey-100);
+	--muted-foreground: var(--color-grey-600);
+	--border: color-mix(in srgb, var(--color-grey-900) 12%, transparent);
+	--border-inverse: color-mix(in srgb, var(--color-grey-50) 14%, transparent);
+	--accent: var(--color-orange-500);
+	--accent-foreground: var(--color-grey-900);
+	/* Small accent marks (dots, underlines): 3:1 on the surface; --accent stays for fills. */
+	--accent-graphic: var(--color-orange-600);
+	--accent-graphic-inverse: var(--color-orange-500);
+	--link: var(--color-grey-900);
+	--ring: var(--color-orange-600);
+	--ring-inverse: var(--color-orange-500);
+	/* Fixed dark, never flips: text over photos stays readable in both themes. */
+	--scrim-foreground: var(--color-grey-100);
+	--scrim: color-mix(in srgb, var(--color-grey-950) 75%, transparent);
+	--scrim-solid: color-mix(in srgb, var(--color-grey-950) 94%, transparent);
+
+	/* Paper names frozen at :root, so a paper tile nested in an inverse one can reset. */
+	--paper-surface: var(--surface);
+	--paper-surface-foreground: var(--surface-foreground);
+	--paper-foreground: var(--foreground);
+	--paper-muted-foreground: var(--muted-foreground);
+	--paper-border: var(--border);
+	--paper-link: var(--link);
+	--paper-ring: var(--ring);
+	--paper-accent-graphic: var(--accent-graphic);
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme="light"]) {
+		color-scheme: dark;
+
+		--background: var(--color-grey-950);
+		--foreground: var(--color-grey-100);
+		--surface: var(--color-grey-850);
+		--surface-foreground: var(--color-grey-100);
+		--surface-inverse: var(--color-grey-100);
+		--surface-inverse-foreground: var(--color-grey-900);
+		--surface-inverse-muted-foreground: var(--color-grey-600);
+		--muted: var(--color-grey-800);
+		--muted-foreground: var(--color-grey-400);
+		--border: color-mix(in srgb, var(--color-grey-50) 14%, transparent);
+		--border-inverse: color-mix(in srgb, var(--color-grey-900) 14%, transparent);
+		--accent: var(--color-orange-500);
+		--accent-foreground: var(--color-grey-900);
+		--accent-graphic: var(--color-orange-500);
+		--accent-graphic-inverse: var(--color-orange-600);
+		--link: var(--color-grey-100);
+		--ring: var(--color-orange-400);
+		--ring-inverse: var(--color-orange-600);
+	}
+}
+
+:root[data-theme="dark"] {
+	color-scheme: dark;
+
+	--background: var(--color-grey-950);
+	--foreground: var(--color-grey-100);
+	--surface: var(--color-grey-850);
+	--surface-foreground: var(--color-grey-100);
+	--surface-inverse: var(--color-grey-100);
+	--surface-inverse-foreground: var(--color-grey-900);
+	--surface-inverse-muted-foreground: var(--color-grey-600);
+	--muted: var(--color-grey-800);
+	--muted-foreground: var(--color-grey-400);
+	--border: color-mix(in srgb, var(--color-grey-50) 14%, transparent);
+	--border-inverse: color-mix(in srgb, var(--color-grey-900) 14%, transparent);
+	--accent: var(--color-orange-500);
+	--accent-foreground: var(--color-grey-900);
+	--accent-graphic: var(--color-orange-500);
+	--accent-graphic-inverse: var(--color-orange-600);
+	--link: var(--color-grey-100);
+	--ring: var(--color-orange-400);
+	--ring-inverse: var(--color-orange-600);
+}
+
+/* Scoped inverse surface (the shadcn way): any dark container re-maps the paper names,
+ * so atoms inside need no inverse prop. Never swap --surface and --surface-inverse here:
+ * that would make each reference the other and create a cycle. */
+[data-surface="inverse"],
+.tile[data-variant="inverse"],
+.tile[data-variant="media"] {
+	--surface: var(--surface-inverse);
+	--surface-foreground: var(--surface-inverse-foreground);
+	--foreground: var(--surface-inverse-foreground);
+	--muted-foreground: var(--surface-inverse-muted-foreground);
+	--border: var(--border-inverse);
+	--accent-graphic: var(--accent-graphic-inverse);
+	--link: var(--surface-inverse-foreground);
+	--ring: var(--ring-inverse);
+}
+
+/* A paper tile nested in an inverse one resets to the root paper values. */
+.tile[data-variant="paper"] {
+	--surface: var(--paper-surface);
+	--surface-foreground: var(--paper-surface-foreground);
+	--foreground: var(--paper-foreground);
+	--muted-foreground: var(--paper-muted-foreground);
+	--border: var(--paper-border);
+	--accent-graphic: var(--paper-accent-graphic);
+	--link: var(--paper-link);
+	--ring: var(--paper-ring);
+}

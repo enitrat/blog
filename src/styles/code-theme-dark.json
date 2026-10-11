@@ -1,0 +1,102 @@
+{
+	"name": "quiet-personal-index-dark",
+	"type": "dark",
+	"colors": {
+		"editor.background": "#00000000",
+		"editor.foreground": "#ededed"
+	},
+	"settings": [
+		{
+			"scope": ["comment", "punctuation.definition.comment", "string.quoted.docstring"],
+			"settings": {
+				"foreground": "#8e939a",
+				"fontStyle": "italic"
+			}
+		},
+		{
+			"scope": [
+				"keyword",
+				"keyword.control",
+				"keyword.operator",
+				"storage",
+				"storage.type",
+				"storage.modifier",
+				"variable.language"
+			],
+			"settings": {
+				"foreground": "#ff9a70"
+			}
+		},
+		{
+			"scope": [
+				"entity.name.function",
+				"support.function",
+				"meta.function-call.generic",
+				"entity.name.tag"
+			],
+			"settings": {
+				"foreground": "#ededed"
+			}
+		},
+		{
+			"scope": ["entity.name.type", "entity.name.class", "support.type", "support.class"],
+			"settings": {
+				"foreground": "#ededed"
+			}
+		},
+		{
+			"scope": ["string", "string.quoted", "string.template", "meta.string"],
+			"settings": {
+				"foreground": "#c3c5c9"
+			}
+		},
+		{
+			"scope": ["constant.numeric", "constant.language"],
+			"settings": {
+				"foreground": "#ededed"
+			}
+		},
+		{
+			"scope": ["variable", "variable.other", "variable.parameter", "meta.definition.variable"],
+			"settings": {
+				"foreground": "#ededed"
+			}
+		},
+		{
+			"scope": ["punctuation", "meta.brace", "punctuation.separator", "punctuation.terminator"],
+			"settings": {
+				"foreground": "#8e939a"
+			}
+		},
+		{
+			"scope": ["entity.other.attribute-name", "support.type.property-name"],
+			"settings": {
+				"foreground": "#ff9a70"
+			}
+		},
+		{
+			"scope": ["markup.inserted"],
+			"settings": {
+				"foreground": "#ededed"
+			}
+		},
+		{
+			"scope": ["markup.deleted"],
+			"settings": {
+				"foreground": "#ff9a70"
+			}
+		},
+		{
+			"scope": ["invalid"],
+			"settings": {
+				"foreground": "#ff9a70"
+			}
+		},
+		{
+			"scope": ["constant.character.escape", "constant.regexp"],
+			"settings": {
+				"foreground": "#ff9a70"
+			}
+		}
+	]
+}

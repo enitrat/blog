@@ -1,17 +1,16 @@
 {
 	"name": "quiet-personal-index",
 	"type": "light",
-	"comment": "Syntax colours follow the quiet personal index: blue carries structure, muted ink carries commentary and punctuation, near-black carries identifiers, and orange is reserved for exceptional syntax. The transparent ground lets code remain part of the reading surface.",
+	"comment": "Syntax colours follow the bench: orange carries keywords and escapes, graphite carries identifiers, strings and punctuation step down the grey ladder, and the ground stays transparent so code remains part of the reading surface.",
 	"colors": {
 		"editor.background": "#00000000",
 		"editor.foreground": "#171717"
 	},
-	"settings": [],
-	"tokenColors": [
+	"settings": [
 		{
 			"scope": ["comment", "punctuation.definition.comment", "string.quoted.docstring"],
 			"settings": {
-				"foreground": "#737373",
+				"foreground": "#6b6f76",
 				"fontStyle": "italic"
 			}
 		},
@@ -26,7 +25,7 @@
 				"variable.language"
 			],
 			"settings": {
-				"foreground": "#3567d8"
+				"foreground": "#c2410c"
 			}
 		},
 		{
@@ -37,25 +36,25 @@
 				"entity.name.tag"
 			],
 			"settings": {
-				"foreground": "#234da8"
+				"foreground": "#171717"
 			}
 		},
 		{
 			"scope": ["entity.name.type", "entity.name.class", "support.type", "support.class"],
 			"settings": {
-				"foreground": "#234da8"
+				"foreground": "#171717"
 			}
 		},
 		{
 			"scope": ["string", "string.quoted", "string.template", "meta.string"],
 			"settings": {
-				"foreground": "#4b4b4b"
+				"foreground": "#575b62"
 			}
 		},
 		{
 			"scope": ["constant.numeric", "constant.language"],
 			"settings": {
-				"foreground": "#234da8"
+				"foreground": "#171717"
 			}
 		},
 		{
@@ -67,37 +66,37 @@
 		{
 			"scope": ["punctuation", "meta.brace", "punctuation.separator", "punctuation.terminator"],
 			"settings": {
-				"foreground": "#737373"
+				"foreground": "#6b6f76"
 			}
 		},
 		{
 			"scope": ["entity.other.attribute-name", "support.type.property-name"],
 			"settings": {
-				"foreground": "#3567d8"
+				"foreground": "#c2410c"
 			}
 		},
 		{
 			"scope": ["markup.inserted"],
 			"settings": {
-				"foreground": "#234da8"
+				"foreground": "#171717"
 			}
 		},
 		{
 			"scope": ["markup.deleted"],
 			"settings": {
-				"foreground": "#b86f45"
+				"foreground": "#c2410c"
 			}
 		},
 		{
 			"scope": ["invalid"],
 			"settings": {
-				"foreground": "#b86f45"
+				"foreground": "#c2410c"
 			}
 		},
 		{
 			"scope": ["constant.character.escape", "constant.regexp"],
 			"settings": {
-				"foreground": "#b86f45"
+				"foreground": "#c2410c"
 			}
 		}
 	]

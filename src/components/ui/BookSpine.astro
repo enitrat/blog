@@ -1,0 +1,108 @@
+---
+/**
+ * BookSpine: one book spine. Tone comes from a hash of the title, width and height from page count.
+ * @prop title Full title; a trailing "(series, tome)" is dropped from the spine
+ * @prop author Shown on hover (title attribute) and to screen readers
+ * @prop pages Page count; taller and wider for longer books
+ * @prop status Reaches screen readers (no visual mark: the title line carries the current dot)
+ * @prop href Makes the spine a link (only linked spines lift on hover)
+ */
+interface Props {
+	title: string;
+	author: string;
+	pages: number;
+	status?: 'reading' | 'finished' | 'want-to-read';
+	href?: string;
+}
+const { title, author, pages, status, href } = Astro.props;
+
+// Foreground and background pairs built only from semantic tokens, readable in both themes.
+const tones = [
+	['var(--surface-inverse)', 'var(--surface-inverse-foreground)'],
+	['var(--muted-foreground)', 'var(--surface)'],
+	['var(--muted)', 'var(--foreground)'],
+	[
+		'color-mix(in srgb, var(--surface-inverse) 60%, var(--muted-foreground))',
+		'var(--surface-inverse-foreground)',
+	],
+	['var(--surface)', 'var(--foreground)'],
+	['color-mix(in srgb, var(--muted-foreground) 40%, var(--surface))', 'var(--foreground)'],
+];
+let hash = 0;
+for (const ch of title) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+const [bg, fg] = tones[hash % tones.length];
+const width = Math.min(2.9, Math.max(1.5, pages / 260));
+const height = 8 + (Math.min(pages, 700) / 700) * 4 + (hash % 5) * 0.25;
+// A straight apostrophe turns into a dash in vertical text, so use the typographic one.
+const short = title.replace(/\s*\(.*\)\s*$/, '').replaceAll("'", '\u2019');
+const statusText = {
+	reading: 'currently reading',
+	finished: 'finished',
+	'want-to-read': 'want to read',
+};
+const Root = href ? 'a' : 'div';
+---
+
+<Root
+	class="spine"
+	href={href}
+	title={`${short}, ${author}`}
+	data-status={status}
+	style={`--bg:${bg};--fg:${fg};--w:${width.toFixed(2)}rem;--h:${height.toFixed(2)}rem`}
+>
+	<span class="text">{short}<span class="sr"> by {author}, {pages} pages{status && `, ${statusText[status]}`}</span></span>
+</Root>
+
+<style>
+	.spine {
+		position: relative;
+		flex: none;
+		width: var(--w);
+		height: var(--h);
+		padding: 0.75rem 0;
+		overflow: hidden;
+		border: 1px solid var(--border);
+		border-bottom: 0;
+		background: var(--bg);
+		color: var(--fg);
+		text-decoration: none;
+		transition: transform var(--duration-base) var(--ease-out);
+	}
+	.text {
+		display: block;
+		writing-mode: vertical-rl;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		max-height: 100%;
+		font-family: var(--font-ui);
+		font-size: var(--text-label);
+		font-weight: var(--weight-title);
+		letter-spacing: var(--tracking-label);
+		line-height: var(--w);
+	}
+	a.spine:hover,
+	a.spine:focus-visible {
+		transform: translateY(-0.5rem);
+	}
+	a.spine:focus-visible {
+		outline: 2px solid var(--ring);
+		outline-offset: -3px;
+	}
+	.sr {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.spine {
+			transition: none;
+		}
+		a.spine:hover,
+		a.spine:focus-visible {
+			transform: none;
+		}
+	}
+</style>

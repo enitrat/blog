@@ -1,0 +1,56 @@
+---
+/** BioTile: Mathieu's sentence, role, and the three ways to reach him. */
+import { CONTACT_LINKS } from '../../../consts';
+import Link from '../../ui/Link.astro';
+import Pill from '../../ui/Pill.astro';
+import Tile from '../../ui/Tile.astro';
+
+interface Props {
+	order?: number;
+}
+const { order } = Astro.props;
+---
+
+<Tile span={{ md: 6, lg: 5 }} rows={{ lg: 4 }} {order} as="section" aria-labelledby="bio-title">
+	<div class="bio">
+		<h1 id="bio-title">
+			Hi, I'm Mathieu. I build cool stuff with agents, with end-to-end ownership of products, and I sometimes DJ and write what goes through my head
+		</h1>
+		<div class="foot">
+			<p>
+				Senior Protocol Engineer at <Link href="/work/zama/">Zama</Link>
+			</p>
+			<nav aria-label="Contact" class="pills">
+				{CONTACT_LINKS.map((c) => <Pill href={c.href} rel="me noreferrer" target="_blank">{c.label}</Pill>)}
+			</nav>
+		</div>
+	</div>
+</Tile>
+
+<style>
+	.bio {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		gap: var(--space-8);
+		height: 100%;
+	}
+	h1 {
+		font-size: var(--text-display);
+		font-weight: var(--weight-ui);
+		line-height: var(--leading-display);
+		letter-spacing: var(--tracking-display);
+		text-wrap: balance;
+	}
+	.foot {
+		display: grid;
+		gap: var(--space-4);
+		font-size: var(--text-ui);
+		color: var(--muted-foreground);
+	}
+	.pills {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+	}
+</style>

@@ -38,7 +38,7 @@ export function mountBookshelf(host: HTMLElement) {
 	// One caption for the whole room, and one writer: the hotspots name objects
 	// through `label()`, browsing names rows and books here.
 	const caption = required<HTMLElement>('.living-room__caption');
-	const catalog = required<HTMLDetailsElement>('[data-shelf-catalog]');
+	const captionText = required<HTMLElement>('[data-caption-text]');
 	const dialog = required<HTMLDialogElement>('[data-room-book]');
 	const body = required<HTMLElement>('[data-open-book]');
 	const entrance = required<HTMLAnchorElement>('[data-anchor="bookshelf"]');
@@ -146,12 +146,6 @@ export function mountBookshelf(host: HTMLElement) {
 		if (frameChanged) {
 			returnFocus = links.get(mounted.slot.isbn);
 			returningBook = true;
-		} else {
-			// Without a renderer the list is the bookshelf. Open it back to where
-			// the reader was: focus inside a closed <details> is dropped silently.
-			catalog.open = true;
-			if (mounted.source instanceof HTMLDetailsElement) mounted.source.open = true;
-			returnFocus = mounted.source.querySelector('summary') ?? undefined;
 		}
 		mounted = undefined;
 		if (dialog.open) dialog.close();
@@ -247,7 +241,7 @@ export function mountBookshelf(host: HTMLElement) {
 			caption.removeAttribute('data-shown');
 			return;
 		}
-		write(caption, text);
+		write(captionText, text);
 		const bounds = stage.getBoundingClientRect();
 		const target = over.getBoundingClientRect();
 		const half = caption.offsetWidth / 2 + 8;
@@ -431,7 +425,7 @@ export function mountBookshelf(host: HTMLElement) {
 		pullChanged?.(shown?.kind === 'book' ? shown.book.isbn : null);
 		// The shelves are taller than the room: stepping in brings all of them
 		// into view, rather than leaving the lower rows below the fold.
-		if (frameChanged && shown && !before)
+		if (frameChanged && shown && !before && host.dataset.mode !== 'tile')
 			stage.scrollIntoView({ block: 'center', behavior: motion.matches ? 'instant' : 'smooth' });
 		if (frameChanged) {
 			const chrome = chromeFor(shown);
@@ -602,7 +596,7 @@ export function mountBookshelf(host: HTMLElement) {
 		(event) => {
 			// A room that is merely still loading is a room: browsing waits for it.
 			// Only a device that cannot render one falls through to the anchor,
-			// which jumps to the list rather than to a mode with no way out.
+			// which goes to /reading/ rather than to a mode with no way out.
 			if (!plainClick(event)) return;
 			if (!frameChanged && host.dataset.canRender === undefined) return;
 			event.preventDefault();
@@ -647,7 +641,6 @@ export function mountBookshelf(host: HTMLElement) {
 	host.addEventListener(
 		'keydown',
 		(event) => {
-			if (event.target instanceof Node && catalog.contains(event.target)) return;
 			if (location?.kind === 'book' && !dialog.matches(':modal') && event.key === 'Escape') {
 				event.preventDefault();
 				back();
@@ -911,7 +904,7 @@ export function mountBookshelf(host: HTMLElement) {
 		fallback() {
 			frameChanged = undefined;
 			// The room proved it cannot render one. The entrance stops intercepting
-			// its own click, so it falls through to the list rather than to a level
+			// its own click, so it falls through to /reading/ rather than to a level
 			// the URL is already on and `enter()` therefore refuses to re-enter.
 			delete host.dataset.canRender;
 			sync();

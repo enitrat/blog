@@ -35,7 +35,7 @@ const isPaused = (page) =>
 	);
 
 const { base, stop } = await serve();
-const url = `${base}/`;
+const url = `${base}${process.env.ROOM_PATH ?? '/'}`;
 let failed = false;
 
 for (const [name, engine] of Object.entries(ENGINES)) {
@@ -55,7 +55,8 @@ for (const [name, engine] of Object.entries(ENGINES)) {
 	};
 	try {
 		await page.goto(url, { waitUntil: 'load' });
-		await page.waitForTimeout(2000);
+		// The scene runs inside the tile on a desktop; wait for it to be live.
+		await page.waitForSelector('[data-room][data-live]', { timeout: 30000 });
 
 		await t('nothing soundcloud before click', () => {
 			assert.deepEqual(
@@ -63,12 +64,39 @@ for (const [name, engine] of Object.entries(ENGINES)) {
 				[],
 			);
 		});
-		await t('there is no SoundCloud link on the table', async () => {
-			assert.equal(await page.locator('a[href*="soundcloud.com"]').count(), 0);
+		// The plain-link fallback names the set; with the room live it steps aside.
+		await t('there is no visible SoundCloud link on the tile', async () => {
+			const links = page.locator('a[href*="soundcloud.com"]');
+			for (const link of await links.all()) assert.equal(await link.isVisible(), false);
 		});
 
+		// The record player in the scene is the only way to play. Click the scene
+		// itself where the record player stands (a canvas click is a real pick,
+		// not the hotspot button laid over it): the set starts and the room opens
+		// at the record view.
 		const button = page.locator('button.living-room__hotspot');
-		await button.click();
+		const spot = await button.boundingBox();
+		await page
+			.locator('.living-room__canvas')
+			.evaluate(
+				(canvas, [x, y]) =>
+					canvas.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: x, clientY: y })),
+				[spot.x + spot.width / 2, spot.y + spot.height / 2],
+			);
+
+		await t('the record click opens the room at the record view', async () => {
+			await page.locator('[data-room-dialog][open]').waitFor({ timeout: 5000 });
+			await page.waitForFunction(
+				() => document.querySelector('[data-room]').dataset.view === 'record',
+				null,
+				{
+					timeout: 8000,
+				},
+			);
+		});
+		await t('there is no play button on the tile', async () => {
+			assert.equal(await page.locator('[data-tile-record], .room-tile__chip').count(), 0);
+		});
 
 		await t('crackle starts immediately', async () => {
 			assert.equal(await button.getAttribute('aria-pressed'), 'true');
@@ -88,9 +116,29 @@ for (const [name, engine] of Object.entries(ENGINES)) {
 			assert.equal(await button.textContent(), 'Stop the record');
 		});
 
-		await t('button stays visible while playing', async () => {
-			assert.equal(await button.evaluate((el) => getComputedStyle(el).opacity), '1');
+		await t('the opened room shows what is playing', async () => {
+			assert.ok(await page.locator('.room-bar__playing').isVisible());
 		});
+		await t('the tile header shows what is playing, quietly', async () => {
+			await page.locator('[data-room-close]').click();
+			await page.waitForFunction(() => !document.querySelector('[data-room-dialog]').open);
+			assert.ok(await page.locator('.room-tile__playing').isVisible());
+			assert.equal(await page.locator('.room-tile').getAttribute('data-playing'), '');
+			// Back in the tile, the record view is left behind.
+			await page.waitForFunction(
+				() => document.querySelector('[data-room]').dataset.view === 'room',
+			);
+		});
+
+		// The record player is also what stops the set: back in the tile, a click
+		// on it plays or stops and opens the room at the record view.
+		const stopRecord = async () => {
+			if (!(await page.locator('[data-room-dialog]').evaluate((el) => el.open))) {
+				const box = await button.boundingBox();
+				await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+				await page.locator('[data-room-dialog][open]').waitFor({ timeout: 5000 });
+			}
+		};
 
 		// Five seconds in: long enough for a browser that is going to refuse to
 		// have refused, and for one that is playing to be seconds into the track.
@@ -102,8 +150,9 @@ for (const [name, engine] of Object.entries(ENGINES)) {
 			await t('the widget really plays', () =>
 				assert.ok(Number.parseInt(state.match(/at (\d+)/)[1], 10) > 1000, state),
 			);
-			await button.click();
-			await page.waitForTimeout(2000);
+			await stopRecord();
+			// The scene runs inside the tile on a desktop; wait for it to be live.
+			await page.waitForSelector('[data-room][data-live]', { timeout: 30000 });
 			await t('stopping pauses the widget', async () =>
 				assert.match(await isPaused(page), /^paused/),
 			);
@@ -117,7 +166,7 @@ for (const [name, engine] of Object.entries(ENGINES)) {
 				assert.equal(await button.getAttribute('aria-pressed'), 'true');
 				assert.equal(await button.textContent(), 'Stop the record');
 			});
-			await button.click();
+			await stopRecord();
 			await page.waitForTimeout(500);
 			await t('the button still stops', async () => {
 				assert.equal(await button.getAttribute('aria-pressed'), 'false');

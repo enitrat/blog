@@ -1,0 +1,40 @@
+---
+/** WritingTile: the latest essays, newest tagged. */
+import { getWritingIndex, postUrl } from '../../../utils/writing';
+import Link from '../../ui/Link.astro';
+import ListRow from '../../ui/ListRow.astro';
+import ListRows from '../../ui/ListRows.astro';
+import Tile from '../../ui/Tile.astro';
+
+interface Props {
+	order?: number;
+}
+const { order } = Astro.props;
+const posts = (await getWritingIndex()).slice(0, 5);
+const fmt = new Intl.DateTimeFormat('en-GB', {
+	day: 'numeric',
+	month: 'short',
+	year: 'numeric',
+	timeZone: 'UTC',
+});
+---
+
+{
+	posts.length > 0 && (
+		<Tile label="Writing" labelAs="h2" span={{ md: 6, lg: 5 }} order={order} as="section">
+			<Link slot="action" variant="arrow" href="/writing/">All writing</Link>
+			<ListRows variant="tile">
+				{posts.map((p, i) => (
+					<ListRow
+						href={postUrl(p)}
+						title={p.data.title}
+						description={p.data.description}
+						date={fmt.format(p.data.pubDate)}
+						datetime={p.data.pubDate.toISOString().slice(0, 10)}
+						tag={i === 0 ? 'Latest' : undefined}
+					/>
+				))}
+			</ListRows>
+		</Tile>
+	)
+}

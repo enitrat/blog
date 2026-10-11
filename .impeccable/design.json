@@ -1,37 +1,305 @@
 {
 	"schemaVersion": 2,
-	"generatedAt": "2026-08-21T00:00:00.000Z",
+	"generatedAt": "2026-10-11T16:21:16.000Z",
 	"title": "Design System: Mathieu Saugier",
 	"extensions": {
-		"narrative": {
-			"northStar": "The quiet personal index",
-			"overview": "A personal website with a quiet index as its center: warm white space, near-black type, restrained blue links, thin neutral rules, and generous room for content. The homepage makes Mathieu and the things he is doing visible in one scrollable surface. Work, writing, bookshelf, about, and article pages share the same shell and reading language.",
-			"keyCharacteristics": [
-				"Warm white field with near-black type and restrained blue interaction.",
-				"Commissioner for direct reading; Literata for section headings and article titles.",
-				"Open list rows with useful descriptions and clear destinations.",
-				"Whitespace and quiet rules instead of cards, gradients, glass, or dashboard chrome.",
-				"One shared shell and measured reading surface across every route."
-			],
-			"rules": [
-				{ "name": "The Quiet Index Rule", "body": "Let real content and sequence create interest. The homepage is a curated index into real routes, not a product dashboard or a decorative gallery.", "section": "layout" },
-				{ "name": "The Two-Voice Rule", "body": "Literata carries editorial hierarchy; Commissioner carries reading, navigation, metadata, and apparatus. Roboto Mono is for code only.", "section": "typography" },
-				{ "name": "The Open Row Rule", "body": "Use a title, a useful description, and a clear destination. Keep Work, Projects, Writing, and Bookshelf as distinct sections.", "section": "layout" },
-				{ "name": "The Flat Field Rule", "body": "Separate content with spacing, thin rules, measure, and tonal contrast. Do not introduce floating cards, ambient shadows, glass, or ornamental blur.", "section": "elevation" },
-				{ "name": "The Optional Apparatus Rule", "body": "Article details and contents are useful orientation, never the only path through the prose. The document remains complete without JavaScript.", "section": "layout" }
-			],
-			"dos": [
-				"Do give every route the shared shell, header, footer, and token primitives.",
-				"Do keep the homepage useful as a no-script list of real destinations.",
-				"Do preserve Mathieu's Markdown prose and book data while changing presentation.",
-				"Do inspect wide and narrow viewports and respect reduced motion."
-			],
-			"donts": [
-				"Don't reintroduce cards, pills, gradients, glass, hard shadows, dense dashboards, or fake activity signals.",
-				"Don't merge Work and Writing into one feed.",
-				"Don't invent professional claims, current-role details, contact destinations, or authored copy.",
-				"Don't make hover, animation, or the article margin necessary for comprehension."
-			]
+		"colorMeta": {
+			"grey-200": {
+				"role": "neutral",
+				"displayName": "Bench Grey",
+				"canonical": "#dcdde0",
+				"tonalRamp": [
+					"#26282c",
+					"#3f4247",
+					"#575b62",
+					"#6b6f76",
+					"#8e939a",
+					"#c3c5c9",
+					"#dcdde0",
+					"#f5f5f3"
+				]
+			},
+			"grey-50": {
+				"role": "neutral",
+				"displayName": "Paper",
+				"canonical": "#f5f5f3",
+				"tonalRamp": [
+					"#26282c",
+					"#3f4247",
+					"#6b6f76",
+					"#8e939a",
+					"#c3c5c9",
+					"#dcdde0",
+					"#eaeaed",
+					"#f5f5f3"
+				]
+			},
+			"grey-850": {
+				"role": "neutral",
+				"displayName": "Graphite",
+				"canonical": "#1b1c1f",
+				"tonalRamp": [
+					"#0e0e10",
+					"#16171a",
+					"#1b1c1f",
+					"#26282c",
+					"#3f4247",
+					"#575b62",
+					"#6b6f76",
+					"#8e939a"
+				]
+			},
+			"orange-500": {
+				"role": "primary",
+				"displayName": "Signal Orange",
+				"canonical": "#ff5b1f",
+				"tonalRamp": [
+					"#c2410c",
+					"#ff5b1f",
+					"#ff7a47",
+					"#ff9a70"
+				]
+			},
+			"orange-600": {
+				"role": "primary",
+				"displayName": "Burnt Orange",
+				"canonical": "#c2410c",
+				"tonalRamp": [
+					"#c2410c",
+					"#ff5b1f",
+					"#ff7a47",
+					"#ff9a70"
+				]
+			},
+			"manuscript-paper": {
+				"role": "art",
+				"displayName": "Manuscript Paper",
+				"canonical": "#f5f0e5",
+				"tonalRamp": [
+					"#242018",
+					"#766647",
+					"#94856b",
+					"#d8cfbd",
+					"#f5f0e5"
+				]
+			},
+			"lamp-amber": {
+				"role": "art",
+				"displayName": "Lamp Amber",
+				"canonical": "rgb(255 190 110)",
+				"tonalRamp": [
+					"rgb(255 180 110)",
+					"rgb(255 190 110)",
+					"rgb(255 196 120)",
+					"rgb(255 214 150)"
+				]
+			}
+		},
+		"typographyMeta": {
+			"display": {
+				"displayName": "Display",
+				"purpose": "Bio statement; clamp(1.75rem, 1rem + 2.4vw, 2.75rem), tracking -0.03em."
+			},
+			"title": {
+				"displayName": "Title",
+				"purpose": "The one PageTitle h1, 1.75rem semibold."
+			},
+			"heading": {
+				"displayName": "Heading",
+				"purpose": "Essay section headings, lead line, book titles, 1.5rem."
+			},
+			"body": {
+				"displayName": "Body",
+				"purpose": "Essay prose, 1.125rem / 1.62, justified, 38rem measure."
+			},
+			"ui": {
+				"displayName": "UI",
+				"purpose": "Default text, buttons, rows, 0.9375rem."
+			},
+			"small": {
+				"displayName": "Small",
+				"purpose": "Descriptions, dates, captions, 0.8125rem."
+			},
+			"label": {
+				"displayName": "Label",
+				"purpose": "Geist Mono caps, 0.6875rem, tracking 0.09em: tile headers, tags, pills, meta."
+			}
+		},
+		"shadows": [
+			{
+				"name": "none",
+				"value": "none",
+				"purpose": "The bench and reading pages are flat. Depth is the grey field plus a 1px hairline. Controls use an inset 1px ring. The room's painted bookshelf shadows belong to the lit scene only."
+			}
+		],
+		"motion": [
+			{
+				"name": "duration-fast",
+				"value": "150ms",
+				"purpose": "Hover and state changes."
+			},
+			{
+				"name": "duration-base",
+				"value": "250ms",
+				"purpose": "Fades such as the dither reveal."
+			},
+			{
+				"name": "duration-slow",
+				"value": "600ms",
+				"purpose": "Scene and entrance moments."
+			},
+			{
+				"name": "duration-slower",
+				"value": "1200ms",
+				"purpose": "Longest scene moves."
+			},
+			{
+				"name": "ease-out",
+				"value": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+				"purpose": "State changes."
+			},
+			{
+				"name": "ease-in-out",
+				"value": "cubic-bezier(0.65, 0, 0.35, 1)",
+				"purpose": "Larger moves."
+			}
+		],
+		"breakpoints": [
+			{
+				"name": "md (6-col bench)",
+				"value": "40rem"
+			},
+			{
+				"name": "lg (12-col bench)",
+				"value": "64rem"
+			}
+		],
+		"tokenLayers": [
+			"reference (DESIGN.md frontmatter -> tokens.css)",
+			"semantic (theme.css, references reference only)",
+			"component (component <style>, references semantic only)"
+		]
+	},
+	"components": [
+		{
+			"name": "Tile (paper)",
+			"kind": "card",
+			"description": "Flat bench surface: 1px hairline, no shadow, mono caps header.",
+			"html": "<div class=\"ds-tile\"><div class=\"ds-tile-head\"><span class=\"ds-dot\"></span>Now</div><p>A short line Mathieu wrote himself.</p></div>",
+			"css": ".ds-tile{background:var(--surface,#f5f5f3);color:var(--surface-foreground,#16171a);border:1px solid var(--border,rgba(22,23,26,.12));border-radius:var(--radius-tile,18px);padding:var(--pad-tile,1.625rem);display:grid;gap:1.25rem;font-family:var(--font-geist,system-ui);transition:border-color .15s}.ds-tile:hover{border-color:var(--foreground,#16171a)}.ds-tile-head{display:flex;align-items:center;gap:.5rem;font-family:var(--font-code,monospace);font-size:.6875rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted-foreground,#575b62)}.ds-dot{width:7px;height:7px;border-radius:999px;background:var(--accent-graphic,#c2410c)}.ds-tile p{margin:0;font-size:.9375rem}"
+		},
+		{
+			"name": "Tile (inverse)",
+			"kind": "card",
+			"description": "Graphite tile; the scoped inverse rule re-maps the paper names.",
+			"html": "<div class=\"ds-tile ds-inv\"><div class=\"ds-tile-head\">Latest</div><p>Atoms inside need no inverse prop.</p></div>",
+			"css": ".ds-inv{--surface:#1b1c1f;--surface-foreground:#eaeaed;--muted-foreground:#8e939a;--border:rgba(245,245,243,.14);background:var(--surface);color:var(--surface-foreground);border:1px solid var(--border);border-radius:18px;padding:1.625rem;font-family:var(--font-geist,system-ui)}.ds-inv .ds-tile-head{font-family:var(--font-code,monospace);font-size:.6875rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted-foreground)}.ds-inv p{margin:.75rem 0 0;font-size:.9375rem}"
+		},
+		{
+			"name": "Primary Button",
+			"kind": "button",
+			"refersTo": "button",
+			"description": "Orange fill pill, 44px tall; the one place orange fills.",
+			"html": "<button class=\"ds-btn ds-btn-primary\">Listen</button>",
+			"css": ".ds-btn{min-height:44px;padding:0 1.1rem;border:0;border-radius:999px;font:500 .9375rem var(--font-geist,system-ui);cursor:pointer;transition:background .15s,box-shadow .15s}.ds-btn-primary{background:var(--accent,#ff5b1f);color:var(--accent-foreground,#16171a)}.ds-btn-primary:hover{background:color-mix(in srgb,var(--accent,#ff5b1f) 85%,#16171a)}.ds-btn:focus-visible{outline:2px solid var(--ring,#c2410c);outline-offset:3px}"
+		},
+		{
+			"name": "Ghost Button",
+			"kind": "button",
+			"description": "Hairline outline pill; border goes to currentColor on hover.",
+			"html": "<button class=\"ds-btn ds-btn-ghost\">All writing</button>",
+			"css": ".ds-btn{min-height:44px;padding:0 1.1rem;border:0;border-radius:999px;font:500 .9375rem var(--font-geist,system-ui);cursor:pointer;transition:box-shadow .15s}.ds-btn-ghost{background:transparent;color:var(--foreground,#16171a);box-shadow:inset 0 0 0 1px var(--border,rgba(22,23,26,.12))}.ds-btn-ghost:hover{box-shadow:inset 0 0 0 1px currentColor}.ds-btn:focus-visible{outline:2px solid var(--ring,#c2410c);outline-offset:3px}"
+		},
+		{
+			"name": "Pill",
+			"kind": "chip",
+			"description": "Small mono capsule: link (filled), chip (outlined), toggle (orange when pressed).",
+			"html": "<a class=\"ds-pill\" href=\"#\">GitHub</a> <button class=\"ds-pill ds-pill-toggle\" aria-pressed=\"true\">Essays</button>",
+			"css": ".ds-pill{display:inline-flex;align-items:center;min-height:2rem;padding:0 .75rem;border:0;border-radius:999px;font:500 .6875rem/1 var(--font-code,monospace);text-decoration:none;background:var(--foreground,#16171a);color:var(--surface,#f5f5f3);cursor:pointer;transition:background .15s,color .15s}.ds-pill:hover{background:var(--accent,#ff5b1f);color:var(--accent-foreground,#16171a)}.ds-pill-toggle{background:transparent;color:var(--foreground,#16171a);box-shadow:inset 0 0 0 1px var(--border,rgba(22,23,26,.12))}.ds-pill-toggle[aria-pressed=true]{background:var(--accent,#ff5b1f);color:var(--accent-foreground,#16171a);box-shadow:none}.ds-pill:focus-visible{outline:2px solid var(--ring,#c2410c);outline-offset:2px}"
+		},
+		{
+			"name": "List Row",
+			"kind": "nav",
+			"description": "Mono date column, title, muted description; arrow on hover and focus.",
+			"html": "<a class=\"ds-row\" href=\"#\"><span class=\"ds-date\">12 Mar</span><span><strong>Essay title</strong><span class=\"ds-desc\">First sentence of the piece.</span></span></a>",
+			"css": ".ds-row{display:grid;grid-template-columns:5rem 1fr;gap:1rem;padding:.75rem 0;border-bottom:1px solid var(--border,rgba(22,23,26,.12));color:var(--foreground,#16171a);text-decoration:none;font-family:var(--font-geist,system-ui);font-size:.9375rem}.ds-date{font-family:var(--font-code,monospace);font-size:.8125rem;color:var(--muted-foreground,#575b62)}.ds-row strong{display:block;font-weight:600;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:.2em}.ds-row:hover strong{text-decoration-color:var(--accent-graphic,#c2410c)}.ds-desc{color:var(--muted-foreground,#575b62)}.ds-row:focus-visible{outline:2px solid var(--ring,#c2410c);outline-offset:2px}"
+		},
+		{
+			"name": "In short",
+			"kind": "custom",
+			"description": "Essay skim block: mono label, numbered section titles with their first sentence.",
+			"html": "<nav class=\"ds-short\"><div class=\"ds-lab\">In short</div><a href=\"#\"><span class=\"ds-n\">01</span><span><strong>Section title</strong><span class=\"ds-desc\">Its first sentence.</span></span></a></nav>",
+			"css": ".ds-short{max-width:38rem;padding-bottom:2rem;border-bottom:1px solid var(--border,rgba(22,23,26,.12));font-family:var(--font-geist,system-ui);font-size:.9375rem}.ds-lab{font-family:var(--font-code,monospace);font-size:.6875rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted-foreground,#575b62);margin-bottom:1rem}.ds-short a{display:grid;grid-template-columns:1.75rem 1fr;padding:.5rem 0;color:var(--foreground,#16171a);text-decoration:none}.ds-n{font-family:var(--font-code,monospace);font-size:.8125rem;color:var(--muted-foreground,#575b62)}.ds-short strong{display:block;font-weight:600;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:.2em}.ds-short a:hover strong{text-decoration-color:var(--accent-graphic,#c2410c)}.ds-desc{color:var(--muted-foreground,#575b62)}"
 		}
+	],
+	"narrative": {
+		"northStar": "The Bench",
+		"overview": "The site is a cool grey workbench on which small, real objects from Mathieu's life are laid out: a bio, what he is doing now, the book he is reading, the latest essay, a trip, the work. Each object is a flat tile and each tile is a door. Recognisable with the content removed: a grey field, flat near-white rectangles of varied size, mono caps labels, one orange dot. Geist does all the talking; Geist Mono labels and counts.\n\nThe system is flat on purpose. Tiles are separated by space and a 1px hairline, never by shadow, glass or gradient. Orange is a signal for state (playing, current, latest, pressed, focus), not decoration. The only dark, textured, lit object on the bench is the 3D living room. Everything else is paper and graphite.\n\nThe essay breaks no rule of the bench; it only removes the bench. Reading pages are a single plain column, no banner, no sidebar, no cards.",
+		"keyCharacteristics": [
+			"Flat tiles on a grey field: 1px hairline, no drop shadow, no glass, no blur.",
+			"One family (Geist) plus its mono (Geist Mono) for labels, data and code.",
+			"Orange only for state; `--accent-graphic` for small marks (dots, underlines), `--accent` for fills.",
+			"Light and dark are both first-class; a tile can locally invert without any prop on its atoms.",
+			"Photos are ordered-dither duotones that reveal true colour on hover, focus or tap.",
+			"The room is the one dark object, painted with its own art-direction colours that never change with the theme."
+		],
+		"rules": [
+			{
+				"name": "The Orange Is State Rule",
+				"body": "Orange means playing, current, latest, pressed or focused. If removing it loses no meaning, it should not be there.",
+				"section": "colors"
+			},
+			{
+				"name": "The Small Marks Rule",
+				"body": "Dots and underlines use `--accent-graphic`; fills use `--accent`. Never paint a small orange mark with `--accent` on paper.",
+				"section": "colors"
+			},
+			{
+				"name": "The Fixed Scrim Rule",
+				"body": "Text over a photo uses `--scrim` and `--scrim-foreground`, which do not change with the theme.",
+				"section": "colors"
+			},
+			{
+				"name": "The One Family Rule",
+				"body": "Geist for everything, Geist Mono for labels, data and code. No second display face, no serif.",
+				"section": "typography"
+			},
+			{
+				"name": "The Semantic Size Rule",
+				"body": "Components use the `--text-*` roles, never raw `--font-size-*` or literal sizes.",
+				"section": "typography"
+			},
+			{
+				"name": "The Bench Grid Rule",
+				"body": "Tiles are placed with `span`, `rows` and `order`; pages never write their own grid for a bench.",
+				"section": "layout"
+			},
+			{
+				"name": "The Plain Reading Rule",
+				"body": "The essay is one column. Apparatus (In short, back links) is orientation, never the only path.",
+				"section": "layout"
+			},
+			{
+				"name": "The No Shadow Rule",
+				"body": "No drop shadows, glass or blur on the bench or in the reading pages. The room's bookshelf carries its own painted shadows as part of the lit scene; that is the room's material, not a rule for the interface.",
+				"section": "elevation"
+			}
+		],
+		"dos": [
+			"**Do** separate tiles with space and a 1px `--border` hairline.",
+			"**Do** write atoms against the paper semantic names so they retint on any inverse surface.",
+			"**Do** use `--accent-graphic` for dots and underlines, `--accent` for fills, and only for state.",
+			"**Do** use `Bench`, `Tile`, `Page` and `PageTitle` for layout; add a variant before adding a component.",
+			"**Do** keep every target 44px and keep light and dark identical in structure.",
+			"**Do** keep the essay a single justified, hyphenated 38rem column opening with In short."
+		],
+		"donts": [
+			"**Don't** add drop shadows, glass, blur or gradients to tiles, controls or pages (the lit room scene is the exception, inside the room).",
+			"**Don't** use orange as decoration or for large areas outside primary buttons and pressed toggles.",
+			"**Don't** introduce a second typeface or colour literals outside `tokens.css` and `theme.css`.",
+			"**Don't** nest links or buttons inside a linked `Tile`.",
+			"**Don't** swap `--surface` and `--surface-inverse` inside the inverse rule.",
+			"**Don't** add a banner, sidebar or card to the essay."
+		]
 	}
 }
