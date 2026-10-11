@@ -13,10 +13,21 @@ const { order } = Astro.props;
 
 <Tile span={{ md: 6, lg: 5 }} rows={{ lg: 4 }} {order} as="section" aria-labelledby="bio-title">
 	<div class="bio">
-		<h1 id="bio-title">
-			<span>Hi, I'm Mathieu.</span>
-			<span>I build cool stuff with agents, with end-to-end ownership of products, and I sometimes DJ and write what goes through my head</span>
-		</h1>
+		<div class="intro">
+			<h1 id="bio-title">
+				<span>Hi! I'm Mathieu.</span>
+				<span>An engineer working in DeFi.</span>
+			</h1>
+			<div class="facts">
+				<p>Fun facts:</p>
+				<ul>
+					<li>I'm 25</li>
+					<li>I record DJ sets on soundcloud</li>
+					<li>I'm on a quest to bench 100kg</li>
+					<li>I enjoy classical literature a lot</li>
+				</ul>
+			</div>
+		</div>
 		<div class="foot">
 			<p>
 				Senior Protocol Engineer at <Link href="/work/zama/">Zama</Link>
@@ -36,6 +47,10 @@ const { order } = Astro.props;
 		gap: var(--space-8);
 		height: 100%;
 	}
+	.intro {
+		display: grid;
+		gap: var(--space-4);
+	}
 	h1 {
 		display: grid;
 		gap: var(--space-3);
@@ -44,6 +59,17 @@ const { order } = Astro.props;
 		line-height: var(--leading-display);
 		letter-spacing: var(--tracking-display);
 		text-wrap: balance;
+	}
+	.facts {
+		display: grid;
+		gap: var(--space-2);
+		color: var(--muted-foreground);
+		font-size: var(--text-ui);
+		line-height: var(--leading-body);
+	}
+	.facts ul {
+		margin: 0;
+		padding-left: 1.15em;
 	}
 	.foot {
 		display: grid;
