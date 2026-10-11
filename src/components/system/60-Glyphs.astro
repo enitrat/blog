@@ -1,0 +1,133 @@
+---
+// Iso glyphs: four small top-surface objects on one projection and one set of iso tokens.
+import AgePlate from '../home/glyphs/AgePlate.astro';
+import Barbell from '../home/glyphs/Barbell.astro';
+import Book from '../home/glyphs/Book.astro';
+import Turntable from '../home/glyphs/Turntable.astro';
+import Label from '../ui/Label.astro';
+
+const glyphs = [
+	{ name: 'AgePlate', Glyph: AgePlate },
+	{ name: 'Turntable', Glyph: Turntable },
+	{ name: 'Barbell', Glyph: Barbell },
+	{ name: 'Book', Glyph: Book },
+];
+const tokens = ['--iso-top', '--iso-left', '--iso-right', '--iso-edge'];
+---
+
+<section class="glyphs" aria-labelledby="glyphs-h">
+	<Label as="h2" id="glyphs-h">Glyphs</Label>
+
+	<div class="group">
+		<Label as="h3">IsoGlyph</Label>
+		{
+			[
+				{ surface: undefined, label: 'paper' },
+				{ surface: 'inverse', label: 'inverse' },
+			].map(({ surface, label }) => (
+				<div class="ground" data-surface={surface} data-glyph-host>
+					<span class="cap">{label}</span>
+					{[36, 96].map((s) => (
+						<div class="row">
+							{glyphs.map(({ name, Glyph }) => (
+								<figure>
+									<Glyph size={s} />
+									{s === 36 && <figcaption>{name}</figcaption>}
+								</figure>
+							))}
+						</div>
+					))}
+				</div>
+			))
+		}
+		<p class="note">
+			Top surface only: one projection (45° azimuth, 30° elevation), four tones from the light at the top left, 1px
+			hairlines. Objects are drawn with the helpers in ui/iso.ts inside IsoGlyph (props: size, default 36). A part with
+			class iso-part and a --pose transform moves while the nearest [data-glyph-host] is hovered; hover these grounds.
+			Orange appears once, on the turntable, because it stands for the set player.
+		</p>
+		<ul class="tokens">
+			{
+				tokens.map((t) => (
+					<li>
+						<span class="chip" style={`background:var(${t})`} />
+						<code>{t}</code>
+					</li>
+				))
+			}
+		</ul>
+		<p class="note">
+			Derived per scope from --surface and --foreground by the percentages in theme.css, with --iso-dir flipping the light
+			(0 on paper, 1 on a dark ground) so an inverse container re-tints without a prop.
+		</p>
+	</div>
+</section>
+
+<style>
+	.glyphs {
+		display: grid;
+		gap: var(--space-10);
+	}
+	.group {
+		display: grid;
+		gap: var(--space-4);
+		padding: var(--pad-tile);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-tile);
+		background: var(--surface);
+		color: var(--surface-foreground);
+	}
+	.ground {
+		display: grid;
+		gap: var(--space-4);
+		padding: var(--space-5);
+		border-radius: var(--radius-md);
+		background: var(--surface);
+		color: var(--surface-foreground);
+		border: 1px solid var(--border);
+	}
+	.cap,
+	figcaption,
+	code {
+		font-family: var(--font-code);
+		font-size: var(--text-small);
+		color: var(--muted-foreground);
+	}
+	.row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-8);
+		align-items: end;
+	}
+	figure {
+		margin: 0;
+		display: grid;
+		gap: var(--space-2);
+		justify-items: start;
+	}
+	.tokens {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-5);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.tokens li {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+	}
+	.chip {
+		width: 1.5rem;
+		height: 1.5rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-sm);
+	}
+	.note {
+		margin: 0;
+		max-width: 60ch;
+		color: var(--muted-foreground);
+		font-size: var(--text-ui);
+	}
+</style>

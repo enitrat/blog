@@ -1,49 +1,105 @@
 ---
-/** ReadingTile: the books being read now, then the whole shelf. Links to /reading. */
+/**
+ * ReadingTile: the books being read now as a stack of covers, each with a glow in its dominant
+ *   colour. Hover fans them apart. The whole tile links to /reading. With no current book it
+ *   shows the last one finished.
+ * @prop order Position on the phone grid (passed to `Tile`)
+ */
 import { books } from '../../../booksData';
-import BookLine from '../../ui/BookLine.astro';
-import BookSpine from '../../ui/BookSpine.astro';
-import Link from '../../ui/Link.astro';
-import Shelf from '../../ui/Shelf.astro';
-import StatusDot from '../../ui/StatusDot.astro';
+import { coverFor } from '../../../utils/covers';
+import { glowOf } from '../../../utils/glow';
+import Fan from '../../ui/Fan.astro';
+import FanItem from '../../ui/FanItem.astro';
+import Plate from '../../ui/Plate.astro';
 import Tile from '../../ui/Tile.astro';
 
 interface Props {
 	order?: number;
 }
 const { order } = Astro.props;
-const current = books.filter((b) => b.status === 'reading');
-const shelf = [...current, ...books.filter((b) => b.status !== 'reading')];
+const stamp = (d: Date | null) => d?.getTime() ?? 0;
+const current = books
+	.filter((b) => b.status === 'reading')
+	.sort((a, b) => stamp(b.dateStarted) - stamp(a.dateStarted));
+const last = books
+	.filter((b) => b.status === 'finished')
+	.sort((a, b) => stamp(b.dateFinished) - stamp(a.dateFinished))[0];
+const label = current.length ? 'Reading' : 'Last read';
+const shown = (current.length ? current : last ? [last] : []).slice(0, 2);
+const stack = await Promise.all(
+	shown.map(async (book) => {
+		const cover = coverFor(book.edition.isbn13);
+		return { book, cover, glow: cover ? await glowOf(cover) : undefined };
+	}),
+);
+const front = stack[0]?.book;
+const poses = [
+	{ rest: { r: 0 }, open: { x: '6%', r: 4, s: 1.02 }, touch: { r: 2 } },
+	{
+		rest: { x: '10%', y: '-4%', r: -6 },
+		open: { x: '-14%', y: '-6%', r: -10 },
+		touch: { x: '10%', y: '-4%', r: -8 },
+	},
+];
 ---
 
-<Tile label="Reading" labelAs="h2" span={{ md: 6, lg: 7 }} {order} as="section">
-	<Link slot="action" variant="arrow" href="/reading/">All books</Link>
-	<div class="reading">
-		<ul class="now">
-			{current.map((b) => (
-				<li>
-					<BookLine title={b.title} author={b.author}>
-						<StatusDot slot="tag" />
-						{b.edition.pageCount} pages
-					</BookLine>
-				</li>
-			))}
-		</ul>
-		<Shelf label="Books, linked to the reading page">
-			{shelf.map((b) => <BookSpine title={b.title} author={b.author} pages={b.edition.pageCount} status={b.status} href="/reading/" />)}
-		</Shelf>
-	</div>
+<Tile {label} href="/reading/" data-fan-host span={{ md: 3, lg: 4 }} {order} meta={current.length > 1 ? `+${current.length - 1} more` : undefined}>
+	{front && (
+		<div class="reading">
+			<Fan host="ancestor" class="stack">
+				{stack.map(({ book, cover, glow }, i) => (
+					<FanItem i={i} {...poses[i]}>
+						<Plate src={cover} alt="" glow={glow} sizes="12rem" widths={[240, 480]}>
+							<span class="fallback">
+								<strong>{book.title.replace(/\s*\(.*\)\s*$/, '')}</strong>
+								<span>{book.author}</span>
+							</span>
+						</Plate>
+					</FanItem>
+				))}
+			</Fan>
+			<p class="title">{front.title.replace(/\s*\(.*\)\s*$/, '')}</p>
+			<p class="by">{front.author}</p>
+		</div>
+	)}
 </Tile>
 
 <style>
 	.reading {
-		display: grid;
-		gap: var(--space-6);
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		text-align: right;
 	}
-	.now {
+	.reading :global(.stack) {
+		--fan-w: min(54%, 11rem);
+		margin: auto;
+		/* the back cover peeks out to the right: shift the stack left so the pair stays centred */
+		translate: -4% 0;
+	}
+	.title {
+		margin-top: var(--space-6);
+		font-size: var(--text-ui);
+		font-weight: var(--weight-title);
+		line-height: var(--leading-ui);
+	}
+	.by {
+		font-size: var(--text-small);
+		line-height: var(--leading-ui);
+		color: var(--muted-foreground);
+	}
+	.fallback {
 		display: grid;
-		gap: var(--space-4);
-		list-style: none;
-		padding: 0;
+		align-content: end;
+		gap: var(--space-1);
+		height: 100%;
+		padding: var(--space-3);
+		text-align: left;
+		font-size: var(--text-small);
+		color: var(--muted-foreground);
+	}
+	.fallback strong {
+		color: var(--foreground);
+		font-weight: var(--weight-title);
 	}
 </style>

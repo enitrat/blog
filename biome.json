@@ -12,7 +12,8 @@
 			"!**/*.webp.json",
 			"!.impeccable/**/*.json",
 			"!.vercel",
-			"!src/assets/room/*.json"
+			"!src/assets/room/*.json",
+			"!src/styles/tokens.css"
 		]
 	},
 	"formatter": {

@@ -4,6 +4,10 @@ import { CONTACT_LINKS } from '../../../consts';
 import Link from '../../ui/Link.astro';
 import Pill from '../../ui/Pill.astro';
 import Tile from '../../ui/Tile.astro';
+import AgePlate from '../glyphs/AgePlate.astro';
+import Barbell from '../glyphs/Barbell.astro';
+import Book from '../glyphs/Book.astro';
+import Turntable from '../glyphs/Turntable.astro';
 
 interface Props {
 	order?: number;
@@ -18,15 +22,15 @@ const { order } = Astro.props;
 				<span>Hi! I'm Mathieu.</span>
 				<span>An engineer working in DeFi.</span>
 			</h1>
-			<div class="facts">
-				<p>Fun facts:</p>
-				<ul>
-					<li>I'm 25</li>
-					<li>I record DJ sets on soundcloud</li>
-					<li>I'm on a quest to bench 100kg</li>
-					<li>I enjoy classical literature a lot</li>
-				</ul>
-			</div>
+		</div>
+		<div class="facts">
+			<p>Fun facts:</p>
+			<ul>
+				<li data-glyph-host><AgePlate size={40} /><span>I'm 25</span></li>
+				<li data-glyph-host><Turntable size={40} /><span>I record DJ sets on soundcloud</span></li>
+				<li data-glyph-host><Barbell size={40} /><span>I'm on a quest to bench 100kg</span></li>
+				<li data-glyph-host><Book size={40} /><span>I enjoy classical literature a lot</span></li>
+			</ul>
 		</div>
 		<div class="foot">
 			<p>
@@ -47,10 +51,6 @@ const { order } = Astro.props;
 		gap: var(--space-8);
 		height: 100%;
 	}
-	.intro {
-		display: grid;
-		gap: var(--space-4);
-	}
 	h1 {
 		display: grid;
 		gap: var(--space-3);
@@ -62,14 +62,24 @@ const { order } = Astro.props;
 	}
 	.facts {
 		display: grid;
-		gap: var(--space-2);
+		gap: var(--space-3);
 		color: var(--muted-foreground);
 		font-size: var(--text-ui);
 		line-height: var(--leading-body);
 	}
 	.facts ul {
+		display: grid;
 		margin: 0;
-		padding-left: 1.15em;
+		padding: 0;
+		list-style: none;
+	}
+	.facts li {
+		display: grid;
+		grid-template-columns: var(--space-10) 1fr;
+		align-items: center;
+		gap: var(--space-4);
+		padding-block: var(--space-2);
+		color: var(--foreground);
 	}
 	.foot {
 		display: grid;

@@ -1,0 +1,68 @@
+---
+/** Barbell: bar loaded with two plates a side and collars, lying on the floor along x. It dips on hover. */
+import IsoGlyph from '../../ui/IsoGlyph.astro';
+import { P } from '../../ui/iso';
+
+interface Props {
+	size?: number;
+}
+const { size } = Astro.props;
+const R = 8.5;
+// Plates and collars in painter's order along x (far to near): [x0, x1, radius].
+const far: [number, number, number][] = [
+	[-20.5, -18.5, 2.4],
+	[-18.5, -16, 6],
+	[-16, -13, R],
+];
+const near: [number, number, number][] = [
+	[13, 16, R],
+	[16, 18.5, 6],
+	[18.5, 20.5, 2.4],
+];
+const plane = (x: number, r: number) => {
+	const [cx, cy] = P(x, 0, R);
+	return { transform: `matrix(-0.7071 0.3536 0 -0.866 ${cx} ${cy})`, r };
+};
+const steps = (x0: number, x1: number) => {
+	const out: number[] = [];
+	for (let x = x0; x < x1; x += 0.5) out.push(x);
+	return out;
+};
+const bar = (x0: number, x1: number) => ({ a: P(x0, 0, R), b: P(x1, 0, R) });
+const mid = bar(-13, 13);
+const tip = bar(20.5, 26);
+---
+
+<IsoGlyph size={size} frame={[0.55, -6.6, 42]}>
+	<g transform="translate(0 3)"><g class="iso-part" style="--pose: translate(0, 1.5px)">
+		{
+			[far, near].map((group, i) => (
+				<Fragment>
+					{i === 1 && <line class="bar-edge" x1={mid.a[0]} y1={mid.a[1]} x2={mid.b[0]} y2={mid.b[1]} />}
+					{i === 1 && <line class="bar" x1={mid.a[0]} y1={mid.a[1]} x2={mid.b[0]} y2={mid.b[1]} />}
+					{group.map(([x0, x1, r]) => (
+						<Fragment>
+							{steps(x0, x1).map((x) => {
+								const p = plane(x, r);
+								return <circle class="l" transform={p.transform} r={p.r} />;
+							})}
+							<circle class="r" transform={plane(x1, r).transform} r={r} />
+						</Fragment>
+					))}
+				</Fragment>
+			))
+		}
+		<line class="bar-edge" x1={tip.a[0]} y1={tip.a[1]} x2={tip.b[0]} y2={tip.b[1]} />
+		<line class="bar" x1={tip.a[0]} y1={tip.a[1]} x2={tip.b[0]} y2={tip.b[1]} />
+	</g></g>
+</IsoGlyph>
+
+<style>
+	.bar-edge {
+		stroke-width: 3.2px;
+	}
+	.bar {
+		stroke: var(--iso-top);
+		stroke-width: 1.4px;
+	}
+</style>

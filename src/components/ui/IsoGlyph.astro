@@ -1,0 +1,71 @@
+---
+/**
+ * IsoGlyph: a tiny isometric object seen from above (one projection, four tones, 1px hairlines).
+ * Draw inside it with the helpers in `iso.ts` and the classes `t` (top), `l` (left), `r` (right).
+ * @prop size Box in px (default 36); the viewBox scales it crisply
+ * @prop frame [cx, cy, side]: the square window onto the drawing, so each object fills ~85% of
+ *   its box and is centred, hover pose included. Same projection and 1px strokes for all.
+ * @slot default SVG content in screen coordinates, origin at the object's centre on the floor
+ * Motion: a part with class `iso-part` and an inline `--pose` (a CSS transform) moves while the
+ * nearest `[data-glyph-host]` is hovered or has focus-visible within; nothing moves at rest.
+ */
+interface Props {
+	size?: number;
+	frame?: [number, number, number];
+}
+const { size = 36, frame = [0, -2, 56] } = Astro.props;
+const [cx, cy, side] = frame;
+---
+
+<svg
+	class="iso-glyph"
+	width={size}
+	height={size}
+	viewBox={`${cx - side / 2} ${cy - side / 2} ${side} ${side}`}
+	aria-hidden="true"
+	focusable="false"
+	shape-rendering="geometricPrecision"
+>
+	<slot />
+</svg>
+
+<style is:global>
+	.iso-glyph {
+		display: block;
+		flex: none;
+		overflow: visible;
+	}
+	.iso-glyph :is(polygon, path, circle, ellipse, line, polyline) {
+		stroke: var(--iso-edge);
+		stroke-width: 1px;
+		stroke-linejoin: round;
+		stroke-linecap: round;
+		vector-effect: non-scaling-stroke;
+	}
+	.iso-glyph .t {
+		fill: var(--iso-top);
+	}
+	.iso-glyph .l {
+		fill: var(--iso-left);
+	}
+	.iso-glyph .r {
+		fill: var(--iso-right);
+	}
+	.iso-glyph .iso-part {
+		transform-origin: 0 0;
+		transition: transform var(--duration-base) var(--ease-out);
+	}
+	@media (hover: hover) {
+		[data-glyph-host]:hover .iso-part,
+		[data-glyph-host]:has(:focus-visible) .iso-part {
+			transform: var(--pose);
+			transition-duration: var(--duration-moderate);
+			transition-timing-function: var(--ease-spring);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.iso-glyph .iso-part {
+			transform: none !important;
+		}
+	}
+</style>

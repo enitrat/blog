@@ -4,6 +4,7 @@ import BioTile from '../components/home/tiles/BioTile.astro';
 import NowTile from '../components/home/tiles/NowTile.astro';
 import PlacesTile from '../components/home/tiles/PlacesTile.astro';
 import ReadingTile from '../components/home/tiles/ReadingTile.astro';
+import SetTile from '../components/home/tiles/SetTile.astro';
 import WorkTile from '../components/home/tiles/WorkTile.astro';
 import WritingTile from '../components/home/tiles/WritingTile.astro';
 import Bench from '../components/ui/Bench.astro';
@@ -24,9 +25,10 @@ const row3 = both ? { md: 3, lg: 6 } : { md: 6, lg: 12 };
 		<BioTile order={0} />
 		<RoomTile />
 		<ReadingTile order={4} />
+		<SetTile order={2} />
 		<WritingTile order={3} />
-		<NowTile span={row3} order={2} />
-		<PlacesTile trips={trips} span={row3} order={5} />
-		<WorkTile order={6} />
+		<NowTile span={row3} order={5} />
+		<PlacesTile trips={trips} span={row3} order={6} />
+		<WorkTile order={7} />
 	</Bench>
 </Shell>

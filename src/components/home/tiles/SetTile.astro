@@ -1,0 +1,153 @@
+---
+/**
+ * SetTile: the last set recorded, and the tile is the player. It drives the same SoundCloud
+ * widget as the room's record player (`src/lib/set-player.ts`), so playing from either place
+ * updates both. The widget loads on the first press, not on page load. While playing, the
+ * artwork becomes a record (square to round, turning slowly) and the header equalizer moves;
+ * under reduced motion it turns round but does not spin. Without JS the SoundCloud link is
+ * the fallback. The tile is not a link, so it does not lift.
+ */
+import art from '../../../assets/set/bouncyx-seven.jpg';
+import { SET } from '../../../consts';
+import Button from '../../ui/Button.astro';
+import Equalizer from '../../ui/Equalizer.astro';
+import Icon from '../../ui/Icon.astro';
+import Link from '../../ui/Link.astro';
+import Plate from '../../ui/Plate.astro';
+import Tile from '../../ui/Tile.astro';
+
+interface Props {
+	span?: { md?: number; lg?: number };
+	order?: number;
+}
+const { span = { md: 3, lg: 4 }, order } = Astro.props;
+const recorded = new Date(SET.recorded);
+const date = recorded.toLocaleDateString('en-GB', {
+	day: 'numeric',
+	month: 'short',
+	year: 'numeric',
+	timeZone: 'UTC',
+});
+---
+
+<Tile class="set-tile" label="Last set" labelAs="h2" span={span} order={order} as="section" data-set-tile>
+	<Equalizer slot="action" />
+	<div class="set">
+		<div class="disc">
+			<div class="spin">
+				<Plate src={art} alt="" ratio="1/1" widths={[240, 480]} sizes="(min-width: 40rem) 16rem, 8rem" />
+			</div>
+		</div>
+		<div class="info">
+			<div>
+				<p class="title">{SET.title}</p>
+				<p class="meta">{SET.artist} · <time datetime={SET.recorded}>{date}</time></p>
+			</div>
+			<div class="actions">
+				<Button variant="inverse" type="button" pressed={false} aria-label={`Play ${SET.title}`} data-set-toggle>
+					<span class="when-stopped"><Icon name="play" />Play</span>
+					<span class="when-playing"><Icon name="pause" />Pause</span>
+				</Button>
+				<Link variant="external" href={SET.url}>SoundCloud</Link>
+			</div>
+		</div>
+	</div>
+</Tile>
+
+<script>
+	import { SET } from '../../../consts';
+	import { setPlayer } from '../../../lib/set-player';
+
+	const tile = document.querySelector<HTMLElement>('[data-set-tile]');
+	const button = tile?.querySelector<HTMLButtonElement>('[data-set-toggle]');
+
+	button?.addEventListener('click', () => setPlayer.toggle());
+	// Same rule as the room: it turns from `cueing` on, since the press has been heard.
+	setPlayer.subscribe((state) => {
+		const on = state !== 'stopped';
+		tile?.toggleAttribute('data-playing', on);
+		button?.setAttribute('aria-pressed', String(on));
+		button?.setAttribute('aria-label', `${on ? 'Pause' : 'Play'} ${SET.title}`);
+	});
+</script>
+
+<style>
+	.set {
+		display: flex;
+		gap: var(--gap-bench);
+		align-items: center;
+	}
+	.disc {
+		flex: none;
+		width: 7.5rem;
+		border-radius: var(--radius-sm);
+		box-shadow: var(--elevation-object);
+		transition: border-radius var(--duration-moderate) var(--ease-out);
+	}
+	/* The disc holds the shadow and the shape and stays put; only the face turns,
+	   so the light does not rotate with the record. */
+	.spin {
+		overflow: hidden;
+		border-radius: inherit;
+		/* the Plate's own shadow would be clipped here; the disc carries it */
+		--plate-shadow: none;
+	}
+	.info {
+		display: grid;
+		gap: var(--space-3);
+		min-width: 0;
+	}
+	.title {
+		margin: 0;
+		font-size: var(--text-ui);
+		font-weight: var(--weight-title);
+		line-height: var(--leading-ui);
+	}
+	.meta {
+		margin: 0;
+		font-family: var(--font-code);
+		font-size: var(--text-label);
+		color: var(--muted-foreground);
+	}
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-2) var(--gap-bench);
+	}
+	[data-set-toggle] .when-playing,
+	[data-set-toggle][aria-pressed="true"] .when-stopped {
+		display: none;
+	}
+	[data-set-toggle][aria-pressed="true"] .when-playing {
+		display: inline-flex;
+	}
+	.when-stopped,
+	.when-playing {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	:global(.set-tile[data-playing]) .disc {
+		border-radius: 50%;
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		:global(.set-tile[data-playing]) .spin {
+			animation: turn calc(var(--duration-slower) * 8) linear infinite;
+		}
+	}
+	@keyframes turn {
+		to { transform: rotate(1turn); }
+	}
+
+	@media (min-width: 40rem) {
+		.set {
+			flex-direction: column;
+			align-items: stretch;
+		}
+		.disc {
+			width: 100%;
+		}
+	}
+</style>

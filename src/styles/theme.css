@@ -43,6 +43,14 @@
 	--control-height-sm: 2rem;
 	--control-height-md: 2.75rem;
 
+	/* Elevation: tiles sit on the sand, objects sit on tiles. Only links lift. */
+	--elevation-tile: var(--shadow-tile);
+	--elevation-tile-lift: var(--shadow-tile-lift);
+	--elevation-object: var(--shadow-object);
+	--elevation-object-lift: var(--shadow-object-lift);
+	--lift-distance: -2px;
+	--press-scale: 0.985;
+
 	--background: var(--color-sand-200);
 	--foreground: var(--color-grey-900);
 	--surface: var(--color-grey-50);
@@ -76,6 +84,12 @@
 	--paper-link: var(--link);
 	--paper-ring: var(--ring);
 	--paper-accent-graphic: var(--accent-graphic);
+
+	/* Iso glyph light direction: 0 = paper (top lightest is the surface), 1 = dark ground (top
+	 * lifts toward the foreground). The -inverse value is what an inverse container sees. */
+	--iso-dir: 0;
+	--iso-dir-inverse: 1;
+	--paper-iso-dir: var(--iso-dir);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -100,6 +114,12 @@
 		--link: var(--color-grey-100);
 		--ring: var(--color-orange-400);
 		--ring-inverse: var(--color-orange-600);
+		--elevation-tile: var(--shadow-tile-dark);
+		--elevation-tile-lift: var(--shadow-tile-lift-dark);
+		--elevation-object: var(--shadow-object-dark);
+		--elevation-object-lift: var(--shadow-object-lift-dark);
+		--iso-dir: 1;
+		--iso-dir-inverse: 0;
 	}
 }
 
@@ -124,6 +144,12 @@
 	--link: var(--color-grey-100);
 	--ring: var(--color-orange-400);
 	--ring-inverse: var(--color-orange-600);
+	--elevation-tile: var(--shadow-tile-dark);
+	--elevation-tile-lift: var(--shadow-tile-lift-dark);
+	--elevation-object: var(--shadow-object-dark);
+	--elevation-object-lift: var(--shadow-object-lift-dark);
+	--iso-dir: 1;
+	--iso-dir-inverse: 0;
 }
 
 /* Scoped inverse surface (the shadcn way): any dark container re-maps the paper names,
@@ -140,6 +166,7 @@
 	--accent-graphic: var(--accent-graphic-inverse);
 	--link: var(--surface-inverse-foreground);
 	--ring: var(--ring-inverse);
+	--iso-dir: var(--iso-dir-inverse);
 }
 
 /* A paper tile nested in an inverse one resets to the root paper values. */
@@ -152,4 +179,20 @@
 	--accent-graphic: var(--paper-accent-graphic);
 	--link: var(--paper-link);
 	--ring: var(--paper-ring);
+	--iso-dir: var(--paper-iso-dir);
+}
+
+/* Iso glyph tones, derived where they are used so each scope re-tints from its own
+ * --surface and --foreground. Light from the top left: top, left, right. */
+:root,
+[data-surface="inverse"],
+.tile {
+	--iso-top: color-mix(in srgb, var(--surface), var(--foreground) calc(16% * var(--iso-dir)));
+	--iso-left: color-mix(in srgb, var(--surface), var(--foreground) calc(8% + 1% * var(--iso-dir)));
+	--iso-right: color-mix(
+		in srgb,
+		var(--surface),
+		var(--foreground) calc(18% - 15% * var(--iso-dir))
+	);
+	--iso-edge: color-mix(in srgb, var(--foreground) 55%, var(--surface));
 }

@@ -1,6 +1,7 @@
 ---
 /**
- * Tile: a flat bench surface (1px hairline, no shadow) with an optional header.
+ * Tile: a bench surface (1px hairline, `--elevation-tile`) with an optional header. A tile with
+ *   href lifts on hover and settles on press; nothing else lifts.
  * @prop variant "paper" | "inverse" | "media" (default "paper"). media = zero padding,
  *   full-bleed content, header overlaid on a `--scrim`. inverse and media re-map the semantic
  *   colour names (see theme.css), so every atom inside retints with no prop. A paper tile
@@ -14,6 +15,8 @@
  * @prop dot Status dot before the label; `dotTone` "accent" (default) or "muted"
  * @prop meta Right-aligned header text
  * @prop href Makes the whole tile one link. A tile with href must not contain links or buttons.
+ * @prop spill Lets content leave the tile's box (e.g. a `Fan` opening over its neighbours);
+ *   the tile rises above its neighbours while hovered or focused within. Default: clipped.
  * @prop as Root element (default "div", or "a" with href)
  * @slot default Body
  * @slot action Header action, e.g. `<Link variant="arrow">`
@@ -31,6 +34,7 @@ interface Props extends astroHTML.JSX.HTMLAttributes {
 	dotTone?: 'accent' | 'muted';
 	meta?: string;
 	href?: string;
+	spill?: boolean;
 	as?: 'div' | 'section' | 'article' | 'a';
 }
 const {
@@ -44,6 +48,7 @@ const {
 	dotTone,
 	meta,
 	href,
+	spill,
 	as,
 	class: cls,
 	style,
@@ -66,6 +71,7 @@ const vars = [
 	class:list={['tile', cls]}
 	data-variant={variant}
 	data-linked={href ? '' : undefined}
+	data-spill={spill ? '' : undefined}
 	href={href}
 	style={vars}
 	{...rest}
@@ -95,6 +101,7 @@ const vars = [
 		border-radius: var(--radius-tile);
 		background: var(--surface);
 		color: var(--surface-foreground);
+		box-shadow: var(--elevation-tile);
 		text-decoration: none;
 		order: var(--order, 0);
 	}
@@ -136,11 +143,29 @@ const vars = [
 		height: 100%;
 		object-fit: cover;
 	}
-	.tile[data-linked] {
-		transition: border-color var(--duration-fast) var(--ease-out);
+	.tile[data-spill] {
+		overflow: visible;
 	}
-	.tile[data-linked]:hover {
-		border-color: var(--foreground);
+	.tile[data-spill]:is(:hover, :focus-within) {
+		z-index: 2;
+	}
+	.tile[data-linked] {
+		transition:
+			transform var(--duration-base) var(--ease-out),
+			box-shadow var(--duration-base) var(--ease-out),
+			border-color var(--duration-fast) var(--ease-out);
+	}
+	@media (hover: hover) {
+		.tile[data-linked]:hover {
+			transform: translateY(var(--lift-distance));
+			box-shadow: var(--elevation-tile-lift);
+			border-color: color-mix(in srgb, var(--foreground) 24%, transparent);
+		}
+	}
+	.tile[data-linked]:active {
+		transform: scale(var(--press-scale));
+		box-shadow: var(--elevation-tile);
+		transition-duration: var(--duration-fast);
 	}
 	.tile[data-linked]:focus-visible {
 		outline: 2px solid var(--ring);

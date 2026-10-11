@@ -89,9 +89,20 @@ motion:
     base: "250ms"
     slow: "600ms"
     slower: "1200ms"
+    moderate: "350ms"
   ease:
     out: "cubic-bezier(0.2, 0.8, 0.2, 1)"
     in-out: "cubic-bezier(0.65, 0, 0.35, 1)"
+    spring: "cubic-bezier(0.34, 1.4, 0.64, 1)"
+elevation:
+  tile: "0 1px 2px rgb(22 23 26 / 0.04), 0 2px 6px rgb(22 23 26 / 0.04)"
+  tile-lift: "0 2px 4px rgb(22 23 26 / 0.05), 0 14px 28px -10px rgb(22 23 26 / 0.18)"
+  object: "0 1px 2px rgb(22 23 26 / 0.12), 0 6px 16px -4px rgb(22 23 26 / 0.22)"
+  object-lift: "0 2px 4px rgb(22 23 26 / 0.12), 0 20px 36px -12px rgb(22 23 26 / 0.34)"
+  tile-dark: "0 1px 2px rgb(0 0 0 / 0.4), inset 0 1px 0 rgb(255 255 255 / 0.04)"
+  tile-lift-dark: "0 2px 4px rgb(0 0 0 / 0.45), 0 16px 32px -10px rgb(0 0 0 / 0.6), inset 0 1px 0 rgb(255 255 255 / 0.06)"
+  object-dark: "0 1px 2px rgb(0 0 0 / 0.5), 0 8px 18px -4px rgb(0 0 0 / 0.55)"
+  object-lift-dark: "0 2px 4px rgb(0 0 0 / 0.5), 0 22px 40px -12px rgb(0 0 0 / 0.7)"
 ---
 
 # Design System: Mathieu Saugier
@@ -181,10 +192,11 @@ Every interactive target reaches 44px (`--target-min`); small controls extend an
 
 ## Elevation & Depth
 
-Flat. Depth is conveyed by the sand field behind near-white tiles and by a 1px hairline (`--border`). A linked tile darkens its hairline to `--foreground` on hover. Controls draw their outline with an inset 1px ring, not a shadow. Photos get their depth from dither, not from drop shadows.
+Two levels, both soft and offset. Tiles sit on the sand with a barely-there shadow (`--elevation-tile`) and a 1px hairline; a linked tile lifts 2px on hover to `--elevation-tile-lift` and settles on press. Objects inside tiles (book covers, set artwork, writing cards) are physical things on the tile and carry `--elevation-object`, deepening to `--elevation-object-lift` when they move. Dark mode swaps in deeper black shadows with a faint top highlight. Controls draw their outline with an inset 1px ring, not a shadow.
 
 ### Named Rules
-**The No Shadow Rule.** No drop shadows, glass or blur on the bench or in the reading pages. The room's bookshelf carries its own painted shadows as part of the lit scene; that is the room's material, not a rule for the interface.
+**The Objects Cast Shadows Rule.** Shadow says "this is a thing you can pick up": tiles and the objects on them. Text, labels, pills and the reading pages never cast one. No glass, no blur, no zero-offset coloured halos except the cover glow sampled from the cover itself.
+**The Lift Means Link Rule.** Only something that goes somewhere when clicked lifts on hover.
 
 ## Shapes
 
@@ -215,6 +227,12 @@ Atoms never take an inverse prop. `[data-surface="inverse"]` and inverse or medi
 - **PageTitle / Page**: the one h1 voice and the one page layout.
 - **BookLine / BookSpine / Shelf**: the reading list.
 - **DitherImage / Lightbox**: photo treatment and viewer.
+- **Plate**: one physical object on a tile (cover, artwork, card image) with `--elevation-object`, a hairline, a fixed ratio and an optional `glow` sampled from its own image at build time.
+- **Fan / FanItem**: a stack of objects with a rest, open and touch pose per item; it opens while its host (`data-fan-host`) is hovered or focused within, and the hovered item comes forward while its siblings recede. Reading covers and Writing cards are both a Fan.
+- **PostCard**: a small index card for one piece of writing: Plate (banner or typographic fallback), title, headline.
+- **Equalizer**: bars in `--accent-graphic` that move only inside `[data-playing]`.
+- **IsoGlyph**: a small isometric drawing, top faces first, shaded by `--iso-top/left/right/edge`; a part with `--pose` reacts when its `[data-glyph-host]` row is hovered.
+- **set player** (`src/lib/set-player.ts`): the one SoundCloud widget; the room's record player and the Last set tile are two views of it.
 
 ### Molecules and tiles
 - **Reading** (`src/components/reading/`): `Prose`, `InShort`, `CopyCodeButton`.
@@ -229,7 +247,7 @@ The live 3D living room sits in a 4:3 tile and opens in a dialog. It is the one 
 Photos are ordered-dither duotones drawn to a canvas from the container's own colours, so they follow the surface and the theme. `tone="ink"` pairs `--surface-inverse` with `--surface`; `tone="accent"` pairs `--accent` with `--surface`; the darker colour takes the shadows. Hover, keyboard focus or tap reveals the true colours (`reveal="hover"`); `reveal="never"` stays dithered. Without JS the image is an ordinary responsive image.
 
 ### Motion
-Short and functional: `--duration-fast` 150ms for hover and state, `--duration-base` 250ms for fades such as the dither reveal, `--duration-slow` 600ms and `--duration-slower` 1200ms for scene and entrance moments. Easing is `--ease-out` for state changes and `--ease-in-out` for larger moves. Under `prefers-reduced-motion: reduce` every duration collapses to near zero and smooth scrolling stops.
+Short and functional: `--duration-fast` 150ms for hover and state, `--duration-base` 250ms for fades such as the dither reveal and for every exit, `--duration-moderate` 350ms with `--ease-spring` for an object opening (a fan spreading, a glyph reacting, staggered 40ms per item), `--duration-slow` 600ms and `--duration-slower` 1200ms for scene and entrance moments. Easing is `--ease-out` for state changes and `--ease-in-out` for larger moves. Under `prefers-reduced-motion: reduce` every duration collapses to near zero and smooth scrolling stops.
 
 ## Do's and Don'ts
 

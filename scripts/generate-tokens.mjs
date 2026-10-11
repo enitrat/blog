@@ -5,7 +5,7 @@
  * produces — the build runs that mode so docs and CSS cannot drift apart.
  *
  * Emits reference tokens only (colors, font stacks, type scale, spacing,
- * layout, radii, motion).
+ * layout, radii, motion, elevation).
  * Semantic aliases live in src/styles/theme.css and must
  * point at these.
  */
@@ -95,6 +95,7 @@ flat(spec.layout, 'layout');
 flat(spec.rounded, 'radius');
 flat(spec.motion?.duration, 'duration');
 flat(spec.motion?.ease, 'ease');
+flat(spec.elevation, 'shadow');
 
 lines.push('}', '');
 const output = lines.join('\n');

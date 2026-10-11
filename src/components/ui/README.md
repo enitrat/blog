@@ -65,3 +65,32 @@ Interactive atoms reach 44px (`--target-min`): `Button` md is 44px tall, and `Bu
 ## One of each
 
 Look here before creating anything. If it exists, add a variant. When a new component replaces an old one, delete the old one and its dead CSS. Molecules compose atoms and never restyle their internals; they pass `variant`, `size` or a class.
+
+## Elevation and motion
+
+Tiles sit on the sand; objects sit on tiles. Shadows come only from the semantic elevation tokens, which flip for dark mode:
+
+| Token | Use |
+|---|---|
+| `--elevation-tile` | every `Tile` at rest (set by `Tile`, never by a tile's content) |
+| `--elevation-tile-lift` | a linked `Tile` on hover (set by `Tile`) |
+| `--elevation-object` | a physical thing on a tile: book cover, set artwork, writing card (`Plate`) |
+| `--elevation-object-lift` | that object while it moves or is open (`Fan`) |
+
+`--lift-distance` (-2px) and `--press-scale` are the only hover/press magnitudes. **Only links lift.** Text, labels and pills never cast a shadow; no glass, no blur, no zero-offset halo except `Plate`'s `glow`, which is sampled from its own image.
+
+Motion vocabulary (reference scale, used directly):
+
+- `--duration-fast` + `--ease-out`: state (colour, border, press).
+- `--duration-base` + `--ease-out`: hover lift and every exit.
+- `--duration-moderate` + `--ease-spring`: an object opening (a fan spreading, a glyph reacting). Stagger 40ms per item on enter, none on exit.
+- Animate `transform`, `opacity`, `box-shadow` only (plus `filter` to dim a receding `FanItem`, which must stay opaque). No entrance or scroll animation anywhere.
+- Hover motion lives inside `@media (hover: hover)`. Touch gets a static pose that already shows everything.
+- `prefers-reduced-motion: reduce`: no translation, rotation or spin; colour and opacity changes stay.
+
+## Shared primitives for bench objects
+
+- **Plate** (atom): one physical object (image or slotted content) with `--elevation-object`, a radius, a fixed `ratio`, and an optional `glow` colour behind it.
+- **Fan / FanItem** (molecule): a stack of objects with a `rest` pose and an `open` pose per item; it opens while its host (`[data-fan-host]`, default the `Fan` itself) is hovered or has focus inside. Covers on Reading and cards on Writing are both a `Fan`.
+- **Equalizer** (atom): small bars in `--accent-graphic` that move only inside a `[data-playing]` ancestor. Orange means playing.
+- **set player** (`src/lib/set-player.ts`): the one SoundCloud widget and its playback state. The room and the set tile are two views of it.

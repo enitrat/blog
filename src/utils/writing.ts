@@ -34,3 +34,14 @@ export async function getAdjacent(post: Post) {
 		older: toLink(index >= 0 ? posts[index + 1] : undefined),
 	};
 }
+
+const banners = import.meta.glob<ImageMetadata>('../content/blog/*/banner.{png,jpg,jpeg,webp}', {
+	eager: true,
+	import: 'default',
+});
+
+/** The post's `banner.*` image from its folder, if it has one. */
+export function bannerFor(post: Pick<Post, 'id'>): ImageMetadata | undefined {
+	const prefix = `../content/blog/${post.id}/banner.`;
+	return Object.entries(banners).find(([path]) => path.startsWith(prefix))?.[1];
+}

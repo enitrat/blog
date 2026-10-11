@@ -1,0 +1,95 @@
+---
+/**
+ * Plate: one physical object on a tile (a cover, artwork, a card) with `--elevation-object`,
+ *   a hairline and a radius. Image via `src`, or typographic content via the default slot.
+ * @prop src Image; fills the plate (object-fit: cover). Omit to render the slot.
+ * @prop alt Alt text for `src` (use "" when a caption sits beside it)
+ * @prop ratio "2/3" | "1/1" | "4/3" | "3/2" (default "2/3")
+ * @prop radius "sm" | "md" (default "sm")
+ * @prop glow CSS colour sampled from the image at build time (see `glowOf`): a soft halo behind
+ *   the plate, the one sanctioned coloured glow. Data, passed as `--plate-glow`.
+ * @prop sizes, widths, loading Passed to the image. widths defaults to 320/640/960 (capped at the
+ *   source width), so a plate never ships the original file.
+ * @slot default Content when there is no `src`
+ * @cssprop --plate-shadow Shadow override (default `--elevation-object`); a Fan swaps in the lift
+ * @cssprop --plate-glow-strength Glow opacity (default 0.35); a parent raises it
+ */
+import { Image } from 'astro:assets';
+
+interface Props {
+	src?: ImageMetadata;
+	alt?: string;
+	ratio?: '2/3' | '1/1' | '4/3' | '3/2';
+	radius?: 'sm' | 'md';
+	glow?: string;
+	sizes?: string;
+	widths?: number[];
+	loading?: 'lazy' | 'eager';
+	class?: string;
+}
+const {
+	src,
+	alt = '',
+	ratio = '2/3',
+	radius = 'sm',
+	glow,
+	sizes,
+	widths = [320, 640, 960],
+	loading = 'lazy',
+	class: cls,
+} = Astro.props;
+// A source smaller than every width is served at its own width.
+const srcWidths =
+	src && (widths.some((w) => w <= src.width) ? widths.filter((w) => w <= src.width) : [src.width]);
+---
+
+<div class:list={['plate', cls]} data-radius={radius} data-glow={glow ? '' : undefined} style={`aspect-ratio:${ratio}${glow ? `;--plate-glow:${glow}` : ''}`}>
+	{glow && <span class="glow" aria-hidden="true"></span>}
+	<div class="face">
+		{src ? <Image src={src} alt={alt} widths={srcWidths} sizes={sizes ?? '16rem'} loading={loading} /> : <slot />}
+	</div>
+</div>
+
+<style>
+	.plate {
+		position: relative;
+		width: 100%;
+		--r: var(--radius-sm);
+	}
+	.plate[data-radius="md"] {
+		--r: var(--radius-md);
+	}
+	.glow {
+		position: absolute;
+		inset: -4%;
+		border-radius: var(--radius-md);
+		background: var(--plate-glow);
+		opacity: var(--plate-glow-strength, 0.35);
+		filter: blur(1.25rem);
+		transition: opacity var(--duration-base) var(--ease-out);
+		pointer-events: none;
+	}
+	.face {
+		position: relative;
+		height: 100%;
+		overflow: hidden;
+		border-radius: var(--r);
+		background: var(--muted);
+		box-shadow: var(--plate-shadow, var(--elevation-object));
+		transition: box-shadow var(--duration-base) var(--ease-out);
+	}
+	.face::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		box-shadow: inset 0 0 0 1px var(--border);
+		pointer-events: none;
+	}
+	.face :global(img) {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+</style>

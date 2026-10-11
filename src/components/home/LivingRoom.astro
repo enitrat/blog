@@ -112,6 +112,7 @@ const manuscripts = sheets.flatMap((sheet) => {
 </dialog>
 
 <script>
+	import { setPlayer } from '../../lib/set-player';
 	import { mountBookshelf } from './room/bookshelf';
 
 	const room = document.querySelector<HTMLElement>('[data-room]');
@@ -201,118 +202,32 @@ const manuscripts = sheets.flatMap((sheet) => {
 	}
 	let noise: ReturnType<typeof surface> | null = null;
 
-	type Widget = {
-		play(): void;
-		pause(): void;
-		setVolume(volume: number): void;
-		getPosition(callback: (ms: number) => void): void;
-		bind(event: string, handler: () => void): void;
-	};
-	type SoundCloud = ((frame: Element) => Widget) & {
-		Events: { PLAY: string; PAUSE: string; FINISH: string; ERROR: string; READY: string };
-	};
-	let widget: Widget | null = null;
-	let connecting: Promise<Widget> | null = null;
-
-	/** One state, not two booleans that could disagree. `cueing`: the needle is
-	 *  down and the surface noise is audible, but the mix has not started yet. */
-	type Playback = 'stopped' | 'cueing' | 'playing';
-	let playback: Playback = 'stopped';
-
-	function set(next: Playback) {
-		playback = next;
-		const on = next !== 'stopped';
+	// The room's views of the one shared player: the platter turns from `cueing`
+	// on, because by then something really is coming out of the speaker.
+	setPlayer.subscribe((state) => {
+		const on = state !== 'stopped';
 		player?.setAttribute('aria-pressed', String(on));
 		if (shelfPlayer) shelfPlayer.hidden = !on;
 		if (player) player.textContent = on ? 'Stop the record' : 'Play the record';
-		// The platter turns from `cueing` on, because by then something really is
-		// coming out of the speaker.
 		room?.toggleAttribute('data-playing', on);
 		tile?.toggleAttribute('data-playing', on);
+		if (state === 'playing') noise?.bed();
+		if (state === 'stopped') noise?.lift();
 		// The button's own label just changed. If it is the thing being pointed
 		// at, the caption is naming it and has to say the new thing.
 		const spot = pointed();
 		if (spot) label((spot.textContent ?? '').trim(), spot, true);
-	}
-
-	async function connect() {
-		const frame = document.createElement('iframe');
-		frame.className = 'living-room__widget';
-		frame.title = 'SoundCloud player: Bouncyx Seven by eni';
-
-		frame.allow = 'autoplay; encrypted-media';
-		frame.src =
-			'https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/user2211512/bouncyx-seven&auto_play=false&hide_related=true&show_comments=false&show_teaser=false';
-		document.body.append(frame);
-
-		await new Promise((resolve, reject) => {
-			const api = document.createElement('script');
-			api.src = 'https://w.soundcloud.com/player/api.js';
-			api.onload = resolve;
-			api.onerror = reject;
-			document.head.append(api);
-		});
-
-		const SC = (window as Window & { SC?: { Widget: SoundCloud } }).SC;
-		if (!SC) throw new Error('no SC.Widget');
-		const created = SC.Widget(frame);
-		const events = SC.Widget.Events;
-
-		created.bind(events.PLAY, () => {
-			if (playback === 'stopped') return created.pause();
-			set('playing');
-			noise?.bed();
-		});
-		created.bind(events.PAUSE, () => {
-			if (document.hidden) return;
-
-			created.getPosition((position) => {
-				if (position > 0) stop();
-			});
-		});
-		created.bind(events.FINISH, stop);
-		created.bind(events.ERROR, stop);
-
-		created.bind(events.READY, () => {
-			created.setVolume(volume);
-			if (playback !== 'stopped') created.play();
-		});
-		return created;
-	}
-
-	function stop() {
-		widget?.pause();
-		noise?.lift();
-		set('stopped');
-	}
+	});
 
 	function toggle() {
-		if (playback !== 'stopped') {
-			stop();
-			return;
+		// The needle is the room's own sound: only its buttons drop it.
+		if (setPlayer.state === 'stopped') {
+			try {
+				noise ??= surface();
+				noise.needle();
+			} catch {}
 		}
-
-		try {
-			noise ??= surface();
-			noise.needle();
-		} catch {}
-		set('cueing');
-		if (widget) {
-			widget.play();
-			return;
-		}
-		// One iframe and one api.js however fast the button is pressed: without
-		// this, a second press before the first resolves appends a second player
-		// that nobody holds a reference to and nothing can ever pause.
-		connecting ??= connect();
-		connecting.then(
-			(created) => {
-				widget = created;
-			},
-			() => {
-				connecting = null;
-			},
-		);
+		setPlayer.toggle();
 	}
 
 	player?.addEventListener('click', toggle);
@@ -331,26 +246,13 @@ const manuscripts = sheets.flatMap((sheet) => {
 		clearInterval(fading);
 		fading = setInterval(() => {
 			volume += Math.sign(to - volume) * Math.min(5, Math.abs(to - volume));
-			widget?.setVolume(volume);
+			setPlayer.setVolume(volume);
 			if (volume === to) {
 				clearInterval(fading);
 				fading = undefined;
 			}
 		}, 30);
 	}).observe(room ?? document.body, { attributeFilter: ['data-view'] });
-
-	let resume = false;
-	document.addEventListener('visibilitychange', () => {
-		if (document.hidden) {
-			// Only a mix that actually started is worth resuming: intent that
-			// never became playback should not begin on its own on the way back.
-			resume = playback === 'playing';
-			if (resume) widget?.pause();
-		} else if (resume) {
-			resume = false;
-			widget?.play();
-		}
-	});
 
 	function supportsWebGL() {
 		try {

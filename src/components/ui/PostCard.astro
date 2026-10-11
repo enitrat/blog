@@ -1,0 +1,142 @@
+---
+/**
+ * PostCard: a small index card for one piece of writing, and one link. The card is the shadowed
+ *   object (`--plate-shadow`, default `--elevation-object`, so a `Fan` lifts it); the `Plate` inside
+ *   gives up its own shadow. Image on top, or a typographic card (title set large, mono date)
+ *   when there is no image; then title and description.
+ * @prop href The post
+ * @prop title, description Post text
+ * @prop date Publication date, shown as `en-GB` day, month, year (UTC)
+ * @prop image Banner; omit for the typographic card
+ * @prop headingLevel Heading level of the title, 2 to 6 (default 3)
+ * @prop size "md" | "sm" (default "md"): sm is the compact card of a touch row
+ */
+import Plate from './Plate.astro';
+
+interface Props {
+	href: string;
+	title: string;
+	description: string;
+	date: Date;
+	image?: ImageMetadata;
+	headingLevel?: 2 | 3 | 4 | 5 | 6;
+	size?: 'sm' | 'md';
+}
+const { href, title, description, date, image, headingLevel = 3, size = 'md' } = Astro.props;
+const Heading = `h${headingLevel}` as 'h3';
+const when = new Intl.DateTimeFormat('en-GB', {
+	day: 'numeric',
+	month: 'short',
+	year: 'numeric',
+	timeZone: 'UTC',
+}).format(date);
+const iso = date.toISOString().slice(0, 10);
+---
+
+<a class="card" href={href} data-size={size}>
+	<div class="media">
+		<Plate src={image} ratio="3/2" radius="sm" sizes="16rem" widths={[320, 640]}>
+			<span class="type">
+				<strong>{title}</strong>
+				<time datetime={iso}>{when}</time>
+			</span>
+		</Plate>
+	</div>
+	<div class="text">
+		<Heading class="title">{title}</Heading>
+		<p class="desc">{description}</p>
+		{image && <time class="date" datetime={iso}>{when}</time>}
+	</div>
+</a>
+
+<style>
+	.card {
+		--pad: var(--space-3);
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3);
+		height: 100%;
+		overflow: hidden;
+		padding: var(--pad);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-md);
+		background: var(--surface);
+		color: var(--surface-foreground);
+		box-shadow: var(--plate-shadow, var(--elevation-object));
+		text-decoration: none;
+		transition: box-shadow var(--duration-base) var(--ease-out);
+	}
+	.card[data-size="sm"] {
+		--pad: var(--space-2);
+		gap: var(--space-2);
+	}
+	.card:focus-visible {
+		outline: 2px solid var(--ring);
+		outline-offset: 2px;
+	}
+	.media {
+		--plate-shadow: none;
+	}
+	.type {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		gap: var(--space-2);
+		height: 100%;
+		padding: var(--space-3);
+	}
+	.type strong {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 4;
+		overflow: hidden;
+		font-size: var(--text-heading);
+		font-weight: var(--weight-title);
+		letter-spacing: var(--tracking-title);
+		line-height: var(--leading-display);
+		color: var(--foreground);
+	}
+	.card[data-size="sm"] .type strong {
+		-webkit-line-clamp: 3;
+		font-size: var(--text-ui);
+	}
+	.type time,
+	.date {
+		font-family: var(--font-code);
+		font-size: var(--text-label);
+		letter-spacing: var(--tracking-label);
+		color: var(--muted-foreground);
+	}
+	.text {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
+		min-width: 0;
+	}
+	.card :global(.title) {
+		margin: 0;
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		overflow: hidden;
+		/* always two lines tall, so cards in a stack share one height */
+		min-height: 2lh;
+		font-size: var(--text-ui);
+		font-weight: var(--weight-title);
+		line-height: var(--leading-ui);
+	}
+	.card[data-size="sm"] :global(.title) {
+		font-size: var(--text-small);
+	}
+	.desc {
+		margin: 0;
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		overflow: hidden;
+		min-height: 2lh;
+		font-size: var(--text-small);
+		line-height: var(--leading-ui);
+		color: var(--muted-foreground);
+	}
+</style>

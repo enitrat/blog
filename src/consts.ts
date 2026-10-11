@@ -9,3 +9,14 @@ export const CONTACT_LINKS = [
 	{ label: 'X', href: 'https://x.com/eniwhere_' },
 	{ label: 'Telegram', href: 'https://t.me/enitrat' },
 ] as const;
+
+/** The last set recorded: one SoundCloud track, shared by the set tile and the room's record player. */
+export const SET = {
+	title: 'Bouncyx Seven',
+	artist: 'eni',
+	url: 'https://soundcloud.com/user2211512/bouncyx-seven',
+	embed:
+		'https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/user2211512/bouncyx-seven&auto_play=false&hide_related=true&show_comments=false&show_teaser=false',
+	/** ISO date the track was published on SoundCloud (its `display_date`). */
+	recorded: '2026-09-26',
+} as const;

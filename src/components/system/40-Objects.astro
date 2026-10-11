@@ -1,0 +1,139 @@
+---
+import banner from '../../content/blog/using-dspy/banner.png';
+// Bench objects: Plate and Fan. Covers come from src/assets/covers via coverFor; glow from glowOf.
+import { coverFor } from '../../utils/covers';
+import { glowOf } from '../../utils/glow';
+import Fan from '../ui/Fan.astro';
+import FanItem from '../ui/FanItem.astro';
+import Label from '../ui/Label.astro';
+import Plate from '../ui/Plate.astro';
+import PostCard from '../ui/PostCard.astro';
+
+const eden = coverFor('9780143129486');
+const dalio = coverFor('9781982160272');
+const edenGlow = eden ? await glowOf(eden) : undefined;
+const dalioGlow = dalio ? await glowOf(dalio) : undefined;
+---
+
+<section class="objects" aria-labelledby="objects-h">
+	<Label as="h2" id="objects-h">Objects</Label>
+
+	<div class="group">
+		<Label as="h3">Plate</Label>
+		<div class="row">
+			<figure><Plate src={eden} alt="East of Eden cover" /><figcaption>image</figcaption></figure>
+			<figure><Plate src={eden} alt="East of Eden cover" glow={edenGlow} /><figcaption>glow</figcaption></figure>
+			<figure><Plate src={dalio} alt="Changing World Order cover" glow={dalioGlow} ratio="1/1" radius="md" /><figcaption>1/1, radius md</figcaption></figure>
+			<figure>
+				<Plate>
+					<span class="type"><strong>East of Eden</strong><span>John Steinbeck</span></span>
+				</Plate>
+				<figcaption>typographic</figcaption>
+			</figure>
+		</div>
+		<p class="note">
+			One physical object: --elevation-object, a 1px inner hairline, a fixed ratio. glow is a colour sampled from the
+			image at build time (glowOf), the one coloured halo; a parent raises it with --plate-glow-strength and swaps the
+			shadow with --plate-shadow.
+		</p>
+	</div>
+
+	<div class="group">
+		<Label as="h3">Fan</Label>
+		<Fan class="demo">
+			<FanItem i={0} rest={{ r: 0 }} open={{ x: '30%', r: 8, s: 1.02 }} touch={{ x: '10%', r: 4 }}>
+				<Plate src={eden} alt="East of Eden cover" glow={edenGlow} />
+			</FanItem>
+			<FanItem i={1} rest={{ x: '8%', y: '-3%', r: -5 }} open={{ x: '-8%', y: '-6%', r: -6 }} touch={{ x: '-4%', y: '-3%', r: -5 }}>
+				<Plate src={dalio} alt="Changing World Order cover" glow={dalioGlow} />
+			</FanItem>
+			<FanItem i={2} rest={{ x: '14%', y: '-5%', r: 5 }} open={{ x: '-50%', y: '-4%', r: -16 }} touch={{ x: '-30%', y: '-4%', r: -12 }}>
+				<Plate><span class="type"><strong>Third</strong><span>Typographic</span></span></Plate>
+			</FanItem>
+		</Fan>
+		<p class="note">
+			Hover or focus inside the Fan (host "self"), or an ancestor with data-fan-host (host "ancestor"). Item 0 is the
+			front. Each FanItem takes rest, open and touch poses {"{"} x, y, r, s {"}"}; enter is --duration-moderate with
+			--ease-spring and 40ms stagger, exit --duration-base. Once open, the card under the pointer or focus rises to the top, straightens, grows and lifts while its siblings recede, with no stagger; reduced motion keeps only the z-index raise and the shadow change.
+		</p>
+	</div>
+	<div class="group">
+		<Label as="h3">PostCard</Label>
+		<div class="row cards">
+			<figure>
+				<PostCard href="#" title="Using DSPy" description="Programming rather than prompting a language model." date={new Date('2025-03-02')} image={banner} />
+				<figcaption>image</figcaption>
+			</figure>
+			<figure>
+				<PostCard href="#" title="A post without a banner image" description="The title is set large on the card instead." date={new Date('2024-11-20')} />
+				<figcaption>typographic</figcaption>
+			</figure>
+			<figure>
+				<PostCard href="#" title="Using DSPy" description="Programming rather than prompting a language model." date={new Date('2025-03-02')} image={banner} size="sm" />
+				<figcaption>size sm</figcaption>
+			</figure>
+		</div>
+		<p class="note">
+			One link, one index card: the card is the shadowed object (--plate-shadow, so a Fan lifts it) and its Plate gives
+			up its own shadow. Banner on top, or the title set large with a mono date; then title and description, each
+			clamped. bannerFor(post) finds a post's banner.
+		</p>
+	</div>
+</section>
+
+<style>
+	.objects {
+		display: grid;
+		gap: var(--space-10);
+	}
+	.group {
+		display: grid;
+		gap: var(--space-4);
+		padding: var(--pad-tile);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-tile);
+		background: var(--surface);
+		color: var(--surface-foreground);
+	}
+	.row {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(8rem, 10rem));
+		gap: var(--space-8);
+	}
+	figure {
+		margin: 0;
+	}
+	figcaption {
+		margin-block-start: var(--space-2);
+		font-family: var(--font-code);
+		font-size: var(--text-small);
+		color: var(--muted-foreground);
+	}
+	.group :global(.demo) {
+		--fan-w: 9rem;
+		margin: var(--space-6) var(--space-16) var(--space-6) var(--space-16);
+	}
+	.type {
+		display: grid;
+		align-content: end;
+		gap: var(--space-1);
+		height: 100%;
+		padding: var(--space-3);
+		font-size: var(--text-small);
+		color: var(--muted-foreground);
+	}
+	.type strong {
+		color: var(--foreground);
+		font-weight: var(--weight-title);
+	}
+	.cards {
+		grid-template-columns: repeat(auto-fill, minmax(12rem, 15rem));
+	}
+	.note {
+		max-width: 48rem;
+		margin: 0;
+		font-size: var(--text-small);
+		line-height: var(--leading-ui);
+		color: var(--muted-foreground);
+	}
+</style>
