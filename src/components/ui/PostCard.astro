@@ -1,7 +1,7 @@
 ---
 /**
  * PostCard: a small index card for one piece of writing, and one link. The card is the shadowed
- *   object (`--plate-shadow`, default `--elevation-object`, so a `Fan` lifts it); the `Plate` inside
+ *   object (`--plate-shadow`, default `--elevation-object`, so a `Deck` lifts it); the `Plate` inside
  *   gives up its own shadow. Image on top, or a typographic card (title set large, mono date)
  *   when there is no image; then title and description.
  * @prop href The post
@@ -108,10 +108,15 @@ const iso = date.toISOString().slice(0, 10);
 		color: var(--muted-foreground);
 	}
 	.text {
+		flex: 1;
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-1);
 		min-width: 0;
+	}
+	/* cards in a stack or row share one height; the slack goes above the date, not inside the text */
+	.date {
+		margin-top: auto;
 	}
 	.card :global(.title) {
 		margin: 0;
@@ -119,8 +124,6 @@ const iso = date.toISOString().slice(0, 10);
 		-webkit-box-orient: vertical;
 		-webkit-line-clamp: 2;
 		overflow: hidden;
-		/* always two lines tall, so cards in a stack share one height */
-		min-height: 2lh;
 		font-size: var(--text-ui);
 		font-weight: var(--weight-title);
 		line-height: var(--leading-ui);

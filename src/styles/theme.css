@@ -50,6 +50,12 @@
 	--elevation-object-lift: var(--shadow-object-lift);
 	--lift-distance: -2px;
 	--press-scale: 0.985;
+	/* controls are small, so they sink further than a tile */
+	--press-scale-control: 0.97;
+	/* highlight laid over an object by `Tilt`; light in both themes */
+	--glare: var(--color-grey-50);
+	/* the one shared hover wash of a `Glide` group; follows --foreground on inverse tiles */
+	--highlight: color-mix(in srgb, var(--foreground) 7%, transparent);
 
 	--background: var(--color-sand-200);
 	--foreground: var(--color-grey-900);
@@ -167,6 +173,7 @@
 	--link: var(--surface-inverse-foreground);
 	--ring: var(--ring-inverse);
 	--iso-dir: var(--iso-dir-inverse);
+	--highlight: color-mix(in srgb, var(--foreground) 7%, transparent);
 }
 
 /* A paper tile nested in an inverse one resets to the root paper values. */
@@ -180,6 +187,7 @@
 	--link: var(--paper-link);
 	--ring: var(--paper-ring);
 	--iso-dir: var(--paper-iso-dir);
+	--highlight: color-mix(in srgb, var(--foreground) 7%, transparent);
 }
 
 /* Iso glyph tones, derived where they are used so each scope re-tints from its own

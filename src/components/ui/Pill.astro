@@ -52,7 +52,12 @@ const Tag = href ? 'a' : variant === 'toggle' ? 'button' : 'span';
 		transition:
 			background var(--duration-fast) var(--ease-out),
 			color var(--duration-fast) var(--ease-out),
-			box-shadow var(--duration-fast) var(--ease-out);
+			box-shadow var(--duration-fast) var(--ease-out),
+			transform var(--duration-fast) var(--ease-out);
+	}
+	a.pill:active,
+	button.pill:active {
+		transform: scale(var(--press-scale-control));
 	}
 	a.pill,
 	button.pill {
@@ -98,5 +103,7 @@ const Tag = href ? 'a' : variant === 'toggle' ? 'button' : 'span';
 	}
 	@media (prefers-reduced-motion: reduce) {
 		.pill { transition: none; }
+		a.pill:active,
+		button.pill:active { transform: none; }
 	}
 </style>

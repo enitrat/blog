@@ -1,0 +1,136 @@
+---
+import Button from '../ui/Button.astro';
+// Motion: pointer primitives. Tilt and Magnetic are live only with a hover pointer and no
+// reduced-motion preference; Button and Pill sink on press everywhere.
+import Glide from '../ui/Glide.astro';
+import Label from '../ui/Label.astro';
+import Magnetic from '../ui/Magnetic.astro';
+import Pill from '../ui/Pill.astro';
+import Plate from '../ui/Plate.astro';
+import Tilt from '../ui/Tilt.astro';
+---
+
+<section class="motion" aria-labelledby="motion-h">
+	<Label as="h2" id="motion-h">Motion</Label>
+
+	<div class="group">
+		<Label as="h3">Tilt</Label>
+		<div class="row">
+			<figure>
+				<div class="obj"><Tilt><Plate ratio="1/1" radius="md"><div class="face">7.5°</div></Plate></Tilt></div>
+				<figcaption>default max, with glare</figcaption>
+			</figure>
+			<figure>
+				<div class="obj"><Tilt max={14} glare={false}><Plate ratio="1/1" radius="md"><div class="face">14°</div></Plate></Tilt></div>
+				<figcaption>max=14, glare={'{false}'}</figcaption>
+			</figure>
+		</div>
+	</div>
+
+	<div class="group">
+		<Label as="h3">Magnetic</Label>
+		<div class="row">
+			<figure>
+				<Magnetic><Button>Strength 0.35</Button></Magnetic>
+				<figcaption>default</figcaption>
+			</figure>
+			<figure>
+				<Magnetic strength={0.2}><Pill href="#motion-h">Strength 0.2</Pill></Magnetic>
+				<figcaption>low, for small targets</figcaption>
+			</figure>
+		</div>
+	</div>
+
+	<div class="group">
+		<Label as="h3">Glide</Label>
+		<div class="row">
+			<figure>
+				<Glide as="nav" shape="pill" class="demo-pill" aria-label="Glide pill demo">
+					<a href="#motion-h" data-glide-item>Writing</a>
+					<a href="#motion-h" data-glide-item>Reading</a>
+					<a href="#motion-h" data-glide-item>About</a>
+				</Glide>
+				<figcaption>shape="pill": one highlight glides between items</figcaption>
+			</figure>
+			<figure>
+				<Glide shape="row" class="demo-rows">
+					<a href="#motion-h" data-glide-item>First row</a>
+					<a href="#motion-h" data-glide-item>Second row</a>
+					<a href="#motion-h" data-glide-item>Third row</a>
+				</Glide>
+				<figcaption>shape="row": bleeds sideways, rounded</figcaption>
+			</figure>
+		</div>
+	</div>
+
+	<div class="group">
+		<Label as="h3">Press</Label>
+		<div class="row">
+			<figure>
+				<Button variant="ghost" type="button">Hold me</Button>
+				<figcaption>Button, Pill: scale(--press-scale-control) on :active</figcaption>
+			</figure>
+			<figure>
+				<Pill variant="toggle" pressed={false}>Toggle</Pill>
+				<figcaption>no movement under reduced motion</figcaption>
+			</figure>
+		</div>
+	</div>
+</section>
+
+<style>
+	.motion {
+		display: grid;
+		gap: var(--space-10);
+	}
+	.group {
+		display: grid;
+		gap: var(--space-4);
+	}
+	.row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-8);
+	}
+	figure {
+		margin: 0;
+		display: grid;
+		gap: var(--space-3);
+		justify-items: start;
+	}
+	figcaption {
+		font-family: var(--font-code);
+		font-size: var(--text-label);
+		color: var(--muted-foreground);
+	}
+	.obj {
+		width: 9rem;
+		--tilt-radius: var(--radius-md);
+	}
+	.demo-pill {
+		display: flex;
+		gap: var(--space-5);
+		margin-inline: var(--space-3);
+	}
+	.demo-rows {
+		display: grid;
+		width: 14rem;
+		margin-inline: var(--space-3);
+	}
+	.demo-pill a,
+	.demo-rows a {
+		color: var(--muted-foreground);
+		text-decoration: none;
+		padding-block: var(--space-2);
+	}
+	.demo-pill a:hover,
+	.demo-rows a:hover {
+		color: var(--foreground);
+	}
+	.face {
+		display: grid;
+		place-items: center;
+		height: 100%;
+		font-family: var(--font-code);
+	}
+</style>

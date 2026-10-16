@@ -2,6 +2,7 @@
 /** BioTile: Mathieu's sentence, role, and the three ways to reach him. */
 import { CONTACT_LINKS } from '../../../consts';
 import Link from '../../ui/Link.astro';
+import Magnetic from '../../ui/Magnetic.astro';
 import Pill from '../../ui/Pill.astro';
 import Tile from '../../ui/Tile.astro';
 import AgePlate from '../glyphs/AgePlate.astro';
@@ -37,7 +38,11 @@ const { order } = Astro.props;
 				Senior Protocol Engineer at <Link href="/work/zama/">Zama</Link>
 			</p>
 			<nav aria-label="Contact" class="pills">
-				{CONTACT_LINKS.map((c) => <Pill href={c.href} rel="me noreferrer" target="_blank">{c.label}</Pill>)}
+				{CONTACT_LINKS.map((c) => (
+					<Magnetic strength={0.2}>
+						<Pill href={c.href} rel="me noreferrer" target="_blank">{c.label}</Pill>
+					</Magnetic>
+				))}
 			</nav>
 		</div>
 	</div>

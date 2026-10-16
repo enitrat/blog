@@ -1,10 +1,9 @@
 ---
 import banner from '../../content/blog/using-dspy/banner.png';
-// Bench objects: Plate and Fan. Covers come from src/assets/covers via coverFor; glow from glowOf.
+// Bench objects: Plate and Deck. Covers come from src/assets/covers via coverFor; glow from glowOf.
 import { coverFor } from '../../utils/covers';
 import { glowOf } from '../../utils/glow';
-import Fan from '../ui/Fan.astro';
-import FanItem from '../ui/FanItem.astro';
+import Deck from '../ui/Deck.astro';
 import Label from '../ui/Label.astro';
 import Plate from '../ui/Plate.astro';
 import PostCard from '../ui/PostCard.astro';
@@ -13,6 +12,11 @@ const eden = coverFor('9780143129486');
 const dalio = coverFor('9781982160272');
 const edenGlow = eden ? await glowOf(eden) : undefined;
 const dalioGlow = dalio ? await glowOf(dalio) : undefined;
+const demo = [
+	{ cover: eden, alt: 'East of Eden cover', glow: edenGlow },
+	{ cover: dalio, alt: 'Changing World Order cover', glow: dalioGlow },
+	{ cover: undefined, alt: '', glow: undefined },
+];
 ---
 
 <section class="objects" aria-labelledby="objects-h">
@@ -39,22 +43,22 @@ const dalioGlow = dalio ? await glowOf(dalio) : undefined;
 	</div>
 
 	<div class="group">
-		<Label as="h3">Fan</Label>
-		<Fan class="demo">
-			<FanItem i={0} rest={{ r: 0 }} open={{ x: '30%', r: 8, s: 1.02 }} touch={{ x: '10%', r: 4 }}>
-				<Plate src={eden} alt="East of Eden cover" glow={edenGlow} />
-			</FanItem>
-			<FanItem i={1} rest={{ x: '8%', y: '-3%', r: -5 }} open={{ x: '-8%', y: '-6%', r: -6 }} touch={{ x: '-4%', y: '-3%', r: -5 }}>
-				<Plate src={dalio} alt="Changing World Order cover" glow={dalioGlow} />
-			</FanItem>
-			<FanItem i={2} rest={{ x: '14%', y: '-5%', r: 5 }} open={{ x: '-50%', y: '-4%', r: -16 }} touch={{ x: '-30%', y: '-4%', r: -12 }}>
-				<Plate><span class="type"><strong>Third</strong><span>Typographic</span></span></Plate>
-			</FanItem>
-		</Fan>
+		<Label as="h3">Deck</Label>
+		<Deck items={demo} class="demo" label="Demo deck">
+			{(c: (typeof demo)[number]) =>
+				c.cover ? (
+					<Plate src={c.cover} alt={c.alt} glow={c.glow} />
+				) : (
+					<Plate><span class="type"><strong>Third</strong><span>Typographic</span></span></Plate>
+				)
+			}
+		</Deck>
 		<p class="note">
-			Hover or focus inside the Fan (host "self"), or an ancestor with data-fan-host (host "ancestor"). Item 0 is the
-			front. Each FanItem takes rest, open and touch poses {"{"} x, y, r, s {"}"}; enter is --duration-moderate with
-			--ease-spring and 40ms stagger, exit --duration-base. Once open, the card under the pointer or focus rises to the top, straightens, grows and lifts while its siblings recede, with no stagger; reduced motion keeps only the z-index raise and the shadow change.
+			{'<Deck items={xs}>{(x, i) => <Card />}</Deck>'}. Stacked at rest; while the Deck (host "self") or an ancestor with data-deck-host (host "ancestor") is hovered or
+			focused, it fans in place like a hand of cards. Positions come from the item count (spread, angle, lift props); {'cycle={s}'} deals the front card to the back while untouched (SPRING_DEAL).
+			The active card is chosen from the pointer's x over the deck's fixed footprint, so a moving card never changes
+			the choice; it comes forward, straightens and lifts while the others recede. Springs: SPRING_LAYOUT on enter
+			(40ms stagger), SPRING_PRESS on exit and on active changes. Reduced motion keeps only z-order and shadow.
 		</p>
 	</div>
 	<div class="group">
@@ -74,7 +78,7 @@ const dalioGlow = dalio ? await glowOf(dalio) : undefined;
 			</figure>
 		</div>
 		<p class="note">
-			One link, one index card: the card is the shadowed object (--plate-shadow, so a Fan lifts it) and its Plate gives
+			One link, one index card: the card is the shadowed object (--plate-shadow, so a Deck lifts it) and its Plate gives
 			up its own shadow. Banner on top, or the title set large with a mono date; then title and description, each
 			clamped. bannerFor(post) finds a post's banner.
 		</p>
@@ -110,8 +114,8 @@ const dalioGlow = dalio ? await glowOf(dalio) : undefined;
 		color: var(--muted-foreground);
 	}
 	.group :global(.demo) {
-		--fan-w: 9rem;
-		margin: var(--space-6) var(--space-16) var(--space-6) var(--space-16);
+		--deck-max: 9rem;
+		margin-block: var(--space-6);
 	}
 	.type {
 		display: grid;

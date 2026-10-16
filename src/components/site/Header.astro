@@ -4,6 +4,7 @@
  * with aria-current.
  */
 import { getTrips } from '../../utils/trips';
+import Glide from '../ui/Glide.astro';
 import Link from '../ui/Link.astro';
 
 const hasTrips = (await getTrips()).length > 0;
@@ -20,15 +21,15 @@ const links = [
 
 <header class="header">
 	<Link class="home" href="/" aria-label="Mathieu Saugier, home" aria-current={path === '/' ? 'page' : undefined}>Mathieu Saugier</Link>
-	<nav aria-label="Primary navigation">
+	<Glide as="nav" shape="pill" aria-label="Primary navigation">
 		{
 			links.map((l) => (
-				<Link variant="quiet" href={l.href} aria-current={current(l.href) ? 'page' : undefined}>
+				<Link variant="quiet" href={l.href} data-glide-item aria-current={current(l.href) ? 'page' : undefined}>
 					{l.label}
 				</Link>
 			))
 		}
-	</nav>
+	</Glide>
 </header>
 
 <style>
@@ -44,13 +45,13 @@ const links = [
 		font-weight: var(--weight-title);
 		letter-spacing: var(--tracking-title);
 	}
-	nav {
+	.header :global(nav) {
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--space-2) var(--space-5);
 	}
 	/* Current page: full ink, medium weight and an accent underline; the rest stay muted. */
-	nav :global(a[aria-current="page"]) {
+	.header :global(nav a[aria-current="page"]) {
 		color: var(--link);
 		font-weight: var(--weight-ui);
 		text-decoration: underline;

@@ -3,16 +3,21 @@
  * ListRows: the group that holds `ListRow`s. Owns the list's offset below its heading and its
  * closing hairline, so a page or tile never styles the rows from outside.
  * @prop variant "page" | "tile" (default "page"). page: capped at `--list-max`, closing rule.
- *   tile: pulls up under the tile header, no rule (the tile has its own edge).
+ *   tile: pulls up under the tile header, no rule (the tile has its own edge). Linked rows share
+ *   one `Glide` highlight.
  * @slot default `ListRow`s
  */
+import Glide from './Glide.astro';
+
 interface Props {
 	variant?: 'page' | 'tile';
 }
 const { variant = 'page' } = Astro.props;
 ---
 
-<div class="rows" data-variant={variant}><slot /></div>
+<div class="rows" data-variant={variant}>
+	{variant === 'tile' ? <Glide shape="row"><slot /></Glide> : <slot />}
+</div>
 
 <style>
 	.rows[data-variant="page"] {

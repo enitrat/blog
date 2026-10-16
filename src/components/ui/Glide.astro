@@ -1,0 +1,70 @@
+---
+/**
+ * Glide: a group of items that share ONE highlight, which glides to the hovered or
+ *   keyboard-focused item instead of each item lighting up alone (port of the beUI
+ *   `SharedLayoutBg` and `Dock` pill). The highlight is the group's `::before`, clipped to the
+ *   active item, so only `clip-path` and `opacity` move. Mark each item with `data-glide-item`.
+ *   It appears in place on the first hover (fade, `--duration-fast`), glides while the pointer
+ *   stays in the group, and fades on leave. Pointer needs a hover pointer; focus works on touch
+ *   too. Under reduced motion it jumps but still fades. Without JS the items keep their own
+ *   plain hover styles: the script sets `data-glide-ready`, and only then do they drop them.
+ *   One shared script (`glide.ts`) drives every `[data-glide]`.
+ * @prop as "div" | "ul" | "nav" (default "div"). With "ul", items live inside `li`s.
+ * @prop shape "pill" | "row" (default "pill"). pill: fully rounded, hugs a link with room to
+ *   breathe. row: a rounded rectangle that bleeds sideways, for list rows.
+ * @prop class Extra class on the group
+ * @slot default The items (`data-glide-item` on the hovered/focusable element)
+ * @cssprop --glide-pad-x How far the highlight extends past an item sideways (shape default)
+ * @cssprop --glide-pad-y How far the highlight extends past an item vertically (shape default)
+ * @cssprop --glide-radius Corner radius of the highlight (shape default)
+ */
+interface Props {
+	as?: 'div' | 'ul' | 'nav';
+	shape?: 'pill' | 'row';
+	class?: string;
+	[attr: string]: unknown;
+}
+const { as: Tag = 'div', shape = 'pill', class: cls, ...rest } = Astro.props;
+---
+
+<Tag class:list={['glide', cls]} data-glide data-shape={shape} {...rest}><slot /></Tag>
+
+<script>
+	import './glide';
+</script>
+
+<style>
+	.glide {
+		position: relative;
+		isolation: isolate;
+	}
+	.glide[data-shape="pill"] {
+		--glide-pad-x: var(--space-3);
+		--glide-pad-y: var(--space-1);
+		--glide-radius: var(--radius-pill);
+	}
+	.glide[data-shape="row"] {
+		--glide-pad-x: var(--space-3);
+		--glide-pad-y: 0px;
+		--glide-radius: var(--radius-md);
+	}
+	/* The highlight: the group box plus its padding, clipped to the active item. */
+	.glide::before {
+		content: '';
+		position: absolute;
+		inset: calc(var(--glide-pad-y) * -1) calc(var(--glide-pad-x) * -1);
+		z-index: -1;
+		background: var(--highlight);
+		clip-path: inset(var(--gt, 0px) var(--gr, 0px) var(--gb, 0px) var(--gl, 0px) round var(--glide-radius));
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity var(--duration-fast) var(--ease-out);
+	}
+	.glide[data-glide-on]::before {
+		opacity: 1;
+	}
+	/* The highlight replaces an item's own hover underline once the script is running. */
+	.glide[data-glide-ready] :global([data-glide-item]:hover:not([aria-current])) {
+		text-decoration: none;
+	}
+</style>

@@ -13,6 +13,7 @@ import Button from '../ui/Button.astro';
 import Equalizer from '../ui/Equalizer.astro';
 import Icon from '../ui/Icon.astro';
 import Label from '../ui/Label.astro';
+import Magnetic from '../ui/Magnetic.astro';
 import Pill from '../ui/Pill.astro';
 import Tile from '../ui/Tile.astro';
 import LivingRoom from './LivingRoom.astro';
@@ -29,9 +30,11 @@ import LivingRoom from './LivingRoom.astro';
 >
 	<div slot="action" class="room-tile__actions">
 		<span class="room-tile__playing" role="status"><Label><Equalizer />Now playing</Label></span>
-		<Button variant="ghost" size="sm" type="button" data-room-open>
-			Open <Icon name="arrow-right" size="sm" />
-		</Button>
+		<Magnetic strength={0.2}>
+			<Button variant="ghost" size="sm" type="button" data-room-open>
+				Open <Icon name="arrow-right" size="sm" />
+			</Button>
+		</Magnetic>
 	</div>
 	<div class="room-tile__frame">
 		<div class="room-tile__art" data-room-slot>

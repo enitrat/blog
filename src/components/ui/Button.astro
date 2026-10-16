@@ -70,7 +70,11 @@ const common = {
 		transition:
 			background var(--duration-fast) var(--ease-out),
 			color var(--duration-fast) var(--ease-out),
-			box-shadow var(--duration-fast) var(--ease-out);
+			box-shadow var(--duration-fast) var(--ease-out),
+			transform var(--duration-fast) var(--ease-out);
+	}
+	.button:active {
+		transform: scale(var(--press-scale-control));
 	}
 	.button[data-size="sm"] {
 		min-height: var(--control-height-sm);
@@ -139,5 +143,6 @@ const common = {
 	}
 	@media (prefers-reduced-motion: reduce) {
 		.button { transition: none; }
+		.button:active { transform: none; }
 	}
 </style>

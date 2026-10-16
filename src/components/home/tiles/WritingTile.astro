@@ -1,14 +1,14 @@
 ---
 /**
  * WritingTile: the last three posts as a stack of index cards: the newest in front and readable
- *   at rest, the others peeking out behind. Hovering or focusing inside fans them left and up
- *   over the neighbouring tiles. Where hover is unavailable, or the tile is narrow, the same
- *   three cards show as a scrolling row. Each card links to its post.
+ *   at rest, the others peeking out behind; while the tile is in view and untouched the front card is
+ *   dealt to the back every 5s. Hovering or focusing inside fans them in place, inside the tile, and
+ *   the card under the pointer comes forward. Where hover is unavailable, or the
+ *   tile is narrow, the same three cards show as a scrolling row. Each card links to its post.
  * @prop order Position on the phone grid (passed to `Tile`)
  */
 import { bannerFor, getWritingIndex, postUrl } from '../../../utils/writing';
-import Fan from '../../ui/Fan.astro';
-import FanItem from '../../ui/FanItem.astro';
+import Deck from '../../ui/Deck.astro';
 import Link from '../../ui/Link.astro';
 import PostCard from '../../ui/PostCard.astro';
 import Tile from '../../ui/Tile.astro';
@@ -19,27 +19,18 @@ interface Props {
 const { order } = Astro.props;
 const posts = (await getWritingIndex()).slice(0, 3);
 const latest = posts[0];
-// Poses per stack index: a small stack at rest, then rotated about -12, -6 and +4 degrees and
-// dealt left and up over the neighbours, never past the tile's right edge.
-const poses = [
-	{ rest: { r: 0 }, open: { x: '-100%', y: '-14%', r: -12 } },
-	{ rest: { x: '6%', y: '-4%', r: 3 }, open: { x: '-50%', y: '-24%', r: -6 } },
-	{ rest: { x: '12%', y: '-8%', r: 6 }, open: { x: '4%', y: '-6%', r: 4 } },
-];
 ---
 
 {
 	latest && (
-		<Tile label="Writing" labelAs="h2" spill data-fan-host span={{ md: 6, lg: 4 }} order={order} as="section">
+		<Tile label="Writing" labelAs="h2" data-deck-host span={{ md: 6, lg: 4 }} order={order} as="section">
 			<Link slot="action" variant="arrow" href="/writing/">All writing</Link>
 			<div class="writing">
-				<Fan host="ancestor" class="stack">
-					{posts.map((p, i) => (
-						<FanItem i={i} {...poses[i]}>
-							<PostCard href={postUrl(p)} title={p.data.title} description={p.data.description} date={p.data.pubDate} image={bannerFor(p)} headingLevel={3} />
-						</FanItem>
-					))}
-				</Fan>
+				<Deck items={posts} host="ancestor" class="stack" label="Latest writing" spread={0.22} angle={5} cycle={5}>
+					{(p: (typeof posts)[number]) => (
+						<PostCard href={postUrl(p)} title={p.data.title} description={p.data.description} date={p.data.pubDate} image={bannerFor(p)} headingLevel={3} />
+					)}
+				</Deck>
 				<ul class="row">
 					{posts.map((p) => (
 						<li>
@@ -60,9 +51,8 @@ const poses = [
 		height: 100%;
 	}
 	.writing :global(.stack) {
-		--fan-w: min(78%, 17rem);
-		/* the back cards peek out to the right: shift left so the stack stays inside the tile */
-		translate: -8% 0;
+		--deck-max: 15rem;
+		margin-bottom: var(--space-4);
 	}
 	.row {
 		display: none;

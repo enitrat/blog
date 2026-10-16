@@ -1,0 +1,248 @@
+---
+/**
+ * Deck: a hand of cards built from `items`. Each item is rendered by the default slot, a function
+ *   `(item, i) => <Card />`, and wrapped in a card element that carries its index (`data-i`) and
+ *   its server-rendered rest pose. At rest the deck is stacked (item 0 in front, the next ones
+ *   peeking, slightly rotated). While open (host hovered, or focus inside) it fans in place like a
+ *   hand of cards, and one card is active: it comes to the front, straightens and lifts, the
+ *   others recede. The active card comes from the pointer's x over the deck's fixed footprint
+ *   split into one zone per card, never from `:hover` on a moving card, so motion never changes
+ *   the choice. Focusing a card's link makes it active. Springs from `lib/motion.ts`; enter staggers
+ *   40ms per card, exit does not. Under reduced motion the poses still change, but instantly.
+ *   Without JS, or without a hover pointer, the deck stays stacked and every card is still a link.
+ *   Positions come from the item count (`deck.ts`), never from callers.
+ * @prop items The things to deal, one card each
+ * @prop host "self" | "ancestor" (default "self"): "self" opens on the Deck's own hover/focus;
+ *   "ancestor" on the nearest ancestor carrying `data-deck-host` (e.g. a `Tile`)
+ * @prop spread Distance between neighbouring cards when open, as a fraction of card width (default 0.38)
+ * @prop angle Rotation per step from the centre when open, deg (default 6)
+ * @prop lift How far the active card rises, % of its height (default 5)
+ * @prop cycle Seconds between deals (default off). While in view, closed, with a hover pointer and
+ *   no reduced motion, the front card is dealt to the back (SPRING_DEAL). The first hover or focus
+ *   stops it for good, and the stack and the open hand both follow the rotated order.
+ * @prop label Accessible name of the group (default none)
+ * @prop class Extra class
+ * @slot default `(item, i) => card content`
+ * @cssprop --deck-max Widest the deck's card may be (default 100%). The card is sized so the fanned hand
+ *   fits its container, so size a Deck by its container.
+ * @cssprop --deck-glow Glow strength of a resting card's `Plate` (default 0.35); the active card gets 1.7x
+ * @attr data-open Present while open; `data-active` holds the active hand position (0 is the front card)
+ */
+import { restPose, transformOf } from './deck.ts';
+
+interface Props {
+	items: readonly unknown[];
+	host?: 'self' | 'ancestor';
+	spread?: number;
+	angle?: number;
+	lift?: number;
+	cycle?: number;
+	label?: string;
+	class?: string;
+}
+const {
+	items,
+	host = 'self',
+	spread = 0.38,
+	angle = 6,
+	lift = 5,
+	cycle,
+	label,
+	class: cls,
+} = Astro.props;
+const n = items.length;
+const cards = await Promise.all(
+	items.map(async (item, i) => {
+		const p = restPose(i, n);
+		return {
+			i,
+			html: await Astro.slots.render('default', [item, i]),
+			style: `transform:${transformOf(p)};--deck-dim:${p.d};z-index:${n - i}`,
+		};
+	}),
+);
+---
+
+<div
+	class:list={['deck', cls]}
+	data-deck
+	data-host={host}
+	data-deck-host={host === 'self' ? '' : undefined}
+	data-spread={spread}
+	data-angle={angle}
+	data-lift={lift}
+	data-cycle={cycle}
+	role={label ? 'group' : undefined}
+	aria-label={label}
+	style={`--deck-n:${n};--deck-spread:${spread}`}
+>
+	{cards.map((c) => <div class="deck-card" data-deck-card data-i={c.i} style={c.style} set:html={c.html} />)}
+</div>
+
+<style>
+	.deck {
+		position: relative;
+		margin-inline: auto;
+		/* the card is sized so the open hand (card width x (1 + spread x (n-1))) fills 96% of the container */
+		width: min(calc(96% / (1 + var(--deck-spread) * (var(--deck-n) - 1))), var(--deck-max, 100%));
+	}
+	/* item 0 sits in normal flow and sizes the deck; the others stack behind it */
+	.deck-card {
+		--plate-glow-strength: var(--deck-glow, 0.35);
+		position: absolute;
+		inset: 0;
+		transform-origin: 50% 90%;
+	}
+	/* receding cards dim under an overlay, never a filter: the card stays opaque and cheap to composite */
+	.deck-card::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: var(--radius-sm);
+		background: var(--scrim);
+		opacity: calc(var(--deck-dim, 0) * 0.06);
+		pointer-events: none;
+	}
+	.deck-card[data-i="0"] {
+		position: relative;
+		inset: auto;
+	}
+	.deck-card[data-active] {
+		--plate-shadow: var(--elevation-object-lift);
+		--plate-glow-strength: calc(var(--deck-glow, 0.35) * 1.7);
+	}
+</style>
+
+<script>
+	import { animate, frame, motionValue } from 'motion';
+	import {
+		canHover,
+		DEAL_CROSS,
+		prefersReducedMotion,
+		SPRING_DEAL,
+		SPRING_LAYOUT,
+		SPRING_PRESS,
+		STAGGER,
+	} from '../../lib/motion';
+	import { type DeckOptions, openPose, type Pose, restPose, transformOf } from './deck';
+
+	function mount(root: HTMLElement) {
+		const cards = [...root.querySelectorAll<HTMLElement>('[data-deck-card]')];
+		const n = cards.length;
+		const o: DeckOptions = {
+			spread: Number(root.dataset.spread),
+			angle: Number(root.dataset.angle),
+			lift: Number(root.dataset.lift),
+		};
+		const host = (root.dataset.host === 'ancestor' && root.closest<HTMLElement>('[data-deck-host]')) || root;
+		// One motion value per pose channel per card: a retarget keeps the live velocity, so sweeping
+		// zones mid-spring stays continuous (animating a transform string would restart from rest).
+		const channels = cards.map((_, i) => {
+			const p = restPose(i, n);
+			return { x: motionValue(p.x), y: motionValue(p.y), r: motionValue(p.r), s: motionValue(p.s), d: motionValue(p.d) };
+		});
+		const runs: { stop(): void }[][] = [];
+		const draw = cards.map((card, i) => () => {
+			const c = channels[i];
+			card.style.transform = transformOf({ x: c.x.get(), y: c.y.get(), r: c.r.get(), s: c.s.get(), d: 0 });
+			card.style.setProperty('--deck-dim', String(c.d.get()));
+		});
+		channels.forEach((c, i) => Object.values(c).forEach((v) => v.on('change', () => frame.render(draw[i]))));
+		let open = false;
+		/** Hand position of the active card (0 is the front card at rest). */
+		let active = 0;
+		/** Item on top; dealing rotates it, so card i sits at hand position (i - top + n) % n. */
+		let top = 0;
+		const pos = (i: number) => (i - top + n) % n;
+
+		const target = (i: number): Pose => (open ? openPose(pos(i), n, o, active) : restPose(pos(i), n));
+		const zOf = (i: number) => (open ? (pos(i) === active ? n + 1 : n - Math.abs(pos(i) - active)) : n - pos(i));
+
+		/** Spring each card's channels to its target; `stagger` seconds per card. */
+		function settle(spring: typeof SPRING_LAYOUT, stagger: number) {
+			const still = prefersReducedMotion();
+			cards.forEach((card, i) => {
+				runs[i]?.forEach((r) => r.stop());
+				// z-order and shadow are instant and never animated
+				card.style.zIndex = String(zOf(i));
+				if (open && pos(i) === active) card.setAttribute('data-active', '');
+				else card.removeAttribute('data-active');
+				const to = target(i);
+				const c = channels[i];
+				if (still) {
+					// reduced motion: the hand still fans, it just does not travel
+					for (const k of Object.keys(c) as (keyof Pose)[]) c[k].set(to[k]);
+					return;
+				}
+				const opts = { ...spring, delay: pos(i) * stagger };
+				runs[i] = (Object.keys(c) as (keyof Pose)[]).map((k) => animate(c[k], to[k], opts));
+			});
+			if (open) root.setAttribute('data-open', '');
+			else root.removeAttribute('data-open');
+			root.dataset.active = String(active);
+		}
+
+		const setOpen = (next: boolean, at = active) => {
+			if (next === open && at === active) return;
+			const was = open;
+			open = next;
+			active = at;
+			// enter staggers, exit and active changes are immediate
+			if (!was && next) settle(SPRING_LAYOUT, STAGGER);
+			else settle(SPRING_PRESS, 0);
+		};
+
+		/** The zone under x of the deck's fixed footprint (the root never moves, only its cards do). */
+		const zone = (x: number) => {
+			const r = root.getBoundingClientRect();
+			const width = r.width * (1 + o.spread * (n - 1));
+			const left = r.left - (r.width * o.spread * (n - 1)) / 2;
+			return Math.min(n - 1, Math.max(0, Math.floor(((x - left) / width) * n)));
+		};
+		// The host may itself be the focused element (a linked Tile), so test it as well as its descendants.
+		const keyboardFocus = () => host.matches(':focus-visible') || !!host.querySelector(':focus-visible');
+
+		// Ambient deal: the front card goes to the back. Ends at the first pointer or keyboard
+		// interaction, for good (a mouse click's focus is not interaction worth stopping for).
+		const every = Number(root.dataset.cycle);
+		if (every > 0 && n > 1 && canHover() && !prefersReducedMotion()) {
+			let inView = false;
+			let timer = 0;
+			const stop = () => {
+				clearInterval(timer);
+				view.disconnect();
+				host.removeEventListener('pointerenter', stop);
+				host.removeEventListener('focusin', onFocus);
+			};
+			const onFocus = (e: FocusEvent) => e.target instanceof Element && e.target.matches(':focus-visible') && stop();
+			const view = new IntersectionObserver(([e]) => (inView = e.isIntersecting));
+			view.observe(root);
+			timer = window.setInterval(() => {
+				if (!inView || open || document.hidden) return;
+				const dealt = top;
+				top = (top + 1) % n;
+				settle(SPRING_DEAL, 0);
+				// the dealt card crosses the pile before it drops behind
+				cards[dealt].style.zIndex = String(n + 1);
+				setTimeout(() => !open && (cards[dealt].style.zIndex = String(zOf(dealt))), DEAL_CROSS * 1000);
+			}, every * 1000);
+			host.addEventListener('pointerenter', stop);
+			host.addEventListener('focusin', onFocus);
+		}
+		if (canHover()) {
+			const track = (e: PointerEvent) => e.pointerType !== 'touch' && setOpen(true, zone(e.clientX));
+			host.addEventListener('pointerenter', track);
+			host.addEventListener('pointermove', track);
+			host.addEventListener('pointerleave', () => keyboardFocus() || setOpen(false));
+		}
+		host.addEventListener('focusin', (e) => {
+			const i = cards.findIndex((c) => c.contains(e.target as Node));
+			if (e.target instanceof Element && e.target.matches(':focus-visible')) setOpen(true, i < 0 ? active : pos(i));
+		});
+		host.addEventListener('focusout', (e) => {
+			if (!host.contains(e.relatedTarget as Node | null) && !host.matches(':hover')) setOpen(false);
+		});
+	}
+
+	for (const root of document.querySelectorAll<HTMLElement>('[data-deck]')) mount(root);
+</script>

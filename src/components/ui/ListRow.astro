@@ -1,7 +1,8 @@
 ---
 /**
  * ListRow: one hairline-separated row of a list (date, title, description, arrow on hover).
- * Stack rows in any container; each draws its own top rule.
+ * Stack rows in any container; each draws its own top rule. A linked row is a `Glide` item
+ * (`data-glide-item`), so a `Glide` around the rows gives them one shared hover highlight.
  * @prop href Makes the row a link (arrow appears on hover and focus)
  * @prop date Mono text in the left column; any string ("12 Mar", "Home")
  * @prop datetime Machine value; renders the date as a <time>
@@ -30,7 +31,7 @@ const Root = href ? 'a' : 'div';
 ---
 
 <article class="row">
-	<Root class="inner" href={href} data-nodate={date || Astro.slots.has('meta') ? undefined : ''}>
+	<Root class="inner" href={href} data-glide-item={href ? '' : undefined} data-nodate={date || Astro.slots.has('meta') ? undefined : ''}>
 		{(date || Astro.slots.has('meta')) && <div class="when">
 			{date && (datetime ? <time datetime={datetime}>{date}</time> : <span>{date}</span>)}
 			<slot name="meta" />

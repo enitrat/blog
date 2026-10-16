@@ -20,6 +20,17 @@ let connecting: Promise<Widget> | null = null;
 let playback: Playback = 'stopped';
 let volume = 100;
 const listeners = new Set<(state: Playback) => void>();
+const positionListeners = new Set<(seconds: number) => void>();
+let ticker: ReturnType<typeof setInterval> | undefined;
+
+// Polled once a second, only while playing and visible, and only if someone is listening.
+function tick() {
+	if (document.hidden || !positionListeners.size) return;
+	widget?.getPosition((ms) => {
+		if (playback !== 'playing') return;
+		for (const listener of positionListeners) listener(Math.floor(ms / 1000));
+	});
+}
 
 function set(next: Playback) {
 	if (next === playback) return;
@@ -27,6 +38,9 @@ function set(next: Playback) {
 	// Pure-CSS views (`:root[data-set-playback="playing"] ...`) need no wiring.
 	document.documentElement.dataset.setPlayback = next;
 	for (const listener of listeners) listener(next);
+	clearInterval(ticker);
+	ticker = next === 'playing' ? setInterval(tick, 1000) : undefined;
+	if (next === 'playing') tick();
 }
 
 async function connect() {
@@ -128,6 +142,11 @@ export const setPlayer = {
 	setVolume(next: number) {
 		volume = next;
 		widget?.setVolume(next);
+	},
+	/** Calls `fn` with the elapsed whole seconds, about once a second while playing. */
+	subscribePosition(fn: (seconds: number) => void) {
+		positionListeners.add(fn);
+		return () => void positionListeners.delete(fn);
 	},
 	/** Calls `fn` now with the current state, then on every change. */
 	subscribe(fn: (state: Playback) => void) {

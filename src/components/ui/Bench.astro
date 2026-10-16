@@ -2,13 +2,18 @@
 /**
  * Bench: the tile grid. 12 columns from 64rem, 6 from 40rem, one column on phone.
  * Children are `Tile`s that declare their own `span`, `rows` and phone `order`.
+ * @prop settle Tiles settle onto the bench on page load: rise 12px and fade in, 30ms apart for the
+ *   first four tiles (the rest share the last), over `--duration-moderate`. A CSS animation, so it stays smooth while the page is still loading. Under
+ *   reduced motion they only fade. Use it on one bench per page, not on every visit to every list.
  * @slot default Tiles
  */
-interface Props extends astroHTML.JSX.HTMLAttributes {}
-const { class: cls, ...rest } = Astro.props;
+interface Props extends astroHTML.JSX.HTMLAttributes {
+	settle?: boolean;
+}
+const { class: cls, settle, ...rest } = Astro.props;
 ---
 
-<div class:list={['bench', cls]} {...rest}><slot /></div>
+<div class:list={['bench', cls]} data-settle={settle ? '' : undefined} {...rest}><slot /></div>
 
 <style>
 	.bench {
@@ -25,6 +30,34 @@ const { class: cls, ...rest } = Astro.props;
 		.bench {
 			grid-template-columns: repeat(12, minmax(0, 1fr));
 			grid-auto-rows: minmax(6rem, auto);
+		}
+	}
+	/* backwards fill: once settled the tile lets go of transform, so its hover lift still works.
+	   Delay is 30ms per tile for the first four; the rest share the last. */
+	.bench[data-settle] > :global(*) {
+		--settle-step: 30ms;
+		--settle-i: 4;
+		animation: bench-settle var(--duration-moderate) var(--ease-out) backwards;
+		animation-delay: calc(var(--settle-i) * var(--settle-step));
+	}
+	.bench[data-settle] > :global(:nth-child(1)) { --settle-i: 0; }
+	.bench[data-settle] > :global(:nth-child(2)) { --settle-i: 1; }
+	.bench[data-settle] > :global(:nth-child(3)) { --settle-i: 2; }
+	.bench[data-settle] > :global(:nth-child(4)) { --settle-i: 3; }
+	@keyframes bench-settle {
+		from {
+			opacity: 0;
+			transform: translateY(12px) scale(0.98);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.bench[data-settle] > :global(*) {
+			animation-name: bench-fade;
+		}
+		@keyframes bench-fade {
+			from {
+				opacity: 0;
+			}
 		}
 	}
 </style>

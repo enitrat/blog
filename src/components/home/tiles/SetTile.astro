@@ -13,8 +13,10 @@ import Button from '../../ui/Button.astro';
 import Equalizer from '../../ui/Equalizer.astro';
 import Icon from '../../ui/Icon.astro';
 import Link from '../../ui/Link.astro';
+import Magnetic from '../../ui/Magnetic.astro';
 import Plate from '../../ui/Plate.astro';
 import Tile from '../../ui/Tile.astro';
+import Tilt from '../../ui/Tilt.astro';
 
 interface Props {
 	span?: { md?: number; lg?: number };
@@ -31,12 +33,17 @@ const date = recorded.toLocaleDateString('en-GB', {
 ---
 
 <Tile class="set-tile" label="Last set" labelAs="h2" span={span} order={order} as="section" data-set-tile>
-	<Equalizer slot="action" />
+	<span slot="action" class="status">
+		<span class="elapsed" data-set-elapsed aria-hidden="true"></span>
+		<Equalizer />
+	</span>
 	<div class="set">
 		<div class="disc">
-			<div class="spin">
-				<Plate src={art} alt="" ratio="1/1" widths={[240, 480]} sizes="(min-width: 40rem) 16rem, 8rem" />
-			</div>
+			<Tilt>
+				<div class="spin">
+					<Plate src={art} alt="" ratio="1/1" widths={[240, 480]} sizes="(min-width: 40rem) 16rem, 8rem" />
+				</div>
+			</Tilt>
 		</div>
 		<div class="info">
 			<div>
@@ -44,10 +51,12 @@ const date = recorded.toLocaleDateString('en-GB', {
 				<p class="meta">{SET.artist} · <time datetime={SET.recorded}>{date}</time></p>
 			</div>
 			<div class="actions">
-				<Button variant="inverse" type="button" pressed={false} aria-label={`Play ${SET.title}`} data-set-toggle>
-					<span class="when-stopped"><Icon name="play" />Play</span>
-					<span class="when-playing"><Icon name="pause" />Pause</span>
-				</Button>
+				<Magnetic strength={0.15}>
+					<Button variant="inverse" type="button" pressed={false} aria-label={`Play ${SET.title}`} data-set-toggle>
+						<span class="when-stopped"><Icon name="play" />Play</span>
+						<span class="when-playing"><Icon name="pause" />Pause</span>
+					</Button>
+				</Magnetic>
 				<Link variant="external" href={SET.url}>SoundCloud</Link>
 			</div>
 		</div>
@@ -59,6 +68,7 @@ const date = recorded.toLocaleDateString('en-GB', {
 	import { setPlayer } from '../../../lib/set-player';
 
 	const tile = document.querySelector<HTMLElement>('[data-set-tile]');
+	const elapsedEl = tile?.querySelector<HTMLElement>('[data-set-elapsed]');
 	const button = tile?.querySelector<HTMLButtonElement>('[data-set-toggle]');
 
 	button?.addEventListener('click', () => setPlayer.toggle());
@@ -68,6 +78,23 @@ const date = recorded.toLocaleDateString('en-GB', {
 		tile?.toggleAttribute('data-playing', on);
 		button?.setAttribute('aria-pressed', String(on));
 		button?.setAttribute('aria-label', `${on ? 'Pause' : 'Play'} ${SET.title}`);
+		if (!on) elapsedEl?.replaceChildren();
+	});
+
+	// Elapsed m:ss. A digit that changes rolls in from below (CSS `set-roll`, off under reduced motion).
+	setPlayer.subscribePosition((seconds) => {
+		if (!elapsedEl) return;
+		const text = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+		const old = elapsedEl.children;
+		if (old.length !== text.length) {
+			elapsedEl.replaceChildren(...[...text].map((c) => Object.assign(document.createElement('span'), { textContent: c })));
+			return;
+		}
+		[...text].forEach((c, i) => {
+			if (old[i].textContent === c) return;
+			const next = Object.assign(document.createElement('span'), { textContent: c, className: 'roll' });
+			old[i].replaceWith(next);
+		});
 	});
 </script>
 
@@ -91,6 +118,31 @@ const date = recorded.toLocaleDateString('en-GB', {
 		border-radius: inherit;
 		/* the Plate's own shadow would be clipped here; the disc carries it */
 		--plate-shadow: none;
+	}
+	.status {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+	}
+	.elapsed {
+		display: none;
+		min-inline-size: 5ch; /* m:ss to mm:ss without shifting the header */
+		justify-content: flex-end;
+		font-variant-numeric: tabular-nums;
+	}
+	:global(.set-tile[data-playing]) .elapsed {
+		display: inline-flex;
+	}
+	.elapsed :global(.roll) {
+		display: inline-block;
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		.elapsed :global(.roll) {
+			animation: set-roll var(--duration-fast) var(--ease-out);
+		}
+	}
+	@keyframes set-roll {
+		from { transform: translateY(0.6em); opacity: 0; }
 	}
 	.info {
 		display: grid;

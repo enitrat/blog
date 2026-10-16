@@ -11,8 +11,9 @@
  * @prop sizes, widths, loading Passed to the image. widths defaults to 320/640/960 (capped at the
  *   source width), so a plate never ships the original file.
  * @slot default Content when there is no `src`
- * @cssprop --plate-shadow Shadow override (default `--elevation-object`); a Fan swaps in the lift
+ * @cssprop --plate-shadow Shadow override (default `--elevation-object`); a Deck swaps in the lift
  * @cssprop --plate-glow-strength Glow opacity (default 0.35); a parent raises it
+ * @cssprop --plate-glow-inset How far the glow extends past the plate (default -4%)
  */
 import { Image } from 'astro:assets';
 
@@ -61,7 +62,7 @@ const srcWidths =
 	}
 	.glow {
 		position: absolute;
-		inset: -4%;
+		inset: var(--plate-glow-inset, -4%);
 		border-radius: var(--radius-md);
 		background: var(--plate-glow);
 		opacity: var(--plate-glow-strength, 0.35);
