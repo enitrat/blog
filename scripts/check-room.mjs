@@ -184,6 +184,12 @@ async function visit(browser, engineName, url, viewport) {
 					};
 				});
 			const tileBox = () => page.locator('.room-tile').boundingBox();
+			// `open` clears synchronously, but the dialog's `close` event (which moves the room back
+			// to the tile) is a queued task: wait for the flag, then let that task run.
+			const closed = async () => {
+				await page.waitForFunction(() => !document.querySelector('[data-room-dialog]').open);
+				await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 0)));
+			};
 			const shot = async (name) => {
 				if (process.env.ROOM_SHOTS)
 					await page.screenshot({
@@ -246,7 +252,7 @@ async function visit(browser, engineName, url, viewport) {
 				assert.doesNotMatch(await dialogText(), catalogue, 'catalogue text in the dialog');
 				assert.equal(await page.locator('[data-shelf-catalog], .room-library__legend').count(), 0);
 				await page.keyboard.press('Escape');
-				await page.waitForFunction(() => !document.querySelector('[data-room-dialog]').open);
+				await closed();
 				const back = await home();
 				assert.deepEqual(
 					[back.mode, back.inTile, back.view],
@@ -291,7 +297,7 @@ async function visit(browser, engineName, url, viewport) {
 			// Close returns the stage to the tile at the overview, whatever the level.
 			await check(`${label} close returns the room to the tile at the overview`, async () => {
 				await page.locator('[data-room-close]').click();
-				await page.waitForFunction(() => !document.querySelector('[data-room-dialog]').open);
+				await closed();
 				await view('room');
 				const at = await home();
 				assert.deepEqual([at.mode, at.inTile], ['tile', true], JSON.stringify(at));
@@ -306,7 +312,7 @@ async function visit(browser, engineName, url, viewport) {
 				await page.locator('[data-room-dialog][open]').waitFor({ timeout: 5000 });
 				await view('desk');
 				await page.locator('[data-room-close]').click();
-				await page.waitForFunction(() => !document.querySelector('[data-room-dialog]').open);
+				await closed();
 				await view('room');
 			});
 		}
