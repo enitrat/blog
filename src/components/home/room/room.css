@@ -83,8 +83,7 @@
 			color-mix(in srgb, var(--lamp-banker) 55%, transparent),
 			color-mix(in srgb, var(--lamp-amber) 32%, transparent) 14%,
 			transparent 30%
-		),
-		linear-gradient(color-mix(in srgb, var(--lamp-amber) 10%, transparent), transparent);
+		), linear-gradient(color-mix(in srgb, var(--lamp-amber) 10%, transparent), transparent);
 	transition: opacity var(--duration-slow) var(--ease-out);
 }
 .room-tile__poster {

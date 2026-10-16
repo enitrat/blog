@@ -97,7 +97,9 @@ function initMagnetic(els: HTMLElement[]) {
 	};
 	addEventListener('scroll', invalidate, { passive: true, capture: true });
 	addEventListener('resize', invalidate, { passive: true });
-	new ResizeObserver(() => (dirty = true)).observe(document.documentElement);
+	new ResizeObserver(() => {
+		dirty = true;
+	}).observe(document.documentElement);
 	document.documentElement.addEventListener('pointerleave', reset);
 }
 
