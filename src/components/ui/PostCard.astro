@@ -114,9 +114,11 @@ const iso = date.toISOString().slice(0, 10);
 		gap: var(--space-1);
 		min-width: 0;
 	}
-	/* cards in a stack or row share one height; the slack goes above the date, not inside the text */
+	/* cards in a stack or row share one height; the slack goes above the date, which sits on a hairline footer */
 	.date {
 		margin-top: auto;
+		padding-top: var(--space-2);
+		border-top: 1px solid var(--border);
 	}
 	.card :global(.title) {
 		margin: 0;
@@ -128,6 +130,9 @@ const iso = date.toISOString().slice(0, 10);
 		font-weight: var(--weight-title);
 		line-height: var(--leading-ui);
 	}
+	.card[data-size="sm"] .desc {
+		-webkit-line-clamp: 2;
+	}
 	.card[data-size="sm"] :global(.title) {
 		font-size: var(--text-small);
 	}
@@ -135,7 +140,7 @@ const iso = date.toISOString().slice(0, 10);
 		margin: 0;
 		display: -webkit-box;
 		-webkit-box-orient: vertical;
-		-webkit-line-clamp: 2;
+		-webkit-line-clamp: 3;
 		overflow: hidden;
 		min-height: 2lh;
 		font-size: var(--text-small);

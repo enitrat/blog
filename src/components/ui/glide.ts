@@ -13,8 +13,14 @@ function init(group: HTMLElement) {
 	let current: Element | null = null;
 	let running: { stop: () => void } | null = null;
 
+	// The group's rect is read once per hover; dropped on leave, scroll, resize and transitions.
+	let box: DOMRect | null = null;
+	const drop = () => {
+		box = null;
+	};
 	const insets = (item: Element) => {
-		const g = group.getBoundingClientRect();
+		box ??= group.getBoundingClientRect();
+		const g = box;
 		const i = item.getBoundingClientRect();
 		return {
 			'--gt': `${i.top - g.top}px`,
@@ -25,6 +31,7 @@ function init(group: HTMLElement) {
 	};
 	const jump = (item: Element) => {
 		running?.stop();
+		drop();
 		for (const [k, v] of Object.entries(insets(item))) group.style.setProperty(k, v);
 	};
 	const show = (item: Element) => {
@@ -41,6 +48,7 @@ function init(group: HTMLElement) {
 	};
 	const hide = () => {
 		current = null;
+		drop();
 		group.removeAttribute('data-glide-on');
 	};
 	const focused = () => group.querySelector(`${ITEM}:focus-visible`);
@@ -63,6 +71,9 @@ function init(group: HTMLElement) {
 		if (next && group.contains(next)) return;
 		if (!group.matches(':hover')) hide();
 	});
+	addEventListener('scroll', drop, { passive: true, capture: true });
+	addEventListener('resize', drop, { passive: true });
+	addEventListener('transitionend', drop, { capture: true });
 	// fonts and wrapping move items under a visible highlight
 	const resize = new ResizeObserver(() => current && jump(current));
 	resize.observe(group);

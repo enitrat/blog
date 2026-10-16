@@ -7,6 +7,7 @@ import Deck from '../ui/Deck.astro';
 import Label from '../ui/Label.astro';
 import Plate from '../ui/Plate.astro';
 import PostCard from '../ui/PostCard.astro';
+import Readout from '../ui/Readout.astro';
 
 const eden = coverFor('9780143129486');
 const dalio = coverFor('9781982160272');
@@ -58,7 +59,23 @@ const demo = [
 			focused, it fans in place like a hand of cards. Positions come from the item count (spread, angle, lift props); {'cycle={s}'} deals the front card to the back while untouched (SPRING_DEAL).
 			The active card is chosen from the pointer's x over the deck's fixed footprint, so a moving card never changes
 			the choice; it comes forward, straightens and lifts while the others recede. Springs: SPRING_LAYOUT on enter
-			(40ms stagger), SPRING_PRESS on exit and on active changes. Reduced motion keeps only z-order and shadow.
+			(40ms stagger), SPRING_PRESS on active changes. Set down: the hand gathers with the pile held a few percent high,
+			then it drops with one small knock (SPRING_SETTLE). Reduced motion paints each pose instantly: the hand still fans and closes, it just does not travel.
+		</p>
+		<Deck id="demo-pull" items={demo} hold="pull" captions={demo.map((d) => ({ title: d.alt || 'Typographic' }))} class="demo" label="Demo pull deck">
+			{(c: (typeof demo)[number]) =>
+				c.cover ? (
+					<Plate src={c.cover} alt={c.alt} glow={c.glow} />
+				) : (
+					<Plate><span class="type"><strong>Third</strong><span>Typographic</span></span></Plate>
+				)
+			}
+		</Deck>
+		<Readout follow="demo-pull" field="title" value={demo[0].alt} />
+		<p class="note">
+			hold="pull" draws the card under the pointer up and out of the pile, turned in perspective (books); the default
+			hold="fan" spreads the hand sideways (index cards). A Readout with follow=&lt;deck id&gt; and field=&lt;caption key&gt; shows
+			the held card's caption (the front card at rest) with no script: pass captions=&#123;[&#123; title &#125;, ...]&#125; to the Deck.
 		</p>
 	</div>
 	<div class="group">

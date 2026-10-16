@@ -4,7 +4,7 @@
  * Stack rows in any container; each draws its own top rule. A linked row is a `Glide` item
  * (`data-glide-item`), so a `Glide` around the rows gives them one shared hover highlight.
  * @prop href Makes the row a link (arrow appears on hover and focus)
- * @prop date Mono text in the left column; any string ("12 Mar", "Home")
+ * @prop date Mono text in the left column; any string ("12 Mar", "Home"). A range ("August 2023 – October 2025") breaks into two lines, start then end, never mid-date
  * @prop datetime Machine value; renders the date as a <time>
  * @prop title Row title
  * @prop description Muted line under the title
@@ -28,12 +28,18 @@ interface Props {
 }
 const { href, date, datetime, title, description, tag, headingLevel: Heading = 'h3' } = Astro.props;
 const Root = href ? 'a' : 'div';
+const range = date?.split(' – ');
+const Stamp = datetime ? 'time' : 'span';
 ---
 
 <article class="row">
 	<Root class="inner" href={href} data-glide-item={href ? '' : undefined} data-nodate={date || Astro.slots.has('meta') ? undefined : ''}>
 		{(date || Astro.slots.has('meta')) && <div class="when">
-			{date && (datetime ? <time datetime={datetime}>{date}</time> : <span>{date}</span>)}
+			{date && (
+				<Stamp class={range?.length === 2 ? 'range' : undefined} datetime={datetime}>
+					{range?.length === 2 ? <><span>{range[0]}</span><span>– {range[1]}</span></> : date}
+				</Stamp>
+			)}
 			<slot name="meta" />
 		</div>}
 		<div class="what">
@@ -50,8 +56,10 @@ const Root = href ? 'a' : 'div';
 		border-top: 1px solid var(--border);
 	}
 	.inner {
+		/* wide enough for "– October 2025" in mono caps */
+		--when-width: calc(var(--space-24) + var(--space-6));
 		display: grid;
-		grid-template-columns: var(--space-24) minmax(0, 1fr) var(--space-6);
+		grid-template-columns: var(--when-width) minmax(0, 1fr) var(--space-6);
 		align-items: baseline;
 		gap: var(--gap-bench);
 		padding-block: var(--space-4);
@@ -59,7 +67,7 @@ const Root = href ? 'a' : 'div';
 		text-decoration: none;
 	}
 	div.inner {
-		grid-template-columns: var(--space-24) minmax(0, 1fr);
+		grid-template-columns: var(--when-width) minmax(0, 1fr);
 	}
 	.inner[data-nodate] {
 		grid-template-columns: minmax(0, 1fr) var(--space-6);
@@ -76,6 +84,12 @@ const Root = href ? 'a' : 'div';
 		font-size: var(--text-label);
 		letter-spacing: var(--tracking-label);
 		color: var(--muted-foreground);
+	}
+	.range {
+		display: grid;
+	}
+	.range > span {
+		white-space: nowrap;
 	}
 	h2,
 	h3 {
@@ -122,6 +136,12 @@ const Root = href ? 'a' : 'div';
 		}
 		.arrow {
 			display: none;
+		}
+		/* stacked layout: the range reads on one line */
+		.range {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0 var(--space-2);
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {

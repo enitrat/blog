@@ -15,6 +15,7 @@ import Icon from '../../ui/Icon.astro';
 import Link from '../../ui/Link.astro';
 import Magnetic from '../../ui/Magnetic.astro';
 import Plate from '../../ui/Plate.astro';
+import Readout from '../../ui/Readout.astro';
 import Tile from '../../ui/Tile.astro';
 import Tilt from '../../ui/Tilt.astro';
 
@@ -34,7 +35,7 @@ const date = recorded.toLocaleDateString('en-GB', {
 
 <Tile class="set-tile" label="Last set" labelAs="h2" span={span} order={order} as="section" data-set-tile>
 	<span slot="action" class="status">
-		<span class="elapsed" data-set-elapsed aria-hidden="true"></span>
+		<span class="elapsed" aria-hidden="true"><Readout mode="char" value="0:00" /></span>
 		<Equalizer />
 	</span>
 	<div class="set">
@@ -64,37 +65,63 @@ const date = recorded.toLocaleDateString('en-GB', {
 </Tile>
 
 <script>
+	import { setReadout } from '../../ui/readout';
+	import { animate, cancelFrame, frame, motionValue } from 'motion';
 	import { SET } from '../../../consts';
+	import { prefersReducedMotion, SPRING_RECORD } from '../../../lib/motion';
 	import { setPlayer } from '../../../lib/set-player';
 
 	const tile = document.querySelector<HTMLElement>('[data-set-tile]');
-	const elapsedEl = tile?.querySelector<HTMLElement>('[data-set-elapsed]');
+	const elapsedEl = tile?.querySelector<HTMLElement>('.elapsed [data-readout]');
 	const button = tile?.querySelector<HTMLButtonElement>('[data-set-toggle]');
+
+	// The record has inertia: `speed` (deg/s) eases up to cruise or down to zero on a spring, and a
+	// frame loop integrates it into `angle`. A paused record stays where it stopped.
+	const spin = tile?.querySelector<HTMLElement>('.spin');
+	const CRUISE = 360 / 9.6; // one turn per 9.6s, calm
+	const speed = motionValue(0);
+	let angle = 0;
+	let last = 0;
+	let running: { stop: () => void } | null = null;
+	const step = ({ timestamp }: { timestamp: number }) => {
+		// clamp: a tab coming back from hidden must not jump the record
+		angle = (angle + (speed.get() * Math.min(timestamp - last, 50)) / 1000) % 360;
+		last = timestamp;
+		if (spin) spin.style.transform = `rotate(${angle}deg)`;
+	};
+	const turn = (on: boolean) => {
+		running?.stop();
+		if (prefersReducedMotion()) {
+			// also reached when reduced motion is switched on mid-play: stop turning, keep the angle
+			speed.set(0);
+			cancelFrame(step);
+			return;
+		}
+		if (on && !speed.get()) {
+			last = performance.now();
+			frame.update(step, true);
+		}
+		running = animate(speed, on ? CRUISE : 0, {
+			...SPRING_RECORD,
+			onComplete: () => on || cancelFrame(step),
+		});
+	};
+
+	matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => turn(!!tile?.hasAttribute('data-playing')));
 
 	button?.addEventListener('click', () => setPlayer.toggle());
 	// Same rule as the room: it turns from `cueing` on, since the press has been heard.
 	setPlayer.subscribe((state) => {
 		const on = state !== 'stopped';
+		if (on !== tile?.hasAttribute('data-playing')) turn(on);
 		tile?.toggleAttribute('data-playing', on);
 		button?.setAttribute('aria-pressed', String(on));
 		button?.setAttribute('aria-label', `${on ? 'Pause' : 'Play'} ${SET.title}`);
-		if (!on) elapsedEl?.replaceChildren();
+		if (!on && elapsedEl) setReadout(elapsedEl, '0:00');
 	});
 
-	// Elapsed m:ss. A digit that changes rolls in from below (CSS `set-roll`, off under reduced motion).
 	setPlayer.subscribePosition((seconds) => {
-		if (!elapsedEl) return;
-		const text = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
-		const old = elapsedEl.children;
-		if (old.length !== text.length) {
-			elapsedEl.replaceChildren(...[...text].map((c) => Object.assign(document.createElement('span'), { textContent: c })));
-			return;
-		}
-		[...text].forEach((c, i) => {
-			if (old[i].textContent === c) return;
-			const next = Object.assign(document.createElement('span'), { textContent: c, className: 'roll' });
-			old[i].replaceWith(next);
-		});
+		if (elapsedEl) setReadout(elapsedEl, `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`);
 	});
 </script>
 
@@ -107,15 +134,31 @@ const date = recorded.toLocaleDateString('en-GB', {
 	.disc {
 		flex: none;
 		width: 7.5rem;
-		border-radius: var(--radius-sm);
-		box-shadow: var(--elevation-object);
-		transition: border-radius var(--duration-moderate) var(--ease-out);
+		position: relative;
+		isolation: isolate;
 	}
-	/* The disc holds the shadow and the shape and stays put; only the face turns,
-	   so the light does not rotate with the record. */
+	/* Square to round with only clip-path and opacity: a shadow can't follow a clip-path, so the disc
+	   holds two static shadows (square, round) and crossfades them while the face's clip morphs. */
+	.disc::before,
+	.disc::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		box-shadow: var(--elevation-object);
+		transition: opacity var(--duration-moderate) var(--ease-out);
+	}
+	.disc::before {
+		border-radius: var(--radius-sm);
+	}
+	.disc::after {
+		border-radius: 50%;
+		opacity: 0;
+	}
+	/* The disc stays put; only the face turns, so the light does not rotate with the record. */
 	.spin {
-		overflow: hidden;
-		border-radius: inherit;
+		clip-path: inset(0 round var(--radius-sm));
+		transition: clip-path var(--duration-moderate) var(--ease-out);
 		/* the Plate's own shadow would be clipped here; the disc carries it */
 		--plate-shadow: none;
 	}
@@ -132,17 +175,6 @@ const date = recorded.toLocaleDateString('en-GB', {
 	}
 	:global(.set-tile[data-playing]) .elapsed {
 		display: inline-flex;
-	}
-	.elapsed :global(.roll) {
-		display: inline-block;
-	}
-	@media (prefers-reduced-motion: no-preference) {
-		.elapsed :global(.roll) {
-			animation: set-roll var(--duration-fast) var(--ease-out);
-		}
-	}
-	@keyframes set-roll {
-		from { transform: translateY(0.6em); opacity: 0; }
 	}
 	.info {
 		display: grid;
@@ -181,16 +213,14 @@ const date = recorded.toLocaleDateString('en-GB', {
 		gap: 0.5rem;
 	}
 
-	:global(.set-tile[data-playing]) .disc {
-		border-radius: 50%;
+	:global(.set-tile[data-playing]) .disc::before {
+		opacity: 0;
 	}
-	@media (prefers-reduced-motion: no-preference) {
-		:global(.set-tile[data-playing]) .spin {
-			animation: turn calc(var(--duration-slower) * 8) linear infinite;
-		}
+	:global(.set-tile[data-playing]) .disc::after {
+		opacity: 1;
 	}
-	@keyframes turn {
-		to { transform: rotate(1turn); }
+	:global(.set-tile[data-playing]) .spin {
+		clip-path: inset(0 round 50%);
 	}
 
 	@media (min-width: 40rem) {

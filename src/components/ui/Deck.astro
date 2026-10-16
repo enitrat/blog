@@ -12,26 +12,41 @@
  *   Without JS, or without a hover pointer, the deck stays stacked and every card is still a link.
  *   Positions come from the item count (`deck.ts`), never from callers.
  * @prop items The things to deal, one card each
+ * @prop id Id of the Deck; a `Readout` with `follow={id}` shows the held card's caption
+ * @prop captions One `Record<string, string>` per item (`{ title, date }`), read by a following `Readout`
+ * @prop hold "fan" | "pull" (default "fan"): how a lifted card is held. fan spreads the hand sideways
+ *   like playing cards (index cards); pull draws the card up and out of the pile, turned in
+ *   perspective (books). pull ignores `spread` and `angle`, and `lift` is how far the book rises
+ * @prop ratio Minimum card shape as a CSS ratio ("5/7"); cards stretch to it, so a tile can ask for taller cards than their content
  * @prop host "self" | "ancestor" (default "self"): "self" opens on the Deck's own hover/focus;
  *   "ancestor" on the nearest ancestor carrying `data-deck-host` (e.g. a `Tile`)
  * @prop spread Distance between neighbouring cards when open, as a fraction of card width (default 0.38)
  * @prop angle Rotation per step from the centre when open, deg (default 6)
- * @prop lift How far the active card rises, % of its height (default 5)
+ * @prop lift How far the active card rises, % of its height (default 5; 12 for hold "pull")
  * @prop cycle Seconds between deals (default off). While in view, closed, with a hover pointer and
  *   no reduced motion, the front card is dealt to the back (SPRING_DEAL). The first hover or focus
  *   stops it for good, and the stack and the open hand both follow the rotated order.
  * @prop label Accessible name of the group (default none)
  * @prop class Extra class
  * @slot default `(item, i) => card content`
+ * @cssprop --deck-fit Width the open hand may fill (default 96% of the container); a tile can let it bleed into its padding
  * @cssprop --deck-max Widest the deck's card may be (default 100%). The card is sized so the fanned hand
  *   fits its container, so size a Deck by its container.
  * @cssprop --deck-glow Glow strength of a resting card's `Plate` (default 0.35); the active card gets 1.7x
  * @attr data-open Present while open; `data-active` holds the active hand position (0 is the front card)
+ * @event deck:active Bubbles from the Deck when the held card (the front card at rest) changes;
+ *   `detail` is `{ item, caption }`. A `Readout` with `follow` listens, so a tile needs no script
+ * Set down: when the hand closes the cards gather, raised a little, then drop with one small knock
+ *   (SPRING_SETTLE, light overshoot) so the pile squares up. Reduced motion skips it.
  */
-import { restPose, transformOf } from './deck.ts';
+import { DIM, restPose, transformOf } from './deck.ts';
 
 interface Props {
 	items: readonly unknown[];
+	id?: string;
+	captions?: readonly Record<string, string>[];
+	hold?: 'fan' | 'pull';
+	ratio?: string;
 	host?: 'self' | 'ancestor';
 	spread?: number;
 	angle?: number;
@@ -42,30 +57,39 @@ interface Props {
 }
 const {
 	items,
+	id,
+	captions = [],
+	hold = 'fan',
+	ratio,
 	host = 'self',
-	spread = 0.38,
+	spread: spreadProp = 0.38,
 	angle = 6,
-	lift = 5,
+	lift = hold === 'pull' ? 12 : 5,
 	cycle,
 	label,
 	class: cls,
 } = Astro.props;
 const n = items.length;
+const spread = hold === 'pull' ? 0 : spreadProp;
 const cards = await Promise.all(
 	items.map(async (item, i) => {
-		const p = restPose(i, n);
+		const p = restPose(i, n, hold);
 		return {
 			i,
 			html: await Astro.slots.render('default', [item, i]),
-			style: `transform:${transformOf(p)};--deck-dim:${p.d};z-index:${n - i}`,
+			caption: JSON.stringify(captions[i] ?? {}),
+			style: `transform:${transformOf(p)};z-index:${n - i}`,
+			dim: p.d * DIM,
 		};
 	}),
 );
 ---
 
 <div
+	id={id}
 	class:list={['deck', cls]}
 	data-deck
+	data-hold={hold}
 	data-host={host}
 	data-deck-host={host === 'self' ? '' : undefined}
 	data-spread={spread}
@@ -74,38 +98,44 @@ const cards = await Promise.all(
 	data-cycle={cycle}
 	role={label ? 'group' : undefined}
 	aria-label={label}
-	style={`--deck-n:${n};--deck-spread:${spread}`}
+	style={`--deck-n:${n};--deck-spread:${spread}${ratio ? `;--deck-ratio:${ratio}` : ''}`}
 >
-	{cards.map((c) => <div class="deck-card" data-deck-card data-i={c.i} style={c.style} set:html={c.html} />)}
+	{
+		cards.map((c) => (
+			<div class="deck-card" data-deck-card data-i={c.i} data-caption={c.caption} style={c.style}>
+				<Fragment set:html={c.html} />
+				<span class="deck-dim" aria-hidden="true" style={`opacity:${c.dim}`} />
+			</div>
+		))
+	}
 </div>
 
 <style>
 	.deck {
+		/* every card shares one grid cell, so the deck is as tall as its tallest card and all cards match it */
+		display: grid;
 		position: relative;
+		align-self: center;
 		margin-inline: auto;
-		/* the card is sized so the open hand (card width x (1 + spread x (n-1))) fills 96% of the container */
-		width: min(calc(96% / (1 + var(--deck-spread) * (var(--deck-n) - 1))), var(--deck-max, 100%));
+		/* the card is sized so the open hand (card width x (1 + spread x (n-1))) fills --deck-fit of the container */
+		width: min(calc(var(--deck-fit, 96%) / (1 + var(--deck-spread) * (var(--deck-n) - 1))), var(--deck-max, 100%));
 	}
-	/* item 0 sits in normal flow and sizes the deck; the others stack behind it */
 	.deck-card {
 		--plate-glow-strength: var(--deck-glow, 0.35);
-		position: absolute;
-		inset: 0;
+		position: relative;
+		grid-area: 1 / 1;
+		align-self: stretch;
+		aspect-ratio: var(--deck-ratio, auto);
 		transform-origin: 50% 90%;
 	}
-	/* receding cards dim under an overlay, never a filter: the card stays opaque and cheap to composite */
-	.deck-card::after {
-		content: '';
+	/* receding cards dim under an overlay element, never a filter: the card stays opaque and its content readable */
+	.deck-dim {
 		position: absolute;
 		inset: 0;
-		border-radius: var(--radius-sm);
+		border-radius: var(--deck-radius, var(--radius-sm));
 		background: var(--scrim);
-		opacity: calc(var(--deck-dim, 0) * 0.06);
+		opacity: 0;
 		pointer-events: none;
-	}
-	.deck-card[data-i="0"] {
-		position: relative;
-		inset: auto;
 	}
 	.deck-card[data-active] {
 		--plate-shadow: var(--elevation-object-lift);
@@ -118,34 +148,69 @@ const cards = await Promise.all(
 	import {
 		canHover,
 		DEAL_CROSS,
+		GATHER,
 		prefersReducedMotion,
 		SPRING_DEAL,
 		SPRING_LAYOUT,
 		SPRING_PRESS,
+		SPRING_SETTLE,
 		STAGGER,
 	} from '../../lib/motion';
-	import { type DeckOptions, openPose, type Pose, restPose, transformOf } from './deck';
+	import {
+		ACTIVE_EVENT,
+		type DeckActive,
+		DIM,
+		type DeckOptions,
+		type Hold,
+		KNOCK,
+		openPose,
+		type Pose,
+		pullZone,
+		restPose,
+		transformOf,
+	} from './deck';
+
+	type Channel = keyof Pose;
 
 	function mount(root: HTMLElement) {
 		const cards = [...root.querySelectorAll<HTMLElement>('[data-deck-card]')];
 		const n = cards.length;
+		if (n === 0) return;
+		// Cards behind the front one are lazy images: where a pointer can fan the hand, decode them
+		// while idle, so the first fan does not pay for the decode in one long frame. Touch never
+		// fans, so it keeps lazy loading.
+		const idle = window.requestIdleCallback ?? ((f: () => void) => setTimeout(f, 200));
+		if (canHover()) idle(() => {
+			for (const img of root.querySelectorAll('img')) {
+				img.loading = 'eager';
+				img.decode().catch(() => {});
+			}
+		});
 		const o: DeckOptions = {
 			spread: Number(root.dataset.spread),
 			angle: Number(root.dataset.angle),
 			lift: Number(root.dataset.lift),
+			hold: root.dataset.hold as Hold,
 		};
 		const host = (root.dataset.host === 'ancestor' && root.closest<HTMLElement>('[data-deck-host]')) || root;
 		// One motion value per pose channel per card: a retarget keeps the live velocity, so sweeping
 		// zones mid-spring stays continuous (animating a transform string would restart from rest).
 		const channels = cards.map((_, i) => {
-			const p = restPose(i, n);
-			return { x: motionValue(p.x), y: motionValue(p.y), r: motionValue(p.r), s: motionValue(p.s), d: motionValue(p.d) };
+			const p = restPose(i, n, o.hold);
+			return { x: motionValue(p.x), y: motionValue(p.y), r: motionValue(p.r), ry: motionValue(p.ry), s: motionValue(p.s), d: motionValue(p.d) };
 		});
-		const runs: { stop(): void }[][] = [];
+		const runs: Partial<Record<Channel, { stop(): void }>>[] = cards.map(() => ({}));
+		const dims = cards.map((card) => card.querySelector<HTMLElement>('.deck-dim'));
+		const dimmed = channels.map((c) => c.d.get());
 		const draw = cards.map((card, i) => () => {
 			const c = channels[i];
-			card.style.transform = transformOf({ x: c.x.get(), y: c.y.get(), r: c.r.get(), s: c.s.get(), d: 0 });
-			card.style.setProperty('--deck-dim', String(c.d.get()));
+			card.style.transform = transformOf({ x: c.x.get(), y: c.y.get(), r: c.r.get(), ry: c.ry.get(), s: c.s.get() });
+			// the dim is its own element: only it is touched, and only when the value moved
+			const d = c.d.get();
+			if (d !== dimmed[i] && dims[i]) {
+				dimmed[i] = d;
+				dims[i].style.opacity = String(d * DIM);
+			}
 		});
 		channels.forEach((c, i) => Object.values(c).forEach((v) => v.on('change', () => frame.render(draw[i]))));
 		let open = false;
@@ -154,15 +219,27 @@ const cards = await Promise.all(
 		/** Item on top; dealing rotates it, so card i sits at hand position (i - top + n) % n. */
 		let top = 0;
 		const pos = (i: number) => (i - top + n) % n;
+		let knock = 0;
 
-		const target = (i: number): Pose => (open ? openPose(pos(i), n, o, active) : restPose(pos(i), n));
+		const target = (i: number): Pose => (open ? openPose(pos(i), n, o, active) : restPose(pos(i), n, o.hold));
 		const zOf = (i: number) => (open ? (pos(i) === active ? n + 1 : n - Math.abs(pos(i) - active)) : n - pos(i));
 
-		/** Spring each card's channels to its target; `stagger` seconds per card. */
-		function settle(spring: typeof SPRING_LAYOUT, stagger: number) {
+		// The held card (the front one at rest) is announced so a Readout can follow it with no tile script.
+		let held = 0;
+		const announce = () => {
+			const item = open ? cards.findIndex((_, i) => pos(i) === active) : top;
+			if (item === held) return;
+			held = item;
+			const caption: DeckActive['caption'] = JSON.parse(cards[item].dataset.caption || '{}');
+			root.dispatchEvent(new CustomEvent<DeckActive>(ACTIVE_EVENT, { bubbles: true, detail: { item, caption } }));
+		};
+
+		/** Spring each card's channels to its target; `stagger` seconds per card; `raise` lifts the whole pile (% of height). */
+		function settle(spring: typeof SPRING_LAYOUT, stagger: number, raise = 0) {
+			clearTimeout(knock);
 			const still = prefersReducedMotion();
 			cards.forEach((card, i) => {
-				runs[i]?.forEach((r) => r.stop());
+				for (const r of Object.values(runs[i])) r.stop();
 				// z-order and shadow are instant and never animated
 				card.style.zIndex = String(zOf(i));
 				if (open && pos(i) === active) card.setAttribute('data-active', '');
@@ -170,33 +247,62 @@ const cards = await Promise.all(
 				const to = target(i);
 				const c = channels[i];
 				if (still) {
-					// reduced motion: the hand still fans, it just does not travel
-					for (const k of Object.keys(c) as (keyof Pose)[]) c[k].set(to[k]);
+					// reduced motion: the hand still moves, it just does not travel
+					for (const k of Object.keys(c) as Channel[]) c[k].set(to[k]);
 					return;
 				}
+				to.y -= raise;
 				const opts = { ...spring, delay: pos(i) * stagger };
-				runs[i] = (Object.keys(c) as (keyof Pose)[]).map((k) => animate(c[k], to[k], opts));
+				for (const k of Object.keys(c) as Channel[]) runs[i][k] = animate(c[k], to[k], opts);
 			});
 			if (open) root.setAttribute('data-open', '');
 			else root.removeAttribute('data-open');
 			root.dataset.active = String(active);
+			announce();
+		}
+
+		/** Set down: the cards gather with the pile held a little high, then it drops with one small knock. */
+		function squareUp() {
+			settle(SPRING_PRESS, 0, KNOCK);
+			if (prefersReducedMotion()) return;
+			knock = window.setTimeout(() => {
+				if (open) return;
+				cards.forEach((_, i) => {
+					runs[i].y?.stop();
+					runs[i].y = animate(channels[i].y, target(i).y, SPRING_SETTLE);
+				});
+			}, GATHER * 1000);
 		}
 
 		const setOpen = (next: boolean, at = active) => {
 			if (next === open && at === active) return;
 			const was = open;
 			open = next;
-			active = at;
-			// enter staggers, exit and active changes are immediate
+			// a closed deck holds its front card: nothing stale for the next focus or readout
+			active = next ? at : 0;
+			// enter staggers, exit squares up, active changes are immediate
 			if (!was && next) settle(SPRING_LAYOUT, STAGGER);
+			else if (was && !next) squareUp();
 			else settle(SPRING_PRESS, 0);
 		};
 
-		/** The zone under x of the deck's fixed footprint (the root never moves, only its cards do). */
-		const zone = (x: number) => {
-			const r = root.getBoundingClientRect();
-			const width = r.width * (1 + o.spread * (n - 1));
-			const left = r.left - (r.width * o.spread * (n - 1)) / 2;
+		// One rect per pointer session: the root never moves, only its cards do, so it stays valid until
+		// the page scrolls or resizes. Nothing else in pointermove reads layout.
+		let rect: DOMRect | null = null;
+		const forget = () => (rect = null);
+		// the host can move under the pointer (bench settle, tile lift): re-measure when its motion ends
+		// and on the first move after entering, not on every move
+		let fresh = false;
+		host.addEventListener('transitionend', forget);
+		host.addEventListener('animationend', forget);
+		addEventListener('resize', forget);
+		addEventListener('scroll', forget, { passive: true, capture: true });
+		/** The zone under the pointer: a fan splits its fixed footprint by x; a pulled pile is hit-tested by box (`pullZone`). */
+		const zone = (x: number, y: number) => {
+			rect ??= root.getBoundingClientRect();
+			if (o.hold === 'pull') return pullZone(((x - rect.left) / rect.width) * 100, ((y - rect.top) / rect.height) * 100, n);
+			const width = rect.width * (1 + o.spread * (n - 1));
+			const left = rect.left - (rect.width * o.spread * (n - 1)) / 2;
 			return Math.min(n - 1, Math.max(0, Math.floor(((x - left) / width) * n)));
 		};
 		// The host may itself be the focused element (a linked Tile), so test it as well as its descendants.
@@ -218,9 +324,11 @@ const cards = await Promise.all(
 			const view = new IntersectionObserver(([e]) => (inView = e.isIntersecting));
 			view.observe(root);
 			timer = window.setInterval(() => {
-				if (!inView || open || document.hidden) return;
+				if (!inView || open || document.hidden || prefersReducedMotion()) return;
 				const dealt = top;
 				top = (top + 1) % n;
+				// keep DOM, tab and reading order the same as the visual one: the front card comes first
+				root.append(...cards.map((_, i) => i).sort((a, b) => pos(a) - pos(b)).map((i) => cards[i]));
 				settle(SPRING_DEAL, 0);
 				// the dealt card crosses the pile before it drops behind
 				cards[dealt].style.zIndex = String(n + 1);
@@ -230,9 +338,19 @@ const cards = await Promise.all(
 			host.addEventListener('focusin', onFocus);
 		}
 		if (canHover()) {
-			const track = (e: PointerEvent) => e.pointerType !== 'touch' && setOpen(true, zone(e.clientX));
-			host.addEventListener('pointerenter', track);
-			host.addEventListener('pointermove', track);
+			const track = (e: PointerEvent) => e.pointerType !== 'touch' && setOpen(true, zone(e.clientX, e.clientY));
+			host.addEventListener('pointerenter', (e) => {
+				forget();
+				track(e);
+				fresh = true;
+			});
+			host.addEventListener('pointermove', (e) => {
+				if (fresh) {
+					fresh = false;
+					forget();
+				}
+				track(e);
+			});
 			host.addEventListener('pointerleave', () => keyboardFocus() || setOpen(false));
 		}
 		host.addEventListener('focusin', (e) => {

@@ -1,0 +1,121 @@
+---
+/**
+ * Readout: text that reports a held object's state (the active card's title, the elapsed time) and
+ *   changes by rolling, never by cutting: the old value leaves up and fades, the new one enters from
+ *   below. Server-rendered as plain text, so it reads fine without JS. Update it from a script with
+ *   `setReadout(el, text)` (`./readout.ts`), or let a Deck drive it with `follow`.
+ * @prop value The text shown first (and what a screen reader gets)
+ * @prop as Element (default "span"; "p", "h3" ...)
+ * @prop mode "text" | "char" (default "text"). text rolls the whole string and truncates to one
+ *   line; char rolls only the characters that change, with tabular numerals (a clock, a count)
+ * @prop live Announce changes politely to screen readers (default false). Only for a value that
+ *   changes on its own and matters (a time never does), not for hover-driven text
+ * @prop follow `id` of a Deck: the readout shows `caption[field]` of the Deck's held card, no script needed
+ * @prop field Key into the Deck's `captions` (required with `follow`)
+ * @prop id Element id, for a script to find it
+ * @prop class Extra class
+ * @cssprop --readout-justify Where text sits in a wider box: start (default) or end
+ * @example
+ *   // from a script
+ *   import { setReadout } from '../ui/readout';
+ *   setReadout(document.querySelector('[data-readout]')!, '1:07');
+ */
+type Base = {
+	value: string;
+	as?: 'span' | 'p' | 'div' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'time' | 'strong';
+	mode?: 'text' | 'char';
+	live?: boolean;
+	id?: string;
+	class?: string;
+};
+/** `follow` and `field` go together: a Readout follows a Deck's caption field, or neither. */
+type Props = Base & ({ follow: string; field: string } | { follow?: undefined; field?: undefined });
+const {
+	value,
+	as: Tag = 'span',
+	mode = 'text',
+	live = false,
+	follow,
+	field,
+	id,
+	class: cls,
+} = Astro.props;
+---
+
+<Tag
+	id={id}
+	class:list={['readout', cls]}
+	data-readout
+	data-mode={mode}
+	data-readout-follow={follow}
+	data-readout-field={follow ? field : undefined}
+	aria-live={live ? 'polite' : undefined}
+	aria-atomic={live ? 'true' : undefined}
+>
+	<span class="readout-sr">{value}</span>
+	<span class="readout-stage" aria-hidden="true">{value}</span>
+</Tag>
+
+<style>
+	.readout {
+		position: relative;
+		display: block;
+		min-width: 0;
+	}
+	.readout[data-mode="char"] {
+		display: inline-block;
+		font-variant-numeric: tabular-nums;
+	}
+	/* the stage is the window the glyphs roll through, clipped to the line box so a rolling glyph never touches the next line (line-height leaves room for descenders) */
+	.readout-stage {
+		display: block;
+		overflow: hidden;
+		white-space: pre;
+	}
+	.readout[data-mode="text"] .readout-stage {
+		/* before JS builds the slots, the plain server text truncates too */
+		text-overflow: ellipsis;
+	}
+	.readout[data-mode="char"] .readout-stage {
+		display: inline-block;
+		vertical-align: top;
+	}
+	.readout-sr {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+	/* a slot holds the glyph leaving and the one entering in the same cell */
+	.readout-stage :global(.readout-slot) {
+		position: relative;
+		display: inline-grid;
+		vertical-align: top;
+	}
+	.readout[data-mode="text"] .readout-stage :global(.readout-slot) {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+	}
+	/* in char mode a leaving glyph is out of flow, so the slot is never wider than what stays */
+	.readout[data-mode="char"] .readout-stage :global([data-leaving]) {
+		position: absolute;
+		inset: 0 auto auto 0;
+	}
+	.readout-stage :global(.readout-glyph) {
+		grid-area: 1 / 1;
+		min-width: 0;
+		max-width: 100%;
+		justify-self: var(--readout-justify, start);
+	}
+	.readout[data-mode="text"] .readout-stage :global(.readout-glyph) {
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+</style>
+
+<script>
+	import { initReadouts } from './readout';
+	initReadouts();
+</script>

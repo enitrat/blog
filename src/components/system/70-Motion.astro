@@ -7,6 +7,7 @@ import Label from '../ui/Label.astro';
 import Magnetic from '../ui/Magnetic.astro';
 import Pill from '../ui/Pill.astro';
 import Plate from '../ui/Plate.astro';
+import Readout from '../ui/Readout.astro';
 import Tilt from '../ui/Tilt.astro';
 ---
 
@@ -64,6 +65,24 @@ import Tilt from '../ui/Tilt.astro';
 	</div>
 
 	<div class="group">
+		<Label as="h3">Readout</Label>
+		<div class="row">
+			<figure>
+				<Readout id="demo-clock" mode="char" value="0:59" class="clock" />
+				<figcaption>mode="char": only the characters that change roll, aligned from the right</figcaption>
+			</figure>
+			<figure>
+				<Readout id="demo-title" value="East of Eden" class="title" />
+				<figcaption>mode="text" (default): the whole string rolls, one line, truncated</figcaption>
+			</figure>
+			<figure>
+				<Button variant="ghost" type="button" data-readout-demo>Change both</Button>
+				<figcaption>setReadout(el, text); rapid presses retarget mid-roll, reduced motion crossfades</figcaption>
+			</figure>
+		</div>
+	</div>
+
+	<div class="group">
 		<Label as="h3">Press</Label>
 		<div class="row">
 			<figure>
@@ -75,6 +94,16 @@ import Tilt from '../ui/Tilt.astro';
 				<figcaption>no movement under reduced motion</figcaption>
 			</figure>
 		</div>
+	</div>
+
+	<div class="group">
+		<Label as="h3">Record</Label>
+		<figure>
+			<figcaption>
+				The Set tile's record has inertia: speed (deg/s) eases on SPRING_RECORD, a frame loop integrates it.
+				Play spins up from the current angle, pause coasts to rest and stays there. Reduced motion: round, no spin.
+			</figcaption>
+		</figure>
 	</div>
 </section>
 
@@ -127,6 +156,14 @@ import Tilt from '../ui/Tilt.astro';
 	.demo-rows a:hover {
 		color: var(--foreground);
 	}
+	.group :global(.clock) {
+		font-family: var(--font-code);
+		font-size: var(--text-heading);
+	}
+	.group :global(.title) {
+		width: 12rem;
+		font-weight: var(--weight-title);
+	}
 	.face {
 		display: grid;
 		place-items: center;
@@ -134,3 +171,16 @@ import Tilt from '../ui/Tilt.astro';
 		font-family: var(--font-code);
 	}
 </style>
+
+<script>
+	import { setReadout } from '../ui/readout';
+
+	const titles = ['East of Eden', 'The Changing World Order', 'Antifragile'];
+	let n = 0;
+	document.querySelector('[data-readout-demo]')?.addEventListener('click', () => {
+		n += 1;
+		const m = 59 + n;
+		setReadout(document.querySelector<HTMLElement>('#demo-clock')!, `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`);
+		setReadout(document.querySelector<HTMLElement>('#demo-title')!, titles[n % titles.length]);
+	});
+</script>

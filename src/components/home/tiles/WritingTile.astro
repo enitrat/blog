@@ -1,10 +1,11 @@
 ---
 /**
- * WritingTile: the last three posts as a stack of index cards: the newest in front and readable
- *   at rest, the others peeking out behind; while the tile is in view and untouched the front card is
- *   dealt to the back every 5s. Hovering or focusing inside fans them in place, inside the tile, and
- *   the card under the pointer comes forward. Where hover is unavailable, or the
- *   tile is narrow, the same three cards show as a scrolling row. Each card links to its post.
+ * WritingTile: the last three posts as a stack of index cards that is the tile's whole composition:
+ *   the newest in front and readable at rest, the others peeking out behind; while the tile is in
+ *   view and untouched the front card is dealt to the back every 5s. Hovering or focusing inside fans
+ *   them in place and the card under the pointer comes forward; letting go squares the pile up. No
+ *   caption: the cards already show their titles. Where hover is unavailable, or the tile is narrow,
+ *   the same three cards show as a scrolling row. Each card links to its post.
  * @prop order Position on the phone grid (passed to `Tile`)
  */
 import { bannerFor, getWritingIndex, postUrl } from '../../../utils/writing';
@@ -26,7 +27,7 @@ const latest = posts[0];
 		<Tile label="Writing" labelAs="h2" data-deck-host span={{ md: 6, lg: 4 }} order={order} as="section">
 			<Link slot="action" variant="arrow" href="/writing/">All writing</Link>
 			<div class="writing">
-				<Deck items={posts} host="ancestor" class="stack" label="Latest writing" spread={0.22} angle={5} cycle={5}>
+				<Deck items={posts} host="ancestor" class="stack" label="Latest writing" spread={0.26} angle={5} cycle={5}>
 					{(p: (typeof posts)[number]) => (
 						<PostCard href={postUrl(p)} title={p.data.title} description={p.data.description} date={p.data.pubDate} image={bannerFor(p)} headingLevel={3} />
 					)}
@@ -46,13 +47,15 @@ const latest = posts[0];
 <style>
 	.writing {
 		display: flex;
-		align-items: center;
-		justify-content: center;
+		flex-direction: column;
 		height: 100%;
 	}
 	.writing :global(.stack) {
-		--deck-max: 15rem;
-		margin-bottom: var(--space-4);
+		--deck-max: 20rem;
+		/* the hand may bleed half a padding into the tile, leaving room for the outer cards' tilt */
+		--deck-fit: calc(100% + var(--pad-tile) * 0.5);
+		--deck-radius: var(--radius-md);
+		margin-block: auto;
 	}
 	.row {
 		display: none;
@@ -62,9 +65,6 @@ const latest = posts[0];
 	}
 	/* no hover, or a narrow tile: the three cards as a row, nothing hidden behind anything */
 	@media (hover: none), (max-width: 40rem) {
-		.writing {
-			display: block;
-		}
 		.writing :global(.stack) {
 			display: none;
 		}

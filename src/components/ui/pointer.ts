@@ -9,15 +9,30 @@ import { canHover, prefersReducedMotion, SPRING_MOUSE } from '../../lib/motion';
 const live = () => canHover() && !prefersReducedMotion();
 const spring = SPRING_MOUSE;
 
+/** Bumped when layout may have moved under a still pointer; every cached rect compares against it. */
+let epoch = 0;
+const bump = () => {
+	epoch++;
+};
+
 function initTilt(el: HTMLElement) {
 	const max = Number(el.dataset.tiltMax ?? 7.5);
 	// The box is the parent's: `el` rotates, so its own rect would shift under the pointer.
 	const box = el.parentElement ?? el;
 	const to = (rx: number, ry: number) =>
 		animate(el, { rotateX: rx, rotateY: ry, transformPerspective: 1000 }, spring);
+	// One read per hover: measured on the first move after entering, dropped on scroll, resize and transitions.
+	let r: DOMRect | null = null;
+	let seen = -1;
+	box.addEventListener('pointerenter', () => {
+		r = null;
+	});
 	box.addEventListener('pointermove', (e) => {
 		if (e.pointerType !== 'mouse' || !live()) return;
-		const r = box.getBoundingClientRect();
+		if (!r || seen !== epoch) {
+			r = box.getBoundingClientRect();
+			seen = epoch;
+		}
 		const px = (e.clientX - r.left) / r.width;
 		const py = (e.clientY - r.top) / r.height;
 		el.dataset.tiltActive = '';
@@ -26,6 +41,7 @@ function initTilt(el: HTMLElement) {
 		to((0.5 - py) * 2 * max, (px - 0.5) * 2 * max);
 	});
 	box.addEventListener('pointerleave', () => {
+		r = null;
 		if (!('tiltActive' in el.dataset)) return;
 		delete el.dataset.tiltActive;
 		to(0, 0);
@@ -49,8 +65,9 @@ function initMagnetic(els: HTMLElement[]) {
 	let queued = false;
 	let last: PointerEvent | null = null;
 
+	// x/y, not a transform string: a retarget then keeps the live velocity and reads no computed style.
 	const drift = (s: (typeof magnets)[number], x: number, y: number) =>
-		animate(s.item, { transform: `translate(${x}px, ${y}px)` }, spring);
+		animate(s.item, { x, y }, spring);
 	const reset = () => {
 		last = null;
 		for (const s of magnets) {
@@ -104,6 +121,9 @@ function initMagnetic(els: HTMLElement[]) {
 }
 
 if (typeof document !== 'undefined') {
+	addEventListener('scroll', bump, { passive: true, capture: true });
+	addEventListener('resize', bump, { passive: true });
+	addEventListener('transitionend', bump, { capture: true });
 	document.querySelectorAll<HTMLElement>('[data-tilt]').forEach(initTilt);
 	const magnets = [...document.querySelectorAll<HTMLElement>('[data-magnetic]')];
 	if (magnets.length) initMagnetic(magnets);

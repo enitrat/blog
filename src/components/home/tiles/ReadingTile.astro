@@ -1,8 +1,9 @@
 ---
 /**
- * ReadingTile: the books being read now as a stack of covers, each with a glow in its dominant
- *   colour. Hover fans them like a hand of two; the cover under the pointer comes forward. The whole tile links to /reading. With no current book it
- *   shows the last one finished.
+ * ReadingTile: the books being read now as a pile of covers, each with a glow in its dominant
+ *   colour. Hover pulls the book under the pointer up and out of the pile; letting go squares the
+ *   pile. A Readout under it follows the held book (title, author). The whole tile links to
+ *   /reading. With no current book it shows the last one finished.
  * @prop order Position on the phone grid (passed to `Tile`)
  */
 import { books } from '../../../booksData';
@@ -10,6 +11,7 @@ import { coverFor } from '../../../utils/covers';
 import { glowOf } from '../../../utils/glow';
 import Deck from '../../ui/Deck.astro';
 import Plate from '../../ui/Plate.astro';
+import Readout from '../../ui/Readout.astro';
 import Tile from '../../ui/Tile.astro';
 
 interface Props {
@@ -31,24 +33,27 @@ const stack = await Promise.all(
 		return { book, cover, glow: cover ? await glowOf(cover) : undefined };
 	}),
 );
-const front = stack[0]?.book;
+const short = (t: string) => t.replace(/\s*\(.*\)\s*$/, '');
+const captions = stack.map(({ book }) => ({ title: short(book.title), author: book.author }));
 ---
 
 <Tile {label} href="/reading/" data-deck-host span={{ md: 3, lg: 4 }} {order} meta={current.length > 1 ? `+${current.length - 1} more` : undefined}>
-	{front && (
+	{captions.length > 0 && (
 		<div class="reading">
-			<Deck items={stack} host="ancestor" class="stack" spread={0.6} angle={5}>
+			<Deck id="reading-deck" items={stack} captions={captions} hold="pull" lift={9} host="ancestor" class="stack">
 				{({ book, cover, glow }: (typeof stack)[number]) => (
 					<Plate src={cover} alt="" glow={glow} sizes="12rem" widths={[240, 480]}>
 						<span class="fallback">
-							<strong>{book.title.replace(/\s*\(.*\)\s*$/, '')}</strong>
+							<strong>{short(book.title)}</strong>
 							<span>{book.author}</span>
 						</span>
 					</Plate>
 				)}
 			</Deck>
-			<p class="title">{front.title.replace(/\s*\(.*\)\s*$/, '')}</p>
-			<p class="by">{front.author}</p>
+			<div class="caption">
+				<Readout follow="reading-deck" field="title" value={captions[0].title} class="title" />
+				<Readout follow="reading-deck" field="author" value={captions[0].author} class="by" />
+			</div>
 		</div>
 	)}
 </Tile>
@@ -58,10 +63,13 @@ const front = stack[0]?.book;
 		display: flex;
 		flex-direction: column;
 		height: 100%;
+		/* room above the pile for a pulled book to rise into, clear of the header */
+		padding-top: var(--space-8);
 		text-align: right;
+		--readout-justify: end;
 	}
 	.reading :global(.stack) {
-		--deck-max: 13rem;
+		--deck-max: min(12rem, 62%);
 		--deck-glow: 0.18;
 		--plate-glow-inset: -2%;
 		margin-block: auto;
@@ -71,13 +79,15 @@ const front = stack[0]?.book;
 			--deck-max: 9rem;
 		}
 	}
-	.title {
+	.caption {
 		margin-top: var(--space-4);
+	}
+	.caption :global(.title) {
 		font-size: var(--text-ui);
 		font-weight: var(--weight-title);
 		line-height: var(--leading-ui);
 	}
-	.by {
+	.caption :global(.by) {
 		font-size: var(--text-small);
 		line-height: var(--leading-ui);
 		color: var(--muted-foreground);

@@ -19,6 +19,17 @@ export const STAGGER = 0.04;
 export const SPRING_MOUSE = { type: 'spring', stiffness: 200, damping: 15, mass: 0.3 } as const;
 /** Critically damped glide for indicators. */
 export const SPRING_GLIDE = { type: 'spring', stiffness: 700, damping: 50, mass: 0.5 } as const;
+/** A record's turning speed: critically damped and slow, so play spins up and pause coasts to rest (about 1.5s). */
+export const SPRING_RECORD = { type: 'spring', stiffness: 30, damping: 11, mass: 1 } as const;
+
+/** Set down: a short spring with a light overshoot, so a returning object lands instead of stopping. */
+export const SPRING_SETTLE = { type: 'spring', stiffness: 420, damping: 15, mass: 0.6 } as const;
+/** Seconds a deck takes to gather before its one knock on the table. */
+export const GATHER = 0.12;
+/** Readout roll: critically damped, text must never bounce. */
+export const SPRING_ROLL = { type: 'spring', stiffness: 520, damping: 40, mass: 0.6 } as const;
+/** Readout under reduced motion: a plain crossfade. */
+export const ROLL_FADE = { duration: 0.15, ease: 'easeOut' } as const;
 
 /** Instant: what every spring collapses to under reduced motion. */
 export const INSTANT: AnimationOptions = { duration: 0 };
