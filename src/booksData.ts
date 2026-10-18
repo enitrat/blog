@@ -273,7 +273,8 @@ export const books: Book[] = [
 		},
 		status: 'finished',
 		dateStarted: null,
-		dateFinished: new Date('2017-01-01'),
+		dateFinished: null,
+		readingPeriod: 'before-2020',
 		rating: null,
 	},
 	{
@@ -286,7 +287,8 @@ export const books: Book[] = [
 		},
 		status: 'finished',
 		dateStarted: null,
-		dateFinished: new Date('2017-01-01'),
+		dateFinished: null,
+		readingPeriod: 'before-2020',
 		rating: null,
 	},
 	{
@@ -299,7 +301,8 @@ export const books: Book[] = [
 		},
 		status: 'finished',
 		dateStarted: null,
-		dateFinished: new Date('2017-01-01'),
+		dateFinished: null,
+		readingPeriod: 'before-2020',
 		rating: null,
 	},
 	{
@@ -312,7 +315,8 @@ export const books: Book[] = [
 		},
 		status: 'finished',
 		dateStarted: null,
-		dateFinished: new Date('2017-01-01'),
+		dateFinished: null,
+		readingPeriod: 'before-2020',
 		rating: null,
 	},
 	{
@@ -325,7 +329,8 @@ export const books: Book[] = [
 		},
 		status: 'finished',
 		dateStarted: null,
-		dateFinished: new Date('2017-01-01'),
+		dateFinished: null,
+		readingPeriod: 'before-2020',
 		rating: null,
 	},
 	{

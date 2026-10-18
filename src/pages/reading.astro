@@ -1,5 +1,4 @@
 ---
-import { getCollection } from 'astro:content';
 import { type Book, books } from '../booksData';
 import BookLine from '../components/ui/BookLine.astro';
 import BookPile from '../components/ui/BookPile.astro';
@@ -12,10 +11,6 @@ import PageTitle from '../components/ui/PageTitle.astro';
 import StatusDot from '../components/ui/StatusDot.astro';
 import Shell from '../layouts/Shell.astro';
 import { readingLine } from '../utils/bookRecord';
-import { notedIsbns } from '../utils/notes';
-
-const noted = await notedIsbns();
-const notes = new Map((await getCollection('notes')).map((n) => [n.id, n.body?.trim()]));
 
 const time = (b: Book) => (b.dateFinished ?? b.dateStarted)?.getTime() ?? 0;
 const recent = (a: Book, b: Book) => time(b) - time(a);
@@ -66,7 +61,6 @@ const id = (s: string) => `y-${s.toLowerCase().replace(/\W+/g, '-')}`;
 									<BookLine title={b.title} author={b.author} size="lg">
 										<StatusDot slot="tag" />
 									</BookLine>
-									{noted.has(b.edition.isbn13) && <p class="note">{notes.get(b.edition.isbn13)}</p>}
 								</div>
 							</li>
 						))}
@@ -108,7 +102,6 @@ const id = (s: string) => `y-${s.toLowerCase().replace(/\W+/g, '-')}`;
 						<ListRows>
 							{y.books.map((b) => (
 								<ListRow title={short(b.title)} description={`${b.author} · ${when(b)}`} href={writingHref(b)}>
-									{noted.has(b.edition.isbn13) && <p class="note">{notes.get(b.edition.isbn13)}</p>}
 								</ListRow>
 							))}
 						</ListRows>
@@ -169,12 +162,5 @@ const id = (s: string) => `y-${s.toLowerCase().replace(/\W+/g, '-')}`;
 			grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
 			align-items: start;
 		}
-	}
-	.note {
-		margin-top: var(--space-1);
-		font-size: var(--text-small);
-	}
-	.note {
-		font-style: italic;
 	}
 </style>
