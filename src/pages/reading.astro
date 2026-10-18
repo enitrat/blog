@@ -1,14 +1,14 @@
 ---
 import { getCollection } from 'astro:content';
-import { type Book, type BookStatus, books } from '../booksData';
+import { type Book, books } from '../booksData';
 import BookLine from '../components/ui/BookLine.astro';
-import BookSpine from '../components/ui/BookSpine.astro';
+import BookPile from '../components/ui/BookPile.astro';
+import { piles } from '../components/ui/book';
 import Label from '../components/ui/Label.astro';
 import ListRow from '../components/ui/ListRow.astro';
 import ListRows from '../components/ui/ListRows.astro';
 import Page from '../components/ui/Page.astro';
 import PageTitle from '../components/ui/PageTitle.astro';
-import Shelf from '../components/ui/Shelf.astro';
 import StatusDot from '../components/ui/StatusDot.astro';
 import Shell from '../layouts/Shell.astro';
 import { recordFacts } from '../utils/bookRecord';
@@ -19,24 +19,36 @@ const notes = new Map((await getCollection('notes')).map((n) => [n.id, n.body?.t
 
 const time = (b: Book) => (b.dateFinished ?? b.dateStarted)?.getTime() ?? 0;
 const recent = (a: Book, b: Book) => time(b) - time(a);
+const short = (t: string) => t.replace(/\s*\(.*\)\s*$/, '');
+const pile = (bs: Book[]) => bs.map((b) => ({ title: b.title, pages: b.edition.pageCount }));
 const reading = books.filter((b) => b.status === 'reading').sort(recent);
-// Reading first, then most recently finished: the order the room's shelf uses.
-const shelf = [...books].sort(
-	(a, b) => Number(b.status === 'reading') - Number(a.status === 'reading') || recent(a, b),
-);
-const groups: { status: BookStatus; label: string }[] = [
-	{ status: 'finished', label: 'Finished' },
-	{ status: 'want-to-read', label: 'Reading list' },
-];
-const archive = groups
-	.map((g) => ({ ...g, books: books.filter((b) => b.status === g.status).sort(recent) }))
-	.filter((g) => g.books.length > 0);
+const finished = books.filter((b) => b.status === 'finished');
 
-const year = (b: Book) =>
+// The short list: Mathieu's own picks once he flags any; until then, honestly, his top ratings.
+const flagged = finished.filter((b) => b.recommended);
+const picks = (
+	flagged.length
+		? flagged
+		: finished.filter((b) => (b.rating ?? 0) >= 4).sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+).slice(0, 6);
+const unrated = finished.filter((b) => b.rating === null).length;
+
+// The archive by year, newest first; a book known only as "before 2020" closes it.
+const yearOf = (b: Book) =>
 	b.readingPeriod === 'before-2020'
 		? 'Before 2020'
-		: (b.dateFinished ?? b.dateStarted)?.getFullYear().toString();
+		: String((b.dateFinished ?? b.dateStarted)?.getFullYear());
+const years = [...Map.groupBy(finished.sort(recent), yearOf)].map(([year, bs]) => ({
+	year,
+	books: bs,
+	pages: bs.reduce((n, b) => n + b.edition.pageCount, 0),
+	// Oldest at the bottom: the pile grows as the year goes on.
+	piles: piles(pile([...bs].reverse())),
+}));
+const wanted = books.filter((b) => b.status === 'want-to-read').sort(recent);
 const writingHref = (b: Book) => (b.writingSlug ? `/writing/${b.writingSlug}/` : undefined);
+const id = (s: string) => `y-${s.toLowerCase().replace(/\W+/g, '-')}`;
+const fmt = (n: number) => n.toLocaleString('en-GB');
 ---
 
 <Shell title="Reading" description="What I am reading, and everything I have read.">
@@ -46,14 +58,17 @@ const writingHref = (b: Book) => (b.writingSlug ? `/writing/${b.writingSlug}/` :
 		{
 			reading.length > 0 && (
 				<section aria-label="Reading now">
-					<ul class="now">
+					<ul class="books">
 						{reading.map((b) => (
-							<li>
-								<BookLine title={b.title} author={b.author} size="lg">
-									<StatusDot slot="tag" />
-									{b.edition.pageCount} pages
-								</BookLine>
-								{noted.has(b.edition.isbn13) && <p class="note">{notes.get(b.edition.isbn13)}</p>}
+							<li class="book">
+								<div class="cover"><BookPile books={pile([b])} scale={3} /></div>
+								<div>
+									<BookLine title={b.title} author={b.author} size="lg">
+										<StatusDot slot="tag" />
+										{b.edition.pageCount} pages
+									</BookLine>
+									{noted.has(b.edition.isbn13) && <p class="note">{notes.get(b.edition.isbn13)}</p>}
+								</div>
 							</li>
 						))}
 					</ul>
@@ -61,58 +76,112 @@ const writingHref = (b: Book) => (b.writingSlug ? `/writing/${b.writingSlug}/` :
 			)
 		}
 
-		<section aria-label="The shelf">
-			<Shelf label="Books">
-				{
-					shelf.map((b) => (
-						<BookSpine
-							title={b.title}
-							author={b.author}
-							pages={b.edition.pageCount}
-							status={b.status}
-							href={writingHref(b)}
-						/>
-					))
-				}
-			</Shelf>
+		<section aria-labelledby="picks">
+			<Label as="h2" id="picks" space="sm">
+				{flagged.length ? '[TK] Recommended' : '[TK] Rated highest'}
+				<Fragment slot="meta">[TK] {unrated} of {finished.length} unrated</Fragment>
+			</Label>
+			<ul class="books picks">
+				{picks.map((b) => (
+					<li class="book">
+						<div class="cover"><BookPile books={pile([b])} scale={3} /></div>
+						<div>
+							<BookLine title={b.title} author={b.author}>{recordFacts(b)}</BookLine>
+							{b.why ? <p class="why">{b.why}</p> : <p class="gap">[TK] No why yet</p>}
+						</div>
+					</li>
+				))}
+			</ul>
 		</section>
 
 		{
-			archive.map((g) => (
-				<section aria-labelledby={`g-${g.status}`}>
-					<Label as="h2" id={`g-${g.status}`} space="sm">
-						{g.label}
-						<Fragment slot="meta">{g.books.length}</Fragment>
+			years.map((y) => (
+				<section aria-labelledby={id(y.year)}>
+					<Label as="h2" id={id(y.year)} space="sm">
+						{y.year}
+						<Fragment slot="meta">{y.books.length} books · {fmt(y.pages)} pages</Fragment>
+					</Label>
+					<div class="year">
+						<div class="piles">
+							{y.piles.map((p) => (
+								<BookPile books={p} />
+							))}
+						</div>
+						<ListRows>
+							{y.books.map((b) => (
+								<ListRow title={short(b.title)} description={`${b.author} · ${recordFacts(b)}`} href={writingHref(b)}>
+									{noted.has(b.edition.isbn13) && <p class="note">{notes.get(b.edition.isbn13)}</p>}
+								</ListRow>
+							))}
+						</ListRows>
+					</div>
+				</section>
+			))
+		}
+
+		{
+			wanted.length > 0 && (
+				<section aria-labelledby="g-want">
+					<Label as="h2" id="g-want" space="sm">
+						Reading list
+						<Fragment slot="meta">{wanted.length}</Fragment>
 					</Label>
 					<ListRows>
-						{g.books.map((b) => (
-							<ListRow
-								date={year(b)}
-								title={b.title.replace(/\s*\(.*\)\s*$/, '')}
-								description={`${b.author} · ${recordFacts(b)}`}
-								href={writingHref(b)}
-							>
-								{noted.has(b.edition.isbn13) && <p class="note">{notes.get(b.edition.isbn13)}</p>}
-							</ListRow>
+						{wanted.map((b) => (
+							<ListRow title={short(b.title)} description={`${b.author} · ${recordFacts(b)}`} />
 						))}
 					</ListRows>
 				</section>
-			))
+			)
 		}
 	</Page>
 </Shell>
 
 <style>
-	.now {
+	.books {
 		margin: 0;
 		padding: 0;
 		list-style: none;
 		display: grid;
+		gap: var(--space-6);
+	}
+	.picks {
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+	}
+	.book {
+		display: flex;
+		align-items: center;
 		gap: var(--space-4);
 	}
-	.note {
+	.cover {
+		flex: none;
+	}
+	.year {
+		display: grid;
+		gap: var(--space-6);
+	}
+	.piles {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-end;
+		gap: var(--space-2) var(--space-4);
+	}
+	@media (min-width: 64rem) {
+		.year {
+			grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+			align-items: start;
+		}
+	}
+	.note,
+	.why,
+	.gap {
 		margin-top: var(--space-1);
 		font-size: var(--text-small);
+	}
+	.note {
 		font-style: italic;
+	}
+	.gap {
+		color: var(--muted-foreground);
 	}
 </style>
