@@ -19,10 +19,6 @@ export interface Book {
 	rating: number | null;
 	/** Base slug of the blog piece this book is the subject of. */
 	writingSlug?: string;
-	/** On the Reading page's short list of books to start with. */
-	recommended?: boolean;
-	/** One line on why, in Mathieu's words; shown beside a recommended book. */
-	why?: string;
 }
 
 export const books: Book[] = [

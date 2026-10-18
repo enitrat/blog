@@ -11,7 +11,7 @@ import Page from '../components/ui/Page.astro';
 import PageTitle from '../components/ui/PageTitle.astro';
 import StatusDot from '../components/ui/StatusDot.astro';
 import Shell from '../layouts/Shell.astro';
-import { recordFacts } from '../utils/bookRecord';
+import { readingLine } from '../utils/bookRecord';
 import { notedIsbns } from '../utils/notes';
 
 const noted = await notedIsbns();
@@ -24,13 +24,15 @@ const pile = (bs: Book[]) => bs.map((b) => ({ title: b.title, pages: b.edition.p
 const reading = books.filter((b) => b.status === 'reading').sort(recent);
 const finished = books.filter((b) => b.status === 'finished');
 
-// The short list: Mathieu's own picks once he flags any; until then, honestly, his top ratings.
-const flagged = finished.filter((b) => b.recommended);
-const picks = (
-	flagged.length
-		? flagged
-		: finished.filter((b) => (b.rating ?? 0) >= 4).sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
-).slice(0, 6);
+// Author, date and rating only: the page stays a reading log, not a catalogue.
+const when = (b: Book) =>
+	[readingLine(b), b.rating === null ? undefined : `rated ${b.rating} of 5`]
+		.filter(Boolean)
+		.join(' · ');
+const picks = finished
+	.filter((b) => (b.rating ?? 0) >= 4)
+	.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+	.slice(0, 6);
 const unrated = finished.filter((b) => b.rating === null).length;
 
 // The archive by year, newest first; a book known only as "before 2020" closes it.
@@ -41,14 +43,12 @@ const yearOf = (b: Book) =>
 const years = [...Map.groupBy(finished.sort(recent), yearOf)].map(([year, bs]) => ({
 	year,
 	books: bs,
-	pages: bs.reduce((n, b) => n + b.edition.pageCount, 0),
 	// Oldest at the bottom: the pile grows as the year goes on.
 	piles: piles(pile([...bs].reverse())),
 }));
 const wanted = books.filter((b) => b.status === 'want-to-read').sort(recent);
 const writingHref = (b: Book) => (b.writingSlug ? `/writing/${b.writingSlug}/` : undefined);
 const id = (s: string) => `y-${s.toLowerCase().replace(/\W+/g, '-')}`;
-const fmt = (n: number) => n.toLocaleString('en-GB');
 ---
 
 <Shell title="Reading" description="What I am reading, and everything I have read.">
@@ -65,7 +65,6 @@ const fmt = (n: number) => n.toLocaleString('en-GB');
 								<div>
 									<BookLine title={b.title} author={b.author} size="lg">
 										<StatusDot slot="tag" />
-										{b.edition.pageCount} pages
 									</BookLine>
 									{noted.has(b.edition.isbn13) && <p class="note">{notes.get(b.edition.isbn13)}</p>}
 								</div>
@@ -78,7 +77,7 @@ const fmt = (n: number) => n.toLocaleString('en-GB');
 
 		<section aria-labelledby="picks">
 			<Label as="h2" id="picks" space="sm">
-				{flagged.length ? '[TK] Recommended' : '[TK] Rated highest'}
+				[TK] Rated highest
 				<Fragment slot="meta">[TK] {unrated} of {finished.length} unrated</Fragment>
 			</Label>
 			<ul class="books picks">
@@ -86,8 +85,7 @@ const fmt = (n: number) => n.toLocaleString('en-GB');
 					<li class="book">
 						<div class="cover"><BookPile books={pile([b])} scale={3} /></div>
 						<div>
-							<BookLine title={b.title} author={b.author}>{recordFacts(b)}</BookLine>
-							{b.why ? <p class="why">{b.why}</p> : <p class="gap">[TK] No why yet</p>}
+							<BookLine title={b.title} author={b.author}>{when(b)}</BookLine>
 						</div>
 					</li>
 				))}
@@ -99,7 +97,7 @@ const fmt = (n: number) => n.toLocaleString('en-GB');
 				<section aria-labelledby={id(y.year)}>
 					<Label as="h2" id={id(y.year)} space="sm">
 						{y.year}
-						<Fragment slot="meta">{y.books.length} books · {fmt(y.pages)} pages</Fragment>
+						<Fragment slot="meta">{y.books.length}</Fragment>
 					</Label>
 					<div class="year">
 						<div class="piles">
@@ -109,7 +107,7 @@ const fmt = (n: number) => n.toLocaleString('en-GB');
 						</div>
 						<ListRows>
 							{y.books.map((b) => (
-								<ListRow title={short(b.title)} description={`${b.author} · ${recordFacts(b)}`} href={writingHref(b)}>
+								<ListRow title={short(b.title)} description={`${b.author} · ${when(b)}`} href={writingHref(b)}>
 									{noted.has(b.edition.isbn13) && <p class="note">{notes.get(b.edition.isbn13)}</p>}
 								</ListRow>
 							))}
@@ -128,7 +126,7 @@ const fmt = (n: number) => n.toLocaleString('en-GB');
 					</Label>
 					<ListRows>
 						{wanted.map((b) => (
-							<ListRow title={short(b.title)} description={`${b.author} · ${recordFacts(b)}`} />
+							<ListRow title={short(b.title)} description={b.author} />
 						))}
 					</ListRows>
 				</section>
@@ -172,16 +170,11 @@ const fmt = (n: number) => n.toLocaleString('en-GB');
 			align-items: start;
 		}
 	}
-	.note,
-	.why,
-	.gap {
+	.note {
 		margin-top: var(--space-1);
 		font-size: var(--text-small);
 	}
 	.note {
 		font-style: italic;
-	}
-	.gap {
-		color: var(--muted-foreground);
 	}
 </style>
