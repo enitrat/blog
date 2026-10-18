@@ -1,8 +1,7 @@
 ---
 /**
  * Prose: essay typography for rendered markdown. Wrap `<Content />` in it.
- * Geist at --text-body, measure --measure, justified with hyphenation
- * (left-aligned where hyphens:auto is unsupported). Each section ends with a quiet
+ * Geist at --text-body, measure --measure, left-aligned and unhyphenated. Each section ends with a quiet
  * arrow-up Icon and "In short" Link (added by a small script from a template, absent without JS) pointing at InShort's `#in-short`.
  * @prop ditherFigures Dither the images, revealed on hover/tap (default false: diagrams stay legible)
  * @slot default The rendered markdown
@@ -56,16 +55,8 @@ const back = IN_SHORT_LABEL;
 		font-weight: var(--weight-body);
 		line-height: var(--leading-body);
 		color: var(--foreground);
-		text-align: justify;
-		hyphens: auto;
-		hyphenate-limit-chars: 6 3 3;
+		text-align: left;
 		font-feature-settings: 'kern', 'liga';
-	}
-	@supports not (hyphens: auto) {
-		.prose { text-align: left; }
-	}
-	@media (max-width: 30rem) {
-		.prose { text-align: left; }
 	}
 
 	.prose :global(p),
@@ -75,15 +66,11 @@ const back = IN_SHORT_LABEL;
 	}
 	.prose :global(p) {
 		text-wrap: pretty;
-		hyphenate-limit-lines: 2;
 	}
 
-	/* Headings: left-aligned, never hyphenated. */
 	.prose :global(h2),
 	.prose :global(h3),
 	.prose :global(h4) {
-		text-align: left;
-		hyphens: manual;
 		text-wrap: balance;
 		font-weight: var(--weight-title);
 		scroll-margin-top: var(--space-6);
@@ -166,7 +153,6 @@ const back = IN_SHORT_LABEL;
 	.prose :global(code) {
 		font-family: var(--font-code);
 		font-size: 0.875em;
-		hyphens: manual;
 	}
 	.prose :global(:not(pre) > code) {
 		padding: 0.1em 0.35em;
@@ -182,7 +168,6 @@ const back = IN_SHORT_LABEL;
 		background: transparent !important; /* Shiki inlines a background */
 		font-size: var(--text-small);
 		line-height: var(--leading-ui);
-		text-align: left;
 		tab-size: 2;
 	}
 	.prose :global(pre:focus-visible) {
@@ -209,7 +194,6 @@ const back = IN_SHORT_LABEL;
 		font-size: var(--text-small);
 		line-height: var(--leading-ui);
 		color: var(--muted-foreground);
-		text-align: left;
 	}
 	.prose :global(.dither) {
 		margin: var(--space-6) 0;
@@ -233,9 +217,7 @@ const back = IN_SHORT_LABEL;
 	.prose :global(td) {
 		padding: var(--space-2) var(--space-4) var(--space-2) 0;
 		border-block-end: 1px solid var(--border);
-		text-align: left;
 		vertical-align: top;
-		hyphens: manual;
 	}
 	.prose :global(th) {
 		border-block-end-color: var(--foreground);
@@ -252,6 +234,5 @@ const back = IN_SHORT_LABEL;
 		margin: var(--space-8) 0 0;
 		font-family: var(--font-code);
 		font-size: var(--text-small);
-		text-align: left;
 	}
 </style>

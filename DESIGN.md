@@ -6,7 +6,7 @@ colors:
   grey-50: "#f5f5f3"
   grey-100: "#eaeaed"
   grey-200: "#dcdde0"
-  sand-200: "#ebe7da"
+  sand-200: "#e8e7df"
   grey-300: "#c3c5c9"
   grey-400: "#8e939a"
   grey-500: "#6b6f76"
@@ -134,7 +134,7 @@ A cool grey scale does nearly all the work; one signal orange marks state. Two s
 - **Burnt Orange** (`orange-600`): the accent for small marks and focus rings on paper, so dots, underlines and rings reach 3:1 on the near-white surface. Exposed as `--accent-graphic` and `--ring`; on dark and inverse surfaces they swap to `orange-500` and `orange-400`.
 
 ### Neutral
-- **Bench Sand** (`sand-200` light, `grey-950` dark): the page field behind the tiles (`--background`), a light grey with a slight yellow tint. Every page sits on it, essays included.
+- **Bench Sand** (`sand-200` light, `grey-950` dark): the page field behind the tiles (`--background`), a light grey, barely warm (OKLCH C 0.011), so the near-white tiles still read against it. Every page sits on it, essays included.
 - **Paper** (`grey-50` light, `grey-850` dark): the tile surface (`--surface`).
 - **Graphite** (`grey-850` light, `grey-100` dark): the inverse surface (`--surface-inverse`), the one graphite tile family.
 - **Ink** (`grey-900` light, `grey-100` dark): text and neutral link colour. Links are not blue.
@@ -183,7 +183,7 @@ Every interactive target reaches 44px (`--target-min`); small controls extend an
 
 ### Essay reading rules
 - **In short** opens every essay: a mono label and a numbered list of section titles, each with its first sentence, each linking to its section. Built at build time, works without JS. Each section links back to it.
-- Body is justified with automatic hyphenation (left-aligned where hyphenation is unsupported, and on very narrow screens) at Geist `--text-body`, measure 38rem.
+- Body is left-aligned with no automatic hyphenation, at Geist `--text-body`, measure 38rem.
 - No banner image, no sidebar, no floating contents, no cards. The page is the title, a dot-separated meta line, In short, and the prose.
 
 ### Named Rules
@@ -257,7 +257,7 @@ Short and functional: `--duration-fast` 150ms for hover and state, `--duration-b
 - **Do** use `--accent-graphic` for dots and underlines, `--accent` for fills, and only for state.
 - **Do** use `Bench`, `Tile`, `Page` and `PageTitle` for layout; add a variant before adding a component.
 - **Do** keep every target 44px and keep light and dark identical in structure.
-- **Do** keep the essay a single justified, hyphenated 38rem column opening with In short.
+- **Do** keep the essay a single left-aligned 38rem column opening with In short.
 
 ### Don't:
 - **Don't** add drop shadows, glass, blur or gradients to tiles, controls or pages (the lit room scene is the exception, inside the room).

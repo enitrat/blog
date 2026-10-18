@@ -1,22 +1,22 @@
 {
 	"schemaVersion": 2,
-	"generatedAt": "2026-10-11T16:21:16.000Z",
+	"generatedAt": "2026-10-18T00:00:00.000Z",
 	"title": "Design System: Mathieu Saugier",
 	"extensions": {
 		"colorMeta": {
-			"grey-200": {
+			"sand-200": {
 				"role": "neutral",
-				"displayName": "Bench Grey",
-				"canonical": "#dcdde0",
+				"displayName": "Bench Sand",
+				"canonical": "#e8e7df",
 				"tonalRamp": [
-					"#26282c",
-					"#3f4247",
-					"#575b62",
-					"#6b6f76",
-					"#8e939a",
-					"#c3c5c9",
-					"#dcdde0",
-					"#f5f5f3"
+					"#0c0b07",
+					"#272721",
+					"#46453f",
+					"#67665f",
+					"#8a8982",
+					"#afaea7",
+					"#d2d1c9",
+					"#f0efe7"
 				]
 			},
 			"grey-50": {
@@ -110,7 +110,7 @@
 			},
 			"body": {
 				"displayName": "Body",
-				"purpose": "Essay prose, 1.125rem / 1.62, justified, 38rem measure."
+				"purpose": "Essay prose, 1.125rem / 1.62, left-aligned, 38rem measure."
 			},
 			"ui": {
 				"displayName": "UI",
@@ -127,21 +127,56 @@
 		},
 		"shadows": [
 			{
-				"name": "none",
-				"value": "none",
-				"purpose": "The bench and reading pages are flat. Depth is the grey field plus a 1px hairline. Controls use an inset 1px ring. The room's painted bookshelf shadows belong to the lit scene only."
+				"name": "tile",
+				"value": "0 1px 2px rgb(22 23 26 / 0.04), 0 2px 6px rgb(22 23 26 / 0.04)",
+				"purpose": "A tile at rest on the field, with its 1px hairline."
+			},
+			{
+				"name": "tile-lift",
+				"value": "0 2px 4px rgb(22 23 26 / 0.05), 0 14px 28px -10px rgb(22 23 26 / 0.18)",
+				"purpose": "A linked tile on hover, 2px up."
+			},
+			{
+				"name": "object",
+				"value": "0 1px 2px rgb(22 23 26 / 0.12), 0 6px 16px -4px rgb(22 23 26 / 0.22)",
+				"purpose": "A physical object on a tile: cover, set artwork, writing card."
+			},
+			{
+				"name": "object-lift",
+				"value": "0 2px 4px rgb(22 23 26 / 0.12), 0 20px 36px -12px rgb(22 23 26 / 0.34)",
+				"purpose": "An object while it moves (fan opening, hover)."
+			},
+			{
+				"name": "tile-dark",
+				"value": "0 1px 2px rgb(0 0 0 / 0.4), inset 0 1px 0 rgb(255 255 255 / 0.04)",
+				"purpose": "A tile at rest on the field, with its 1px hairline. Dark mode."
+			},
+			{
+				"name": "tile-lift-dark",
+				"value": "0 2px 4px rgb(0 0 0 / 0.45), 0 16px 32px -10px rgb(0 0 0 / 0.6), inset 0 1px 0 rgb(255 255 255 / 0.06)",
+				"purpose": "A linked tile on hover, 2px up. Dark mode."
+			},
+			{
+				"name": "object-dark",
+				"value": "0 1px 2px rgb(0 0 0 / 0.5), 0 8px 18px -4px rgb(0 0 0 / 0.55)",
+				"purpose": "A physical object on a tile: cover, set artwork, writing card. Dark mode."
+			},
+			{
+				"name": "object-lift-dark",
+				"value": "0 2px 4px rgb(0 0 0 / 0.5), 0 22px 40px -12px rgb(0 0 0 / 0.7)",
+				"purpose": "An object while it moves (fan opening, hover). Dark mode."
 			}
 		],
 		"motion": [
 			{
 				"name": "duration-fast",
 				"value": "150ms",
-				"purpose": "Hover and state changes."
+				"purpose": "Hover and state."
 			},
 			{
 				"name": "duration-base",
 				"value": "250ms",
-				"purpose": "Fades such as the dither reveal."
+				"purpose": "Fades such as the dither reveal, and every exit."
 			},
 			{
 				"name": "duration-slow",
@@ -154,6 +189,11 @@
 				"purpose": "Longest scene moves."
 			},
 			{
+				"name": "duration-moderate",
+				"value": "350ms",
+				"purpose": "An object opening: a fan spreading, a glyph reacting (staggered 40ms per item)."
+			},
+			{
 				"name": "ease-out",
 				"value": "cubic-bezier(0.2, 0.8, 0.2, 1)",
 				"purpose": "State changes."
@@ -162,6 +202,11 @@
 				"name": "ease-in-out",
 				"value": "cubic-bezier(0.65, 0, 0.35, 1)",
 				"purpose": "Larger moves."
+			},
+			{
+				"name": "ease-spring",
+				"value": "cubic-bezier(0.34, 1.4, 0.64, 1)",
+				"purpose": "Objects opening, with --duration-moderate."
 			}
 		],
 		"breakpoints": [
@@ -234,7 +279,7 @@
 	],
 	"narrative": {
 		"northStar": "The Bench",
-		"overview": "The site is a cool grey workbench on which small, real objects from Mathieu's life are laid out: a bio, what he is doing now, the book he is reading, the latest essay, a trip, the work. Each object is a flat tile and each tile is a door. Recognisable with the content removed: a grey field, flat near-white rectangles of varied size, mono caps labels, one orange dot. Geist does all the talking; Geist Mono labels and counts.\n\nThe system is flat on purpose. Tiles are separated by space and a 1px hairline, never by shadow, glass or gradient. Orange is a signal for state (playing, current, latest, pressed, focus), not decoration. The only dark, textured, lit object on the bench is the 3D living room. Everything else is paper and graphite.\n\nThe essay breaks no rule of the bench; it only removes the bench. Reading pages are a single plain column, no banner, no sidebar, no cards.",
+		"overview": "The site is a sand-tinted workbench on which small, real objects from Mathieu's life are laid out: a bio, what he is doing now, the book he is reading, the latest essay, a trip, the work. Each object is a flat tile and each tile is a door. Recognisable with the content removed: a sand field, flat near-white rectangles of varied size, mono caps labels, one orange dot. Geist does all the talking; Geist Mono labels and counts.\n\nThe system is flat on purpose. Tiles are separated by space and a 1px hairline, never by shadow, glass or gradient. Orange is a signal for state (playing, current, latest, pressed, focus), not decoration. The only dark, textured, lit object on the bench is the 3D living room. Everything else is paper and graphite.\n\nThe essay breaks no rule of the bench; it only removes the bench. Reading pages are a single plain column, no banner, no sidebar, no cards.",
 		"keyCharacteristics": [
 			"Flat tiles on a grey field: 1px hairline, no drop shadow, no glass, no blur.",
 			"One family (Geist) plus its mono (Geist Mono) for labels, data and code.",
@@ -280,8 +325,13 @@
 				"section": "layout"
 			},
 			{
-				"name": "The No Shadow Rule",
-				"body": "No drop shadows, glass or blur on the bench or in the reading pages. The room's bookshelf carries its own painted shadows as part of the lit scene; that is the room's material, not a rule for the interface.",
+				"name": "The Objects Cast Shadows Rule",
+				"body": "Shadow says \"this is a thing you can pick up\": tiles and the objects on them. Text, labels, pills and the reading pages never cast one. No glass, no blur, no zero-offset coloured halos except the cover glow sampled from the cover itself.",
+				"section": "elevation"
+			},
+			{
+				"name": "The Lift Means Link Rule",
+				"body": "Only something that goes somewhere when clicked lifts on hover.",
 				"section": "elevation"
 			}
 		],
@@ -291,7 +341,7 @@
 			"**Do** use `--accent-graphic` for dots and underlines, `--accent` for fills, and only for state.",
 			"**Do** use `Bench`, `Tile`, `Page` and `PageTitle` for layout; add a variant before adding a component.",
 			"**Do** keep every target 44px and keep light and dark identical in structure.",
-			"**Do** keep the essay a single justified, hyphenated 38rem column opening with In short."
+			"**Do** keep the essay a single left-aligned 38rem column opening with In short."
 		],
 		"donts": [
 			"**Don't** add drop shadows, glass, blur or gradients to tiles, controls or pages (the lit room scene is the exception, inside the room).",
