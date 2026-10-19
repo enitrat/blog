@@ -1,0 +1,186 @@
+---
+/**
+ * KethFigure: a living diagram of the Keth block-proving pipeline, drawn as one bench machine.
+ * A block is cut into chunks, each chunk is run and stamped, the stamps are chained and one proof is sealed.
+ * Geometry is built at build time from `prototypes/keth-figure`; the only runtime is `live.mjs` driven
+ * by the pure model in `model.mjs`. One control: the block size, in whole body chunks of ten transactions.
+ */
+import '../../../prototypes/keth-figure/kit/iso-svg.css';
+import { buildFigure, controlHtml } from '../../../prototypes/keth-figure/figure.mjs';
+import { CHUNK } from '../../../prototypes/keth-figure/model.mjs';
+import Label from '../ui/Label.astro';
+import Readout from '../ui/Readout.astro';
+
+const { svg, P } = buildFigure();
+const first = `30 txs · 3 body · block`;
+---
+
+<figure class="keth" data-keth data-p={JSON.stringify(P)}>
+	<div class="head">
+		<Label>Keth</Label>
+		<Readout id="keth-readout" mode="char" value={first} />
+	</div>
+	<div class="stage" set:html={svg} />
+	<div class="control" set:html={controlHtml('keth-size')} />
+	<figcaption>
+		One block, cut into an init segment, body chunks of {CHUNK} transactions and a teardown,
+		beside sixteen mpt_diff chunks. Each chunk is run in Cairo and stamped, an aggregator checks
+		that the stamps chain, and one STWO proof is made and verified.
+	</figcaption>
+</figure>
+
+<script>
+	import { translateAlong } from '../../../prototypes/keth-figure/kit/iso-kit.mjs';
+	import { mount } from '../../../prototypes/keth-figure/live.mjs';
+	import { setReadout } from '../ui/readout';
+
+	const root = document.querySelector<HTMLElement>('[data-keth]');
+	const readout = document.getElementById('keth-readout');
+	const stage = document.querySelector<HTMLElement>('.keth .stage');
+	let pan = 0;
+	let reach = 0;
+	if (root && readout && stage) {
+		const calm = matchMedia('(prefers-reduced-motion: reduce)');
+		mount(root, {
+			P: JSON.parse(root.dataset.p ?? '{}'),
+			translateAlong,
+			motion: () => !calm.matches,
+			say: (text: string) => setReadout(readout, text),
+			follow: (u: number, snap?: boolean) => {
+				// narrow screens show part of the bench: the view follows the gantry, then the press
+				if (snap || !reach) reach = Math.max(0, stage.firstElementChild!.getBoundingClientRect().width - stage.clientWidth);
+				pan += (u * reach - pan) * (calm.matches || snap ? 1 : 0.12);
+				const css = `${-pan.toFixed(1)}px`;
+				if (stage.style.getPropertyValue('--pan') !== css) stage.style.setProperty('--pan', css);
+			},
+		});
+	}
+</script>
+
+<style>
+	.keth {
+		/* anatomy kit tokens, tinted from the site's semantic tokens so both themes follow */
+		--base: color-mix(
+			in srgb,
+			var(--foreground) calc((1 - var(--iso-dir)) * 100%),
+			var(--background)
+		);
+		--anatomy-paper: var(--surface);
+		--anatomy-card: var(--surface);
+		--anatomy-face: color-mix(in srgb, var(--surface), var(--foreground) calc(3% * var(--iso-dir)));
+		--anatomy-top: color-mix(
+			in srgb,
+			var(--surface),
+			var(--foreground) calc(1% + 6% * var(--iso-dir))
+		);
+		--anatomy-shade-0: color-mix(in srgb, var(--surface), var(--base) calc(14% + 31% * var(--iso-dir)));
+		--anatomy-shade-1: color-mix(in srgb, var(--surface), var(--base) calc(10% + 20% * var(--iso-dir)));
+		--anatomy-shade-2: color-mix(in srgb, var(--surface), var(--base) calc(6% + 12% * var(--iso-dir)));
+		--anatomy-shade-3: color-mix(in srgb, var(--surface), var(--base) calc(3% + 5% * var(--iso-dir)));
+		--anatomy-lit-top: color-mix(in srgb, var(--surface), var(--foreground) 8%);
+		--anatomy-lit-shade: color-mix(in srgb, var(--surface), var(--foreground) 3%);
+		--anatomy-hi: color-mix(in srgb, var(--foreground) 88%, var(--surface));
+		--anatomy-mid: color-mix(in srgb, var(--foreground) 56%, var(--surface));
+		--anatomy-lo: color-mix(in srgb, var(--foreground) 32%, var(--surface));
+		--anatomy-faint: color-mix(in srgb, var(--foreground) 16%, var(--surface));
+		--anatomy-lit: var(--foreground);
+		--anatomy-dot: color-mix(in srgb, var(--foreground) 88%, var(--surface));
+		--anatomy-halo: color-mix(
+			in srgb,
+			var(--foreground) calc(60% * (1 - var(--iso-dir))),
+			var(--background)
+		);
+		--anatomy-halo-opacity: calc(0.3 + 0.55 * var(--iso-dir));
+		--anatomy-weight: 0.6px;
+		--anatomy-mono: var(--font-code);
+
+		position: relative;
+		left: 50%;
+		translate: -50% 0;
+		width: min(64rem, calc(100vw - 2 * var(--page-gutter)));
+		margin: 0;
+		display: grid;
+		gap: var(--space-4);
+		padding: var(--space-5) var(--space-5) var(--space-6);
+		background: var(--surface);
+		color: var(--surface-foreground);
+		border-radius: var(--radius-tile);
+		box-shadow: var(--elevation-tile);
+	}
+	.head {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		gap: var(--space-4);
+		font-family: var(--font-code);
+		font-size: var(--text-label);
+		letter-spacing: var(--tracking-label);
+		color: var(--muted-foreground);
+		font-variant-numeric: tabular-nums;
+	}
+	.stage :global(svg) {
+		display: block;
+		width: 100%;
+		height: auto;
+		overflow: visible;
+	}
+	.control {
+		max-width: 26rem;
+		width: 100%;
+		margin-inline: auto;
+	}
+	.control :global(.keth-control) {
+		display: grid;
+		gap: var(--space-1);
+	}
+	.control :global(.keth-label),
+	.control :global(.keth-ticks) {
+		font-family: var(--font-code);
+		font-size: var(--text-label);
+		letter-spacing: var(--tracking-label);
+		text-transform: uppercase;
+		color: var(--muted-foreground);
+	}
+	.control :global(input) {
+		width: 100%;
+		min-block-size: var(--target-min);
+		margin: 0;
+		accent-color: var(--foreground);
+	}
+	.control :global(.keth-ticks) {
+		display: flex;
+		justify-content: space-between;
+		padding-inline: var(--space-2);
+	}
+	figcaption {
+		font-size: var(--text-small);
+		line-height: var(--leading-ui);
+		color: var(--muted-foreground);
+		max-width: var(--measure);
+		margin-inline: auto;
+	}
+	@media (max-width: 560px) {
+		.keth {
+			padding: var(--space-4) var(--space-3) var(--space-5);
+		}
+		.stage {
+			overflow: hidden;
+			margin-block: 0 -3%;
+		}
+		/* a camera: the view follows the gantry, then the press (see follow in the script) */
+		.stage :global(svg) {
+			width: 175%;
+			max-width: none;
+			translate: var(--pan, 0px) 0;
+		}
+		@media (prefers-reduced-motion: reduce) {
+			.stage {
+				margin-block: 0;
+			}
+			.stage :global(svg) {
+				width: 100%;
+				translate: none;
+			}
+		}
+	}
+</style>
