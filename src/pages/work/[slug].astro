@@ -7,7 +7,6 @@ import ListRow from '../../components/ui/ListRow.astro';
 import ListRows from '../../components/ui/ListRows.astro';
 import Page from '../../components/ui/Page.astro';
 import PageTitle from '../../components/ui/PageTitle.astro';
-import KethFigure from '../../components/work/KethFigure.astro';
 import Shell from '../../layouts/Shell.astro';
 import { getWorkIndex, workUrl } from '../../utils/work';
 
@@ -36,8 +35,6 @@ const siblings = (await getWorkIndex()).filter((r) => r.id !== report.id).slice(
 			<Fragment slot="lead">{summary}</Fragment>
 		</PageTitle>
 		{site && <p><Link variant="external" href={site}>Visit website</Link></p>}
-
-		{report.id === 'kakarot' && <KethFigure />}
 
 		<Prose><Content /></Prose>
 
