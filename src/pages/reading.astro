@@ -40,6 +40,9 @@ const years = [...Map.groupBy(finished.sort(recent), yearOf)].map(([year, bs]) =
 	books: bs,
 	// Oldest at the bottom: the pile grows as the year goes on.
 	piles: piles(pile([...bs].reverse())),
+	// Books before 2020 fold away behind their heading, closed by default.
+	Wrap: year === 'Before 2020' ? 'details' : 'div',
+	Head: year === 'Before 2020' ? 'summary' : 'div',
 }));
 const wanted = books.filter((b) => b.status === 'want-to-read').sort(recent);
 const writingHref = (b: Book) => (b.writingSlug ? `/writing/${b.writingSlug}/` : undefined);
@@ -87,25 +90,33 @@ const id = (s: string) => `y-${s.toLowerCase().replace(/\W+/g, '-')}`;
 		</section>
 
 		{
-			years.map((y) => (
-				<section aria-labelledby={id(y.year)}>
-					<Label as="h2" id={id(y.year)} space="sm">
-						{y.year}
-						<Fragment slot="meta">{y.books.length}</Fragment>
+			years.map(({ year, books, piles, Wrap, Head }) => (
+				<section aria-labelledby={id(year)}>
+					<Wrap>
+					<Head>
+					<Label as="h2" id={id(year)} space="sm">
+						{year}
+						<Fragment slot="meta">
+							{books.length}
+							{Wrap === 'details' && <span class="toggle" data-show>[TK] show</span>}
+							{Wrap === 'details' && <span class="toggle" data-hide>[TK] hide</span>}
+						</Fragment>
 					</Label>
+					</Head>
 					<div class="year">
 						<div class="piles">
-							{y.piles.map((p) => (
+							{piles.map((p) => (
 								<BookPile books={p} />
 							))}
 						</div>
 						<ListRows>
-							{y.books.map((b) => (
+							{books.map((b) => (
 								<ListRow title={short(b.title)} description={`${b.author} · ${when(b)}`} href={writingHref(b)}>
 								</ListRow>
 							))}
 						</ListRows>
 					</div>
+					</Wrap>
 				</section>
 			))
 		}
@@ -156,6 +167,21 @@ const id = (s: string) => `y-${s.toLowerCase().replace(/\W+/g, '-')}`;
 		flex-wrap: wrap;
 		align-items: flex-end;
 		gap: var(--space-2) var(--space-4);
+	}
+	summary {
+		list-style: none;
+		cursor: pointer;
+	}
+	summary::-webkit-details-marker {
+		display: none;
+	}
+	.toggle {
+		margin-inline-start: var(--space-3);
+		text-decoration: underline;
+	}
+	details[open] [data-show],
+	details:not([open]) [data-hide] {
+		display: none;
 	}
 	@media (min-width: 64rem) {
 		.year {
