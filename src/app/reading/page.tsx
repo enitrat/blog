@@ -42,8 +42,12 @@ const id = (s: string) => `y-${s.toLowerCase().replace(/\W+/g, '-')}`;
 
 type Shown = { book: Book; cover: StaticImageData | undefined };
 
+// A landscape image is a wraparound jacket, not a front cover: such a book keeps its spine.
 const withCover = (b: Book): Promise<Shown> =>
-	findImage(`covers/${b.edition.isbn13}`).then((cover) => ({ book: b, cover }));
+	findImage(`covers/${b.edition.isbn13}`).then((cover) => ({
+		book: b,
+		cover: cover && cover.height > cover.width ? cover : undefined,
+	}));
 
 /** A book beside its title line: its cover when it has one, else its own small pile. */
 function BookItem({
@@ -84,7 +88,6 @@ export default async function ReadingPage() {
 			.slice(0, 6)
 			.map(withCover),
 	);
-	const unrated = finished.filter((b) => b.rating === null).length;
 	// The archive by year, newest first; a book known only as "before 2020" closes it.
 	const years = [...Map.groupBy([...finished].sort(recent), yearOf)].map(([year, bs]) => ({
 		year,
@@ -119,16 +122,7 @@ export default async function ReadingPage() {
 
 			<section aria-labelledby="picks">
 				<div id="picks" className="mb-4">
-					<Eyebrow
-						as="h2"
-						meta={
-							<>
-								[TK] {unrated} of {finished.length} unrated
-							</>
-						}
-					>
-						[TK] Rated highest
-					</Eyebrow>
+					<Eyebrow as="h2">Rated highest</Eyebrow>
 				</div>
 				<ul className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,18rem),1fr))] gap-4">
 					{picks.map((p) => (
@@ -164,10 +158,8 @@ export default async function ReadingPage() {
 											{bs.length}
 											{folded && (
 												<>
-													<span className={cn('ms-3 group-open:hidden', link)}>[TK] show</span>
-													<span className={cn('ms-3 hidden group-open:inline', link)}>
-														[TK] hide
-													</span>
+													<span className={cn('ms-3 group-open:hidden', link)}>Show</span>
+													<span className={cn('ms-3 hidden group-open:inline', link)}>Hide</span>
 												</>
 											)}
 										</>

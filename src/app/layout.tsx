@@ -22,6 +22,7 @@ const instrumentSerif = Instrument_Serif({
 
 export const metadata: Metadata = {
 	metadataBase: new URL(SITE_URL),
+	title: { default: 'Mathieu Saugier', template: '%s · Mathieu Saugier' },
 	icons: { icon: { url: '/favicon.svg', type: 'image/svg+xml' } },
 };
 
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 	const links: NavLink[] = [
 		{ label: 'Writing', href: '/writing' },
 		{ label: 'Reading', href: '/reading' },
+		{ label: 'Work', href: '/work' },
 		{ label: 'Places', href: '/places' },
 		{ label: 'About', href: '/about' },
 	].filter((l) => l.href !== '/places' || getTrips().length > 0);

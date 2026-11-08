@@ -4,7 +4,7 @@ import { Card, CardHeader } from '@/components/ui/card';
 
 const FACTS = [
 	{ icon: CakeIcon, text: "I'm 25" },
-	{ icon: Disc3Icon, text: 'I record DJ sets on soundcloud' },
+	{ icon: Disc3Icon, text: 'I record DJ sets on SoundCloud' },
 	{ icon: DumbbellIcon, text: "I'm on a quest to bench 100kg" },
 	{ icon: BookOpenIcon, text: 'I enjoy classical literature a lot' },
 ];

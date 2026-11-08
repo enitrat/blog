@@ -2,7 +2,6 @@
 title: 'Cairo Coder'
 summary: 'An API for Cairo code generation, pluggable into any agentic tool via MCP'
 kind: 'project'
-site: 'https://www.cairo-coder.com/'
 order: 4
 ---
 

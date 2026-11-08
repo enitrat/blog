@@ -13,11 +13,10 @@ import { now } from '@/data/now';
 import { getTrips } from '@/lib/content';
 import { pageMeta } from '@/lib/meta';
 
-export const metadata = pageMeta({
-	title: 'Mathieu Saugier',
-	description: SITE_DESCRIPTION,
-	path: '/',
-});
+export const metadata = {
+	...pageMeta({ title: 'Mathieu Saugier', description: SITE_DESCRIPTION, path: '/' }),
+	title: { absolute: 'Mathieu Saugier' },
+};
 
 /**
  * The bento. Rows have a fixed height, so the grid keeps its proportions on any window and the

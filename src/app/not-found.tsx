@@ -4,16 +4,17 @@ import { Page, PageHeader } from '@/components/ui/page';
 export const metadata = { title: 'Not found', description: 'This page does not exist.' };
 
 const destinations = [
-	{ href: '/', date: 'Home', title: 'Mathieu Saugier' },
-	{ href: '/work/', date: 'Work', title: 'What I have worked on' },
-	{ href: '/writing/', date: 'Writing', title: 'Writing' },
-	{ href: '/about/', date: 'About', title: 'About' },
+	{ href: '/', title: 'Home' },
+	{ href: '/writing/', title: 'Writing' },
+	{ href: '/reading/', title: 'Reading' },
+	{ href: '/work/', title: 'Work' },
+	{ href: '/about/', title: 'About' },
 ];
 
 export default function NotFound() {
 	return (
 		<Page>
-			<PageHeader lead="This address doesn't name anything here. Try one of these four pages:">
+			<PageHeader lead="This address doesn't name anything here. Try one of these pages:">
 				Not found
 			</PageHeader>
 			<ListRows>

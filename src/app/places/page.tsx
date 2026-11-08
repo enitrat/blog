@@ -1,4 +1,5 @@
 import { getImageProps, type StaticImageData } from 'next/image';
+import { notFound } from 'next/navigation';
 import { DitherImage } from '@/components/places/dither-image';
 import { Lightbox } from '@/components/places/lightbox';
 import { Prose } from '@/components/reading/prose';
@@ -33,6 +34,7 @@ const lightboxSrc = (img: StaticImageData) =>
 
 /** Trips and photographs. The header shows the link and the sitemap lists the page once a trip exists. */
 export default async function PlacesPage() {
+	if (getTrips().length === 0) notFound();
 	const trips = await Promise.all(
 		getTrips().map(async (trip) => {
 			const { title, country, date, cover, photos } = trip.data;
@@ -56,40 +58,36 @@ export default async function PlacesPage() {
 	return (
 		<Page width="wide">
 			<PageHeader>Places</PageHeader>
-			{trips.length === 0 ? (
-				<p className="text-sm text-muted-foreground">No trips yet.</p>
-			) : (
-				<div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:auto-rows-[minmax(11rem,auto)]">
-					{trips.map((t) => (
-						<Card key={t.id}>
-							<article id={t.id} className="flex flex-col gap-4">
-								<DitherImage
-									image={t.cover}
-									alt={`${t.title}, ${t.country}`}
-									ratio="4 / 3"
-									sizes="(min-width: 64rem) 38rem, 100vw"
-									className="rounded-media border border-border"
-								/>
-								<div className="flex flex-col gap-1.5">
-									<Eyebrow dot>{monthYear.format(t.date)}</Eyebrow>
-									<h2 className="text-lg font-semibold text-foreground">
-										{t.title}
-										<span className="font-normal text-muted-foreground">, {t.country}</span>
-									</h2>
+			<div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:auto-rows-[minmax(11rem,auto)]">
+				{trips.map((t) => (
+					<Card key={t.id}>
+						<article id={t.id} className="flex flex-col gap-4">
+							<DitherImage
+								image={t.cover}
+								alt={`${t.title}, ${t.country}`}
+								ratio="4 / 3"
+								sizes="(min-width: 64rem) 38rem, 100vw"
+								className="rounded-media border border-border"
+							/>
+							<div className="flex flex-col gap-1.5">
+								<Eyebrow dot>{monthYear.format(t.date)}</Eyebrow>
+								<h2 className="text-lg font-semibold text-foreground">
+									{t.title}
+									<span className="font-normal text-muted-foreground">, {t.country}</span>
+								</h2>
+							</div>
+							{t.set.length > 0 && (
+								<div className="flex">
+									<Lightbox title={t.title} photos={t.set} href={lightboxSrc(t.set[0].image)}>
+										{t.set.length} photos
+									</Lightbox>
 								</div>
-								{t.set.length > 0 && (
-									<div className="flex">
-										<Lightbox title={t.title} photos={t.set} href={lightboxSrc(t.set[0].image)}>
-											{t.set.length} photos
-										</Lightbox>
-									</div>
-								)}
-								{t.notes && <Prose tree={t.notes} />}
-							</article>
-						</Card>
-					))}
-				</div>
-			)}
+							)}
+							{t.notes && <Prose tree={t.notes} />}
+						</article>
+					</Card>
+				))}
+			</div>
 		</Page>
 	);
 }

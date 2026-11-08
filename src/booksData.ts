@@ -133,7 +133,7 @@ export const books: Book[] = [
 		rating: null,
 	},
 	{
-		title: 'Laughable Love',
+		title: 'Laughable Loves',
 		author: 'Milan Kundera',
 		edition: {
 			isbn13: '9780140096910',
