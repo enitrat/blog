@@ -1,4 +1,4 @@
-import { SET } from '../consts';
+import { SET } from '@/consts';
 
 /** One state, not two booleans that could disagree. `cueing`: asked to play,
  *  but the mix has not started yet. */

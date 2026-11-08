@@ -1,0 +1,16 @@
+/* One import per component token file. Keep each group sorted. */
+
+/* ds/components/ui */
+@import "../components/ui/button.tokens.css";
+@import "../components/ui/card.tokens.css";
+@import "../components/ui/dialog.tokens.css";
+@import "../components/ui/glide.tokens.css";
+@import "../components/ui/pill.tokens.css";
+@import "../components/ui/tile.tokens.css";
+
+/* ds/components/motion */
+@import "../components/motion/equalizer.tokens.css";
+@import "../components/motion/tilt.tokens.css";
+
+/* site components (src/components/**) */
+@import "../../components/reading/prose.css";

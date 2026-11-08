@@ -1,12 +1,13 @@
+import 'server-only';
 import sharp from 'sharp';
+import type { Img } from '@/lib/media';
 
 /**
  * A cover's glow colour as `rgb(r g b)`: the average of an 8x8 thumbnail, weighted by saturation so a
- * white margin or black band doesn't wash it out. Build time only (reads `fsPath`, set by Astro in dev and build).
+ * white margin or black band doesn't wash it out. Build time only: reads the source file.
  */
-export async function glowOf(image: ImageMetadata): Promise<string> {
-	const file = (image as ImageMetadata & { fsPath: string }).fsPath.split('?')[0];
-	const { data } = await sharp(file)
+export async function glowOf(image: Pick<Img, 'file'>): Promise<string> {
+	const { data } = await sharp(image.file)
 		.resize(8, 8, { fit: 'fill' })
 		.removeAlpha()
 		.raw()

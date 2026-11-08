@@ -1,9 +1,11 @@
-const covers = import.meta.glob<{ default: ImageMetadata }>('../assets/covers/*.{jpg,png,webp}', {
-	eager: true,
-});
+import 'server-only';
+import { type Img, maybeImage } from '@/lib/media';
 
 /** Cover art for an ISBN, from `src/assets/covers/<isbn>.<ext>`; undefined when none is checked in. */
-export function coverFor(isbn: string): ImageMetadata | undefined {
-	return Object.entries(covers).find(([path]) => path.split('/').pop()?.startsWith(`${isbn}.`))?.[1]
-		.default;
+export function coverFor(isbn: string): Img | undefined {
+	for (const ext of ['jpg', 'png', 'webp']) {
+		const img = maybeImage(`covers/${isbn}.${ext}`);
+		if (img) return img;
+	}
+	return undefined;
 }

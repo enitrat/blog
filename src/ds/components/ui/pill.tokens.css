@@ -1,0 +1,17 @@
+@layer base {
+	:where([data-slot="pill"]) {
+		--pill-h: var(--control-h-sm);
+		--pill-px: calc(var(--spacing) * 3);
+		--pill-radius: var(--radius-pill);
+
+		--pill-link-bg: var(--foreground);
+		--pill-link-fg: var(--surface);
+		--pill-link-bg-hover: var(--accent);
+		--pill-link-fg-hover: var(--accent-foreground);
+
+		--pill-edge: var(--border);
+		--pill-edge-hover: currentColor;
+		--pill-on-bg: var(--accent);
+		--pill-on-fg: var(--accent-foreground);
+	}
+}

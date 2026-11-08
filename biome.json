@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.2.4/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.6.6/schema.json",
 	"vcs": {
 		"enabled": true,
 		"clientKind": "git",
@@ -13,7 +13,12 @@
 			"!.impeccable/**/*.json",
 			"!.vercel",
 			"!src/assets/room/*.json",
-			"!src/styles/tokens.css"
+			"!legacy-astro",
+			"!dist",
+			"!next-env.d.ts",
+			"!public/_assets",
+			"!**/*.md",
+			"!.next"
 		]
 	},
 	"formatter": {
@@ -24,7 +29,7 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true,
+			"preset": "recommended",
 			"style": {
 				"noDescendingSpecificity": "off"
 			}
@@ -56,5 +61,10 @@
 				}
 			}
 		}
-	]
+	],
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
+		}
+	}
 }

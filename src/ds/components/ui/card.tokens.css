@@ -1,0 +1,12 @@
+@layer base {
+	:where([data-slot="card"]) {
+		--card-bg: var(--surface);
+		--card-fg: var(--surface-foreground);
+		--card-edge: var(--border);
+		--card-edge-hover: var(--border-strong);
+		--card-radius: var(--radius-lg);
+		--card-pad: calc(var(--spacing) * 4);
+		--card-gap: calc(var(--spacing) * 3);
+		--card-description-fg: var(--muted-foreground);
+	}
+}

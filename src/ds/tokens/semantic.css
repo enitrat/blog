@@ -1,0 +1,108 @@
+/* The only colours components read. Light on :root; dark follows the OS unless
+   `data-theme="light"`, and `data-theme="dark"` forces it. The two dark blocks stay identical.
+   Paper names (`--surface`, `--foreground`, ...) re-map on inverse surfaces (surfaces.css), so an
+   atom written against them needs no inverse prop. */
+:root {
+	color-scheme: light;
+
+	--background: var(--sand-200);
+	--foreground: var(--grey-900);
+	--surface: var(--grey-50);
+	--surface-foreground: var(--grey-900);
+	--surface-inverse: var(--grey-850);
+	--surface-inverse-foreground: var(--grey-100);
+	--surface-inverse-muted-foreground: var(--grey-400);
+	--muted: var(--grey-100);
+	--muted-foreground: var(--grey-600);
+	--border: color-mix(in srgb, var(--grey-900) 12%, transparent);
+	--border-inverse: color-mix(in srgb, var(--grey-50) 14%, transparent);
+	--border-strong: color-mix(in srgb, var(--foreground) 24%, transparent);
+	/* Orange is state: playing, current, latest, pressed, focused. Fills read --accent. */
+	--accent: var(--orange-500);
+	--accent-foreground: var(--grey-900);
+	/* Small accent marks (dots, underlines): 3:1 on the surface. */
+	--accent-graphic: var(--orange-600);
+	--accent-graphic-inverse: var(--orange-500);
+	--link: var(--grey-900);
+	--ring: var(--orange-600);
+	--ring-inverse: var(--orange-500);
+	/* Fixed dark, never flips: text over photos stays readable in both themes. */
+	--scrim-foreground: var(--grey-100);
+	--scrim: color-mix(in srgb, var(--grey-950) 75%, transparent);
+	--scrim-solid: color-mix(in srgb, var(--grey-950) 94%, transparent);
+	/* Highlight laid over an object by `Tilt`; light in both themes. */
+	--glare: var(--grey-50);
+	/* The one shared hover wash of a `Glide` group; follows --foreground on inverse tiles. */
+	--highlight: color-mix(in srgb, var(--foreground) 7%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme="light"]) {
+		color-scheme: dark;
+
+		--background: var(--grey-950);
+		--foreground: var(--grey-100);
+		--surface: var(--grey-850);
+		--surface-foreground: var(--grey-100);
+		--surface-inverse: var(--grey-100);
+		--surface-inverse-foreground: var(--grey-900);
+		--surface-inverse-muted-foreground: var(--grey-600);
+		--muted: var(--grey-800);
+		--muted-foreground: var(--grey-400);
+		--border: color-mix(in srgb, var(--grey-50) 14%, transparent);
+		--border-inverse: color-mix(in srgb, var(--grey-900) 14%, transparent);
+		--accent-graphic: var(--orange-500);
+		--accent-graphic-inverse: var(--orange-600);
+		--link: var(--grey-100);
+		--ring: var(--orange-400);
+		--ring-inverse: var(--orange-600);
+	}
+}
+
+:root[data-theme="dark"] {
+	color-scheme: dark;
+
+	--background: var(--grey-950);
+	--foreground: var(--grey-100);
+	--surface: var(--grey-850);
+	--surface-foreground: var(--grey-100);
+	--surface-inverse: var(--grey-100);
+	--surface-inverse-foreground: var(--grey-900);
+	--surface-inverse-muted-foreground: var(--grey-600);
+	--muted: var(--grey-800);
+	--muted-foreground: var(--grey-400);
+	--border: color-mix(in srgb, var(--grey-50) 14%, transparent);
+	--border-inverse: color-mix(in srgb, var(--grey-900) 14%, transparent);
+	--accent-graphic: var(--orange-500);
+	--accent-graphic-inverse: var(--orange-600);
+	--link: var(--grey-100);
+	--ring: var(--orange-400);
+	--ring-inverse: var(--orange-600);
+}
+
+/* Tailwind colour utilities: only the roles compile (`bg-surface`, `text-muted-foreground`). */
+@theme inline {
+	--color-*: initial;
+	--color-transparent: transparent;
+	--color-current: currentColor;
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-surface: var(--surface);
+	--color-surface-foreground: var(--surface-foreground);
+	--color-surface-inverse: var(--surface-inverse);
+	--color-surface-inverse-foreground: var(--surface-inverse-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-border: var(--border);
+	--color-border-strong: var(--border-strong);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-accent-graphic: var(--accent-graphic);
+	--color-link: var(--link);
+	--color-ring: var(--ring);
+	--color-scrim: var(--scrim);
+	--color-scrim-solid: var(--scrim-solid);
+	--color-scrim-foreground: var(--scrim-foreground);
+	--color-glare: var(--glare);
+	--color-highlight: var(--highlight);
+}

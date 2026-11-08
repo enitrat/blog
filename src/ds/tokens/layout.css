@@ -1,0 +1,49 @@
+/* Layout roles. Components read these, not raw steps. Breakpoints are Tailwind's `sm` (40rem,
+   the 6-column bench) and `lg` (64rem, the 12-column bench). */
+:root {
+	--page-max: 77.5rem;
+	--page-gutter: clamp(1rem, 2.5vw + 0.25rem, 1.75rem);
+	/* Essay, about and work detail: one 38rem column. */
+	--measure: 38rem;
+	/* Index lists stay readable inside the wide page. */
+	--list-max: calc(var(--measure) * 1.5);
+
+	--gap-bench: 1.25rem;
+	--pad-tile: 1.625rem;
+	/* The 12-column bench's implicit row. */
+	--bench-row: minmax(6rem, auto);
+	/* Between the sections of a page. */
+	--gap-page: calc(var(--spacing) * 10);
+
+	--radius-tile: var(--radius-xl);
+	--radius-pill: var(--radius-full);
+	--radius-control: var(--radius-sm);
+
+	/* WCAG 2.5.5: every interactive target reaches 44px; small ones extend a hit area. */
+	--target-min: 44px;
+	--control-h-sm: 2rem;
+	--control-h-md: 2.75rem;
+	--dot-size: 7px;
+	/* Icons scale with the text they sit in. */
+	--icon-md: 1.1em;
+	--icon-md-align: -0.2em;
+	--icon-sm: 0.85em;
+	--icon-sm-align: -0.1em;
+	--icon-stroke: 1.75;
+	--border-hairline: 1px;
+
+	--focus-ring-width: 2px;
+	--focus-ring-offset: 2px;
+
+	--opacity-disabled: 0.45;
+
+	--z-raised: 1;
+	--z-skip: 10;
+	--z-dialog: 40;
+}
+
+@theme inline {
+	--container-measure: var(--measure);
+	--container-list: var(--list-max);
+	--container-page: var(--page-max);
+}

@@ -1,0 +1,84 @@
+/* Shared effects. A pattern used by more than one component is a utility here, never copied. */
+
+/* The one focus ring: 2px in --ring, offset 2px. */
+@utility focus-ring {
+	&:focus-visible {
+		outline: var(--focus-ring-width) solid var(--ring);
+		outline-offset: var(--focus-ring-offset);
+	}
+}
+
+/* A 44px target in both axes without growing the visual (Button sm, Pill, Link). */
+@utility hit-area {
+	position: relative;
+	&::after {
+		content: "";
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: max(100%, var(--target-min));
+		height: max(100%, var(--target-min));
+		transform: translate(-50%, -50%);
+	}
+}
+
+/* A 44px target in height only, for text links in a row. */
+@utility hit-area-y {
+	position: relative;
+	&::after {
+		content: "";
+		position: absolute;
+		inset-inline: 0;
+		top: 50%;
+		height: var(--target-min);
+		transform: translateY(-50%);
+	}
+}
+
+/* Controls sink on press; none under reduced motion. */
+@utility press {
+	transition-property: background-color, color, box-shadow, transform, border-color;
+	transition-duration: var(--duration-fast);
+	transition-timing-function: var(--ease-out);
+	&:where(:active:not(:disabled, [aria-disabled="true"])) {
+		transform: scale(var(--press-scale-control));
+	}
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+		&:active {
+			transform: none;
+		}
+	}
+}
+
+/* A hairline in --border, inset so it never changes the box. */
+@utility edge {
+	box-shadow: inset 0 0 0 var(--border-hairline) var(--edge, var(--border));
+}
+
+/* The accent underline: current page in the nav, a held title. */
+@utility underline-accent {
+	text-decoration-line: underline;
+	text-decoration-color: var(--accent-graphic);
+	text-decoration-thickness: 2px;
+	text-underline-offset: 0.35em;
+}
+
+/* The soft running-text underline. */
+@utility underline-soft {
+	text-decoration-line: underline;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.2em;
+	text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+}
+
+@utility sr-only-focusable {
+	&:not(:focus-visible) {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+}

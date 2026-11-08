@@ -1,0 +1,14 @@
+@layer base {
+	:where([data-slot="dialog-content"], [data-slot="dialog-overlay"]) {
+		--dialog-overlay: var(--scrim-solid);
+		--dialog-bg: var(--surface);
+		--dialog-fg: var(--surface-foreground);
+		--dialog-edge: var(--border);
+		--dialog-radius: var(--radius-tile);
+		--dialog-pad: var(--pad-tile);
+		--dialog-gap: calc(var(--spacing) * 4);
+		--dialog-max-w: 32rem;
+		--dialog-inset: var(--page-gutter);
+		--dialog-pop-scale: 0.97;
+	}
+}

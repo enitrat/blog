@@ -1,0 +1,39 @@
+@layer base {
+	:where([data-glide][data-shape="pill"]) {
+		--glide-pad-x: calc(var(--spacing) * 3);
+		--glide-pad-y: calc(var(--spacing) * 1);
+		--glide-radius: var(--radius-pill);
+	}
+	:where([data-glide][data-shape="row"]) {
+		--glide-pad-x: calc(var(--spacing) * 3);
+		--glide-pad-y: 0px;
+		--glide-radius: var(--radius-md);
+	}
+}
+
+/* The highlight: the group box plus its padding, clipped to the active item. Only clip-path
+   and opacity move. */
+@utility glide-highlight {
+	position: relative;
+	isolation: isolate;
+	&::before {
+		content: "";
+		position: absolute;
+		inset: calc(var(--glide-pad-y) * -1) calc(var(--glide-pad-x) * -1);
+		z-index: -1;
+		background: var(--highlight);
+		clip-path: inset(
+			var(--gt, 0px) var(--gr, 0px) var(--gb, 0px) var(--gl, 0px) round var(--glide-radius)
+		);
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity var(--duration-fast) var(--ease-out);
+	}
+	&[data-glide-on]::before {
+		opacity: 1;
+	}
+	/* The highlight replaces an item's own hover underline once the script runs. */
+	&[data-glide-ready] [data-glide-item]:hover:not([aria-current]) {
+		text-decoration: none;
+	}
+}

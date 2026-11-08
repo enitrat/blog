@@ -1,0 +1,11 @@
+/* Tailwind defaults are reset: only these steps compile (`rounded-md`). Components read the
+   roles in layout.css (`--radius-tile`, `--radius-pill`), not the raw steps. */
+@theme {
+	--radius-*: initial;
+	--radius-none: 0px;
+	--radius-sm: 6px;
+	--radius-md: 10px;
+	--radius-lg: 14px;
+	--radius-xl: 18px;
+	--radius-full: 999px;
+}

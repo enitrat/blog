@@ -1,4 +1,4 @@
-import type { MarkdownHeading } from 'astro';
+import type { Heading } from '@/lib/markdown';
 
 export type InShortItem = { id: string; title: string; hook: string };
 
@@ -128,7 +128,7 @@ function sectionParagraphs(body: string): string[] {
  */
 export function inShort(
 	entry: { body?: string; data: { hooks?: Record<string, string> } },
-	headings: MarkdownHeading[],
+	headings: Heading[],
 ): InShortItem[] {
 	const paragraphs = sectionParagraphs(entry.body ?? '');
 	return headings
