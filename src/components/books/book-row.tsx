@@ -18,7 +18,7 @@ export function BookThumb({
 		return (
 			<span
 				aria-hidden="true"
-				className={cn(frame, 'grid place-items-center bg-muted font-display text-lg text-faint')}
+				className={cn(frame, 'grid place-items-center bg-muted text-sm font-semibold text-faint')}
 			>
 				{title[0]}
 			</span>
@@ -40,7 +40,7 @@ export function BookThumb({
 }
 
 /**
- * One finished book in the archive, in the writing-row grammar: cover, the title in the serif, the
+ * One finished book in the archive, in the writing-row grammar: cover, the title in semibold, the
  * author beneath, and the month and rating in mono on the right.
  */
 export function BookRow({
@@ -66,7 +66,9 @@ export function BookRow({
 		<li className="grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-4 border-t border-border py-3 first:border-t-0">
 			<BookThumb cover={cover} title={title} className="w-10" />
 			<div className="min-w-0">
-				<h3 className="font-display text-xl leading-tight text-balance text-foreground">{title}</h3>
+				<h3 className="text-base leading-snug font-semibold text-balance text-foreground">
+					{title}
+				</h3>
 				<p className="text-sm text-muted-foreground">{author}</p>
 			</div>
 			<div className="grid justify-items-end gap-0.5 font-mono text-xs tracking-[-0.01em] text-faint tabular-nums">

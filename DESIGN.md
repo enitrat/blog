@@ -46,28 +46,30 @@ colors:
   ring-dark: "oklch(0.82 0.125 78)"
 typography:
   display:
-    fontFamily: "Instrument Serif, ui-serif, Georgia, serif"
+    fontFamily: "Figtree, ui-sans-serif, system-ui, sans-serif"
     fontSize: "3.5rem"
-    fontWeight: 400
-    lineHeight: 1
-    letterSpacing: "-0.015em"
+    fontWeight: 600
+    lineHeight: 1.02
+    letterSpacing: "-0.025em"
   headline:
-    fontFamily: "Instrument Serif, ui-serif, Georgia, serif"
+    fontFamily: "Figtree, ui-sans-serif, system-ui, sans-serif"
     fontSize: "2.25rem"
-    fontWeight: 400
-    lineHeight: 1.1
-  title:
-    fontFamily: "Instrument Serif, ui-serif, Georgia, serif"
-    fontSize: "1.5rem"
-    fontWeight: 400
+    fontWeight: 600
     lineHeight: 1.25
+    letterSpacing: "-0.025em"
+  title:
+    fontFamily: "Figtree, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "1.25rem"
+    fontWeight: 600
+    lineHeight: 1.375
+    letterSpacing: "-0.025em"
   body:
-    fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
+    fontFamily: "Figtree, ui-sans-serif, system-ui, sans-serif"
     fontSize: "0.875rem"
     fontWeight: 400
     lineHeight: 1.625
   label:
-    fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
+    fontFamily: "Figtree, ui-sans-serif, system-ui, sans-serif"
     fontSize: "0.71875rem"
     fontWeight: 500
     lineHeight: "1.25rem"
@@ -142,12 +144,12 @@ Every colour on the site is an ink sampled from one picture: the render of Mathi
 
 The site has two speeds, and the visual system has two registers to match. The home page is a bento: a grid of cards with fixed-height rows, each card one real object from Mathieu's life (about, latest writing, the last set, reading, work, Elsewhere, and Places, Now and Bench once they have data). The inner pages are calm reading pages. They hold hairline-separated rows and long text, not cards.
 
-Type pairs a serif for display with a grotesk for everything else, and a mono for dates and counts. Motion is springy and comes from one file of presets.
+Type is one family, Figtree, with weight and size for hierarchy, and a mono for dates and counts. Motion is springy and comes from one file of presets.
 
 **Key Characteristics:**
 - Two token layers: primitive OKLCH ramps that never change with the theme, and semantic roles that pick a primitive per theme. Components name roles only.
 - Oxblood accent by day, brass accent by night.
-- Instrument Serif for display, Geist for UI and reading, Geist Mono for metadata.
+- Figtree for titles, interface and reading; Geist Mono for metadata.
 - One card grammar on the home page: one inset, one eyebrow row, media to the edge.
 - Depth from a hairline ring folded into a soft shadow, never from a separate border.
 - No footer on home; the Elsewhere card holds the contact links.
@@ -187,26 +189,27 @@ Warm neutrals from the room's paper and wood, one accent per theme, and a night 
 
 ## Typography
 
-**Display Font:** Instrument Serif (with ui-serif, Georgia), weight 400 only, roman and italic
-**Body Font:** Geist (with ui-sans-serif, system-ui)
-**Label/Mono Font:** Geist Mono (with ui-monospace, Menlo)
+**Text Font:** Figtree (with ui-sans-serif, system-ui), variable weight, roman and italic, loaded from `next/font/google`
+**Mono Font:** Geist Mono (with ui-monospace, Menlo)
 
-**Character:** A tall, narrow serif sets names and titles; a neutral grotesk carries the interface and the reading; a mono sets anything that is a number or a date.
+**Character:** One friendly geometric sans carries titles, the interface and the reading, so the site speaks in one voice; a mono sets anything that is a number or a date. Share images draw the same face from the static TTFs in `src/assets/fonts/`.
 
 ### Hierarchy
-- **Display** (Instrument Serif 400, 3.5rem, line-height 1, tracking -0.015em): the greeting in the About card from 1100px up. It steps down to 2.25rem below that.
-- **Headline** (Instrument Serif 400, 2.25rem, 3rem from 640px): the page title on every inner page, essays and Field Reports included.
-- **Title** (Instrument Serif 400, 1.5rem, leading tight): essay titles in the writing list.
-- **Feature** (Instrument Serif 400, `text-4xl` 2.25rem, `text-feature` 2.75rem from 640px, leading 1): the latest essay's title on the home Writing card. The Bench card's number is `text-3xl`.
-- **Body** (Geist 400, 0.875rem, line-height 1.625): UI text, row titles (at 600), descriptions. Essays use Tailwind Typography at `prose-sm`, `prose-base` from 640px, inside a 36rem column.
-- **Label** (Geist 500, 0.71875rem, line-height 1.25rem, tracking 0.07em, uppercase): the eyebrow. Card headers and section headings on inner pages.
-- **Caption** (Geist 400, `text-meta` 0.8125rem): a card's trailing action, the author under a book, a work row's role.
-- **Meta** (Geist Mono 400, 0.75rem, tracking -0.01em, tabular figures): dates, durations, years, the In short numbering.
+- **Display** (Figtree 600, 3.5rem, line-height 1.02, tracking tight): the greeting in the About card from 1100px up. It steps down to 2.25rem below that.
+- **Headline** (Figtree 600, 1.875rem, 2.25rem from 640px, tracking tight): the page title on every inner page, essays and Field Reports included.
+- **Feature** (Figtree 600, `text-3xl` 1.875rem, `text-feature` 2.75rem from 640px, tracking tight): the latest essay's title on the home Writing card.
+- **Title** (Figtree 600, 1.25rem, tracking tight): essay titles in the writing list; a book's title is 1rem in the reading archive and 1.875rem for a book being read now.
+- **Body** (Figtree 400, 0.875rem, line-height 1.625): UI text, row titles (at 600), descriptions. Essays use Tailwind Typography at `prose-sm`, `prose-base` from 640px, inside a 36rem column. Essay headings are Figtree 600.
+- **Label** (Figtree 500, 0.71875rem, line-height 1.25rem, tracking 0.07em, uppercase): the eyebrow. Card headers and section headings on inner pages.
+- **Caption** (Figtree 400, `text-meta` 0.8125rem): a card's trailing action, the author under a book, a work row's role.
+- **Meta** (Geist Mono 400, 0.75rem, tracking -0.01em, tabular figures): every date, duration, year, count and rating, including the date column of list rows, and the In short numbering. The Bench card's number is Geist Mono at `text-3xl`.
 
 ### Named Rules
-**The One Serif Weight Rule.** Instrument Serif is loaded at 400 only. Hierarchy in the serif comes from size, never weight.
+**The One Family Rule.** Figtree is the only text face. Titles step up by size and take weight 600 with tight tracking; running text stays at 400. Never add a second display face.
 
-**The Serif for Names Rule.** The serif sets page titles, essay titles, the greeting and a company's initial when its logo is missing. Interface text, labels and running prose stay in Geist.
+**The Mono for Numbers Rule.** A date, count, duration or rating is Geist Mono with tabular figures, wherever it appears.
+
+**The Roman Rule.** Nothing is set italic for decoration. Italic belongs to emphasis Mathieu wrote in an essay, drawn from Figtree's real italic. Quotes stay roman; the rule beside them marks them.
 
 ## Layout
 
@@ -270,7 +273,7 @@ The uppercase label (label typography, faint ink). It names a card, heads a sect
 A small non-interactive pill in primary-soft with primary text, 0.75rem medium, for flags such as "Reading" and "Latest".
 
 ### List Row
-The inner-page unit. Rows are separated by a top hairline, with a date column on the left (8rem wide in plain rows, 6rem in writing rows), a semibold title, and a muted description. A linked row fills with muted on hover and slides a trailing arrow in. Writing rows set the title in the serif and carry the essay's banner as a 14rem by 8.75rem thumbnail at the media radius; the row lifts 2px and the banner zooms on the hover spring. Work rows lead with the company logo, which pops on hover.
+The inner-page unit. Rows are separated by a top hairline, with a date column on the left (8rem wide in plain rows, 6rem in writing rows), a semibold title, and a muted description. A linked row fills with muted on hover and slides a trailing arrow in. Writing rows set the title at Title size and carry the essay's banner as a 14rem by 8.75rem thumbnail at the media radius; the row lifts 2px and the banner zooms on the hover spring. Work rows lead with the company logo, which pops on hover.
 
 ### Navigation
 A glass pill of text links beside the name in the header. A muted highlight follows the pointer between links on the layout spring. The current page is foreground; others are muted-foreground and darken on hover. A theme toggle sits beside it.
@@ -290,7 +293,7 @@ Every spring comes from `src/lib/motion.ts`; none is inlined. Hover scales are 1
 - **Do** name roles in components, and add a role before reaching for a ramp.
 - **Do** give every home card the one inset and the one eyebrow row.
 - **Do** derive nested radii from `rounded-card` minus `p-inset`.
-- **Do** use the serif at 400 for page titles and essay titles, Geist for everything else, and Geist Mono with tabular figures for dates and counts.
+- **Do** use Figtree 600 with tight tracking for titles, Figtree 400 for everything else, and Geist Mono with tabular figures for dates and counts.
 - **Do** keep inner pages as hairline rows on the page background.
 - **Do** put the scrim behind any text set on a photograph.
 - **Do** show a 2px ring-role focus ring on every interactive element.
@@ -299,7 +302,7 @@ Every spring comes from `src/lib/motion.ts`; none is inlined. Hover scales are 1
 - **Don't** use a ramp step or a `dark:` colour variant in a component class.
 - **Don't** add a border to a card; the hairline lives in the shadow.
 - **Don't** wrap inner-page content in cards.
-- **Don't** set the serif bold, or set UI text in the serif.
+- **Don't** add a second display face, or set a word italic for decoration.
 - **Don't** put an invented label above a page title. That slot holds real metadata only.
 - **Don't** let a bento card grow its row.
 - **Don't** inline a spring.

@@ -72,6 +72,8 @@ const PROSE = cn(
 	'prose-p:text-pretty prose-li:text-pretty prose-headings:scroll-mt-6 prose-headings:font-semibold prose-headings:text-balance',
 	// Section breaks in the markdown; the h2 spacing carries them.
 	'prose-hr:hidden',
+	// Quotes keep the body's roman face; the rule beside them marks them.
+	'prose-blockquote:font-normal prose-blockquote:not-italic [&_blockquote_p]:before:content-none [&_blockquote_p]:after:content-none',
 	'prose-a:rounded-xs prose-a:font-normal prose-a:decoration-primary/30 prose-a:underline-offset-[22%] prose-a:transition-colors prose-a:duration-200 prose-a:outline-none prose-a:hover:decoration-current prose-a:focus-visible:ring-2 prose-a:focus-visible:ring-ring',
 	// Inline code: a hairline chip, no backticks.
 	'prose-code:font-normal prose-code:before:content-none prose-code:after:content-none [&_:not(pre)>code]:rounded-md [&_:not(pre)>code]:border [&_:not(pre)>code]:border-border [&_:not(pre)>code]:px-1 [&_:not(pre)>code]:py-0.5',

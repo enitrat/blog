@@ -28,7 +28,7 @@ export function ListRow({
 	const body = (
 		<>
 			{date && (
-				<div className="flex flex-wrap gap-x-2 text-xs font-medium text-faint tabular-nums sm:w-32 sm:flex-none">
+				<div className="flex flex-wrap gap-x-2 font-mono text-xs tracking-[-0.01em] text-faint tabular-nums sm:w-32 sm:flex-none">
 					<Stamp dateTime={datetime} className="flex flex-wrap gap-x-1.5 sm:flex-col">
 						{range?.length === 2 ? (
 							<>

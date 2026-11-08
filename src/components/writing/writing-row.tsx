@@ -41,12 +41,12 @@ export function WritingRow({
 			>
 				<time
 					dateTime={datetime}
-					className="text-xs font-medium text-faint tabular-nums sm:w-24 sm:flex-none"
+					className="font-mono text-xs tracking-[-0.01em] text-faint tabular-nums sm:w-24 sm:flex-none"
 				>
 					{date}
 				</time>
 				<div className="min-w-0 flex-1">
-					<h2 className="max-w-[44ch] font-display text-2xl leading-tight text-balance text-foreground">
+					<h2 className="max-w-[44ch] text-xl leading-snug font-semibold tracking-tight text-balance text-foreground">
 						{title}
 					</h2>
 					<p className="mt-1.5 text-sm leading-relaxed text-pretty text-muted-foreground">

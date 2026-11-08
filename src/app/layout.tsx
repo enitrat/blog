@@ -1,8 +1,7 @@
 import { Analytics } from '@vercel/analytics/next';
 import { GeistMono } from 'geist/font/mono';
-import { GeistSans } from 'geist/font/sans';
 import type { Metadata, Viewport } from 'next';
-import { Instrument_Serif } from 'next/font/google';
+import { Figtree } from 'next/font/google';
 import type { ReactNode } from 'react';
 import { Footer } from '@/components/site/footer';
 import { Header, type NavLink } from '@/components/site/header';
@@ -12,11 +11,11 @@ import { SITE_URL } from '@/lib/meta';
 import { cn } from '@/lib/utils';
 import './globals.css';
 
-const instrumentSerif = Instrument_Serif({
-	subsets: ['latin'],
-	weight: '400',
+// Italic too, so emphasis in essays is drawn rather than slanted by the browser.
+const figtree = Figtree({
+	subsets: ['latin', 'latin-ext'],
 	style: ['normal', 'italic'],
-	variable: '--font-instrument-serif',
+	variable: '--font-figtree',
 	display: 'swap',
 });
 
@@ -44,11 +43,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 		{ label: 'About', href: '/about' },
 	].filter((l) => l.href !== '/places' || getTrips().length > 0);
 	return (
-		<html
-			lang="en"
-			className={cn(GeistSans.variable, GeistMono.variable, instrumentSerif.variable)}
-			suppressHydrationWarning
-		>
+		<html lang="en" className={cn(figtree.variable, GeistMono.variable)} suppressHydrationWarning>
 			<body>
 				<ThemeProvider>
 					<a

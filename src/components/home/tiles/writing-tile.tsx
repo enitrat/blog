@@ -52,7 +52,7 @@ export async function WritingTile({ className }: { className?: string }) {
 				>
 					{dateFormat.format(latest.data.pubDate)}
 				</time>
-				<h3 className="mt-2 font-display text-4xl leading-none tracking-[-0.015em] text-balance sm:text-feature">
+				<h3 className="mt-2 text-3xl leading-[1.05] font-semibold tracking-tight text-balance sm:text-feature">
 					<Link
 						href={postUrl(latest)}
 						className={`rounded-sm after:absolute after:inset-0 after:z-0 ${FOCUS}`}

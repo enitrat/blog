@@ -30,7 +30,7 @@ export function PlacesTile({
 					<li key={t.id} className="flex min-h-0 flex-1 border-t border-border first:border-t-0">
 						<Link
 							href="/places/"
-							className="-mx-2 flex min-w-0 flex-1 items-center rounded-media px-2 font-display text-xl outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+							className="-mx-2 flex min-w-0 flex-1 items-center rounded-media px-2 text-lg font-semibold tracking-tight outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
 						>
 							<span className="truncate">{t.data.title}</span>
 						</Link>

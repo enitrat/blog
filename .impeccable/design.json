@@ -257,7 +257,7 @@
       "refersTo": "button-default",
       "description": "Card pill for ordinary actions.",
       "html": "<button class=\"ds-btn\">Listen</button>",
-      "css": ".ds-btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:8px 16px 6px 14px;border:0;border-radius:9999px;font:600 14px/1 Geist,ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color .15s cubic-bezier(.4,0,.2,1),color .15s cubic-bezier(.4,0,.2,1);background:var(--card,oklch(0.995 0.003 85));color:var(--foreground,oklch(0.205 0.012 50));box-shadow:var(--elevation-1,0 0 0 1px oklch(0.22 0.02 50/0.09),0 1px 2px oklch(0.3 0.03 50/0.05))}.ds-btn:hover{background:var(--muted,oklch(0.945 0.008 80))}.ds-btn:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background,oklch(0.972 0.006 85)),0 0 0 4px var(--ring,oklch(0.47 0.15 25))}"
+      "css": ".ds-btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:8px 16px 6px 14px;border:0;border-radius:9999px;font:600 14px/1 Figtree,ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color .15s cubic-bezier(.4,0,.2,1),color .15s cubic-bezier(.4,0,.2,1);background:var(--card,oklch(0.995 0.003 85));color:var(--foreground,oklch(0.205 0.012 50));box-shadow:var(--elevation-1,0 0 0 1px oklch(0.22 0.02 50/0.09),0 1px 2px oklch(0.3 0.03 50/0.05))}.ds-btn:hover{background:var(--muted,oklch(0.945 0.008 80))}.ds-btn:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background,oklch(0.972 0.006 85)),0 0 0 4px var(--ring,oklch(0.47 0.15 25))}"
     },
     {
       "name": "Primary Button",
@@ -265,7 +265,7 @@
       "refersTo": "button-primary",
       "description": "Solid accent pill: oxblood by day, brass by night.",
       "html": "<button class=\"ds-btn-primary\">Play</button>",
-      "css": ".ds-btn-primary{display:inline-flex;align-items:center;gap:6px;height:36px;padding:8px 16px 6px 14px;border:0;border-radius:9999px;font:600 14px/1 Geist,ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color .15s cubic-bezier(.4,0,.2,1),color .15s cubic-bezier(.4,0,.2,1);background:var(--primary,oklch(0.47 0.15 25));color:var(--primary-foreground,oklch(0.995 0.003 85));box-shadow:var(--elevation-2,0 0 0 1px oklch(0.22 0.02 50/0.09),0 2px 4px oklch(0.3 0.03 50/0.05),0 12px 28px -8px oklch(0.3 0.04 40/0.14))}.ds-btn-primary:hover{opacity:.9}.ds-btn-primary:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background,oklch(0.972 0.006 85)),0 0 0 4px var(--ring,oklch(0.47 0.15 25))}"
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;gap:6px;height:36px;padding:8px 16px 6px 14px;border:0;border-radius:9999px;font:600 14px/1 Figtree,ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color .15s cubic-bezier(.4,0,.2,1),color .15s cubic-bezier(.4,0,.2,1);background:var(--primary,oklch(0.47 0.15 25));color:var(--primary-foreground,oklch(0.995 0.003 85));box-shadow:var(--elevation-2,0 0 0 1px oklch(0.22 0.02 50/0.09),0 2px 4px oklch(0.3 0.03 50/0.05),0 12px 28px -8px oklch(0.3 0.04 40/0.14))}.ds-btn-primary:hover{opacity:.9}.ds-btn-primary:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background,oklch(0.972 0.006 85)),0 0 0 4px var(--ring,oklch(0.47 0.15 25))}"
     },
     {
       "name": "Glass Button",
@@ -273,7 +273,7 @@
       "refersTo": "button-glass",
       "description": "See-through pill for chrome over images and sticky bars.",
       "html": "<button class=\"ds-btn-glass\">Next</button>",
-      "css": ".ds-btn-glass{display:inline-flex;align-items:center;gap:6px;height:36px;padding:8px 16px 6px 14px;border:0;border-radius:9999px;font:600 14px/1 Geist,ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color .15s cubic-bezier(.4,0,.2,1),color .15s cubic-bezier(.4,0,.2,1);background:color-mix(in oklch,var(--card,oklch(0.995 0.003 85)) 60%,transparent);color:var(--foreground,oklch(0.205 0.012 50));box-shadow:var(--elevation-1,0 0 0 1px oklch(0.22 0.02 50/0.09),0 1px 2px oklch(0.3 0.03 50/0.05));backdrop-filter:blur(4px) saturate(1.5)}.ds-btn-glass:hover{background:color-mix(in oklch,var(--card,oklch(0.995 0.003 85)) 80%,transparent)}.ds-btn-glass:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background,oklch(0.972 0.006 85)),0 0 0 4px var(--ring,oklch(0.47 0.15 25))}"
+      "css": ".ds-btn-glass{display:inline-flex;align-items:center;gap:6px;height:36px;padding:8px 16px 6px 14px;border:0;border-radius:9999px;font:600 14px/1 Figtree,ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color .15s cubic-bezier(.4,0,.2,1),color .15s cubic-bezier(.4,0,.2,1);background:color-mix(in oklch,var(--card,oklch(0.995 0.003 85)) 60%,transparent);color:var(--foreground,oklch(0.205 0.012 50));box-shadow:var(--elevation-1,0 0 0 1px oklch(0.22 0.02 50/0.09),0 1px 2px oklch(0.3 0.03 50/0.05));backdrop-filter:blur(4px) saturate(1.5)}.ds-btn-glass:hover{background:color-mix(in oklch,var(--card,oklch(0.995 0.003 85)) 80%,transparent)}.ds-btn-glass:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background,oklch(0.972 0.006 85)),0 0 0 4px var(--ring,oklch(0.47 0.15 25))}"
     },
     {
       "name": "Ghost Button",
@@ -281,14 +281,14 @@
       "refersTo": "button-ghost",
       "description": "Text-only pill; fills on hover.",
       "html": "<button class=\"ds-btn-ghost\">Close</button>",
-      "css": ".ds-btn-ghost{display:inline-flex;align-items:center;gap:6px;height:36px;padding:8px 16px 6px 14px;border:0;border-radius:9999px;font:600 14px/1 Geist,ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color .15s cubic-bezier(.4,0,.2,1),color .15s cubic-bezier(.4,0,.2,1);background:transparent;color:var(--muted-foreground,oklch(0.38 0.014 50))}.ds-btn-ghost:hover{background:var(--muted,oklch(0.945 0.008 80));color:var(--foreground,oklch(0.205 0.012 50))}.ds-btn-ghost:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background,oklch(0.972 0.006 85)),0 0 0 4px var(--ring,oklch(0.47 0.15 25))}"
+      "css": ".ds-btn-ghost{display:inline-flex;align-items:center;gap:6px;height:36px;padding:8px 16px 6px 14px;border:0;border-radius:9999px;font:600 14px/1 Figtree,ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color .15s cubic-bezier(.4,0,.2,1),color .15s cubic-bezier(.4,0,.2,1);background:transparent;color:var(--muted-foreground,oklch(0.38 0.014 50))}.ds-btn-ghost:hover{background:var(--muted,oklch(0.945 0.008 80));color:var(--foreground,oklch(0.205 0.012 50))}.ds-btn-ghost:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background,oklch(0.972 0.006 85)),0 0 0 4px var(--ring,oklch(0.47 0.15 25))}"
     },
     {
       "name": "Glass Nav",
       "kind": "nav",
       "description": "Header pill of text links; a muted highlight follows the pointer.",
       "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-a ds-on\" href=\"#\">Writing</a><a class=\"ds-nav-a\" href=\"#\">Reading</a><a class=\"ds-nav-a\" href=\"#\">Work</a></nav>",
-      "css": ".ds-nav{display:inline-flex;padding:2px;border-radius:9999px;background:color-mix(in oklch,var(--card,oklch(0.995 0.003 85)) 60%,transparent);box-shadow:var(--elevation-1,0 0 0 1px oklch(0.22 0.02 50/0.09),0 1px 2px oklch(0.3 0.03 50/0.05));backdrop-filter:blur(4px) saturate(1.5)}.ds-nav-a{font:500 14px/1.4 Geist,ui-sans-serif,system-ui,sans-serif;padding:6px 12px;border-radius:9999px;color:var(--muted-foreground,oklch(0.38 0.014 50));text-decoration:none;transition:color .15s,background-color .15s}.ds-nav-a:hover{color:var(--foreground,oklch(0.205 0.012 50));background:var(--muted,oklch(0.945 0.008 80))}.ds-nav-a.ds-on{color:var(--foreground,oklch(0.205 0.012 50))}.ds-nav-a:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background,oklch(0.972 0.006 85)),0 0 0 4px var(--ring,oklch(0.47 0.15 25))}"
+      "css": ".ds-nav{display:inline-flex;padding:2px;border-radius:9999px;background:color-mix(in oklch,var(--card,oklch(0.995 0.003 85)) 60%,transparent);box-shadow:var(--elevation-1,0 0 0 1px oklch(0.22 0.02 50/0.09),0 1px 2px oklch(0.3 0.03 50/0.05));backdrop-filter:blur(4px) saturate(1.5)}.ds-nav-a{font:500 14px/1.4 Figtree,ui-sans-serif,system-ui,sans-serif;padding:6px 12px;border-radius:9999px;color:var(--muted-foreground,oklch(0.38 0.014 50));text-decoration:none;transition:color .15s,background-color .15s}.ds-nav-a:hover{color:var(--foreground,oklch(0.205 0.012 50));background:var(--muted,oklch(0.945 0.008 80))}.ds-nav-a.ds-on{color:var(--foreground,oklch(0.205 0.012 50))}.ds-nav-a:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background,oklch(0.972 0.006 85)),0 0 0 4px var(--ring,oklch(0.47 0.15 25))}"
     },
     {
       "name": "Home Card",
@@ -296,7 +296,7 @@
       "refersTo": "card",
       "description": "One bento card: one inset, one eyebrow row; a linked card lifts.",
       "html": "<a class=\"ds-card\" href=\"#\"><header class=\"ds-eyebrow\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\"><path d=\"M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20\"/></svg>Reading</header><strong class=\"ds-card-title\">Title of the book</strong><span class=\"ds-card-meta\">Author</span></a>",
-      "css": ".ds-card{display:flex;flex-direction:column;gap:12px;width:260px;padding:1rem;border-radius:1.5rem;background:var(--card,oklch(0.995 0.003 85));box-shadow:var(--elevation-1,0 0 0 1px oklch(0.22 0.02 50/0.09),0 1px 2px oklch(0.3 0.03 50/0.05));color:var(--foreground,oklch(0.205 0.012 50));text-decoration:none;transition:box-shadow .3s,transform .3s}.ds-card:hover{box-shadow:var(--elevation-3,0 0 0 1px oklch(0.22 0.02 50/0.16),0 4px 8px oklch(0.3 0.03 50/0.06),0 24px 48px -12px oklch(0.3 0.05 35/0.22));transform:translateY(-3px)}.ds-card:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background,oklch(0.972 0.006 85)),0 0 0 4px var(--ring,oklch(0.47 0.15 25))}.ds-eyebrow{display:flex;align-items:center;gap:6px;height:20px;font:500 11.5px/20px Geist,ui-sans-serif,system-ui,sans-serif;letter-spacing:.07em;text-transform:uppercase;color:var(--faint,oklch(0.52 0.014 58))}.ds-card-title{font:600 14px/1.4 Geist,ui-sans-serif,system-ui,sans-serif}.ds-card-meta{font:400 13px/1.4 Geist,ui-sans-serif,system-ui,sans-serif;color:var(--faint,oklch(0.52 0.014 58))}"
+      "css": ".ds-card{display:flex;flex-direction:column;gap:12px;width:260px;padding:1rem;border-radius:1.5rem;background:var(--card,oklch(0.995 0.003 85));box-shadow:var(--elevation-1,0 0 0 1px oklch(0.22 0.02 50/0.09),0 1px 2px oklch(0.3 0.03 50/0.05));color:var(--foreground,oklch(0.205 0.012 50));text-decoration:none;transition:box-shadow .3s,transform .3s}.ds-card:hover{box-shadow:var(--elevation-3,0 0 0 1px oklch(0.22 0.02 50/0.16),0 4px 8px oklch(0.3 0.03 50/0.06),0 24px 48px -12px oklch(0.3 0.05 35/0.22));transform:translateY(-3px)}.ds-card:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background,oklch(0.972 0.006 85)),0 0 0 4px var(--ring,oklch(0.47 0.15 25))}.ds-eyebrow{display:flex;align-items:center;gap:6px;height:20px;font:500 11.5px/20px Figtree,ui-sans-serif,system-ui,sans-serif;letter-spacing:.07em;text-transform:uppercase;color:var(--faint,oklch(0.52 0.014 58))}.ds-card-title{font:600 14px/1.4 Figtree,ui-sans-serif,system-ui,sans-serif}.ds-card-meta{font:400 13px/1.4 Figtree,ui-sans-serif,system-ui,sans-serif;color:var(--faint,oklch(0.52 0.014 58))}"
     },
     {
       "name": "Badge",
@@ -304,7 +304,7 @@
       "refersTo": "badge",
       "description": "Small non-interactive flag in the accent wash.",
       "html": "<span class=\"ds-badge\">Latest</span>",
-      "css": ".ds-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:9999px;background:var(--primary-soft,oklch(0.93 0.035 25));color:var(--primary,oklch(0.47 0.15 25));font:500 12px/1.33 Geist,ui-sans-serif,system-ui,sans-serif}"
+      "css": ".ds-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:9999px;background:var(--primary-soft,oklch(0.93 0.035 25));color:var(--primary,oklch(0.47 0.15 25));font:500 12px/1.33 Figtree,ui-sans-serif,system-ui,sans-serif}"
     },
     {
       "name": "List Row",
@@ -312,23 +312,23 @@
       "refersTo": "list-row",
       "description": "Inner-page row: date column, title, description, hairline above.",
       "html": "<ul class=\"ds-rows\"><li><a class=\"ds-row\" href=\"#\"><time class=\"ds-row-date\">March 2026</time><span><strong class=\"ds-row-title\">Essay title</strong><span class=\"ds-row-desc\">One line of description.</span></span></a></li><li><a class=\"ds-row\" href=\"#\"><time class=\"ds-row-date\">January 2026</time><span><strong class=\"ds-row-title\">Another essay</strong><span class=\"ds-row-desc\">One line of description.</span></span></a></li></ul>",
-      "css": ".ds-rows{list-style:none;margin:0;padding:0;width:480px}.ds-rows li+li{border-top:1px solid var(--border,oklch(0.22 0.02 50/0.09))}.ds-row{display:flex;gap:16px;align-items:baseline;margin:0 -12px;padding:16px 12px;border-radius:.75rem;text-decoration:none;transition:background-color .15s}.ds-row:hover{background:var(--muted,oklch(0.945 0.008 80))}.ds-row:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background,oklch(0.972 0.006 85)),0 0 0 4px var(--ring,oklch(0.47 0.15 25))}.ds-row-date{flex:none;width:8rem;font:500 12px/1.33 Geist,ui-sans-serif,system-ui,sans-serif;font-variant-numeric:tabular-nums;color:var(--faint,oklch(0.52 0.014 58))}.ds-row-title{display:block;font:600 14px/1.4 Geist,ui-sans-serif,system-ui,sans-serif;color:var(--foreground,oklch(0.205 0.012 50))}.ds-row-desc{display:block;margin-top:2px;font:400 14px/1.625 Geist,ui-sans-serif,system-ui,sans-serif;color:var(--muted-foreground,oklch(0.38 0.014 50))}"
+      "css": ".ds-rows{list-style:none;margin:0;padding:0;width:480px}.ds-rows li+li{border-top:1px solid var(--border,oklch(0.22 0.02 50/0.09))}.ds-row{display:flex;gap:16px;align-items:baseline;margin:0 -12px;padding:16px 12px;border-radius:.75rem;text-decoration:none;transition:background-color .15s}.ds-row:hover{background:var(--muted,oklch(0.945 0.008 80))}.ds-row:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background,oklch(0.972 0.006 85)),0 0 0 4px var(--ring,oklch(0.47 0.15 25))}.ds-row-date{flex:none;width:8rem;font:500 12px/1.33 Figtree,ui-sans-serif,system-ui,sans-serif;font-variant-numeric:tabular-nums;color:var(--faint,oklch(0.52 0.014 58))}.ds-row-title{display:block;font:600 14px/1.4 Figtree,ui-sans-serif,system-ui,sans-serif;color:var(--foreground,oklch(0.205 0.012 50))}.ds-row-desc{display:block;margin-top:2px;font:400 14px/1.625 Figtree,ui-sans-serif,system-ui,sans-serif;color:var(--muted-foreground,oklch(0.38 0.014 50))}"
     },
     {
       "name": "Page Title",
       "kind": "custom",
       "description": "Serif headline of an inner page with its muted lead.",
       "html": "<header class=\"ds-ph\"><h1>Writing</h1><p>A lead sentence under the title.</p></header>",
-      "css": ".ds-ph h1{margin:0;font:400 2.25rem/1.1 'Instrument Serif',ui-serif,Georgia,serif;color:var(--foreground,oklch(0.205 0.012 50))}.ds-ph p{margin:8px 0 0;font:400 14px/1.625 Geist,ui-sans-serif,system-ui,sans-serif;color:var(--muted-foreground,oklch(0.38 0.014 50))}"
+      "css": ".ds-ph h1{margin:0;font:600 2.25rem/1.25 Figtree,ui-sans-serif,system-ui,sans-serif;letter-spacing:-0.025em;color:var(--foreground,oklch(0.205 0.012 50))}.ds-ph p{margin:8px 0 0;font:400 14px/1.625 Figtree,ui-sans-serif,system-ui,sans-serif;color:var(--muted-foreground,oklch(0.38 0.014 50))}"
     }
   ],
   "narrative": {
     "northStar": "The Living Room, Day and Night",
-    "overview": "Every colour is an ink sampled from the render of Mathieu's living room. By day: cream paper, walnut-black ink, oxblood. By night: the same room after dark, with brass, the lamp, in place of oxblood. The home page is a bento of fixed-height cards, each one real object from Mathieu's life; inner pages are calm reading pages of hairline rows and long text. Instrument Serif sets titles, Geist sets the interface and the reading, Geist Mono sets dates and counts. Motion is springy and comes from one file of presets.",
+    "overview": "Every colour is an ink sampled from the render of Mathieu's living room. By day: cream paper, walnut-black ink, oxblood. By night: the same room after dark, with brass, the lamp, in place of oxblood. The home page is a bento of fixed-height cards, each one real object from Mathieu's life; inner pages are calm reading pages of hairline rows and long text. Figtree sets titles, the interface and the reading; Geist Mono sets dates and counts. Motion is springy and comes from one file of presets.",
     "keyCharacteristics": [
       "Primitive OKLCH ramps plus semantic roles; components name roles only.",
       "Oxblood accent by day, brass by night.",
-      "Instrument Serif display, Geist UI, Geist Mono metadata.",
+      "Figtree for titles, interface and reading; Geist Mono metadata.",
       "One card grammar: one inset, one eyebrow row, media to the edge.",
       "The hairline lives inside the shadow; cards have no border.",
       "No footer on home."
@@ -355,13 +355,13 @@
         "section": "colors"
       },
       {
-        "name": "The One Serif Weight Rule",
-        "body": "Instrument Serif is loaded at 400 only; serif hierarchy comes from size.",
+        "name": "The One Family Rule",
+        "body": "Figtree is the only text face; titles step up by size at weight 600 with tight tracking.",
         "section": "typography"
       },
       {
-        "name": "The Serif for Names Rule",
-        "body": "The serif sets titles, the greeting and logo initials; UI and prose stay in Geist.",
+        "name": "The Mono for Numbers Rule",
+        "body": "Dates, counts and ratings are Geist Mono with tabular figures everywhere.",
         "section": "typography"
       },
       {
@@ -394,7 +394,7 @@
       "Do name roles in components, and add a role before reaching for a ramp.",
       "Do give every home card the one inset and the one eyebrow row.",
       "Do derive nested radii from rounded-card minus p-inset.",
-      "Do use the serif at 400 for titles, Geist for everything else, Geist Mono with tabular figures for dates and counts.",
+      "Do use Figtree 600 with tight tracking for titles, Figtree 400 for everything else, Geist Mono with tabular figures for dates and counts.",
       "Do keep inner pages as hairline rows on the page background.",
       "Do put the scrim behind any text set on a photograph.",
       "Do show a 2px ring-role focus ring on every interactive element."

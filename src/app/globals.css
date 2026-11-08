@@ -10,8 +10,7 @@
  * Retint the site by editing a ramp; re-role it by editing the two role blocks.
  */
 @theme {
-	--font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-	--font-display: var(--font-instrument-serif), ui-serif, Georgia, serif;
+	--font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
 	--font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 
 	/* Paper: one warm neutral ramp, light to dark. */

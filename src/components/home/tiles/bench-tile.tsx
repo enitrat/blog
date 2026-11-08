@@ -48,7 +48,9 @@ export function BenchTile({
 						/>
 					</svg>
 					<p className="absolute inset-0 grid place-content-center text-center">
-						<span className="font-display text-3xl leading-[0.9]">{current}</span>
+						<span className="font-mono text-3xl leading-[0.9] tracking-tight tabular-nums">
+							{current}
+						</span>
 						<span className="text-xs text-faint">of {goal} kg</span>
 					</p>
 				</div>

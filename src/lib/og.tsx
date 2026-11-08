@@ -18,21 +18,9 @@ const PLATE = { width: 440, height: 330 };
 const read = (file: string) => readFileSync(join(/*turbopackIgnore: true*/ process.cwd(), file));
 
 const fonts = () => [
-	{
-		name: 'Instrument Serif',
-		data: read('src/assets/fonts/InstrumentSerif-Regular.ttf'),
-		weight: 400 as const,
-	},
-	{
-		name: 'Geist',
-		data: read('node_modules/geist/dist/fonts/geist-sans/Geist-Regular.ttf'),
-		weight: 400 as const,
-	},
-	{
-		name: 'Geist',
-		data: read('node_modules/geist/dist/fonts/geist-sans/Geist-Medium.ttf'),
-		weight: 500 as const,
-	},
+	{ name: 'Figtree', data: read('src/assets/fonts/Figtree-Regular.ttf'), weight: 400 as const },
+	{ name: 'Figtree', data: read('src/assets/fonts/Figtree-Medium.ttf'), weight: 500 as const },
+	{ name: 'Figtree', data: read('src/assets/fonts/Figtree-SemiBold.ttf'), weight: 600 as const },
 ];
 
 /**
@@ -71,7 +59,7 @@ export function ogImage({
 				background: PAPER,
 				color: INK,
 				padding: 72,
-				fontFamily: 'Geist',
+				fontFamily: 'Figtree',
 			}}
 		>
 			<div
@@ -87,10 +75,10 @@ export function ogImage({
 					<div
 						style={{
 							display: 'flex',
-							fontFamily: 'Instrument Serif',
 							fontSize: titleSize,
-							lineHeight: 1.04,
-							letterSpacing: -1.5,
+							fontWeight: 600,
+							lineHeight: 1.08,
+							letterSpacing: -2,
 							paddingRight: plate ? 40 : 0,
 						}}
 					>

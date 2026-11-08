@@ -35,7 +35,7 @@ export async function WorkLogo({
 			aria-hidden
 			className={cn(
 				box,
-				'flex items-center justify-center bg-muted font-display text-muted-foreground',
+				'flex items-center justify-center bg-muted font-semibold text-muted-foreground',
 			)}
 		>
 			{title.charAt(0).toUpperCase()}

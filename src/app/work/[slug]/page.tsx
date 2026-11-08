@@ -46,7 +46,7 @@ export default async function ReportPage(props: Params) {
 				<WorkLogo id={report.id} title={title} size="header" />
 				<div className="flex flex-col gap-2">
 					{meta && <Eyebrow as="p">{meta}</Eyebrow>}
-					<h1 className="font-display text-4xl text-balance text-foreground sm:text-5xl">
+					<h1 className="text-3xl leading-tight font-semibold tracking-tight text-balance text-foreground sm:text-4xl">
 						{title}
 					</h1>
 					{summary && (

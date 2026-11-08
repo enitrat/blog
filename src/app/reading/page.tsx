@@ -84,7 +84,7 @@ export default async function ReadingPage() {
 						<div key={book.title} className="grid grid-cols-[auto_minmax(0,1fr)] items-end gap-5">
 							<BookThumb cover={cover} title={book.title} className="w-24 shadow-book sm:w-30" />
 							<div className="min-w-0">
-								<h2 className="font-display text-3xl leading-[1.05] text-balance text-foreground sm:text-4xl">
+								<h2 className="text-2xl leading-tight font-semibold tracking-tight text-balance text-foreground sm:text-3xl">
 									{short(book.title)}
 								</h2>
 								<p className="mt-1.5 text-sm text-muted-foreground">{book.author}</p>
@@ -106,7 +106,7 @@ export default async function ReadingPage() {
 					{picks.map(({ book, cover }) => (
 						<li key={book.title} className="min-w-0">
 							<BookThumb cover={cover} title={book.title} className="w-full shadow-book" />
-							<p className="mt-2.5 font-display text-lg leading-tight text-balance text-foreground">
+							<p className="mt-2.5 text-sm leading-snug font-semibold text-balance text-foreground">
 								{short(book.title)}
 							</p>
 							<p className={`mt-1 ${meta}`}>
@@ -121,7 +121,10 @@ export default async function ReadingPage() {
 				const head = (
 					<>
 						<div className="flex items-baseline justify-between gap-4">
-							<h2 id={id(year)} className="font-display text-3xl leading-none text-foreground">
+							<h2
+								id={id(year)}
+								className="text-2xl leading-none font-semibold tracking-tight text-foreground tabular-nums"
+							>
 								{year}
 							</h2>
 							<span className={meta}>

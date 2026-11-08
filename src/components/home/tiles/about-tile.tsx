@@ -23,9 +23,9 @@ export function AboutTile({ className }: { className?: string }) {
 		<Card index={0} labelledBy="about-title" className={className}>
 			<CardHeader id="about-title" icon={<HandIcon />} label="About" />
 			<div className="mt-3 flex min-h-0 flex-1 flex-col">
-				<h1 className="font-display text-4xl leading-[1.02] min-[68.75rem]:text-display tracking-[-0.015em]">
-					Hi! I'm <em className="text-primary">Mathieu</em>.
-					<span className="mt-1 block font-sans text-lg leading-[1.3] tracking-normal text-muted-foreground">
+				<h1 className="text-4xl leading-[1.02] font-semibold tracking-tight min-[68.75rem]:text-display">
+					Hi! I'm <span className="text-primary">Mathieu</span>.
+					<span className="mt-1 block text-lg leading-[1.3] font-normal tracking-normal text-muted-foreground">
 						An engineer working in DeFi.
 					</span>
 				</h1>

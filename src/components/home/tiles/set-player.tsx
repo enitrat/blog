@@ -170,9 +170,7 @@ export function SetPlayer({
 					</motion.div>
 				</div>
 				<div className="flex min-w-0 flex-1 flex-col">
-					<p className="truncate text-lg leading-[1.2] font-semibold tracking-[-0.015em]">
-						{SET.title}
-					</p>
+					<p className="truncate text-lg leading-[1.2] font-semibold tracking-tight">{SET.title}</p>
 					<p className="mt-0.5 font-mono text-xs tracking-[-0.01em] text-faint">{SET.artist}</p>
 					<Waveform playing={playing} />
 					<div className="flex items-center gap-2">
