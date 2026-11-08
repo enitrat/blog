@@ -49,7 +49,14 @@ function set(next: Playback) {
 
 async function connect() {
 	const frame = document.createElement('iframe');
-	frame.className = 'living-room__widget';
+	// Off-screen, not display:none: a hidden frame is free not to load, and the widget must play.
+	Object.assign(frame.style, {
+		position: 'absolute',
+		left: '-9999px',
+		width: '320px',
+		height: '120px',
+		border: '0',
+	});
 	frame.title = `SoundCloud player: ${SET.title} by ${SET.artist}`;
 
 	frame.allow = 'autoplay; encrypted-media';
