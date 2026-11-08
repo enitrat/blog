@@ -1,6 +1,7 @@
 import { Eyebrow } from '@/components/ui/eyebrow';
-import { ListRow, ListRows } from '@/components/ui/list-row';
 import { Page, PageHeader } from '@/components/ui/page';
+import { WorkLogo } from '@/components/work/work-logo';
+import { WorkRow } from '@/components/work/work-row';
 import { getReports, workUrl } from '@/lib/content';
 import { pageMeta } from '@/lib/meta';
 
@@ -23,29 +24,33 @@ export default function WorkPage() {
 		},
 	].filter((group) => group.reports.length > 0);
 	return (
-		<Page>
+		<Page width="wide">
 			<PageHeader>Work</PageHeader>
-			{groups.map((group) => (
-				<section
-					key={group.id}
-					id={group.id}
-					aria-label={group.label}
-					className="flex scroll-mt-6 flex-col gap-2"
-				>
-					<Eyebrow as="h2">{group.label}</Eyebrow>
-					<ListRows>
-						{group.reports.map((r) => (
-							<ListRow
-								key={r.id}
-								href={workUrl(r)}
-								date={r.data.period ?? 'Project'}
-								title={r.data.title}
-								description={r.data.summary}
-							/>
-						))}
-					</ListRows>
-				</section>
-			))}
+			<div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-16">
+				{groups.map((group) => (
+					<section
+						key={group.id}
+						id={group.id}
+						aria-label={group.label}
+						className="flex scroll-mt-6 flex-col gap-2"
+					>
+						<Eyebrow as="h2">{group.label}</Eyebrow>
+						<ul className="flex flex-col">
+							{group.reports.map((r) => (
+								<WorkRow
+									key={r.id}
+									href={workUrl(r)}
+									logo={<WorkLogo id={r.id} title={r.data.title} />}
+									title={r.data.title}
+									role={r.data.role}
+									period={r.data.period ?? 'Project'}
+									summary={r.data.summary}
+								/>
+							))}
+						</ul>
+					</section>
+				))}
+			</div>
 		</Page>
 	);
 }

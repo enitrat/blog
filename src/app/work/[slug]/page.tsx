@@ -2,9 +2,10 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Prose } from '@/components/reading/prose';
 import { Eyebrow } from '@/components/ui/eyebrow';
-import { ListRow, ListRows } from '@/components/ui/list-row';
-import { Page, PageHeader } from '@/components/ui/page';
+import { Page } from '@/components/ui/page';
 import { TextLink } from '@/components/ui/text-link';
+import { WorkLogo } from '@/components/work/work-logo';
+import { WorkRow } from '@/components/work/work-row';
 import { getReports, workUrl } from '@/lib/content';
 import { renderMarkdown } from '@/lib/markdown';
 import { pageMeta } from '@/lib/meta';
@@ -41,16 +42,25 @@ export default async function ReportPage(props: Params) {
 		.slice(0, 2);
 	return (
 		<Page width="text" as="article">
-			<PageHeader kicker={meta ? <Eyebrow as="p">{meta}</Eyebrow> : undefined} lead={summary}>
-				{title}
-			</PageHeader>
-			{site && (
-				<p>
-					<TextLink href={site} icon="external">
-						Visit website
-					</TextLink>
-				</p>
-			)}
+			<header className="flex flex-col gap-5">
+				<WorkLogo id={report.id} title={title} size="header" />
+				<div className="flex flex-col gap-2">
+					{meta && <Eyebrow as="p">{meta}</Eyebrow>}
+					<h1 className="font-display text-4xl text-balance text-foreground sm:text-5xl">
+						{title}
+					</h1>
+					{summary && (
+						<p className="text-sm leading-relaxed text-pretty text-muted-foreground">{summary}</p>
+					)}
+				</div>
+				{site && (
+					<p>
+						<TextLink href={site} icon="external">
+							Visit website
+						</TextLink>
+					</p>
+				)}
+			</header>
 
 			<Prose tree={tree} />
 
@@ -58,17 +68,18 @@ export default async function ReportPage(props: Params) {
 				{siblings.length > 0 && (
 					<nav aria-label="More work" className="flex flex-col gap-2">
 						<Eyebrow as="h2">More work</Eyebrow>
-						<ListRows>
+						<ul className="flex flex-col">
 							{siblings.map((s) => (
-								<ListRow
+								<WorkRow
 									key={s.id}
 									href={workUrl(s)}
-									date={s.data.role}
+									logo={<WorkLogo id={s.id} title={s.data.title} />}
 									title={s.data.title}
-									description={s.data.summary}
+									role={s.data.role}
+									summary={s.data.summary}
 								/>
 							))}
-						</ListRows>
+						</ul>
 					</nav>
 				)}
 				<p className="flex gap-6">
