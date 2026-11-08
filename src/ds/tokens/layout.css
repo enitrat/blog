@@ -15,9 +15,6 @@
 	/* Between the sections of a page. */
 	--gap-page: calc(var(--spacing) * 10);
 
-	--radius-tile: var(--radius-xl);
-	--radius-pill: var(--radius-full);
-	--radius-control: var(--radius-sm);
 
 	/* WCAG 2.5.5: every interactive target reaches 44px; small ones extend a hit area. */
 	--target-min: 44px;
@@ -40,6 +37,13 @@
 	--z-raised: 1;
 	--z-skip: 10;
 	--z-dialog: 40;
+}
+
+/* Radius roles compile as utilities: `rounded-tile`, `rounded-pill`, `rounded-control`. */
+@theme inline {
+	--radius-tile: var(--radius-xl);
+	--radius-pill: var(--radius-full);
+	--radius-control: var(--radius-sm);
 }
 
 @theme inline {

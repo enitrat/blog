@@ -13,14 +13,22 @@
 @import "../components/motion/tilt.tokens.css";
 
 /* ds/components/objects */
+@import "../components/objects/book-pile.tokens.css";
+@import "../components/objects/book-spine.tokens.css";
 @import "../components/objects/deck.tokens.css";
+@import "../components/objects/dither.tokens.css";
 @import "../components/objects/iso-glyph.tokens.css";
+@import "../components/objects/lightbox.tokens.css";
 @import "../components/objects/plate.tokens.css";
 @import "../components/objects/post-card.tokens.css";
 @import "../components/objects/readout.tokens.css";
+@import "../components/objects/shelf.tokens.css";
 
 /* site: reading surfaces (src/components/reading, src/app/{writing,work,reading,places}) */
+@import "../../components/reading/copy-code.tokens.css";
+@import "../../components/reading/in-short.tokens.css";
 @import "../../components/reading/prose.css";
+@import "../../components/reading/reading-page.tokens.css";
 
 /* site: home bench (src/components/home, except room) */
 @import "../../components/home/glyphs/glyphs.tokens.css";

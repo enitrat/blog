@@ -1,11 +1,18 @@
 export { Equalizer } from './components/motion/equalizer';
 export { Magnetic } from './components/motion/magnetic';
 export { Tilt } from './components/motion/tilt';
+export { BookLine } from './components/objects/book-line';
+export { BookPile } from './components/objects/book-pile';
+export { BookSpine } from './components/objects/book-spine';
 export { Deck } from './components/objects/deck';
+export { DitherImage, type DitherSource } from './components/objects/dither-image';
 export { IsoGlyph, IsoPart } from './components/objects/iso-glyph';
+export { Lightbox, type LightboxPhoto } from './components/objects/lightbox';
 export { Plate, type PlateRatio } from './components/objects/plate';
 export { PostCard, type PostCardSize } from './components/objects/post-card';
 export { Readout, type ReadoutMode } from './components/objects/readout';
+export { Shelf } from './components/objects/shelf';
+export { type PileBook, piles } from './components/objects/book';
 export {
 	Button,
 	type ButtonProps,

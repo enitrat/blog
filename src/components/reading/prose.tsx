@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { Icon, Link } from '@/ds';
+import { initDither, wrapImages } from '@/ds/components/objects/dither';
 import { cn } from '@/ds/lib/cn';
 import { IN_SHORT_LABEL } from '@/utils/inShort';
 
@@ -20,22 +21,46 @@ function addBackLinks(prose: HTMLElement, template: HTMLElement) {
 	};
 }
 
+/** Dithers the figures, revealed on hover or tap; returns the teardown. */
+function ditherFiguresIn(prose: HTMLElement) {
+	const unwrap = wrapImages(prose);
+	const stop = initDither(prose);
+	return () => {
+		stop();
+		unwrap();
+	};
+}
+
 /**
  * Essay typography for rendered markdown: Geist at the body role, one `--measure` column,
  * left-aligned and unhyphenated. `html` is trusted build-time output of `renderMarkdown`.
  */
-export function Prose({ html, className }: { html: string; className?: string }) {
+export function Prose({
+	html,
+	ditherFigures = false,
+	className,
+}: {
+	html: string;
+	/** Dither the images, revealed on hover or tap. Off by default, so diagrams stay legible. */
+	ditherFigures?: boolean;
+	className?: string;
+}) {
 	const ref = useRef<HTMLDivElement>(null);
 	const up = useRef<HTMLDivElement>(null);
 	useEffect(
 		() => (ref.current && up.current ? addBackLinks(ref.current, up.current) : undefined),
 		[],
 	);
+	useEffect(
+		() => (ref.current && ditherFigures ? ditherFiguresIn(ref.current) : undefined),
+		[ditherFigures],
+	);
 	return (
 		<>
 			<div
 				ref={ref}
 				className={cn('prose', className)}
+				data-dither-figures={ditherFigures ? '' : undefined}
 				// biome-ignore lint/security/noDangerouslySetInnerHtml: build-time markdown from src/content
 				dangerouslySetInnerHTML={{ __html: html }}
 			/>

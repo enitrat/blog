@@ -1,0 +1,71 @@
+/* The "In short" block: a counter-numbered list, so it lives here rather than in classes. */
+@layer base {
+	:where([data-slot="in-short"]) {
+		--in-short-number-w: 1.75rem;
+		--in-short-mark: var(--accent-graphic);
+	}
+}
+
+@layer components {
+	[data-slot="in-short"] {
+		max-width: var(--measure);
+		padding-block-end: calc(var(--spacing) * 8);
+		border-block-end: var(--border-hairline) solid var(--border);
+		scroll-margin-top: calc(var(--spacing) * 6);
+
+		& :where(ol) {
+			margin: calc(var(--spacing) * 4) 0 0;
+			padding: 0;
+			list-style: none;
+			counter-reset: short;
+		}
+		& :where(li) {
+			display: grid;
+			grid-template-columns: var(--in-short-number-w) 1fr;
+			counter-increment: short;
+		}
+		& :where(li)::before {
+			content: counter(short, decimal-leading-zero);
+			padding-block-start: 0.2em;
+			font-family: var(--font-mono);
+			font-size: var(--text-small);
+			color: var(--muted-foreground);
+		}
+		& :where(a) {
+			display: block;
+			padding-block: calc(var(--spacing) * 2);
+			font-size: var(--text-ui);
+			line-height: var(--text-ui--line-height);
+			color: var(--foreground);
+			text-decoration: none;
+			&:focus-visible {
+				outline: var(--focus-ring-width) solid var(--ring);
+				outline-offset: var(--focus-ring-offset);
+				border-radius: var(--radius-sm);
+			}
+		}
+		& :where(strong) {
+			display: block;
+			font-weight: var(--font-weight-semibold);
+			text-decoration: underline;
+			text-decoration-color: transparent;
+			text-decoration-thickness: var(--border-hairline);
+			text-underline-offset: 0.2em;
+			transition: text-decoration-color var(--duration-fast) var(--ease-out);
+			@media (prefers-reduced-motion: reduce) {
+				transition: none;
+			}
+		}
+		& :where(a span) {
+			color: var(--muted-foreground);
+		}
+		@media (hover: hover) {
+			& :where(a:hover strong) {
+				text-decoration-color: var(--in-short-mark);
+			}
+			& :where(a:hover span) {
+				color: var(--foreground);
+			}
+		}
+	}
+}
