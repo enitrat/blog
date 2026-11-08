@@ -12,5 +12,9 @@
 @import "../components/motion/equalizer.tokens.css";
 @import "../components/motion/tilt.tokens.css";
 
-/* site components (src/components/**) */
+/* site: reading surfaces (src/components/reading, src/app/{writing,work,reading,places}) */
 @import "../../components/reading/prose.css";
+
+/* site: home bench (src/components/home, except room) */
+
+/* site: room (src/components/home/room) */
