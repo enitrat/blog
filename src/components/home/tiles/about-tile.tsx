@@ -2,8 +2,13 @@ import { BookOpenIcon, CakeIcon, Disc3Icon, DumbbellIcon, HandIcon } from 'lucid
 import Link from 'next/link';
 import { Card, CardHeader } from '@/components/ui/card';
 
+/** Born March 2001; the age turns over on 1 March, since the day is not recorded. */
+function age(now = new Date()) {
+	return now.getFullYear() - 2001 - (now.getMonth() < 2 ? 1 : 0);
+}
+
 const FACTS = [
-	{ icon: CakeIcon, text: "I'm 25" },
+	{ icon: CakeIcon, text: `I'm ${age()}` },
 	{ icon: Disc3Icon, text: 'I record DJ sets on SoundCloud' },
 	{ icon: DumbbellIcon, text: "I'm on a quest to bench 100kg" },
 	{ icon: BookOpenIcon, text: 'I enjoy classical literature a lot' },
