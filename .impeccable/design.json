@@ -1,260 +1,395 @@
 {
-	"schemaVersion": 2,
-	"generatedAt": "2026-11-08T14:59:23.139412Z",
-	"title": "Design System: Mathieu Saugier",
-	"extensions": {
-		"colorMeta": {
-			"brand-500": {
-				"role": "primary",
-				"displayName": "Desk Violet",
-				"canonical": "#7a5af8",
-				"tonalRamp": [
-					"#3e1c96",
-					"#4a1fb8",
-					"#5925dc",
-					"#6938ef",
-					"#7a5af8",
-					"#9b8afb",
-					"#bdb4fe",
-					"#d9d6fe"
-				]
-			},
-			"gray-50": {
-				"role": "neutral",
-				"displayName": "Paper",
-				"canonical": "#f9fafb",
-				"tonalRamp": [
-					"#101828",
-					"#182230",
-					"#344054",
-					"#475467",
-					"#667085",
-					"#98a2b3",
-					"#eaecf0",
-					"#f9fafb"
-				]
-			},
-			"iron-950": {
-				"role": "neutral",
-				"displayName": "Iron Night",
-				"canonical": "#131316",
-				"tonalRamp": [
-					"#131316",
-					"#1a1a1e",
-					"#27272a",
-					"#3f3f46",
-					"#51525c",
-					"#70707b",
-					"#a0a0ab",
-					"#e4e4e7"
-				]
-			},
-			"green-500": {
-				"role": "neutral",
-				"displayName": "Live Green",
-				"canonical": "#00c758"
-			},
-			"red-500": {
-				"role": "neutral",
-				"displayName": "Signal Red",
-				"canonical": "#f04438"
-			}
-		},
-		"typographyMeta": {
-			"title": {
-				"displayName": "Title",
-				"purpose": "Page titles, once per page."
-			},
-			"body": {
-				"displayName": "Body",
-				"purpose": "Workhorse UI and card text; prose at leading-relaxed."
-			},
-			"label": {
-				"displayName": "Label",
-				"purpose": "Eyebrows, dates, metadata."
-			},
-			"code": {
-				"displayName": "Code",
-				"purpose": "Code blocks and inline code."
-			}
-		},
-		"shadows": [
-			{
-				"name": "xs",
-				"value": "0 1px 2px rgb(16 24 40 / 0.05)",
-				"purpose": "Signature shadow on every card, button and bar."
-			},
-			{
-				"name": "sm-stacked",
-				"value": "0 1px 3px rgb(39 39 42 / 0.15), 0 1px 2px -1px rgb(39 39 42 / 0.15)",
-				"purpose": "Cards stacked on cards."
-			},
-			{
-				"name": "md",
-				"value": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
-				"purpose": "Brand gradient tiles only."
-			}
-		],
-		"motion": [
-			{
-				"name": "spring-hover",
-				"value": "spring stiffness 450 damping 18 bounce 0.1",
-				"purpose": "Card and media hover, scale 1.02."
-			},
-			{
-				"name": "spring-pop",
-				"value": "spring stiffness 420 damping 16 bounce 0.2",
-				"purpose": "Small items hover, scale 1.08."
-			},
-			{
-				"name": "spring-layout",
-				"value": "spring stiffness 400 damping 40",
-				"purpose": "Layout shifts and the nav highlight."
-			},
-			{
-				"name": "spring-fan",
-				"value": "spring stiffness 320 damping 18, stagger 33.5ms",
-				"purpose": "Deck and photo fan."
-			},
-			{
-				"name": "spring-enter",
-				"value": "spring stiffness 450 damping 32 bounce 0.15",
-				"purpose": "Pop-in and exit (y -30, scale 0.9)."
-			},
-			{
-				"name": "ease-standard",
-				"value": "cubic-bezier(0.4, 0, 0.2, 1) 150ms",
-				"purpose": "CSS colour transitions."
-			}
-		],
-		"breakpoints": [
-			{
-				"name": "sm",
-				"value": "640px"
-			},
-			{
-				"name": "lg",
-				"value": "1024px"
-			},
-			{
-				"name": "xl",
-				"value": "1280px"
-			}
-		]
-	},
-	"components": [
-		{
-			"name": "Default Button",
-			"kind": "button",
-			"refersTo": "button-default",
-			"description": "White pill for ordinary actions.",
-			"html": "<button class=\"ds-btn\">Play</button>",
-			"css": ".ds-btn{font:600 14px/1 Figtree,system-ui,sans-serif;letter-spacing:-0.025em;color:#182230;background:#fff;border:1px solid #eaecf0;border-radius:9999px;padding:8px 16px 6px 14px;height:36px;box-shadow:0 1px 2px rgb(16 24 40/.05);transition:background-color .15s cubic-bezier(.4,0,.2,1);cursor:pointer}.ds-btn:hover{background:rgb(242 244 247/.5)}.ds-btn:focus-visible{outline:none;box-shadow:0 0 0 2px #f9fafb,0 0 0 4px rgb(122 90 248/.6)}"
-		},
-		{
-			"name": "Brand Button",
-			"kind": "button",
-			"refersTo": "button-brand",
-			"description": "Violet gradient pill, used sparingly.",
-			"html": "<button class=\"ds-btn-brand\">Say hi</button>",
-			"css": ".ds-btn-brand{font:600 14px/1 Figtree,system-ui,sans-serif;color:#fff;background:linear-gradient(to bottom,#9b8afb,#7a5af8);border:0;border-radius:9999px;padding:8px 16px 6px 14px;height:36px;box-shadow:0 4px 6px -1px rgb(0 0 0/.1),0 2px 4px -2px rgb(0 0 0/.1);cursor:pointer}.ds-btn-brand:hover{background:linear-gradient(to bottom,#7a5af8,#6938ef)}.ds-btn-brand:focus-visible{outline:none;box-shadow:0 0 0 2px #f9fafb,0 0 0 4px rgb(122 90 248/.6)}"
-		},
-		{
-			"name": "Glass Nav",
-			"kind": "nav",
-			"refersTo": "nav-pill",
-			"description": "Light glass pill holding the primary links.",
-			"html": "<nav class=\"ds-nav\"><a class=\"ds-nav-a ds-on\" href=\"#\">Writing</a><a class=\"ds-nav-a\" href=\"#\">Reading</a><a class=\"ds-nav-a\" href=\"#\">About</a></nav>",
-			"css": ".ds-nav{display:inline-flex;padding:2px;border-radius:9999px;border:1px solid rgb(234 236 240/.5);background:rgb(255 255 255/.5);backdrop-filter:blur(4px) saturate(1.5)}.ds-nav-a{font:400 14px/1 Figtree,system-ui,sans-serif;letter-spacing:-0.025em;color:#667085;text-decoration:none;padding:8px 12px;border-radius:9999px;transition:color .15s,background-color .15s}.ds-nav-a:hover{color:#182230;background:#f2f4f7}.ds-nav-a.ds-on{color:#101828}.ds-nav-a:focus-visible{outline:2px solid rgb(122 90 248/.6)}"
-		},
-		{
-			"name": "Card",
-			"kind": "card",
-			"refersTo": "card",
-			"description": "The desk object: white, hairline, shadow-xs.",
-			"html": "<article class=\"ds-card\"><span class=\"ds-eyebrow\">Last set</span><strong>Bouncyx Seven</strong></article>",
-			"css": ".ds-card{display:flex;flex-direction:column;gap:16px;padding:16px;background:#fff;border:1px solid #eaecf0;border-radius:12px;box-shadow:0 1px 2px rgb(16 24 40/.05);font:600 14px/1.4 Figtree,system-ui,sans-serif;color:#182230;transition:transform .2s cubic-bezier(.34,1.4,.64,1)}.ds-card:hover{transform:scale(1.02)}.ds-eyebrow{font-size:12px;font-weight:400;color:#98a2b3}"
-		},
-		{
-			"name": "Badge",
-			"kind": "chip",
-			"refersTo": "badge",
-			"description": "Violet tint flag.",
-			"html": "<span class=\"ds-badge\">Latest</span>",
-			"css": ".ds-badge{display:inline-flex;font:400 12px/1.33 Figtree,system-ui,sans-serif;color:#6938ef;background:rgb(122 90 248/.1);border-radius:9999px;padding:2px 8px}"
-		},
-		{
-			"name": "Live Dot",
-			"kind": "custom",
-			"description": "Green status dot with a ping ring.",
-			"html": "<span class=\"ds-dot\"><i></i></span>",
-			"css": ".ds-dot{position:relative;display:inline-flex;width:6px;height:6px;border-radius:9999px;background:#00c758}.ds-dot i{position:absolute;inset:0;border-radius:9999px;background:#00c758;opacity:.75;animation:ds-ping 1s cubic-bezier(0,0,.2,1) infinite}@keyframes ds-ping{75%,100%{transform:scale(2);opacity:0}}"
-		}
-	],
-	"narrative": {
-		"northStar": "The Living Desk",
-		"overview": "The site is a tidy desk of small, live objects from Mathieu's life: the last DJ set, the essay on top of the pile, the book being read, the work, the places. Each one is a white card with a hairline and the faintest shadow, laid on cool gray paper. Nothing on the desk is loud at rest. The personality arrives when a hand reaches for it: cards spring up a little, small things pop, decks fan open, and objects settle back with a light overshoot.\n\nThe system is restrained in colour, size and weight, and generous in motion. Type is one family, Figtree, set small and tight. Violet carries the brand: links, emphasis, badges, selection, and the occasional gradient tile. Dark mode is not an inverted light mode; it is a separate desk in neutral iron, with violet stepping one shade lighter so it keeps its weight.\n\nGlass is thin. Chrome that floats over content (the nav pill, dialogs, composer-style bars) is a translucent fill with a low-alpha hairline, a small 4 to 8px blur and 150% saturation. Saturation, not blur, is what makes it read as glass.",
-		"keyCharacteristics": [
-			"Cool, blue-tinted gray paper in light mode; a separate neutral iron ramp in dark mode.",
-			"White cards, 1px hairlines, and `shadow-xs` as the signature depth.",
-			"Figtree throughout, text-sm as the workhorse, tracking-tight, medium and semibold for emphasis.",
-			"Violet as the brand voice, in light and dark.",
-			"Personality lives in spring motion, not in colour or size.",
-			"Radius shrinks as nesting deepens."
-		],
-		"rules": [
-			{
-				"name": "The Two Desks Rule",
-				"body": "Dark mode uses the iron ramp, never an inverted gray. Light gray-600 text becomes iron-300, not gray-400.",
-				"section": "colors"
-			},
-			{
-				"name": "The Lighter Violet Rule",
-				"body": "Wherever light mode uses brand-600 or brand-700 for emphasis, dark mode uses brand-500 or brand-400.",
-				"section": "colors"
-			},
-			{
-				"name": "The Dark Hairline Rule",
-				"body": "Dark borders are white/10, or iron-800 at 15 to 60% alpha. Never a solid light border on iron.",
-				"section": "colors"
-			},
-			{
-				"name": "The Small Type Rule",
-				"body": "text-sm is the default. Reach for text-lg or text-xl only for page and section titles.",
-				"section": "typography"
-			},
-			{
-				"name": "The Two Weights Rule",
-				"body": "Emphasis is medium or semibold. Regular is for running text only; bold is not used.",
-				"section": "typography"
-			},
-			{
-				"name": "The Faint Shadow Rule",
-				"body": "shadow-xs is the ceiling for ordinary surfaces. Larger shadows belong to brand tiles and stacked objects only.",
-				"section": "elevation"
-			},
-			{
-				"name": "The Saturation Glass Rule",
-				"body": "Glass is 50 to 80% fill, a low-alpha hairline, 4 to 8px blur and backdrop-saturate-150. Never a heavy blur.",
-				"section": "elevation"
-			}
-		],
-		"dos": [
-			"**Do** use shadow-xs and a 1px hairline for every card.",
-			"**Do** take every spring from `src/lib/motion.ts`: hover 1.02 on large surfaces, 1.08 on small ones, tap 0.95, exit to y −30 and scale 0.9.",
-			"**Do** keep stiffness between 250 and 550 and damping between 12 and 40; bounce stays between 0.1 and 0.25.",
-			"**Do** step text links one gray darker on hover in light mode and one iron lighter in dark mode, with `transition-colors` (150ms).",
-			"**Do** set prose links underlined at a 22% offset, with the decoration colour shifting on hover.",
-			"**Do** give every interactive element a visible focus-visible ring.",
-			"**Do** respect reduced motion: state still changes, nothing springs or translates."
-		],
-		"donts": [
-			"**Don't** invert gray for dark mode; use iron.",
-			"**Don't** use heavy blur for glass; saturation carries it.",
-			"**Don't** use shadow-md outside brand gradient tiles.",
-			"**Don't** add CSS keyframes beyond `ping`; motion belongs to springs.",
-			"**Don't** set type above text-xl, or use bold.",
-			"**Don't** remove focus outlines without a replacement ring."
-		]
-	}
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-08T16:51:03+00:00",
+  "title": "Design System: Mathieu Saugier",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Oxblood",
+        "canonical": "oklch(0.47 0.15 25)",
+        "tonalRamp": [
+          "oklch(0.3 0.07 25)",
+          "oklch(0.47 0.15 25)",
+          "oklch(0.6 0.16 25)",
+          "oklch(0.7 0.13 25)",
+          "oklch(0.93 0.035 25)"
+        ]
+      },
+      "primary-dark": {
+        "role": "primary",
+        "displayName": "Brass",
+        "canonical": "oklch(0.82 0.125 78)",
+        "tonalRamp": [
+          "oklch(0.32 0.06 75)",
+          "oklch(0.68 0.12 75)",
+          "oklch(0.82 0.125 78)"
+        ]
+      },
+      "primary-soft": {
+        "role": "primary",
+        "displayName": "Oxblood Wash",
+        "canonical": "oklch(0.93 0.035 25)"
+      },
+      "primary-soft-dark": {
+        "role": "primary",
+        "displayName": "Brass Shadow",
+        "canonical": "oklch(0.32 0.06 75)"
+      },
+      "secondary": {
+        "role": "secondary",
+        "displayName": "Bottle Green",
+        "canonical": "oklch(0.43 0.075 162)",
+        "tonalRamp": [
+          "oklch(0.28 0.04 162)",
+          "oklch(0.43 0.075 162)",
+          "oklch(0.68 0.09 162)",
+          "oklch(0.93 0.025 162)"
+        ]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Cream Paper",
+        "canonical": "oklch(0.972 0.006 85)",
+        "tonalRamp": [
+          "oklch(0.165 0.01 50)",
+          "oklch(0.205 0.012 50)",
+          "oklch(0.3 0.014 50)",
+          "oklch(0.38 0.014 50)",
+          "oklch(0.58 0.014 60)",
+          "oklch(0.82 0.012 70)",
+          "oklch(0.945 0.008 80)",
+          "oklch(0.995 0.003 85)"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Card Paper",
+        "canonical": "oklch(0.995 0.003 85)"
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Walnut Ink",
+        "canonical": "oklch(0.205 0.012 50)"
+      },
+      "muted-foreground": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "canonical": "oklch(0.38 0.014 50)"
+      },
+      "faint": {
+        "role": "neutral",
+        "displayName": "Faint Ink",
+        "canonical": "oklch(0.58 0.014 60)"
+      },
+      "background-dark": {
+        "role": "neutral",
+        "displayName": "Night Room",
+        "canonical": "oklch(0.165 0.01 50)",
+        "tonalRamp": [
+          "oklch(0.165 0.01 50)",
+          "oklch(0.205 0.012 50)",
+          "oklch(0.3 0.014 50)",
+          "oklch(0.38 0.014 50)",
+          "oklch(0.58 0.014 60)",
+          "oklch(0.82 0.012 70)",
+          "oklch(0.945 0.008 80)",
+          "oklch(0.995 0.003 85)"
+        ]
+      },
+      "card-dark": {
+        "role": "neutral",
+        "displayName": "Night Card",
+        "canonical": "oklch(0.205 0.012 50)"
+      },
+      "scrim": {
+        "role": "neutral",
+        "displayName": "Night Scrim",
+        "canonical": "oklch(0.165 0.01 50)"
+      },
+      "green-500": {
+        "role": "neutral",
+        "displayName": "Live Green",
+        "canonical": "#00c758"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The About card greeting from 1100px up."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Inner page titles; 3rem from 640px."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Essay titles in the writing list."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "UI text, row titles at 600, descriptions; essays at prose-sm / prose-base."
+      },
+      "label": {
+        "displayName": "Eyebrow",
+        "purpose": "Uppercase card and section labels."
+      },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "Dates, durations, counts, with tabular figures."
+      }
+    },
+    "shadows": [
+      {
+        "name": "card",
+        "value": "0 0 0 1px var(--border), 0 1px 2px oklch(0.3 0.03 50 / 0.05)",
+        "purpose": "Day. Every card, default and glass buttons, nav pill, code blocks, thumbnails."
+      },
+      {
+        "name": "card-dark",
+        "value": "0 0 0 1px var(--border), inset 0 1px 0 oklch(1 0 0 / 0.03)",
+        "purpose": "Night card."
+      },
+      {
+        "name": "raised",
+        "value": "0 0 0 1px var(--border), 0 2px 4px oklch(0.3 0.03 50 / 0.05), 0 12px 28px -8px oklch(0.3 0.04 40 / 0.14)",
+        "purpose": "Day. Primary buttons and dialogs."
+      },
+      {
+        "name": "raised-dark",
+        "value": "0 0 0 1px var(--border-strong), inset 0 1px 0 oklch(1 0 0 / 0.05), 0 16px 32px -12px oklch(0 0 0 / 0.6)",
+        "purpose": "Night raised."
+      },
+      {
+        "name": "lifted",
+        "value": "0 0 0 1px var(--border-strong), 0 4px 8px oklch(0.3 0.03 50 / 0.06), 0 24px 48px -12px oklch(0.3 0.05 35 / 0.22)",
+        "purpose": "Day. A linked home card under the pointer."
+      },
+      {
+        "name": "lifted-dark",
+        "value": "0 0 0 1px var(--border-strong), inset 0 1px 0 oklch(1 0 0 / 0.06), 0 28px 56px -16px oklch(0 0 0 / 0.75), 0 0 48px -20px oklch(0.82 0.125 78 / 0.25)",
+        "purpose": "Night lifted, with the brass glow."
+      }
+    ],
+    "motion": [
+      {
+        "name": "spring-hover",
+        "value": "spring stiffness 450 damping 18 bounce 0.1",
+        "purpose": "Cards and media; scale 1.02, card lift 3px, row lift 2px."
+      },
+      {
+        "name": "spring-pop",
+        "value": "spring stiffness 420 damping 16 bounce 0.2",
+        "purpose": "Icons, logos, avatars; scale 1.08."
+      },
+      {
+        "name": "spring-tap",
+        "value": "spring stiffness 200 damping 12 duration 0.2s",
+        "purpose": "Press; scale 0.95 (cards 0.985)."
+      },
+      {
+        "name": "spring-enter",
+        "value": "spring stiffness 450 damping 32 bounce 0.15",
+        "purpose": "Card pop-in (45ms stagger) and exit (y -30, scale 0.9)."
+      },
+      {
+        "name": "spring-drop",
+        "value": "spring stiffness 250 damping 18 delay 0.05s",
+        "purpose": "Drop-in from above."
+      },
+      {
+        "name": "spring-lid",
+        "value": "spring stiffness 400 damping 25",
+        "purpose": "3D lid or folder."
+      },
+      {
+        "name": "spring-layout",
+        "value": "spring stiffness 400 damping 40",
+        "purpose": "Layout shifts and the nav highlight."
+      },
+      {
+        "name": "spring-fan",
+        "value": "spring stiffness 320 damping 18, stagger 33.5ms",
+        "purpose": "Photo and book fans; Elsewhere icon hover."
+      },
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1) 200ms",
+        "purpose": "Fallback tween; CSS colour transitions run at 150ms."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "bento",
+        "value": "68.75rem (1100px)"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Default Button",
+      "kind": "button",
+      "refersTo": "button-default",
+      "description": "Card pill for ordinary actions.",
+      "html": "<button class=\"ds-btn\">Listen</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:8px 16px 6px 14px;border:0;border-radius:9999px;font:600 14px/1 Geist,ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color .15s cubic-bezier(.4,0,.2,1),color .15s cubic-bezier(.4,0,.2,1);background:var(--card,oklch(0.995 0.003 85));color:var(--foreground,oklch(0.205 0.012 50));box-shadow:var(--elevation-1,0 0 0 1px oklch(0.22 0.02 50/0.09),0 1px 2px oklch(0.3 0.03 50/0.05))}.ds-btn:hover{background:var(--muted,oklch(0.945 0.008 80))}.ds-btn:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background,oklch(0.972 0.006 85)),0 0 0 4px var(--ring,oklch(0.47 0.15 25))}"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Solid accent pill: oxblood by day, brass by night.",
+      "html": "<button class=\"ds-btn-primary\">Play</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;gap:6px;height:36px;padding:8px 16px 6px 14px;border:0;border-radius:9999px;font:600 14px/1 Geist,ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color .15s cubic-bezier(.4,0,.2,1),color .15s cubic-bezier(.4,0,.2,1);background:var(--primary,oklch(0.47 0.15 25));color:var(--primary-foreground,oklch(0.995 0.003 85));box-shadow:var(--elevation-2,0 0 0 1px oklch(0.22 0.02 50/0.09),0 2px 4px oklch(0.3 0.03 50/0.05),0 12px 28px -8px oklch(0.3 0.04 40/0.14))}.ds-btn-primary:hover{opacity:.9}.ds-btn-primary:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background,oklch(0.972 0.006 85)),0 0 0 4px var(--ring,oklch(0.47 0.15 25))}"
+    },
+    {
+      "name": "Glass Button",
+      "kind": "button",
+      "refersTo": "button-glass",
+      "description": "See-through pill for chrome over images and sticky bars.",
+      "html": "<button class=\"ds-btn-glass\">Next</button>",
+      "css": ".ds-btn-glass{display:inline-flex;align-items:center;gap:6px;height:36px;padding:8px 16px 6px 14px;border:0;border-radius:9999px;font:600 14px/1 Geist,ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color .15s cubic-bezier(.4,0,.2,1),color .15s cubic-bezier(.4,0,.2,1);background:color-mix(in oklch,var(--card,oklch(0.995 0.003 85)) 60%,transparent);color:var(--foreground,oklch(0.205 0.012 50));box-shadow:var(--elevation-1,0 0 0 1px oklch(0.22 0.02 50/0.09),0 1px 2px oklch(0.3 0.03 50/0.05));backdrop-filter:blur(4px) saturate(1.5)}.ds-btn-glass:hover{background:color-mix(in oklch,var(--card,oklch(0.995 0.003 85)) 80%,transparent)}.ds-btn-glass:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background,oklch(0.972 0.006 85)),0 0 0 4px var(--ring,oklch(0.47 0.15 25))}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Text-only pill; fills on hover.",
+      "html": "<button class=\"ds-btn-ghost\">Close</button>",
+      "css": ".ds-btn-ghost{display:inline-flex;align-items:center;gap:6px;height:36px;padding:8px 16px 6px 14px;border:0;border-radius:9999px;font:600 14px/1 Geist,ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color .15s cubic-bezier(.4,0,.2,1),color .15s cubic-bezier(.4,0,.2,1);background:transparent;color:var(--muted-foreground,oklch(0.38 0.014 50))}.ds-btn-ghost:hover{background:var(--muted,oklch(0.945 0.008 80));color:var(--foreground,oklch(0.205 0.012 50))}.ds-btn-ghost:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background,oklch(0.972 0.006 85)),0 0 0 4px var(--ring,oklch(0.47 0.15 25))}"
+    },
+    {
+      "name": "Glass Nav",
+      "kind": "nav",
+      "description": "Header pill of text links; a muted highlight follows the pointer.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-a ds-on\" href=\"#\">Writing</a><a class=\"ds-nav-a\" href=\"#\">Reading</a><a class=\"ds-nav-a\" href=\"#\">Work</a></nav>",
+      "css": ".ds-nav{display:inline-flex;padding:2px;border-radius:9999px;background:color-mix(in oklch,var(--card,oklch(0.995 0.003 85)) 60%,transparent);box-shadow:var(--elevation-1,0 0 0 1px oklch(0.22 0.02 50/0.09),0 1px 2px oklch(0.3 0.03 50/0.05));backdrop-filter:blur(4px) saturate(1.5)}.ds-nav-a{font:500 14px/1.4 Geist,ui-sans-serif,system-ui,sans-serif;padding:6px 12px;border-radius:9999px;color:var(--muted-foreground,oklch(0.38 0.014 50));text-decoration:none;transition:color .15s,background-color .15s}.ds-nav-a:hover{color:var(--foreground,oklch(0.205 0.012 50));background:var(--muted,oklch(0.945 0.008 80))}.ds-nav-a.ds-on{color:var(--foreground,oklch(0.205 0.012 50))}.ds-nav-a:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background,oklch(0.972 0.006 85)),0 0 0 4px var(--ring,oklch(0.47 0.15 25))}"
+    },
+    {
+      "name": "Home Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "One bento card: one inset, one eyebrow row; a linked card lifts.",
+      "html": "<a class=\"ds-card\" href=\"#\"><header class=\"ds-eyebrow\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\"><path d=\"M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20\"/></svg>Reading</header><strong class=\"ds-card-title\">Title of the book</strong><span class=\"ds-card-meta\">Author</span></a>",
+      "css": ".ds-card{display:flex;flex-direction:column;gap:12px;width:260px;padding:1rem;border-radius:1.5rem;background:var(--card,oklch(0.995 0.003 85));box-shadow:var(--elevation-1,0 0 0 1px oklch(0.22 0.02 50/0.09),0 1px 2px oklch(0.3 0.03 50/0.05));color:var(--foreground,oklch(0.205 0.012 50));text-decoration:none;transition:box-shadow .3s,transform .3s}.ds-card:hover{box-shadow:var(--elevation-3,0 0 0 1px oklch(0.22 0.02 50/0.16),0 4px 8px oklch(0.3 0.03 50/0.06),0 24px 48px -12px oklch(0.3 0.05 35/0.22));transform:translateY(-3px)}.ds-card:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background,oklch(0.972 0.006 85)),0 0 0 4px var(--ring,oklch(0.47 0.15 25))}.ds-eyebrow{display:flex;align-items:center;gap:6px;height:20px;font:500 11.5px/20px Geist,ui-sans-serif,system-ui,sans-serif;letter-spacing:.07em;text-transform:uppercase;color:var(--faint,oklch(0.58 0.014 60))}.ds-card-title{font:600 14px/1.4 Geist,ui-sans-serif,system-ui,sans-serif}.ds-card-meta{font:400 13px/1.4 Geist,ui-sans-serif,system-ui,sans-serif;color:var(--faint,oklch(0.58 0.014 60))}"
+    },
+    {
+      "name": "Badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Small non-interactive flag in the accent wash.",
+      "html": "<span class=\"ds-badge\">Latest</span>",
+      "css": ".ds-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:9999px;background:var(--primary-soft,oklch(0.93 0.035 25));color:var(--primary,oklch(0.47 0.15 25));font:500 12px/1.33 Geist,ui-sans-serif,system-ui,sans-serif}"
+    },
+    {
+      "name": "List Row",
+      "kind": "custom",
+      "refersTo": "list-row",
+      "description": "Inner-page row: date column, title, description, hairline above.",
+      "html": "<ul class=\"ds-rows\"><li><a class=\"ds-row\" href=\"#\"><time class=\"ds-row-date\">March 2026</time><span><strong class=\"ds-row-title\">Essay title</strong><span class=\"ds-row-desc\">One line of description.</span></span></a></li><li><a class=\"ds-row\" href=\"#\"><time class=\"ds-row-date\">January 2026</time><span><strong class=\"ds-row-title\">Another essay</strong><span class=\"ds-row-desc\">One line of description.</span></span></a></li></ul>",
+      "css": ".ds-rows{list-style:none;margin:0;padding:0;width:480px}.ds-rows li+li{border-top:1px solid var(--border,oklch(0.22 0.02 50/0.09))}.ds-row{display:flex;gap:16px;align-items:baseline;margin:0 -12px;padding:16px 12px;border-radius:.75rem;text-decoration:none;transition:background-color .15s}.ds-row:hover{background:var(--muted,oklch(0.945 0.008 80))}.ds-row:focus-visible{outline:none;box-shadow:0 0 0 2px var(--background,oklch(0.972 0.006 85)),0 0 0 4px var(--ring,oklch(0.47 0.15 25))}.ds-row-date{flex:none;width:8rem;font:500 12px/1.33 Geist,ui-sans-serif,system-ui,sans-serif;font-variant-numeric:tabular-nums;color:var(--faint,oklch(0.58 0.014 60))}.ds-row-title{display:block;font:600 14px/1.4 Geist,ui-sans-serif,system-ui,sans-serif;color:var(--foreground,oklch(0.205 0.012 50))}.ds-row-desc{display:block;margin-top:2px;font:400 14px/1.625 Geist,ui-sans-serif,system-ui,sans-serif;color:var(--muted-foreground,oklch(0.38 0.014 50))}"
+    },
+    {
+      "name": "Page Title",
+      "kind": "custom",
+      "description": "Serif headline of an inner page with its muted lead.",
+      "html": "<header class=\"ds-ph\"><h1>Writing</h1><p>A lead sentence under the title.</p></header>",
+      "css": ".ds-ph h1{margin:0;font:400 2.25rem/1.1 'Instrument Serif',ui-serif,Georgia,serif;color:var(--foreground,oklch(0.205 0.012 50))}.ds-ph p{margin:8px 0 0;font:400 14px/1.625 Geist,ui-sans-serif,system-ui,sans-serif;color:var(--muted-foreground,oklch(0.38 0.014 50))}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Living Room, Day and Night",
+    "overview": "Every colour is an ink sampled from the render of Mathieu's living room. By day: cream paper, walnut-black ink, oxblood. By night: the same room after dark, with brass, the lamp, in place of oxblood. The home page is a bento of fixed-height cards, each one real object from Mathieu's life; inner pages are calm reading pages of hairline rows and long text. Instrument Serif sets titles, Geist sets the interface and the reading, Geist Mono sets dates and counts. Motion is springy and comes from one file of presets.",
+    "keyCharacteristics": [
+      "Primitive OKLCH ramps plus semantic roles; components name roles only.",
+      "Oxblood accent by day, brass by night.",
+      "Instrument Serif display, Geist UI, Geist Mono metadata.",
+      "One card grammar: one inset, one eyebrow row, media to the edge.",
+      "The hairline lives inside the shadow; cards have no border.",
+      "No footer on home."
+    ],
+    "rules": [
+      {
+        "name": "The Roles Only Rule",
+        "body": "Components name roles, never a ramp step or a dark: colour variant. design-tokens.test.ts enforces it.",
+        "section": "colors"
+      },
+      {
+        "name": "The Lamp Rule",
+        "body": "Oxblood by day, brass by night. Never carry one into the other theme.",
+        "section": "colors"
+      },
+      {
+        "name": "The Night Scrim Rule",
+        "body": "The scrim is night in both themes; .dark does not re-role it.",
+        "section": "colors"
+      },
+      {
+        "name": "The Dither Rule",
+        "body": "Place photos are an ordered-dither duotone in --dither-ink and --dither-paper, so mixed sources read as one set.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Serif Weight Rule",
+        "body": "Instrument Serif is loaded at 400 only; serif hierarchy comes from size.",
+        "section": "typography"
+      },
+      {
+        "name": "The Serif for Names Rule",
+        "body": "The serif sets titles, the greeting and logo initials; UI and prose stay in Geist.",
+        "section": "typography"
+      },
+      {
+        "name": "The Hairline in the Shadow Rule",
+        "body": "Never add a border to a card; the 1px ring is the first layer of every elevation.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Glass Rule",
+        "body": "Glass is card at 60%, 4px blur, 150% saturation; dialogs card at 80%, 8px blur.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Nested Radius Rule",
+        "body": "Media radius equals card radius minus the inset.",
+        "section": "shapes"
+      },
+      {
+        "name": "The One Inset, One Eyebrow Rule",
+        "body": "Every home card opens with the same 20px eyebrow row and holds content at the one inset.",
+        "section": "components"
+      },
+      {
+        "name": "The Fixed Row Rule",
+        "body": "Bento rows have fixed heights; a card fits its cell.",
+        "section": "layout"
+      }
+    ],
+    "dos": [
+      "Do name roles in components, and add a role before reaching for a ramp.",
+      "Do give every home card the one inset and the one eyebrow row.",
+      "Do derive nested radii from rounded-card minus p-inset.",
+      "Do use the serif at 400 for titles, Geist for everything else, Geist Mono with tabular figures for dates and counts.",
+      "Do keep inner pages as hairline rows on the page background.",
+      "Do put the scrim behind any text set on a photograph.",
+      "Do show a 2px ring-role focus ring on every interactive element."
+    ],
+    "donts": [
+      "Don't use a ramp step or a dark: colour variant in a component class.",
+      "Don't add a border to a card; the hairline lives in the shadow.",
+      "Don't wrap inner-page content in cards.",
+      "Don't set the serif bold, or set UI text in the serif.",
+      "Don't put an invented label above a page title. That slot holds real metadata only.",
+      "Don't let a bento card grow its row.",
+      "Don't inline a spring."
+    ]
+  }
 }

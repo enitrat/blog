@@ -1,260 +1,303 @@
 ---
 name: Mathieu Saugier
-description: A living desk of small springy cards on cool gray paper, Figtree type, an iron dark mode, and violet for the brand.
+description: The living room by day and by night. Cream paper, walnut-black ink and oxblood in light; the room after dark, lit by brass. A bento of cards on the home page, calm reading pages everywhere else.
 colors:
-  gray-25: "#fcfcfd"
-  gray-50: "#f9fafb"
-  gray-100: "#f2f4f7"
-  gray-200: "#eaecf0"
-  gray-300: "#d0d5dd"
-  gray-400: "#98a2b3"
-  gray-500: "#667085"
-  gray-600: "#475467"
-  gray-700: "#344054"
-  gray-800: "#182230"
-  gray-900: "#101828"
-  iron-100: "#f4f4f5"
-  iron-200: "#e4e4e7"
-  iron-300: "#d1d1d6"
-  iron-400: "#a0a0ab"
-  iron-500: "#70707b"
-  iron-600: "#51525c"
-  iron-700: "#3f3f46"
-  iron-800: "#27272a"
-  iron-900: "#1a1a1e"
-  iron-950: "#131316"
-  iron-fade: "#17171a"
-  brand-200: "#d9d6fe"
-  brand-300: "#bdb4fe"
-  brand-400: "#9b8afb"
-  brand-500: "#7a5af8"
-  brand-600: "#6938ef"
-  brand-700: "#5925dc"
-  brand-800: "#4a1fb8"
-  brand-900: "#3e1c96"
-  red-500: "#f04438"
+  paper-0: "oklch(0.995 0.003 85)"
+  paper-50: "oklch(0.972 0.006 85)"
+  paper-100: "oklch(0.945 0.008 80)"
+  paper-300: "oklch(0.82 0.012 70)"
+  paper-400: "oklch(0.7 0.013 65)"
+  paper-500: "oklch(0.58 0.014 60)"
+  paper-700: "oklch(0.38 0.014 50)"
+  paper-850: "oklch(0.245 0.013 50)"
+  paper-900: "oklch(0.205 0.012 50)"
+  paper-950: "oklch(0.165 0.01 50)"
+  oxblood-100: "oklch(0.93 0.035 25)"
+  oxblood-600: "oklch(0.47 0.15 25)"
+  brass-300: "oklch(0.82 0.125 78)"
+  brass-800: "oklch(0.32 0.06 75)"
+  bottle-400: "oklch(0.68 0.09 162)"
+  bottle-600: "oklch(0.43 0.075 162)"
   green-500: "#00c758"
-  white: "#ffffff"
+  background: "oklch(0.972 0.006 85)"
+  foreground: "oklch(0.205 0.012 50)"
+  card: "oklch(0.995 0.003 85)"
+  muted: "oklch(0.945 0.008 80)"
+  muted-foreground: "oklch(0.38 0.014 50)"
+  faint: "oklch(0.58 0.014 60)"
+  border: "oklch(0.22 0.02 50 / 0.09)"
+  border-strong: "oklch(0.22 0.02 50 / 0.16)"
+  primary: "oklch(0.47 0.15 25)"
+  primary-foreground: "oklch(0.995 0.003 85)"
+  primary-soft: "oklch(0.93 0.035 25)"
+  secondary: "oklch(0.43 0.075 162)"
+  ring: "oklch(0.47 0.15 25)"
+  scrim: "oklch(0.165 0.01 50)"
+  scrim-foreground: "oklch(0.972 0.006 85)"
+  background-dark: "oklch(0.165 0.01 50)"
+  foreground-dark: "oklch(0.945 0.008 80)"
+  card-dark: "oklch(0.205 0.012 50)"
+  muted-dark: "oklch(0.245 0.013 50)"
+  muted-foreground-dark: "oklch(0.82 0.012 70)"
+  faint-dark: "oklch(0.7 0.013 65)"
+  border-dark: "oklch(0.95 0.02 85 / 0.075)"
+  border-strong-dark: "oklch(0.95 0.02 85 / 0.14)"
+  primary-dark: "oklch(0.82 0.125 78)"
+  primary-foreground-dark: "oklch(0.205 0.012 50)"
+  primary-soft-dark: "oklch(0.32 0.06 75)"
+  secondary-dark: "oklch(0.68 0.09 162)"
+  ring-dark: "oklch(0.82 0.125 78)"
 typography:
+  display:
+    fontFamily: "Instrument Serif, ui-serif, Georgia, serif"
+    fontSize: "3.5rem"
+    fontWeight: 400
+    lineHeight: 1
+    letterSpacing: "-0.015em"
+  headline:
+    fontFamily: "Instrument Serif, ui-serif, Georgia, serif"
+    fontSize: "2.25rem"
+    fontWeight: 400
+    lineHeight: 1.1
   title:
-    fontFamily: "Figtree, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1.25rem"
-    fontWeight: 600
-    lineHeight: 1.4
-    letterSpacing: "-0.025em"
-  heading:
-    fontFamily: "Figtree, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1.125rem"
-    fontWeight: 600
-    lineHeight: 1.55
-    letterSpacing: "-0.025em"
+    fontFamily: "Instrument Serif, ui-serif, Georgia, serif"
+    fontSize: "1.5rem"
+    fontWeight: 400
+    lineHeight: 1.25
   body:
-    fontFamily: "Figtree, ui-sans-serif, system-ui, sans-serif"
+    fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
     fontSize: "0.875rem"
     fontWeight: 400
     lineHeight: 1.625
-    letterSpacing: "-0.025em"
   label:
-    fontFamily: "Figtree, ui-sans-serif, system-ui, sans-serif"
+    fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "0.71875rem"
+    fontWeight: 500
+    lineHeight: "1.25rem"
+    letterSpacing: "0.07em"
+  meta:
+    fontFamily: "Geist Mono, ui-monospace, SFMono-Regular, Menlo, monospace"
     fontSize: "0.75rem"
     fontWeight: 400
     lineHeight: 1.33
-    letterSpacing: "-0.025em"
-  code:
-    fontFamily: "Geist Mono, ui-monospace, SFMono-Regular, Menlo, monospace"
-    fontSize: "0.8125rem"
-    fontWeight: 400
-    lineHeight: 1.7
+    letterSpacing: "-0.01em"
 rounded:
-  xs: "2px"
-  sm: "4px"
-  md: "6px"
-  lg: "8px"
-  xl: "12px"
-  2xl: "16px"
-  full: "9999px"
+  card: "1.5rem"
+  media: "0.5rem"
 spacing:
-  0.5: "2px"
-  1: "4px"
-  1.5: "6px"
-  2: "8px"
-  4: "16px"
+  inset: "1rem"
+  gutter: "0.75rem"
 components:
+  card:
+    backgroundColor: "{colors.card}"
+    rounded: "{rounded.card}"
+    padding: "{spacing.inset}"
+  card-media:
+    rounded: "{rounded.media}"
   button-default:
-    backgroundColor: "{colors.white}"
-    textColor: "{colors.gray-800}"
-    rounded: "{rounded.full}"
+    backgroundColor: "{colors.card}"
+    textColor: "{colors.foreground}"
+    rounded: "9999px"
     padding: "8px 16px 6px 14px"
     height: "36px"
   button-default-hover:
-    backgroundColor: "{colors.gray-100}"
-  button-brand:
-    backgroundColor: "{colors.brand-500}"
-    textColor: "{colors.white}"
-    rounded: "{rounded.full}"
+    backgroundColor: "{colors.muted}"
+  button-primary:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.primary-foreground}"
+    rounded: "9999px"
     padding: "8px 16px 6px 14px"
     height: "36px"
   button-glass:
-    textColor: "{colors.gray-800}"
-    rounded: "{rounded.full}"
+    textColor: "{colors.foreground}"
+    rounded: "9999px"
     height: "36px"
-  card:
-    backgroundColor: "{colors.white}"
-    rounded: "{rounded.xl}"
-    padding: "16px"
-  card-dark:
-    backgroundColor: "{colors.iron-900}"
-    rounded: "{rounded.xl}"
-    padding: "16px"
-  nav-pill:
-    textColor: "{colors.gray-500}"
-    rounded: "{rounded.full}"
-    padding: "6px 12px"
+  button-ghost:
+    textColor: "{colors.muted-foreground}"
+    rounded: "9999px"
+    height: "36px"
+  button-ghost-hover:
+    backgroundColor: "{colors.muted}"
+    textColor: "{colors.foreground}"
   badge:
-    textColor: "{colors.brand-600}"
-    rounded: "{rounded.full}"
+    backgroundColor: "{colors.primary-soft}"
+    textColor: "{colors.primary}"
+    rounded: "9999px"
     padding: "2px 8px"
+  eyebrow:
+    textColor: "{colors.faint}"
+    typography: "{typography.label}"
+  list-row:
+    textColor: "{colors.foreground}"
+    rounded: "0.75rem"
+    padding: "16px 12px"
+  list-row-hover:
+    backgroundColor: "{colors.muted}"
 ---
 
 # Design System: Mathieu Saugier
 
 ## Overview
 
-**Creative North Star: "The Living Desk"**
+**Creative North Star: "The Living Room, Day and Night"**
 
-The site is a tidy desk of small, live objects from Mathieu's life: the last DJ set, the essay on top of the pile, the book being read, the work, the places. Each one is a white card with a hairline and the faintest shadow, laid on cool gray paper. Nothing on the desk is loud at rest. The personality arrives when a hand reaches for it: cards spring up a little, small things pop, decks fan open, and objects settle back with a light overshoot.
+Every colour on the site is an ink sampled from one picture: the render of Mathieu's living room (`src/assets/living-room.png`). By day the room is cream paper, walnut-black ink and an oxblood accent. By night it is the same room after dark, and brass, the lamp, takes over from oxblood. Dark mode is a second lighting of the room. It is not an inverted light mode.
 
-The system is restrained in colour, size and weight, and generous in motion. Type is one family, Figtree, set small and tight. Violet carries the brand: links, emphasis, badges, selection, and the occasional gradient tile. Dark mode is not an inverted light mode; it is a separate desk in neutral iron, with violet stepping one shade lighter so it keeps its weight.
+The site has two speeds, and the visual system has two registers to match. The home page is a bento: a grid of cards with fixed-height rows, each card one real object from Mathieu's life (about, latest writing, the last set, reading, work, Elsewhere, and Places, Now and Bench once they have data). The inner pages are calm reading pages. They hold hairline-separated rows and long text, not cards.
 
-Glass is thin. Chrome that floats over content (the nav pill, dialogs, composer-style bars) is a translucent fill with a low-alpha hairline, a small 4 to 8px blur and 150% saturation. Saturation, not blur, is what makes it read as glass.
+Type pairs a serif for display with a grotesk for everything else, and a mono for dates and counts. Motion is springy and comes from one file of presets.
 
 **Key Characteristics:**
-- Cool, blue-tinted gray paper in light mode; a separate neutral iron ramp in dark mode.
-- White cards, 1px hairlines, and `shadow-xs` as the signature depth.
-- Figtree throughout, text-sm as the workhorse, tracking-tight, medium and semibold for emphasis.
-- Violet as the brand voice, in light and dark.
-- Personality lives in spring motion, not in colour or size.
-- Radius shrinks as nesting deepens.
+- Two token layers: primitive OKLCH ramps that never change with the theme, and semantic roles that pick a primitive per theme. Components name roles only.
+- Oxblood accent by day, brass accent by night.
+- Instrument Serif for display, Geist for UI and reading, Geist Mono for metadata.
+- One card grammar on the home page: one inset, one eyebrow row, media to the edge.
+- Depth from a hairline ring folded into a soft shadow, never from a separate border.
+- No footer on home; the Elsewhere card holds the contact links.
 
 ## Colors
 
-A cool gray paper desk by day, a neutral iron desk by night, and one violet that carries the brand across both.
+Warm neutrals from the room's paper and wood, one accent per theme, and a night scrim that never lightens.
 
 ### Primary
-- **Desk Violet** (brand-500 / brand-600): The brand. Links and their hover step (600 → 700 in light, 400 → 300 in dark), badges, the text selection, focus rings, and brand gradient tiles (brand-300 → 400 or 400 → 500).
-- **Deep Violet** (brand-700 to brand-900): Pressed and hovered brand text, selection text, and the bottom of gradients.
-- **Pale Violet** (brand-200 / brand-300): Selection fill in light mode and the top of light gradient tiles.
+- **Oxblood** (`primary`, oxblood-600): the day accent. Inline links, the name in the About card, icons in the About list, solid primary buttons, focus rings, text selection, the default status dot.
+- **Oxblood Wash** (`primary-soft`, oxblood-100): the badge fill by day.
+- **Brass** (`primary-dark`, brass-300): the night accent. It takes every role oxblood holds by day. Text on it is dark paper (`primary-foreground-dark`, paper-900).
+- **Brass Shadow** (`primary-soft-dark`, brass-800): the badge fill by night.
+
+### Secondary
+- **Bottle Green** (`secondary`, bottle-600 by day; bottle-400 by night): a defined role from the room's bottle green. No component uses it yet.
 
 ### Neutral
-- **Paper** (gray-50): The light page background, and the colour edge fades dissolve into.
-- **Card White** (white): Card and button surfaces in light mode.
-- **Hairline Gray** (gray-200 / gray-100): Borders and dividers in light mode, at full strength or 40 to 80% alpha.
-- **Ink Steps** (gray-400 → gray-900): Text, from muted captions (400) through secondary text (500, 600) to headings (800, 900).
-- **Iron Night** (iron-950): The dark page background, fading into iron-fade at edges.
-- **Iron Card** (iron-900): Card surfaces in dark mode.
-- **Iron Steps** (iron-400 → iron-100): Dark-mode text. Body prose is iron-300; muted captions iron-400; headings iron-100 or white.
-- **Signal Red / Live Green** (red-500, green-500): Errors and live-status dots only.
+- **Cream Paper** (`background`, paper-50): the page by day.
+- **Card Paper** (`card`, paper-0): card, button and code-block surfaces by day.
+- **Muted Paper** (`muted`, paper-100): hover fills on rows and ghost buttons, image placeholders, the nav highlight.
+- **Walnut Ink** (`foreground`, paper-900): headings and primary text.
+- **Muted Ink** (`muted-foreground`, paper-700): descriptions, body prose, secondary text.
+- **Faint Ink** (`faint`, paper-500): eyebrows, dates, counts, captions, trailing arrows.
+- **Hairline** (`border`) and **Strong Hairline** (`border-strong`): translucent walnut by day and translucent cream by night, so the line takes the colour of the surface under it. `border-strong` marks the lifted state and prose table and quote rules.
+- **Night Room** (`background-dark`, paper-950), **Night Card** (`card-dark`, paper-900), **Night Muted** (`muted-dark`, paper-850): the same roles after dark, on the same paper ramp read from the dark end.
+- **Night Scrim** (`scrim`, paper-950, with `scrim-foreground`, paper-50): the overlay behind photos, the writing card's banner and the lightbox.
+- **Live Green** (green-500): the live ping of the status dot, and nothing else.
 
 ### Named Rules
-**The Two Desks Rule.** Dark mode uses the iron ramp, never an inverted gray. Light gray-600 text becomes iron-300, not gray-400.
+**The Roles Only Rule.** Components name roles (`bg-card`, `text-faint`, `border-border`, `text-primary`), never a ramp step and never a `dark:` colour variant. `src/lib/design-tokens.test.ts` fails the build otherwise. Retint the site by editing a ramp; re-role it by editing the `:root` and `.dark` blocks.
 
-**The Lighter Violet Rule.** Wherever light mode uses brand-600 or brand-700 for emphasis, dark mode uses brand-500 or brand-400.
+**The Lamp Rule.** The accent changes hue with the light: oxblood by day, brass by night. Never carry oxblood into dark mode or brass into light mode.
 
-**The Dark Hairline Rule.** Dark borders are white/10, or iron-800 at 15 to 60% alpha. Never a solid light border on iron.
+**The Night Scrim Rule.** The scrim is night in both themes. `.dark` does not re-role it, so text over a photo is always light on dark.
+
+**The Dither Rule.** Place photographs are drawn as an ordered-dither duotone on a canvas. Its two inks come from `--dither-ink` and `--dither-paper` in `:root` and `.dark` (paper-850 on paper-50 by day, paper-900 on paper-300 by night), so every photo, whatever its source, reads as one set.
 
 ## Typography
 
-**Body Font:** Figtree (with ui-sans-serif, system-ui)
-**Code Font:** Geist Mono (with ui-monospace, Menlo)
+**Display Font:** Instrument Serif (with ui-serif, Georgia), weight 400 only, roman and italic
+**Body Font:** Geist (with ui-sans-serif, system-ui)
+**Label/Mono Font:** Geist Mono (with ui-monospace, Menlo)
 
-**Character:** One geometric grotesk with a friendly, rounded voice, set small, tight and antialiased. Hierarchy comes from weight and gray step, not from size jumps.
+**Character:** A tall, narrow serif sets names and titles; a neutral grotesk carries the interface and the reading; a mono sets anything that is a number or a date.
 
 ### Hierarchy
-- **Title** (600, 1.25rem): Page titles. Used once per page.
-- **Heading** (600, 1.125rem): Section headings in prose and large card titles.
-- **Body** (400, 0.875rem, line-height 1.625): The workhorse for UI and card text. Prose uses leading-relaxed and `text-wrap: pretty`, measured to max-w-xl.
-- **Label** (400, 0.75rem): Card eyebrows, dates, metadata, counts.
-- **Code** (Geist Mono 400, 0.8125rem): Code blocks and inline code only.
+- **Display** (Instrument Serif 400, 3.5rem, line-height 1, tracking -0.015em): the greeting in the About card from 1100px up. It steps down to 2.25rem below that.
+- **Headline** (Instrument Serif 400, 2.25rem, 3rem from 640px): the page title on every inner page, essays and Field Reports included.
+- **Title** (Instrument Serif 400, 1.5rem, leading tight): essay titles in the writing list.
+- **Body** (Geist 400, 0.875rem, line-height 1.625): UI text, row titles (at 600), descriptions. Essays use Tailwind Typography at `prose-sm`, `prose-base` from 640px, inside a 36rem column.
+- **Label** (Geist 500, 0.71875rem, line-height 1.25rem, tracking 0.07em, uppercase): the eyebrow. Card headers and section headings on inner pages.
+- **Meta** (Geist Mono 400, 0.75rem, tracking -0.01em, tabular figures): dates, durations, years, the In short numbering.
 
 ### Named Rules
-**The Small Type Rule.** text-sm is the default. Reach for text-lg or text-xl only for page and section titles.
+**The One Serif Weight Rule.** Instrument Serif is loaded at 400 only. Hierarchy in the serif comes from size, never weight.
 
-**The Two Weights Rule.** Emphasis is medium or semibold. Regular is for running text only; bold is not used.
+**The Serif for Names Rule.** The serif sets page titles, essay titles, the greeting and a company's initial when its logo is missing. Interface text, labels and running prose stay in Geist.
 
 ## Layout
 
-Spacing runs on a 4px base. gap-1.5 (6px) is the default rhythm between cards and controls; gap-1, gap-2, gap-4 and gap-0.5 follow. Containers are max-w-xl (36rem) for reading, max-w-3xl (48rem) for lists, and max-w-7xl (80rem) for the shell.
+The shell is one centred column, at most 90rem wide, with 1rem side padding (2rem from 640px). A sticky header sits 0.75rem from the top.
 
-The home page is one viewport on desktop. A sidebar on the left holds the introduction; a dense grid of small cards fills the rest, sized so nothing scrolls from 1024px up. On phones the sidebar and cards stack in one column and the page scrolls.
+**The home bento.** A dense grid with a 0.75rem gutter (`gap-gutter`) and fixed-height rows, so the grid keeps its proportions on any window and spare height sits below it. Phones: 2 columns of 11rem rows. From 640px: 4 columns of 10rem rows. From 1100px (68.75rem): 8 columns of 12.125rem rows, which fill a 1440 by 900 window under the header. About takes 2 by 2, Writing 6 by 2, Set 4 by 1, Reading 2 by 2, Elsewhere 2 by 1, Work 6 by 1. Places, Now and Bench share a fifth row at widths 3 : 2 : 1, and only when they have data.
 
-Pills use asymmetric, optically weighted padding: tighter at the bottom and left, looser at the top and right (8px 16px 6px 14px).
+**Inner pages.** One column with a 2.5rem rhythm between blocks, 2rem above and 4rem below. Three widths: 36rem for reading (essays, Field Reports, About), 48rem for lists (writing, work), 80rem for wide pages (reading, places).
+
+**The Fixed Row Rule.** Bento rows have fixed heights. A card fits its cell; it never grows the row.
 
 ## Elevation & Depth
 
-Depth is quiet and mostly structural. Cards sit on the paper with a hairline and `shadow-xs`; motion, not shadow, signals that something can be picked up.
+Depth is a hairline and a soft, warm shadow folded into one value. Cards carry no separate border: the first layer of every elevation is a 1px ring in the border colour. By day the shadows are tinted walnut. By night they are black, with a faint top highlight, and the lifted state adds a brass glow, the lamp catching the card.
 
 ### Shadow Vocabulary
-- **Signature** (`box-shadow: 0 1px 2px rgb(16 24 40 / 0.05)`): Every card, button and composer bar. The default.
-- **Stacked** (`shadow-sm` tinted zinc-800/15): Cards stacked on cards, such as decks and book piles.
-- **Brand lift** (`shadow-md`): Brand gradient tiles only.
-- **Image glow**: A duplicate of the image behind it, blurred 16px, saturated ×6, at 70% opacity and shifted 8px down; in dark mode 15% opacity and saturation ×12.
+- **Card** (`shadow-card`): every card, default and glass buttons, the nav pill, code blocks, banner thumbnails. Hairline plus a 1 to 2px contact shadow.
+- **Raised** (`shadow-raised`): solid primary buttons and dialogs. Adds a 12 to 16px soft drop.
+- **Lifted** (`shadow-lifted`): a linked home card under the pointer. Strong hairline and a 24 to 28px drop; at night, a brass glow.
+
+Exact values for both themes live in `.impeccable/design.json`.
 
 ### Named Rules
-**The Faint Shadow Rule.** shadow-xs is the ceiling for ordinary surfaces. Larger shadows belong to brand tiles and stacked objects only.
+**The Hairline in the Shadow Rule.** Never add `border` to a card. The ring is part of the shadow, so a card has one edge in both themes.
 
-**The Saturation Glass Rule.** Glass is 50 to 80% fill, a low-alpha hairline, 4 to 8px blur and backdrop-saturate-150. Never a heavy blur.
+**The Glass Rule.** Glass is the card colour at 60% with a 4px blur and 150% saturation, used for the nav pill, the glass button and carousel arrows. Dialogs are the card at 80% with an 8px blur.
 
 ## Shapes
 
-Corners are soft and get tighter as nesting deepens: pills and avatars are fully round, cards and media frames are 12px, chat bubbles and glow tiles 16px, mini cards 6px, and the lowest piece of a stack 2px at the bottom. Media frames carry a translucent hairline (iron-950/10). Edge fades are three-stop and eased (from paper, through paper/50 at 75%, to transparent), never a plain two-stop fade.
+Corners are generous on cards and tighten as they nest. A card is 1.5rem (`rounded-card`). Media inside a card is the card radius minus the inset (`rounded-media`, 0.5rem), so the inner curve stays concentric with the outer one. Buttons, the nav, badges and chips are full pills. Interactive rows on inner pages round their hover fill at 0.75rem and bleed 0.75rem past the column on each side, so text stays aligned while the hover reads as a soft plate. Company logos are rounded squares: 0.5rem at 44px in rows, 1rem at 64px in Field Report headers, each with a hairline.
+
+**The Nested Radius Rule.** Inner radius equals outer radius minus the gap between them. Change `--radius-card` or `--spacing-inset` and media follows.
 
 ## Components
 
 ### Buttons
-- **Shape:** Full pill (9999px), 36px tall; 28px in the small size.
-- **Default:** White fill, gray-200 hairline, shadow-xs, gray-800 semibold text; hover lifts to gray-100/50. Dark: iron-900 on a white/10 hairline.
-- **Brand:** Violet gradient (brand-400 → 500) with white text and shadow-md.
-- **Glass:** white/50 fill, gray-200/50 hairline, 4px blur, saturate 150; dark iron-950/65 on iron-600/25.
-- **Ghost:** Text only, with a gray-100 (dark iron-800) fill on hover.
-- **Focus:** A 2px brand-500/60 ring with an offset, on every interactive element.
+- **Shape:** full pill, 36px tall (28px small), with optically weighted padding: 8px top, 16px right, 6px bottom, 14px left. Icon buttons are 36px or 28px squares.
+- **Default:** card fill, foreground text, semibold, card shadow; hover fills with muted.
+- **Primary:** accent fill, primary-foreground text, raised shadow; hover at 90%.
+- **Glass:** card at 60% with blur and saturation (see the Glass Rule); for chrome over images and sticky bars.
+- **Ghost:** muted-foreground text; hover fills with muted and darkens the text.
+- **Focus:** a 2px ring in the ring role, offset 2px from the background, on every interactive element.
 
-### Cards / Containers
-- **Corner Style:** 12px.
-- **Background:** White in light mode, iron-900 in dark mode.
-- **Shadow Strategy:** Signature shadow-xs (see Elevation & Depth).
-- **Border:** 1px gray-200, or white/10 in dark mode.
-- **Internal Padding:** 16px, with gap-4 between the eyebrow header and the body.
-- **Motion:** A linked card springs to scale 1.02 on hover (stiffness 450, damping 18); cards pop in on load with a short stagger.
+### Cards (home)
+- **Corner Style:** 1.5rem.
+- **Background:** card role. Photo cards put the image full-bleed under a night scrim.
+- **Shadow Strategy:** card shadow at rest; a linked card rises 3px on the hover spring and takes the lifted shadow, then presses on tap.
+- **Internal Padding:** one inset, 1rem.
+- **Entry:** cards pop in on mount (fade, 14px rise, 0.98 scale) on the enter spring, 45ms apart.
 
-### Navigation
-- **Style:** A light glass pill holding text links. A gray-100 (dark iron-800) highlight follows the pointer between links on a layout spring (400 / 40).
-- **States:** Links step one gray darker on hover; the current page is gray-900 (dark white).
-- **Mobile:** The same pill with tighter link padding.
+**The One Inset, One Eyebrow Rule.** Every home card opens with the same 20px header row: a 14px icon, the uppercase label that names the card, and an optional trailing action at 0.8125rem. Content follows at the one inset. Media runs to the card edge or sits inside it at the media radius.
+
+### Eyebrow
+The uppercase label (label typography, faint ink). It names a card, heads a section on an inner page, or holds real metadata above a page title (byline and date on an essay, role and period on a Field Report). It can carry a status dot, an icon and right-aligned meta.
 
 ### Badge
-- **Style:** A violet tint pill (brand-500/10 fill, brand-600 text; dark brand-400/15 and brand-400), text-xs, for flags such as "Latest".
+A small non-interactive pill in primary-soft with primary text, 0.75rem medium, for flags such as "Reading" and "Latest".
 
-### Live Dot
-- **Style:** A 6px green-500 dot with the `ping` keyframe ring behind it, the only CSS keyframe in the system. Hidden ring under reduced motion.
+### List Row
+The inner-page unit. Rows are separated by a top hairline, with a date column on the left (8rem wide in plain rows, 6rem in writing rows), a semibold title, and a muted description. A linked row fills with muted on hover and slides a trailing arrow in. Writing rows set the title in the serif and carry the essay's banner as a 14rem by 8.75rem thumbnail at the media radius; the row lifts 2px and the banner zooms on the hover spring. Work rows lead with the company logo, which pops on hover.
 
-### Deck
-- **Character:** A stack of mini cards that fans open like a hand when reached for, on the fan spring (stiffness 320, damping 18, 33.5ms stagger per card); the held card rises and its caption pops in.
+### Navigation
+A glass pill of text links beside the name in the header. A muted highlight follows the pointer between links on the layout spring. The current page is foreground; others are muted-foreground and darken on hover. A theme toggle sits beside it.
+
+### In short
+At the top of an essay: an eyebrow, then a numbered list (mono numerals) of section titles with each section's first sentence, separated from the essay by a hairline. A title underlines in the accent on hover.
+
+### Book covers and spines
+On the reading page, the current book and the top-rated books show their real covers. The archive is drawn as piles of spines.
+
+### Motion
+Every spring comes from `src/lib/motion.ts`; none is inlined. Hover scales are 1.02 for surfaces and 1.08 for small things such as logos and icons. Under reduced motion, state still changes and nothing moves.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** use shadow-xs and a 1px hairline for every card.
-- **Do** take every spring from `src/lib/motion.ts`: hover 1.02 on large surfaces, 1.08 on small ones, tap 0.95, exit to y −30 and scale 0.9.
-- **Do** keep stiffness between 250 and 550 and damping between 12 and 40; bounce stays between 0.1 and 0.25.
-- **Do** step text links one gray darker on hover in light mode and one iron lighter in dark mode, with `transition-colors` (150ms).
-- **Do** set prose links underlined at a 22% offset, with the decoration colour shifting on hover.
-- **Do** give every interactive element a visible focus-visible ring.
-- **Do** respect reduced motion: state still changes, nothing springs or translates.
+- **Do** name roles in components, and add a role before reaching for a ramp.
+- **Do** give every home card the one inset and the one eyebrow row.
+- **Do** derive nested radii from `rounded-card` minus `p-inset`.
+- **Do** use the serif at 400 for page titles and essay titles, Geist for everything else, and Geist Mono with tabular figures for dates and counts.
+- **Do** keep inner pages as hairline rows on the page background.
+- **Do** put the scrim behind any text set on a photograph.
+- **Do** show a 2px ring-role focus ring on every interactive element.
 
 ### Don't:
-- **Don't** invert gray for dark mode; use iron.
-- **Don't** use heavy blur for glass; saturation carries it.
-- **Don't** use shadow-md outside brand gradient tiles.
-- **Don't** add CSS keyframes beyond `ping`; motion belongs to springs.
-- **Don't** set type above text-xl, or use bold.
-- **Don't** remove focus outlines without a replacement ring.
+- **Don't** use a ramp step or a `dark:` colour variant in a component class.
+- **Don't** add a border to a card; the hairline lives in the shadow.
+- **Don't** wrap inner-page content in cards.
+- **Don't** set the serif bold, or set UI text in the serif.
+- **Don't** put an invented label above a page title. That slot holds real metadata only.
+- **Don't** let a bento card grow its row.
+- **Don't** inline a spring.
