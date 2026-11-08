@@ -1,0 +1,114 @@
+---
+import { getImage } from 'astro:assets';
+import { render } from 'astro:content';
+import Prose from '../components/reading/Prose.astro';
+import Bench from '../components/ui/Bench.astro';
+import Button from '../components/ui/Button.astro';
+import DitherImage from '../components/ui/DitherImage.astro';
+import Label from '../components/ui/Label.astro';
+import Lightbox from '../components/ui/Lightbox.astro';
+import Page from '../components/ui/Page.astro';
+import PageTitle from '../components/ui/PageTitle.astro';
+import Tile from '../components/ui/Tile.astro';
+import Shell from '../layouts/Shell.astro';
+import { getTrips } from '../utils/trips';
+
+const monthYear = new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' });
+
+const entries = await getTrips();
+const trips = await Promise.all(
+	entries.map(async (entry) => {
+		const { title, country, date, cover, photos } = entry.data;
+		const set = await Promise.all(
+			photos.map(async (p, n) => ({
+				src: (await getImage({ src: p.src, width: 1600, format: 'webp' })).src,
+				alt: p.caption ?? `${title}, photo ${n + 1}`,
+				caption: p.caption,
+			})),
+		);
+		const { Content } = await render(entry);
+		return {
+			id: entry.id,
+			title,
+			country,
+			date,
+			cover,
+			set,
+			hasNotes: Boolean(entry.body?.trim()),
+			Content,
+		};
+	}),
+);
+---
+
+<Shell title="Places" description="Trips and photographs.">
+	<Page>
+		<PageTitle>Places</PageTitle>
+
+		{
+			trips.length === 0 ? (
+				<p class="empty">No trips yet.</p>
+			) : (
+				<Bench>
+					{trips.map((t) => (
+						<Tile as="article" span={{ md: 3, lg: 6 }} id={t.id}>
+							<DitherImage
+								src={t.cover}
+								alt={`${t.title}, ${t.country}`}
+								ratio="4 / 3"
+								sizes="(min-width: 64rem) 38rem, 100vw"
+							/>
+							<div class="meta">
+								<Label dot>{monthYear.format(t.date)}</Label>
+								<h2>{t.title}<span class="country">, {t.country}</span></h2>
+							</div>
+							{t.set.length > 0 && (
+								<div class="actions">
+									<Button
+										variant="ghost"
+										size="sm"
+										href={t.set[0].src}
+										data-lightbox
+										data-title={t.title}
+										data-photos={JSON.stringify(t.set)}
+									>
+										{t.set.length} photos
+									</Button>
+								</div>
+							)}
+							{t.hasNotes && (
+								<Prose>
+									<t.Content />
+								</Prose>
+							)}
+						</Tile>
+					))}
+				</Bench>
+			)
+		}
+	</Page>
+	<Lightbox />
+</Shell>
+
+<style>
+	.empty {
+		color: var(--muted-foreground);
+	}
+	h2 {
+		font-size: var(--text-heading);
+		font-weight: var(--weight-title);
+		letter-spacing: var(--tracking-title);
+	}
+	.country {
+		color: var(--muted-foreground);
+		font-weight: var(--weight-body);
+	}
+	.meta {
+		display: grid;
+		gap: var(--space-2);
+		margin-top: var(--space-2);
+	}
+	.actions {
+		display: flex;
+	}
+</style>

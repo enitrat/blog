@@ -1,0 +1,148 @@
+---
+// Layout molecules: Page and PageTitle, Bench + Tile, ListRows and ListRow, BookLine, Shelf + BookSpine.
+import { Image } from 'astro:assets';
+import living from '../../assets/living-room.png';
+import { books } from '../../booksData';
+import Bench from '../ui/Bench.astro';
+import BookLine from '../ui/BookLine.astro';
+import BookSpine from '../ui/BookSpine.astro';
+import Label from '../ui/Label.astro';
+import Link from '../ui/Link.astro';
+import ListRow from '../ui/ListRow.astro';
+import ListRows from '../ui/ListRows.astro';
+import PageTitle from '../ui/PageTitle.astro';
+import Shelf from '../ui/Shelf.astro';
+import Tag from '../ui/Tag.astro';
+import Tile from '../ui/Tile.astro';
+
+const shelfBooks = [...books].sort(
+	(a, b) =>
+		Number(b.status === 'reading') - Number(a.status === 'reading') ||
+		(b.dateFinished?.getTime() ?? 0) - (a.dateFinished?.getTime() ?? 0),
+);
+const reading = shelfBooks.find((b) => b.status === 'reading');
+---
+
+<section class="layout" aria-labelledby="layout-h">
+	<Label as="h2" id="layout-h">Layout</Label>
+
+	<div class="group">
+		<Label as="h3">PageTitle</Label>
+		<Tile>
+			<PageTitle kicker="Role · 2024">
+				A title, one voice
+				<Fragment slot="lead">An optional lead sentence in muted text.</Fragment>
+			</PageTitle>
+		</Tile>
+		<p class="note">The h1 of every page: --text-title, semibold. Optional kicker (a Label, or a kicker slot for a meta line) and lead slot. Page wraps it: width "wide" (index pages, --page-max) or "measure" (essay, about, work detail).</p>
+	</div>
+
+	<div class="group">
+		<Label as="h3">Bench and Tile</Label>
+		<Bench>
+			<Tile label="Reading" dot meta={reading ? 'Now' : undefined} span={{ lg: 5 }} rows={{ lg: 2 }} order={2}>
+				<Fragment slot="action"><Link variant="arrow" href="#layout-h">All books</Link></Fragment>
+				<p class="big">{reading?.title ?? 'Nothing right now'}</p>
+				<p class="muted">{reading?.author}</p>
+			</Tile>
+			<Tile variant="inverse" label="Latest" meta="12 Mar" span={{ md: 6, lg: 4 }} rows={{ lg: 2 }} order={1}>
+				<Fragment slot="action"><Link variant="arrow" href="#layout-h">Read</Link></Fragment>
+				<p class="big">An inverse tile for the one thing that should stand out</p>
+				<p class="muted">Atoms inside retint through the scoped inverse surface.</p>
+			</Tile>
+			<Tile variant="media" label="Room" span={{ md: 3, lg: 3 }} rows={{ lg: 2 }} order={3}>
+				<Image src={living} loading="eager" alt="A living room" widths={[480, 800]} sizes="(min-width: 64rem) 25vw, 50vw" />
+			</Tile>
+			<Tile label="Linked tile" meta="href" href="#layout-h" span={{ md: 3, lg: 4 }} order={4}>
+				<p class="muted">The whole tile is the link.</p>
+			</Tile>
+			<Tile label="Plain" span={{ md: 6, lg: 8 }} order={5}>
+				<p class="muted">Paper, 1px hairline, no shadow. Spans: md of 6, lg of 12. Phone is one column ordered by order.</p>
+			</Tile>
+		</Bench>
+		<p class="note">Bench is the 12/6/1 grid. Tile takes variant, span, rows, order, label, labelAs, dot, meta, href and an action slot; a tile with href holds no links. Media tiles overlay the header.</p>
+	</div>
+
+	<div class="group">
+		<Label as="h3">ListRow</Label>
+		<Tile>
+			<ListRows variant="tile">
+				<ListRow href="#layout-h" date="12 Mar" datetime="2026-03-12" title="A linked row with a date" description="Description in muted text, arrow on hover and focus." tag="Latest" />
+				<ListRow href="#layout-h" date="02 Feb" title="Row with an extra meta slot" description="Extra context goes in the meta slot.">
+					<Fragment slot="meta">Updated</Fragment>
+				</ListRow>
+				<ListRow date="Home" title="Static row, no link, no description" />
+				<ListRow href="#layout-h" title="A very long title that has to wrap across the available width without breaking the date column or the arrow" description="Short." />
+			</ListRows>
+		</Tile>
+		<p class="note">One row per item; rows draw their own top rule. Add href for a link; tag renders a Tag; headingLevel picks h2 or h3 (default h3). The date column is mono caps.</p>
+	</div>
+
+	<div class="group">
+		<Label as="h3">ListRows</Label>
+		<ListRows>
+			<ListRow href="#layout-h" date="Role · 2024" title="Page variant" description="Capped at --list-max, with the closing hairline." />
+			<ListRow href="#layout-h" date="Role · 2023" title="Closes the list" />
+		</ListRows>
+		<p class="note">The group around ListRows. variant "page" (default) caps the width and draws the closing rule; variant "tile" pulls up under a tile header and has no rule (above).</p>
+	</div>
+
+	<div class="group">
+		<Label as="h3">BookLine</Label>
+		<div class="books">
+			{reading && (
+				<BookLine title={reading.title} author={reading.author} size="lg">
+					<Tag slot="tag" tone="accent">Reading</Tag>
+					{reading.edition.pageCount} pages
+				</BookLine>
+			)}
+			{shelfBooks[1] && <BookLine title={shelfBooks[1].title} author={shelfBooks[1].author} />}
+		</div>
+		<p class="note">A book's title, its author beneath, and an optional mono facts line. size "lg" for a lead book, "md" in tiles. A tag slot sits beside the title; a trailing "(...)" is dropped from the title.</p>
+	</div>
+
+	<div class="group">
+		<Label as="h3">Shelf and BookSpine</Label>
+		<Tile label="Reading shelf" meta={`${shelfBooks.length} books`}>
+			<Shelf label="Books, drag or use arrow keys to scroll">
+				{shelfBooks.map((b) => (
+					<BookSpine title={b.title} author={b.author} pages={b.edition.pageCount} status={b.status} />
+				))}
+			</Shelf>
+		</Tile>
+		<p class="note">Shelf scrolls any items: drag, buttons, arrow keys; plain overflow without JS. BookSpine tone is a title hash, size follows page count, accent bar means reading.</p>
+	</div>
+</section>
+
+<style>
+	.layout {
+		display: grid;
+		gap: var(--space-10);
+	}
+	.group {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: var(--space-4);
+		min-width: 0;
+	}
+	.books {
+		display: grid;
+		gap: var(--space-4);
+	}
+	.note {
+		font-size: var(--text-small);
+		color: var(--muted-foreground);
+	}
+	.big {
+		font-size: var(--text-heading);
+		font-weight: var(--weight-title);
+		letter-spacing: var(--tracking-title);
+		line-height: var(--leading-display);
+		text-wrap: balance;
+	}
+	.muted {
+		margin-top: var(--space-2);
+		font-size: var(--text-small);
+		color: var(--muted-foreground);
+	}
+</style>

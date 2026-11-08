@@ -1,0 +1,125 @@
+---
+/**
+ * Lightbox: one native <dialog> that shows a photo set, one at a time.
+ * Place it once per page. Any element with `data-lightbox` opens it; the element carries
+ * `data-title` and `data-photos` (JSON: [{ src, alt, caption? }]), and optionally `data-start`.
+ * Use a real link (href = the first photo) as the trigger, so it still works without JS.
+ * Keys: Escape closes, ArrowLeft/ArrowRight move. Backdrop click closes.
+ */
+import Button from './Button.astro';
+import Icon from './Icon.astro';
+---
+
+<dialog class="lightbox" aria-label="Photos">
+	<div class="bar">
+		<p class="count" aria-live="polite"></p>
+		<Button variant="ghost" size="sm" data-close>Close</Button>
+	</div>
+	<figure>
+		<figcaption></figcaption>
+	</figure>
+	<div class="nav">
+		<Button variant="ghost" size="sm" aria-label="Previous photo" data-step="-1"><Icon name="chevron-left" /></Button>
+		<Button variant="ghost" size="sm" aria-label="Next photo" data-step="1"><Icon name="chevron-right" /></Button>
+	</div>
+</dialog>
+
+<style>
+	.lightbox {
+		width: min(100vw, 72rem);
+		max-width: 100vw;
+		max-height: 100dvh;
+		margin: auto;
+		padding: var(--space-4);
+		border: 0;
+		background: transparent;
+		color: var(--scrim-foreground);
+		--foreground: var(--scrim-foreground);
+		--muted-foreground: var(--scrim-foreground);
+		--border: var(--scrim-foreground);
+	}
+	.lightbox::backdrop {
+		background: var(--scrim);
+	}
+	.lightbox:not([open]) {
+		display: none;
+	}
+	.lightbox[open] {
+		display: grid;
+		gap: var(--space-3);
+	}
+	.bar,
+	.nav {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-3);
+	}
+	.count,
+	figcaption {
+		font-family: var(--font-code);
+		font-size: var(--text-label);
+		letter-spacing: var(--tracking-label);
+		text-transform: uppercase;
+	}
+	figcaption:empty {
+		display: none;
+	}
+	figure {
+		display: grid;
+		justify-items: center;
+		gap: var(--space-2);
+	}
+	.lightbox :global(img) {
+		width: auto;
+		max-width: 100%;
+		max-height: 70dvh;
+		object-fit: contain;
+	}
+</style>
+
+<script>
+	interface Photo {
+		src: string;
+		alt: string;
+		caption?: string;
+	}
+	const dialog = document.querySelector<HTMLDialogElement>('dialog.lightbox');
+	if (dialog) {
+		const cap = dialog.querySelector('figcaption')!;
+		// created here so the markup holds no image without a source
+		const img = document.createElement('img');
+		cap.before(img);
+		const count = dialog.querySelector('.count')!;
+		let photos: Photo[] = [];
+		let title = '';
+		let i = 0;
+		const show = (n: number) => {
+			i = (n + photos.length) % photos.length;
+			const p = photos[i];
+			img.src = p.src;
+			img.alt = p.alt;
+			cap.textContent = p.caption ?? '';
+			count.textContent = `${title} · ${i + 1} / ${photos.length}`;
+		};
+		document.addEventListener('click', (e) => {
+			const t = (e.target as Element).closest<HTMLElement>('[data-lightbox]');
+			if (!t?.dataset.photos) return;
+			e.preventDefault();
+			photos = JSON.parse(t.dataset.photos);
+			title = t.dataset.title ?? '';
+			show(Number(t.dataset.start ?? 0));
+			dialog.showModal();
+		});
+		dialog.addEventListener('click', (e) => {
+			const el = e.target as Element;
+			const step = el.closest<HTMLElement>('[data-step]');
+			if (step) show(i + Number(step.dataset.step));
+			else if (el === dialog || el.closest('[data-close]')) dialog.close();
+		});
+		dialog.addEventListener('keydown', (e) => {
+			if (e.key === 'ArrowRight') show(i + 1);
+			if (e.key === 'ArrowLeft') show(i - 1);
+		});
+	}
+</script>

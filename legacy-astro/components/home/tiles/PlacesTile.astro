@@ -1,0 +1,29 @@
+---
+/** PlacesTile: the latest trips. Renders nothing until the first trip exists. */
+import { getTrips } from '../../../utils/trips';
+import Link from '../../ui/Link.astro';
+import ListRow from '../../ui/ListRow.astro';
+import ListRows from '../../ui/ListRows.astro';
+import Tile from '../../ui/Tile.astro';
+
+interface Props {
+	/** Defaults to every trip, newest first. */
+	trips?: { id: string; data: { title?: string } }[];
+	span?: { md?: number; lg?: number };
+	order?: number;
+}
+const { trips = await getTrips(), span, order } = Astro.props;
+---
+
+{
+	trips.length > 0 && (
+		<Tile label="Places" labelAs="h2" dot dotTone="muted" span={span} order={order} as="section">
+			<Link slot="action" variant="arrow" href="/places/">All places</Link>
+			<ListRows variant="tile">
+				{trips.slice(0, 3).map((t) => (
+					<ListRow href="/places/" title={t.data.title ?? t.id} />
+				))}
+			</ListRows>
+		</Tile>
+	)
+}

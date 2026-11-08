@@ -1,0 +1,49 @@
+---
+// Sound: the Equalizer atom. It moves only inside a `[data-playing]` ancestor.
+import Equalizer from '../ui/Equalizer.astro';
+import Label from '../ui/Label.astro';
+---
+
+<section class="sound" aria-labelledby="sound-h">
+	<Label as="h2" id="sound-h">Sound</Label>
+
+	<div class="group">
+		<Label as="h3">Equalizer</Label>
+		<div class="row">
+			<figure>
+				<Label><Equalizer />At rest</Label>
+				<figcaption>muted, standing still</figcaption>
+			</figure>
+			<figure data-playing>
+				<Label><Equalizer />Now playing</Label>
+				<figcaption>inside [data-playing]: orange, moving</figcaption>
+			</figure>
+		</div>
+	</div>
+</section>
+
+<style>
+	.sound {
+		display: grid;
+		gap: var(--space-10);
+	}
+	.group {
+		display: grid;
+		gap: var(--space-4);
+	}
+	.row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-8);
+	}
+	figure {
+		margin: 0;
+		display: grid;
+		gap: var(--space-2);
+	}
+	figcaption {
+		font-family: var(--font-code);
+		font-size: var(--text-label);
+		color: var(--muted-foreground);
+	}
+</style>

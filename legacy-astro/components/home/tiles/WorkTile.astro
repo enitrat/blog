@@ -1,0 +1,27 @@
+---
+/** WorkTile: the work collection, compact. */
+import { getWorkIndex, workUrl } from '../../../utils/work';
+import Link from '../../ui/Link.astro';
+import ListRow from '../../ui/ListRow.astro';
+import ListRows from '../../ui/ListRows.astro';
+import Tile from '../../ui/Tile.astro';
+
+interface Props {
+	order?: number;
+}
+const { order } = Astro.props;
+const reports = await getWorkIndex();
+---
+
+{
+	reports.length > 0 && (
+		<Tile label="Work" labelAs="h2" span={{ md: 6, lg: 12 }} order={order} as="section">
+			<Link slot="action" variant="arrow" href="/work/">All work</Link>
+			<ListRows variant="tile">
+				{reports.map((r) => (
+					<ListRow href={workUrl(r)} title={r.data.title} description={r.data.summary} date={r.data.period ?? 'Project'} />
+				))}
+			</ListRows>
+		</Tile>
+	)
+}

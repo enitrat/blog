@@ -1,0 +1,124 @@
+---
+/**
+ * BlogPost: the essay page on `Shell`. Mono meta line, title, the build-time "In short"
+ * block, then the prose. No banner, no sidebar, nothing sticky. Onward links close it.
+ * @prop inShort Items from `inShort(entry, headings)`; sections with no hook are left out
+ * @prop minutes Estimated reading time
+ * @prop newer, older Chronological neighbours; `related` replaces them when present
+ * @slot default The rendered markdown
+ */
+import type { CollectionEntry } from 'astro:content';
+import CopyCodeButton from '../components/reading/CopyCodeButton.astro';
+import InShort from '../components/reading/InShort.astro';
+import Prose from '../components/reading/Prose.astro';
+import Label from '../components/ui/Label.astro';
+import Link from '../components/ui/Link.astro';
+import ListRow from '../components/ui/ListRow.astro';
+import ListRows from '../components/ui/ListRows.astro';
+import Page from '../components/ui/Page.astro';
+import PageTitle from '../components/ui/PageTitle.astro';
+import type { InShortItem } from '../utils/inShort';
+import Shell from './Shell.astro';
+
+type Adjacent = { href: string; title: string };
+
+// `related` arrives already resolved from base slugs to links.
+type Props = Omit<CollectionEntry<'blog'>['data'], 'related' | 'hooks'> & {
+	inShort?: InShortItem[];
+	minutes?: number;
+	newer?: Adjacent;
+	older?: Adjacent;
+	related?: Adjacent[];
+};
+
+const t = {
+	min: 'min read',
+	updated: 'Updated',
+	onward: 'Keep reading',
+	all: 'All writing',
+};
+
+const {
+	title,
+	description,
+	pubDate,
+	updatedDate,
+	inShort = [],
+	minutes,
+	newer,
+	older,
+	related = [],
+} = Astro.props;
+
+const formatDate = (date: Date) =>
+	date.toLocaleDateString('en-GB', {
+		year: 'numeric',
+		month: 'short',
+		day: 'numeric',
+	});
+
+const onward =
+	related.length > 0 ? related.slice(0, 2) : [...(older ? [older] : []), ...(newer ? [newer] : [])];
+---
+
+<Shell title={title} description={description}>
+	<Fragment slot="head">
+		<script
+			type="application/ld+json"
+			set:html={JSON.stringify({
+				'@context': 'https://schema.org',
+				'@type': 'BlogPosting',
+				headline: title,
+				description: description,
+				datePublished: pubDate.toISOString(),
+				dateModified: (updatedDate || pubDate).toISOString(),
+			})}
+		/>
+	</Fragment>
+
+	<Page width="measure" as="article">
+		<PageTitle>
+			<Label slot="kicker" separated>
+				<span>Mathieu Saugier</span>
+				<time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
+				{minutes && <span>{minutes} {t.min}</span>}
+				{updatedDate && <span>{t.updated} <time datetime={updatedDate.toISOString()}>{formatDate(updatedDate)}</time></span>}
+			</Label>
+			{title}
+		</PageTitle>
+
+		{inShort.length > 0 && <InShort items={inShort} />}
+
+		<Prose><slot /></Prose>
+
+		<footer>
+			{onward.length > 0 && (
+				<nav aria-labelledby="onward">
+					<h2 id="onward">{t.onward}</h2>
+					<ListRows>
+						{onward.map((item) => <ListRow href={item.href} title={item.title} />)}
+					</ListRows>
+				</nav>
+			)}
+			<p><Link href="/writing" variant="quiet">{t.all}</Link></p>
+		</footer>
+	</Page>
+
+	<CopyCodeButton />
+</Shell>
+
+<style>
+	footer {
+		display: grid;
+		gap: var(--space-8);
+	}
+	h2 {
+		margin-bottom: var(--space-3);
+		font-size: var(--text-ui);
+		font-weight: var(--weight-ui);
+		color: var(--muted-foreground);
+	}
+	footer p {
+		font-size: var(--text-ui);
+	}
+</style>

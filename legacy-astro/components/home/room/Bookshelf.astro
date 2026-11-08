@@ -1,0 +1,59 @@
+---
+import { getEntry, render } from 'astro:content';
+import slots from '../../../assets/room/book-slots.json';
+import { books } from '../../../booksData';
+import { recordFacts } from '../../../utils/bookRecord';
+import { notedIsbns } from '../../../utils/notes';
+import { PLEIADE_HEX, pleiadeStyleFor } from '../../../utils/pleiade';
+import './bookshelf.css';
+
+const noted = await notedIsbns();
+if (
+	books.length !== slots.length ||
+	books.some((book) => !slots.some((slot) => slot.isbn === book.edition.isbn13))
+) {
+	throw new Error('The room assets do not match the library. Run room:bake to place every book.');
+}
+const entries = await Promise.all(
+	books.map(async (book) => {
+		const note = noted.has(book.edition.isbn13)
+			? await getEntry('notes', book.edition.isbn13)
+			: undefined;
+		return { book, Content: note ? (await render(note)).Content : undefined };
+	}),
+);
+---
+
+<section class="room-library" aria-label="Bookshelf">
+	<!-- The books' facts and notes, kept as data for the room: the scene names a
+	     book from these and opens its notes in the dialog below. Never shown. -->
+	<div hidden>
+		{entries.map(({ book, Content }) => (
+			<div
+				data-book={book.edition.isbn13}
+				data-title={book.title}
+				data-author={book.author}
+				data-noted={Content ? '' : undefined}
+				data-reading={book.status === 'reading' ? '' : undefined}
+				data-facts={recordFacts(book)}
+				style={`--binding: ${PLEIADE_HEX[pleiadeStyleFor(book.author).color]}`}
+			>
+				{Content && (
+					<article data-book-content>
+						<header>
+							<p class="room-library__title">{book.title}</p>
+							<p>{book.author}</p>
+							<p class="room-library__facts">{recordFacts(book)}</p>
+							{book.writingSlug && <a href={`/writing/${book.writingSlug}/`}>Read the piece</a>}
+						</header>
+						<div class="room-library__notes"><Content /></div>
+					</article>
+				)}
+			</div>
+		))}
+	</div>
+	<dialog class="room-library__book" data-room-book aria-label="Book record">
+		<form method="dialog"><button type="submit">Return to shelf</button></form>
+		<div data-open-book></div>
+	</dialog>
+</section>

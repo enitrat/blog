@@ -1,0 +1,35 @@
+---
+/**
+ * Tag: tiny status flag, not interactive ("Reading", "Latest").
+ * @prop tone "neutral" | "accent" (default "neutral")
+ * @slot default The tag text
+ */
+interface Props {
+	tone?: 'neutral' | 'accent';
+}
+const { tone = 'neutral' } = Astro.props;
+---
+
+<span class="tag" data-tone={tone}><slot /></span>
+
+<style>
+	.tag {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.15rem 0.5rem;
+		border-radius: var(--radius-pill);
+		font-family: var(--font-code);
+		font-size: var(--text-label);
+		font-weight: var(--weight-ui);
+		line-height: var(--leading-ui);
+		letter-spacing: var(--tracking-label);
+		text-transform: uppercase;
+		white-space: nowrap;
+		background: var(--foreground);
+		color: var(--surface);
+	}
+	.tag[data-tone="accent"] {
+		background: var(--accent);
+		color: var(--accent-foreground);
+	}
+</style>

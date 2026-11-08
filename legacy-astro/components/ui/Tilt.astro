@@ -1,0 +1,55 @@
+---
+/**
+ * Tilt: a physical object that leans toward the pointer (port of beUI `TiltCard`). Wrap a `Plate`.
+ *   Pointer position over the parent's (unrotated) box maps to rotateX/rotateY (perspective 1000px) through `SPRING_MOUSE`; the
+ *   glare is a soft highlight under the pointer; it settles flat on leave. One shared script
+ *   (`pointer.ts`) drives every `[data-tilt]`. Inert on touch and under reduced motion.
+ *   Put an animation (a spin) on an inner element, never on the Tilt itself.
+ * @prop max Degrees of lean at the edge of the object (default 7.5)
+ * @prop glare Render the highlight (default true)
+ * @slot default The object
+ * @cssprop --tilt-radius Radius of the glare (default: inherited from the parent)
+ * @cssprop --glare-strength Glare opacity at full (default 0.18)
+ */
+interface Props {
+	max?: number;
+	glare?: boolean;
+	class?: string;
+}
+const { max = 7.5, glare = true, class: cls } = Astro.props;
+---
+
+<div class:list={['tilt', cls]} data-tilt data-tilt-max={max}>
+	<slot />
+	{glare && <span class="glare" aria-hidden="true"></span>}
+</div>
+
+<script>
+	import './pointer';
+</script>
+
+<style>
+	.tilt {
+		position: relative;
+		border-radius: inherit;
+	}
+	.tilt[data-tilt-active] {
+		will-change: transform;
+	}
+	.glare {
+		position: absolute;
+		inset: 0;
+		border-radius: var(--tilt-radius, inherit);
+		background: radial-gradient(
+			circle at var(--glare-x, 50%) var(--glare-y, 50%),
+			var(--glare),
+			transparent 55%
+		);
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity var(--duration-base) var(--ease-out);
+	}
+	.tilt[data-tilt-active] > .glare {
+		opacity: var(--glare-strength, 0.18);
+	}
+</style>

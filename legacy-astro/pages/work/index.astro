@@ -1,0 +1,41 @@
+---
+import Label from '../../components/ui/Label.astro';
+import ListRow from '../../components/ui/ListRow.astro';
+import ListRows from '../../components/ui/ListRows.astro';
+import Page from '../../components/ui/Page.astro';
+import PageTitle from '../../components/ui/PageTitle.astro';
+import Shell from '../../layouts/Shell.astro';
+import { getWorkIndex, workUrl } from '../../utils/work';
+
+const reports = await getWorkIndex();
+
+// Same two groups as the homepage index. Each heading id is the fragment the homepage
+// links to, so `/work/#projects` lands on the group it names.
+const groups = [
+	{ id: 'work', label: 'Work', reports: reports.filter((r) => r.data.kind === 'work') },
+	{ id: 'projects', label: 'Projects', reports: reports.filter((r) => r.data.kind === 'project') },
+].filter((group) => group.reports.length > 0);
+---
+
+<Shell title="Work" description="What I have built and worked on.">
+	<Page>
+		<PageTitle>Work</PageTitle>
+		{
+			groups.map((group) => (
+				<section aria-labelledby={group.id}>
+					<Label as="h2" id={group.id} space="sm">{group.label}</Label>
+					<ListRows>
+						{group.reports.map((r) => (
+							<ListRow
+								href={workUrl(r)}
+								date={r.data.period ?? 'Project'}
+								title={r.data.title}
+								description={r.data.summary}
+							/>
+						))}
+					</ListRows>
+				</section>
+			))
+		}
+	</Page>
+</Shell>

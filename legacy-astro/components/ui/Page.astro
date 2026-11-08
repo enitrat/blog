@@ -1,0 +1,29 @@
+---
+/**
+ * Page: the one page layout. Vertical rhythm and bottom padding for every page body.
+ * @prop width "wide" | "measure" (default "wide"). wide: the shell's `--page-max`, content
+ *   left-aligned (index pages). measure: a centred `--measure` column (essay, about, work detail).
+ * @prop as "div" | "article" (default "div")
+ * @slot default `PageTitle`, then the sections
+ */
+interface Props {
+	width?: 'wide' | 'measure';
+	as?: 'div' | 'article';
+}
+const { width = 'wide', as: Root = 'div' } = Astro.props;
+---
+
+<Root class="page" data-width={width}><slot /></Root>
+
+<style>
+	.page {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: var(--space-10);
+		padding-block: var(--space-8) var(--space-16);
+	}
+	.page[data-width="measure"] {
+		max-width: var(--measure);
+		margin-inline: auto;
+	}
+</style>

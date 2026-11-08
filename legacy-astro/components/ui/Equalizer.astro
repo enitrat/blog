@@ -1,0 +1,51 @@
+---
+/**
+ * Equalizer: four thin bars that move only while an ancestor has `[data-playing]`. Orange
+ *   means playing, so the bars are `--accent-graphic` then and `--muted-foreground` at rest.
+ *   At rest (and under reduced motion) they stand still at mixed heights, so the glyph is
+ *   a quiet "audio" mark rather than an empty or flat one. Sized in em: it sits in a mono
+ *   Label line. Decorative (aria-hidden); the state is announced by the control beside it.
+ */
+---
+
+<span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+
+<style>
+	.eq {
+		--h: 0.85em;
+		flex: none;
+		display: inline-flex;
+		align-items: flex-end;
+		gap: 0.14em;
+		height: var(--h);
+		color: var(--muted-foreground);
+		transition: color var(--duration-fast) var(--ease-out);
+	}
+	i {
+		width: 0.16em;
+		height: 100%;
+		border-radius: var(--radius-pill);
+		background: currentColor;
+		transform-origin: bottom;
+		transform: scaleY(var(--rest));
+	}
+	i:nth-child(1) { --rest: 0.55; }
+	i:nth-child(2) { --rest: 1; }
+	i:nth-child(3) { --rest: 0.4; }
+	i:nth-child(4) { --rest: 0.75; }
+
+	:global([data-playing]) .eq {
+		color: var(--accent-graphic);
+	}
+	:global([data-playing]) i {
+		animation: bounce calc(var(--duration-slow) * 2) var(--ease-in-out) infinite alternate;
+	}
+	:global([data-playing]) i:nth-child(2) { animation-duration: calc(var(--duration-slow) * 1.5); animation-delay: calc(var(--duration-slow) * -0.5); }
+	:global([data-playing]) i:nth-child(3) { animation-duration: calc(var(--duration-slow) * 2.5); animation-delay: calc(var(--duration-slow) * -1); }
+	:global([data-playing]) i:nth-child(4) { animation-duration: calc(var(--duration-slow) * 1.75); animation-delay: calc(var(--duration-slow) * -1.5); }
+
+	@keyframes bounce {
+		from { transform: scaleY(0.2); }
+		to { transform: scaleY(1); }
+	}
+</style>

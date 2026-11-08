@@ -1,0 +1,50 @@
+---
+/**
+ * BookLine: a book's title with its author beneath. Strips a trailing "(...)" from the title.
+ * @prop title Book title
+ * @prop author Author, muted
+ * @prop size "md" | "lg" (default "md"): title at `--text-heading` or `--text-title`
+ * @slot tag Beside the title (e.g. a `Tag`)
+ * @slot default Mono facts line under the author (e.g. "412 pages")
+ */
+interface Props {
+	title: string;
+	author: string;
+	size?: 'md' | 'lg';
+}
+const { title, author, size = 'md' } = Astro.props;
+---
+
+<div class="book" data-size={size}>
+	<p class="title">{title.replace(/\s*\(.*\)\s*$/, '')}<slot name="tag" /></p>
+	<p class="by">{author}</p>
+	{Astro.slots.has('default') && <p class="facts"><slot /></p>}
+</div>
+
+<style>
+	.title {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-2);
+		font-size: var(--text-heading);
+		font-weight: var(--weight-title);
+		line-height: var(--leading-display);
+		letter-spacing: var(--tracking-title);
+	}
+	.book[data-size="lg"] .title {
+		font-size: var(--text-title);
+	}
+	.by {
+		margin-top: var(--space-1);
+		font-size: var(--text-ui);
+		color: var(--muted-foreground);
+	}
+	.facts {
+		margin-top: var(--space-1);
+		font-family: var(--font-code);
+		font-size: var(--text-label);
+		letter-spacing: var(--tracking-label);
+		color: var(--muted-foreground);
+	}
+</style>

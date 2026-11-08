@@ -1,0 +1,25 @@
+---
+/** NowTile: a few short items Mathieu writes himself (`src/data/now.ts`). Renders nothing while empty. */
+import { now } from '../../../data/now';
+import ListRow from '../../ui/ListRow.astro';
+import ListRows from '../../ui/ListRows.astro';
+import Tile from '../../ui/Tile.astro';
+
+interface Props {
+	span?: { md?: number; lg?: number };
+	order?: number;
+}
+const { span, order } = Astro.props;
+---
+
+{
+	now.length > 0 && (
+		<Tile label="Now" labelAs="h2" dot span={span} order={order} as="section">
+			<ListRows variant="tile">
+			{now.map((item) => (
+				<ListRow title={item.what} date={`Since ${item.since}`} datetime={item.since} />
+			))}
+			</ListRows>
+		</Tile>
+	)
+}

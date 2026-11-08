@@ -1,0 +1,34 @@
+---
+// Mathieu's own prose, rendered unchanged. This page owns layout and
+// typography only; the words and every claim in them stay as written.
+import Prose from '../components/reading/Prose.astro';
+import Label from '../components/ui/Label.astro';
+import Page from '../components/ui/Page.astro';
+import PageTitle from '../components/ui/PageTitle.astro';
+import { Content as AboutContent } from '../content/about.md';
+import Shell from '../layouts/Shell.astro';
+---
+
+<Shell title="About" description="I build software, read books, and keep a few projects of my own alive.">
+	<Page width="measure" as="article">
+		<PageTitle>About</PageTitle>
+		<Prose><AboutContent /></Prose>
+		<dl>
+			<div><dt><Label>Currently</Label></dt><dd>Senior Protocol Engineer at Zama</dd></div>
+		</dl>
+	</Page>
+</Shell>
+
+<style>
+	dl {
+		display: grid;
+		gap: var(--space-4);
+		margin: 0;
+		padding-block-start: var(--space-6);
+		border-block-start: 1px solid var(--border);
+		font-size: var(--text-ui);
+	}
+	dd {
+		margin: var(--space-1) 0 0;
+	}
+</style>

@@ -1,0 +1,165 @@
+---
+/**
+ * Shelf: a generic horizontal scroller (books now, photos later).
+ * Without JS it is a plain overflow scroller. With JS: mouse drag with momentum,
+ * prev/next buttons, ArrowLeft/ArrowRight when focus is inside. Touch scrolls natively.
+ * @prop label Accessible name for the scroll region (default "Scrollable shelf")
+ * @prop snap Enable scroll-snap on items (start-aligned) (default false)
+ * @prop align "end" sits items on a baseline (books), "start" top-aligns (default "end")
+ * @slot default Items; each should be `flex: none`
+ */
+import Button from './Button.astro';
+import Icon from './Icon.astro';
+
+interface Props {
+	label?: string;
+	snap?: boolean;
+	align?: 'start' | 'end';
+}
+const { label = 'Scrollable shelf', snap = false, align = 'end' } = Astro.props;
+---
+
+<div class="shelf" data-shelf>
+	<div class="track" tabindex="0" role="group" aria-label={label} data-snap={snap ? '' : undefined} data-align={align}>
+		<slot />
+	</div>
+	<div class="nav" hidden>
+		<Button variant="ghost" size="sm" aria-label="Scroll back" data-dir="-1"><Icon name="chevron-left" /></Button>
+		<Button variant="ghost" size="sm" aria-label="Scroll forward" data-dir="1"><Icon name="chevron-right" /></Button>
+	</div>
+</div>
+
+<style>
+	.shelf {
+		display: grid;
+		gap: 0.75rem;
+		min-width: 0;
+	}
+	.track {
+		display: flex;
+		gap: 2px;
+		padding-top: 1rem;
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		border-bottom: 1px solid var(--border);
+		scrollbar-width: thin;
+		scrollbar-color: var(--border) transparent;
+	}
+	.track[data-align="end"] {
+		align-items: flex-end;
+	}
+	.track[data-snap] {
+		scroll-snap-type: x proximity;
+	}
+	.track[data-snap] > :global(*) {
+		scroll-snap-align: start;
+	}
+	.track:focus-visible {
+		outline: 2px solid var(--ring);
+		outline-offset: 2px;
+	}
+	/* enabled by the script: hide the native bar, drag instead */
+	:global(.shelf[data-ready]) .track {
+		scrollbar-width: none;
+		touch-action: pan-x;
+		cursor: grab;
+	}
+	:global(.shelf[data-ready]) .track::-webkit-scrollbar {
+		display: none;
+	}
+	.track[data-dragging] {
+		cursor: grabbing;
+		user-select: none;
+		scroll-snap-type: none;
+	}
+	.nav {
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.5rem;
+	}
+	.nav[hidden] {
+		display: none;
+	}
+</style>
+
+<script>
+	const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+
+	for (const root of document.querySelectorAll<HTMLElement>('[data-shelf]')) {
+		const track = root.querySelector<HTMLElement>('.track');
+		const nav = root.querySelector<HTMLElement>('.nav');
+		if (!track || !nav) continue;
+		root.dataset.ready = '';
+		nav.hidden = false;
+		const [prev, next] = [...nav.querySelectorAll<HTMLButtonElement>('button')];
+
+		const sync = () => {
+			prev.disabled = track.scrollLeft <= 1;
+			next.disabled = track.scrollLeft >= track.scrollWidth - track.clientWidth - 1;
+		};
+		const page = (dir: number) =>
+			track.scrollBy({ left: dir * track.clientWidth * 0.8, behavior: reduced.matches ? 'auto' : 'smooth' });
+		prev.addEventListener('click', () => page(-1));
+		next.addEventListener('click', () => page(1));
+		track.addEventListener('scroll', sync, { passive: true });
+		new ResizeObserver(sync).observe(track);
+		sync();
+
+		track.addEventListener('keydown', (e) => {
+			if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+			e.preventDefault();
+			page(e.key === 'ArrowRight' ? 1 : -1);
+		});
+
+		// Mouse drag with momentum. Touch and pen keep native scrolling.
+		let down = false;
+		let moved = 0;
+		let startX = 0;
+		let startLeft = 0;
+		let lastX = 0;
+		let velocity = 0;
+		let raf = 0;
+		track.addEventListener('pointerdown', (e) => {
+			if (e.pointerType !== 'mouse' || e.button !== 0) return;
+			down = true;
+			moved = 0;
+			startX = lastX = e.clientX;
+			startLeft = track.scrollLeft;
+			velocity = 0;
+			cancelAnimationFrame(raf);
+		});
+		addEventListener('pointermove', (e) => {
+			if (!down) return;
+			moved = Math.max(moved, Math.abs(e.clientX - startX));
+			if (moved > 4) track.dataset.dragging = '';
+			track.scrollLeft = startLeft - (e.clientX - startX);
+			velocity = lastX - e.clientX;
+			lastX = e.clientX;
+		});
+		addEventListener('pointerup', () => {
+			if (!down) return;
+			down = false;
+			delete track.dataset.dragging;
+			if (reduced.matches) return;
+			const glide = () => {
+				if (Math.abs(velocity) < 0.4) return;
+				track.scrollLeft += velocity;
+				velocity *= 0.94;
+				raf = requestAnimationFrame(glide);
+			};
+			glide();
+		});
+		// A drag must not activate the item under the cursor.
+		track.addEventListener(
+			'click',
+			(e) => {
+				if (moved > 4) {
+					e.preventDefault();
+					e.stopPropagation();
+					moved = 0;
+				}
+			},
+			true,
+		);
+	}
+</script>

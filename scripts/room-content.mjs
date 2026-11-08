@@ -15,9 +15,9 @@ export async function notedIsbns() {
 	);
 }
 
-/** Published English writing, newest first. A piece is a directory in the blog
+/** Published writing, newest first. A piece is a directory in the blog
  * collection whose route is its directory name. */
-export async function englishPieces() {
+export async function writingPieces() {
 	const pieces = [];
 	for (const directory of await readdir(BLOG, { withFileTypes: true })) {
 		if (!directory.isDirectory()) continue;
@@ -33,7 +33,6 @@ export async function englishPieces() {
 					.match(new RegExp(`^${name}:\\s*(.+)$`, 'm'))?.[1]
 					.trim()
 					.replace(/^(['"])(.*)\1$/, '$2');
-			if ((field('lang') ?? 'en') !== 'en') continue;
 			const date = new Date(field('pubDate'));
 			pieces.push({
 				slug: directory.name,

@@ -54,7 +54,7 @@ For close-ups or many small edits, open the `.blend` through
 | Spine artwork | `--only spines` |
 | Book bodies | `--only books` |
 | A note, added or removed | `--only covers` |
-| An English post, added or removed | `--only sheets` |
+| A post, added or removed | `--only sheets` |
 | The bookmark | `--only bookmark` |
 
 A partial bake stops if book positions or cabinet dimensions changed. The

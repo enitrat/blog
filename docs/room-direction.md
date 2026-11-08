@@ -1,51 +1,68 @@
 # The living room
 
-The room on the homepage is a dark library someone lives in: books, a record
-player, a writing desk. It is also the way into the bookshelf, the music, and
-the writing. It adds depth; the page never depends on it.
+The room is a miniature of the life the rest of the site lists: a dark library
+with books, a record player and a writing desk. On the home bench it is one
+tile among paper ones, the only dark object, and it should read as an object
+someone made, not as a screen embedded in a page. Everything it opens is also
+reachable from a plain link; the room adds depth, never access.
 
 ## How it looks
 
 - Dark green walls, brown oak joinery, oxblood leather, a dense Persian rug.
 - Warm lamps make small pools of light. The window brings cool light.
-- An isometric cutaway, seen at 4:3. Skip detail that vanishes at page size.
-
-Two reference images, chosen on September 22, set this mood, and the room
-matches their composition. Materials vary broadly enough to survive baking:
-the rug shifts shade in dye-lot bands, and each wooden board has its own tone.
-Fine texture, like leather grain, disappears at page size. Change one material
-family per pass, and keep it only if it shows at desktop and laptop sizes.
+- An isometric cutaway at 4:3. The whole room stays in frame in the tile:
+  sofa, bookcase, record player and desk.
+- Detail that vanishes at tile size is wasted. Materials vary broadly enough
+  to survive baking: the rug shifts shade in dye-lot bands, and each board has
+  its own tone. Change one material family per pass, and keep it only if it
+  shows at tile size on desktop.
+- Its colours are art, not interface. They live as `manuscript-*` and `lamp-*`
+  reference tokens and are aliased once in `room.css`, the one place a
+  component uses reference colours directly.
 
 ## How it behaves
 
-One rule: **what glows can be clicked.** Nothing is drawn over the room: no
-rings, arrows, captions, or buttons.
+One rule: **what glows can be clicked.** Nothing is drawn over the scene except
+the tile's own label and its "Open" link. No buttons, rings or arrows on the
+render.
 
 | When | The visitor sees |
 |---|---|
 | Resting | Each clickable thing breathes a low lamplight, out of step with the others |
-| Pointed at, or focused | Full lamplight and a pointer, then a small name tag |
-| Music playing | The turntable stays lit |
+| Pointed at, or focused | Full lamplight, a pointer, then a small name tag |
+| Music playing | The turntable stays lit, and the tile header says "Now playing" |
 | At the shelves, music playing | The record plays on, quieter and duller, as if from across the room |
 | A book with notes | Its jacket breathes on the shelf |
 
-Each thing also answers with a small physical tell. The tonearm lifts toward
-the record, a book leans out of its row, a manuscript lifts off its pile.
+Each thing answers with a small physical tell: the tonearm lifts toward the
+record, a book leans out of its row, a manuscript lifts off its pile.
 
-### Where you can go
+### Two sizes, one room
+
+The room lives in the tile and opens large. It is one scene that moves between
+the two, so whatever is happening carries over.
+
+- **In the tile**, the room is live and glows. Clicking a thing opens the room
+  large and does that thing: the bookcase flies to the shelves, the record
+  player plays the set, the desk goes to the manuscripts. Clicking empty space
+  opens the room at its overview.
+- **Opened**, the room fills the screen and every interaction works.
 
 ```mermaid
 flowchart LR
-  Room -->|the bookcase| Cabinet
+  Tile -->|the bookcase| Cabinet
+  Tile -->|the turntable| Record["Record: the set plays"]
+  Tile -->|the desk| Desk
+  Tile -->|empty space, Open| Room
+  Room --> Cabinet & Record & Desk
   Cabinet -->|a row| Row
   Row -->|a book with notes| Book
-  Room -->|the turntable| Record["Record: the mix plays"]
-  Room -->|the desk| Desk
   Desk -->|a sheet| Piece["The piece, on its own page"]
 ```
 
-Every step back is the same: click empty space, press Escape, or use the
-browser's Back.
+Stepping back inside the opened room: click empty space, press Escape, or use
+the browser's Back, one level at a time. From the overview, Escape or Close
+returns the room to its tile.
 
 ### Moving along the shelves
 
@@ -55,18 +72,20 @@ browser's Back.
 | To another row | Scroll, or click a row peeking in above or below | Swipe up or down |
 | Back out | Click empty space, Escape, Back | Swipe down past the top row, pinch, Back |
 
-On a phone the shelves open full screen, the way a photo does. The first row a
-visitor reaches drifts toward what lies past its edge and springs back. That
-is the only sign that it goes on.
+The first row a visitor reaches drifts toward what lies past its edge and
+springs back. That is the only sign that it goes on.
 
 ## What must stay true
 
-- The page works without the room. The poster, the plain links, and the
-  room's own book catalog carry everything. If the room cannot render, the
-  book list comes back.
+- The page works without the room. If it cannot render, the tile is the poster
+  with plain links to Reading, Writing and the set on SoundCloud. The book list
+  lives at `/reading`, never inside the room.
 - Every clickable thing is a real link or button. Keyboard focus lights it and
-  names it at once. Camera controls appear only when they have focus.
+  names it at once.
 - With reduced motion, the light holds still and nothing drifts. Labels still
   appear.
-- A phone downloads the 3D room only after a tap.
-- A new clickable thing joins the glow. It does not get a widget of its own.
+- A phone downloads the 3D room only after a tap; that first tap opens it large.
+- A new clickable thing joins the glow. It does not get a button of its own.
+
+`bun run room:check chromium` and `bun run record:check` assert these
+behaviours. Change the scene through [the room workflow](./room-workflow.md).

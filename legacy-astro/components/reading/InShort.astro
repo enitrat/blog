@@ -1,0 +1,91 @@
+---
+import { IN_SHORT_LABEL, type InShortItem } from '../../utils/inShort';
+/**
+ * InShort: the build-time skim block. A mono label and a numbered list of section
+ * titles, each with its first sentence, each a link to `#id`. Works without JS.
+ * @prop items Output of `inShort(entry, headings)` from `src/utils/inShort.ts`
+ * Anchor id is `in-short`, the target of the back links that Prose adds.
+ */
+import Label from '../ui/Label.astro';
+
+interface Props {
+	items: InShortItem[];
+}
+const { items } = Astro.props;
+const label = IN_SHORT_LABEL;
+---
+
+<nav id="in-short" class="in-short" aria-label={label}>
+	<Label as="h2">{label}</Label>
+	<ol>
+		{items.map((item) => (
+			<li>
+				<a href={`#${item.id}`}>
+					<strong>{item.title}</strong>
+					{item.hook && <span>{item.hook}</span>}
+				</a>
+			</li>
+		))}
+	</ol>
+</nav>
+
+<style>
+	.in-short {
+		max-width: var(--measure);
+		padding-block-end: var(--space-8);
+		border-block-end: 1px solid var(--border);
+		scroll-margin-top: var(--space-6);
+	}
+	ol {
+		margin: var(--space-4) 0 0;
+		padding: 0;
+		list-style: none;
+		counter-reset: short;
+	}
+	li {
+		display: grid;
+		grid-template-columns: 1.75rem 1fr;
+		counter-increment: short;
+	}
+	li::before {
+		content: counter(short, decimal-leading-zero);
+		padding-block-start: 0.2em;
+		font-family: var(--font-code);
+		font-size: var(--text-small);
+		color: var(--muted-foreground);
+	}
+	a {
+		display: block;
+		padding-block: var(--space-2);
+		font-size: var(--text-ui);
+		line-height: var(--leading-ui);
+		color: var(--foreground);
+		text-decoration: none;
+	}
+	strong {
+		display: block;
+		font-weight: var(--weight-title);
+		text-decoration: underline;
+		text-decoration-color: transparent;
+		text-decoration-thickness: 1px;
+		text-underline-offset: 0.2em;
+		transition: text-decoration-color var(--duration-fast) var(--ease-out);
+	}
+	a:hover strong {
+		text-decoration-color: var(--accent-graphic);
+	}
+	span {
+		color: var(--muted-foreground);
+	}
+	a:hover span {
+		color: var(--foreground);
+	}
+	a:focus-visible {
+		outline: 2px solid var(--ring);
+		outline-offset: 2px;
+		border-radius: var(--radius-sm);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		strong { transition: none; }
+	}
+</style>

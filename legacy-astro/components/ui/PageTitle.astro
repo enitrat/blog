@@ -1,0 +1,43 @@
+---
+/**
+ * PageTitle: the one title voice. An h1 at `--text-title`, an optional kicker above it and an
+ * optional lead under it.
+ * @prop kicker Short text above the title, set as a `Label`
+ * @slot default The title text
+ * @slot kicker Custom kicker (e.g. an essay's meta line); wins over the `kicker` prop
+ * @slot lead A muted sentence under the title
+ */
+import Label from './Label.astro';
+
+interface Props {
+	kicker?: string;
+}
+const { kicker } = Astro.props;
+---
+
+<header class="page-title">
+	{Astro.slots.has('kicker') ? <slot name="kicker" /> : kicker && <Label>{kicker}</Label>}
+	<h1><slot /></h1>
+	{Astro.slots.has('lead') && <p class="lead"><slot name="lead" /></p>}
+</header>
+
+<style>
+	.page-title {
+		display: grid;
+		justify-items: start;
+		gap: var(--space-3);
+	}
+	h1 {
+		font-size: var(--text-title);
+		font-weight: var(--weight-title);
+		line-height: var(--leading-snug);
+		letter-spacing: var(--tracking-title);
+		text-wrap: balance;
+	}
+	.lead {
+		max-width: var(--measure);
+		font-size: var(--text-heading);
+		line-height: var(--leading-snug);
+		color: var(--muted-foreground);
+	}
+</style>

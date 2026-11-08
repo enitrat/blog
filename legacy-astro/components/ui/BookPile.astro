@@ -1,0 +1,100 @@
+---
+/**
+ * BookPile: books lying flat in one isometric pile, first book at the bottom. Each is a hardback
+ *   (two boards, a page block, a cloth spine facing front left) as thick as its page count, at one
+ *   scale for every pile on the site, so piles compare by weight. Same projection, tones and 1px
+ *   hairlines as `IsoGlyph`. Geometry in `book.ts`; cut long runs with `piles()`.
+ * @prop books `{ title, pages }[]`, bottom first
+ * @prop scale Pixels per world unit (default 5); piles that are compared share one value
+ * Decorative (`aria-hidden`): the page lists the same books as text. A spine thick enough
+ * carries its title; every book also shows it as a hover tooltip.
+ */
+import { frameOf, type PileBook, stack } from './book';
+
+interface Props {
+	books: PileBook[];
+	scale?: number;
+}
+const { books, scale = 5 } = Astro.props;
+const [x, y, w, h] = frameOf(books);
+const parts = stack(books);
+---
+
+<svg
+	class="pile"
+	width={+(w * scale).toFixed(1)}
+	height={+(h * scale).toFixed(1)}
+	viewBox={`${x} ${y} ${w} ${h}`}
+	aria-hidden="true"
+	focusable="false"
+	shape-rendering="geometricPrecision"
+>
+	{
+		parts.map((b) => (
+			<g data-tone={b.tone}>
+				<title>{b.title}</title>
+				<polygon class="r" points={b.lower.right} />
+				<polygon class="t" points={b.lower.top} />
+				<polygon class="pg" points={b.block.right} />
+				<polygon class="pg" points={b.block.top} />
+				{b.leaves.map((p) => <polyline class="hair" points={p} />)}
+				<polygon class="r" points={b.upper.right} />
+				<polygon class="t" points={b.upper.top} />
+				<polygon class="spine" points={b.spine} />
+				{b.bands.map((p) => <polyline class="hair" points={p} />)}
+				{b.text && (
+					<text transform={b.textMatrix} font-size={b.font} dominant-baseline="central">
+						{b.text}
+					</text>
+				)}
+			</g>
+		))
+	}
+</svg>
+
+<style>
+	/* IsoGlyph's hairline and tone rules, scoped: IsoGlyph's global sheet ships only where it is used. */
+	.pile {
+		display: block;
+		max-width: 100%;
+		height: auto;
+		overflow: visible;
+	}
+	polygon,
+	polyline {
+		stroke: var(--iso-edge);
+		stroke-width: 1px;
+		stroke-linejoin: round;
+		stroke-linecap: round;
+		vector-effect: non-scaling-stroke;
+	}
+	.t {
+		fill: var(--iso-top);
+	}
+	.r {
+		fill: var(--iso-right);
+	}
+	.pg {
+		fill: var(--surface);
+	}
+	.spine {
+		fill: var(--iso-left);
+	}
+	[data-tone="1"] .spine {
+		fill: color-mix(in srgb, var(--iso-left), var(--foreground) 8%);
+	}
+	[data-tone="2"] .spine {
+		fill: color-mix(in srgb, var(--iso-left), var(--foreground) 16%);
+	}
+	.hair {
+		fill: none;
+		opacity: 0.45;
+	}
+	text {
+		fill: var(--foreground);
+		stroke: none;
+		font-family: var(--font-ui);
+		font-weight: var(--weight-title);
+		letter-spacing: 0.01em;
+	}
+</style>

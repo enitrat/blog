@@ -1,0 +1,55 @@
+---
+/** Turntable: plinth, vinyl with a label tick, tonearm, one orange play light. The vinyl turns flat. */
+import IsoGlyph from '../../ui/IsoGlyph.astro';
+import { box, cyl, P, PLANE, pts } from '../../ui/iso';
+
+interface Props {
+	size?: number;
+}
+const { size } = Astro.props;
+const plinth = box(-20, -16, 20, 16, 0, 4);
+const vinyl = cyl(-4, 0, 4, 5.5, 12);
+const base = cyl(15, -10, 4, 6.5, 2.6);
+const pivot = P(15, -10, 7);
+const weight = P(18.5, -15, 7);
+const stylus = P(3, 5, 7);
+const head = pts([2, 3.6, 7], [4.6, 5.4, 7], [3.6, 6.8, 7], [1, 5, 7]);
+const light = P(-15, 11, 4);
+---
+
+<IsoGlyph size={size} frame={[0, -1.75, 60]}>
+	<polygon class="l" points={plinth.left} />
+	<polygon class="r" points={plinth.right} />
+	<polygon class="t" points={plinth.top} />
+	<g transform={`translate(${light.join(' ')}) ${PLANE}`}><circle class="light" r="1.5" /></g>
+	<path class="l" d={vinyl.left} />
+	<path class="r" d={vinyl.right} />
+	<g transform={`translate(${vinyl.X} ${vinyl.Y}) ${PLANE}`}>
+		<g class="iso-part" style="--pose: rotate(90deg)">
+			<circle class="r" r="12" />
+			<circle class="groove" r="8.5" />
+			<circle class="t" r="4.6" />
+			<line x1="0" y1="0" x2="4.6" y2="0" />
+		</g>
+	</g>
+	<path class="l" d={base.left} />
+	<path class="r" d={base.right} />
+	<ellipse class="t" cx={base.X} cy={base.Y} rx="2.6" ry="1.3" />
+	<line class="arm" x1={weight[0]} y1={weight[1]} x2={pivot[0]} y2={pivot[1]} />
+	<line class="arm" x1={pivot[0]} y1={pivot[1]} x2={stylus[0]} y2={stylus[1]} />
+	<polygon class="t" points={head} />
+</IsoGlyph>
+
+<style>
+	.light {
+		fill: var(--accent-graphic);
+		stroke: none;
+	}
+	.groove {
+		fill: none;
+		opacity: 0.45;
+	}
+	.arm {
+		stroke-width: 1.4px;
+	}
+</style>

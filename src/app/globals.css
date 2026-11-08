@@ -1,0 +1,160 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Two layers. Primitives (the ramps in @theme) are inks sampled from the living-room render and
+ * never change with the theme. Roles (:root and .dark) pick a primitive per theme, and components
+ * use only roles: `bg-card`, `text-muted-foreground`, `border-border`, `text-primary`.
+ * Retint the site by editing a ramp; re-role it by editing the two role blocks.
+ */
+@theme {
+	--font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+	--font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+	/* Paper: one warm neutral ramp, light to dark. */
+	--color-paper-0: oklch(0.995 0.003 85);
+	--color-paper-50: oklch(0.972 0.006 85);
+	--color-paper-100: oklch(0.945 0.008 80);
+	--color-paper-200: oklch(0.9 0.01 75);
+	--color-paper-300: oklch(0.82 0.012 70);
+	--color-paper-400: oklch(0.7 0.013 65);
+	--color-paper-500: oklch(0.58 0.014 60);
+	--color-paper-550: oklch(0.52 0.014 58);
+	--color-paper-600: oklch(0.48 0.014 55);
+	--color-paper-700: oklch(0.38 0.014 50);
+	--color-paper-800: oklch(0.3 0.014 50);
+	--color-paper-850: oklch(0.245 0.013 50);
+	--color-paper-900: oklch(0.205 0.012 50);
+	--color-paper-950: oklch(0.165 0.01 50);
+
+	/* Room inks. */
+	--color-oxblood-100: oklch(0.93 0.035 25);
+	--color-oxblood-300: oklch(0.7 0.13 25);
+	--color-oxblood-500: oklch(0.6 0.16 25);
+	--color-oxblood-600: oklch(0.47 0.15 25);
+	--color-oxblood-800: oklch(0.3 0.07 25);
+	--color-brass-300: oklch(0.82 0.125 78);
+	--color-brass-500: oklch(0.68 0.12 75);
+	--color-brass-800: oklch(0.32 0.06 75);
+
+	--color-green-500: #00c758;
+
+	/* Type: display sizes for the serif; UI text keeps Tailwind's scale. */
+	--text-display: 3.5rem;
+	--text-display--line-height: 1;
+	--text-eyebrow: 0.71875rem;
+	--text-eyebrow--line-height: 1.25rem;
+	--text-eyebrow--letter-spacing: 0.07em;
+	--text-meta: 0.8125rem;
+	--text-feature: 2.75rem;
+
+	/* The card system: one inset, one gap, and a media radius nested inside the card radius. */
+	--spacing-inset: 1rem;
+	--spacing-gutter: 0.75rem;
+	--radius-card: 1.5rem;
+	--radius-media: calc(var(--radius-card) - var(--spacing-inset));
+}
+
+@theme inline {
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-faint: var(--faint);
+	--color-border: var(--border);
+	--color-border-strong: var(--border-strong);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-primary-soft: var(--primary-soft);
+	--color-ring: var(--ring);
+	--color-scrim: var(--scrim);
+	--color-scrim-foreground: var(--scrim-foreground);
+
+	--shadow-card: var(--elevation-1);
+	--shadow-raised: var(--elevation-2);
+	--shadow-lifted: var(--elevation-3);
+	--shadow-art: var(--elevation-art);
+	--shadow-book: var(--elevation-book);
+	/* Theme-agnostic: they follow --primary, or the --c a brand chip sets on itself. */
+	--shadow-glow: 0 4px 12px -4px var(--primary);
+	--shadow-chip:
+		inset 0 1px 0 oklch(1 0 0 / 0.25), inset 0 -2px 0 oklch(0 0 0 / 0.15), 0 6px 14px -6px var(--c);
+}
+
+/* Day: cream paper, walnut-black ink, oxblood. */
+:root {
+	color-scheme: light;
+	--background: var(--color-paper-50);
+	--foreground: var(--color-paper-900);
+	--card: var(--color-paper-0);
+	--muted: var(--color-paper-100);
+	--muted-foreground: var(--color-paper-700);
+	/* paper-550, not 500: small faint text must clear 4.5:1 on paper-50, card and muted. */
+	--faint: var(--color-paper-550);
+	--border: oklch(0.22 0.02 50 / 0.09);
+	--border-strong: oklch(0.22 0.02 50 / 0.16);
+	--primary: var(--color-oxblood-600);
+	--primary-foreground: var(--color-paper-0);
+	--primary-soft: var(--color-oxblood-100);
+	--ring: var(--color-oxblood-600);
+	/* The photo viewer is night in both themes, so .dark does not re-role it. */
+	--scrim: var(--color-paper-950);
+	--scrim-foreground: var(--color-paper-50);
+	/* Ink and paper of the dithered place photos, read by the canvas. */
+	--dither-ink: var(--color-paper-850);
+	--dither-paper: var(--color-paper-50);
+
+	--elevation-1: 0 0 0 1px var(--border), 0 1px 2px oklch(0.3 0.03 50 / 0.05);
+	--elevation-2:
+		0 0 0 1px var(--border), 0 2px 4px oklch(0.3 0.03 50 / 0.05),
+		0 12px 28px -8px oklch(0.3 0.04 40 / 0.14);
+	--elevation-3:
+		0 0 0 1px var(--border-strong), 0 4px 8px oklch(0.3 0.03 50 / 0.06),
+		0 24px 48px -12px oklch(0.3 0.05 35 / 0.22);
+	/* Physical objects: album art on the player, book covers in the stack. */
+	--elevation-art: 0 6px 16px -6px oklch(0 0 0 / 0.4);
+	--elevation-book: inset 0 1px 0 oklch(1 0 0 / 0.2), 0 10px 20px -8px oklch(0.2 0.05 30 / 0.45);
+}
+
+/* Night: the room after dark. Brass, the lamp, takes over from oxblood. */
+.dark {
+	color-scheme: dark;
+	--background: var(--color-paper-950);
+	--foreground: var(--color-paper-100);
+	--card: var(--color-paper-900);
+	--muted: var(--color-paper-850);
+	--muted-foreground: var(--color-paper-300);
+	--faint: var(--color-paper-400);
+	--border: oklch(0.95 0.02 85 / 0.075);
+	--border-strong: oklch(0.95 0.02 85 / 0.14);
+	--primary: var(--color-brass-300);
+	--primary-foreground: var(--color-paper-900);
+	--primary-soft: var(--color-brass-800);
+	--ring: var(--color-brass-300);
+	--dither-ink: var(--color-paper-900);
+	--dither-paper: var(--color-paper-300);
+
+	--elevation-1: 0 0 0 1px var(--border), inset 0 1px 0 oklch(1 0 0 / 0.03);
+	--elevation-2:
+		0 0 0 1px var(--border-strong), inset 0 1px 0 oklch(1 0 0 / 0.05),
+		0 16px 32px -12px oklch(0 0 0 / 0.6);
+	--elevation-3:
+		0 0 0 1px var(--border-strong), inset 0 1px 0 oklch(1 0 0 / 0.06),
+		0 28px 56px -16px oklch(0 0 0 / 0.75), 0 0 48px -20px oklch(0.82 0.125 78 / 0.25);
+	/* Physical objects: album art on the player, book covers in the stack. */
+	--elevation-art: 0 6px 16px -6px oklch(0 0 0 / 0.4);
+	--elevation-book: inset 0 1px 0 oklch(1 0 0 / 0.2), 0 10px 20px -8px oklch(0.2 0.05 30 / 0.45);
+}
+
+@layer base {
+	body {
+		@apply bg-background font-sans text-foreground antialiased;
+	}
+
+	::selection {
+		@apply bg-primary text-primary-foreground;
+	}
+}

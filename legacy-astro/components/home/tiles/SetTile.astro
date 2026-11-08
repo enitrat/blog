@@ -1,0 +1,235 @@
+---
+/**
+ * SetTile: the last set recorded, and the tile is the player. It drives the same SoundCloud
+ * widget as the room's record player (`src/lib/set-player.ts`), so playing from either place
+ * updates both. The widget loads on the first press, not on page load. While playing, the
+ * artwork becomes a record (square to round, turning slowly) and the header equalizer moves;
+ * under reduced motion it turns round but does not spin. Without JS the SoundCloud link is
+ * the fallback. The tile is not a link, so it does not lift.
+ */
+import art from '../../../assets/set/bouncyx-seven.jpg';
+import { SET } from '../../../consts';
+import Button from '../../ui/Button.astro';
+import Equalizer from '../../ui/Equalizer.astro';
+import Icon from '../../ui/Icon.astro';
+import Link from '../../ui/Link.astro';
+import Magnetic from '../../ui/Magnetic.astro';
+import Plate from '../../ui/Plate.astro';
+import Readout from '../../ui/Readout.astro';
+import Tile from '../../ui/Tile.astro';
+import Tilt from '../../ui/Tilt.astro';
+
+interface Props {
+	span?: { md?: number; lg?: number };
+	order?: number;
+}
+const { span = { md: 3, lg: 4 }, order } = Astro.props;
+const recorded = new Date(SET.recorded);
+const date = recorded.toLocaleDateString('en-GB', {
+	day: 'numeric',
+	month: 'short',
+	year: 'numeric',
+	timeZone: 'UTC',
+});
+---
+
+<Tile class="set-tile" label="Last set" labelAs="h2" span={span} order={order} as="section" data-set-tile>
+	<span slot="action" class="status">
+		<span class="elapsed" aria-hidden="true"><Readout mode="char" value="0:00" /></span>
+		<Equalizer />
+	</span>
+	<div class="set">
+		<div class="disc">
+			<Tilt>
+				<div class="spin">
+					<Plate src={art} alt="" ratio="1/1" widths={[240, 480]} sizes="(min-width: 40rem) 16rem, 8rem" />
+				</div>
+			</Tilt>
+		</div>
+		<div class="info">
+			<div>
+				<p class="title">{SET.title}</p>
+				<p class="meta">{SET.artist} · <time datetime={SET.recorded}>{date}</time></p>
+			</div>
+			<div class="actions">
+				<Magnetic strength={0.15}>
+					<Button variant="inverse" type="button" pressed={false} aria-label={`Play ${SET.title}`} data-set-toggle>
+						<span class="when-stopped"><Icon name="play" />Play</span>
+						<span class="when-playing"><Icon name="pause" />Pause</span>
+					</Button>
+				</Magnetic>
+				<Link variant="external" href={SET.url}>SoundCloud</Link>
+			</div>
+		</div>
+	</div>
+</Tile>
+
+<script>
+	import { setReadout } from '../../ui/readout';
+	import { animate, cancelFrame, frame, motionValue } from 'motion';
+	import { SET } from '../../../consts';
+	import { prefersReducedMotion, SPRING_RECORD } from '../../../lib/motion';
+	import { setPlayer } from '../../../lib/set-player';
+
+	const tile = document.querySelector<HTMLElement>('[data-set-tile]');
+	const elapsedEl = tile?.querySelector<HTMLElement>('.elapsed [data-readout]');
+	const button = tile?.querySelector<HTMLButtonElement>('[data-set-toggle]');
+
+	// The record has inertia: `speed` (deg/s) eases up to cruise or down to zero on a spring, and a
+	// frame loop integrates it into `angle`. A paused record stays where it stopped.
+	const spin = tile?.querySelector<HTMLElement>('.spin');
+	const CRUISE = 360 / 9.6; // one turn per 9.6s, calm
+	const speed = motionValue(0);
+	let angle = 0;
+	let last = 0;
+	let running: { stop: () => void } | null = null;
+	const step = ({ timestamp }: { timestamp: number }) => {
+		// clamp: a tab coming back from hidden must not jump the record
+		angle = (angle + (speed.get() * Math.min(timestamp - last, 50)) / 1000) % 360;
+		last = timestamp;
+		if (spin) spin.style.transform = `rotate(${angle}deg)`;
+	};
+	const turn = (on: boolean) => {
+		running?.stop();
+		if (prefersReducedMotion()) {
+			// also reached when reduced motion is switched on mid-play: stop turning, keep the angle
+			speed.set(0);
+			cancelFrame(step);
+			return;
+		}
+		if (on && !speed.get()) {
+			last = performance.now();
+			frame.update(step, true);
+		}
+		running = animate(speed, on ? CRUISE : 0, {
+			...SPRING_RECORD,
+			onComplete: () => on || cancelFrame(step),
+		});
+	};
+
+	matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => turn(!!tile?.hasAttribute('data-playing')));
+
+	button?.addEventListener('click', () => setPlayer.toggle());
+	// Same rule as the room: it turns from `cueing` on, since the press has been heard.
+	setPlayer.subscribe((state) => {
+		const on = state !== 'stopped';
+		if (on !== tile?.hasAttribute('data-playing')) turn(on);
+		tile?.toggleAttribute('data-playing', on);
+		button?.setAttribute('aria-pressed', String(on));
+		button?.setAttribute('aria-label', `${on ? 'Pause' : 'Play'} ${SET.title}`);
+		if (!on && elapsedEl) setReadout(elapsedEl, '0:00');
+	});
+
+	setPlayer.subscribePosition((seconds) => {
+		if (elapsedEl) setReadout(elapsedEl, `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`);
+	});
+</script>
+
+<style>
+	.set {
+		display: flex;
+		gap: var(--gap-bench);
+		align-items: center;
+	}
+	.disc {
+		flex: none;
+		width: 7.5rem;
+		position: relative;
+		isolation: isolate;
+	}
+	/* Square to round with only clip-path and opacity: a shadow can't follow a clip-path, so the disc
+	   holds two static shadows (square, round) and crossfades them while the face's clip morphs. */
+	.disc::before,
+	.disc::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		box-shadow: var(--elevation-object);
+		transition: opacity var(--duration-moderate) var(--ease-out);
+	}
+	.disc::before {
+		border-radius: var(--radius-sm);
+	}
+	.disc::after {
+		border-radius: 50%;
+		opacity: 0;
+	}
+	/* The disc stays put; only the face turns, so the light does not rotate with the record. */
+	.spin {
+		clip-path: inset(0 round var(--radius-sm));
+		transition: clip-path var(--duration-moderate) var(--ease-out);
+		/* the Plate's own shadow would be clipped here; the disc carries it */
+		--plate-shadow: none;
+	}
+	.status {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+	}
+	.elapsed {
+		display: none;
+		min-inline-size: 5ch; /* m:ss to mm:ss without shifting the header */
+		justify-content: flex-end;
+		font-variant-numeric: tabular-nums;
+	}
+	:global(.set-tile[data-playing]) .elapsed {
+		display: inline-flex;
+	}
+	.info {
+		display: grid;
+		gap: var(--space-3);
+		min-width: 0;
+	}
+	.title {
+		margin: 0;
+		font-size: var(--text-ui);
+		font-weight: var(--weight-title);
+		line-height: var(--leading-ui);
+	}
+	.meta {
+		margin: 0;
+		font-family: var(--font-code);
+		font-size: var(--text-label);
+		color: var(--muted-foreground);
+	}
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-2) var(--gap-bench);
+	}
+	[data-set-toggle] .when-playing,
+	[data-set-toggle][aria-pressed="true"] .when-stopped {
+		display: none;
+	}
+	[data-set-toggle][aria-pressed="true"] .when-playing {
+		display: inline-flex;
+	}
+	.when-stopped,
+	.when-playing {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	:global(.set-tile[data-playing]) .disc::before {
+		opacity: 0;
+	}
+	:global(.set-tile[data-playing]) .disc::after {
+		opacity: 1;
+	}
+	:global(.set-tile[data-playing]) .spin {
+		clip-path: inset(0 round 50%);
+	}
+
+	@media (min-width: 40rem) {
+		.set {
+			flex-direction: column;
+			align-items: stretch;
+		}
+		.disc {
+			width: 100%;
+		}
+	}
+</style>

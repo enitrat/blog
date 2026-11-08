@@ -41,3 +41,10 @@ session-resume.txt
 .impeccable/questions/*.log
 .impeccable/questions/*.state.json
 .impeccable/config.local.json
+
+# Next.js
+next-env.d.ts
+*.tsbuildinfo
+.next-dev-*/
+.next/
+.claude/worktrees/

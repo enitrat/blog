@@ -1,0 +1,26 @@
+---
+import ListRow from '../components/ui/ListRow.astro';
+import ListRows from '../components/ui/ListRows.astro';
+import Page from '../components/ui/Page.astro';
+import PageTitle from '../components/ui/PageTitle.astro';
+import Shell from '../layouts/Shell.astro';
+
+const destinations = [
+	{ href: '/', date: 'Home', title: 'Mathieu Saugier' },
+	{ href: '/work', date: 'Work', title: 'What I have worked on' },
+	{ href: '/writing', date: 'Writing', title: 'Writing' },
+	{ href: '/about', date: 'About', title: 'About' },
+];
+---
+
+<Shell title="Not found" description="This page does not exist.">
+	<Page>
+		<PageTitle>
+			Not found
+			<Fragment slot="lead">This address doesn't name anything here. Try one of these four pages:</Fragment>
+		</PageTitle>
+		<ListRows>
+			{destinations.map((d) => <ListRow {...d} />)}
+		</ListRows>
+	</Page>
+</Shell>

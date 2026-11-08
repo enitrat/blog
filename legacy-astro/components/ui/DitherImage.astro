@@ -1,0 +1,46 @@
+---
+/**
+ * DitherImage: an image shown as an ordered-dither duotone that reveals its true colours.
+ * Without JS it is a normal responsive image. One shared script draws every canvas,
+ * redraws on theme change and (debounced) on resize.
+ * @prop src Imported image (ImageMetadata)
+ * @prop alt Required alt text
+ * @prop ratio CSS aspect-ratio, e.g. "4 / 3" (default: the image's own)
+ * @prop widths Candidate widths for srcset (default [480, 800, 1200])
+ * @prop sizes sizes attribute (default "(min-width: 60rem) 38rem, 100vw")
+ * @prop tone "ink" | "accent" (default "ink"). ink: --surface-inverse + --surface;
+ *   accent: --accent + --surface. The darker colour always takes the shadows.
+ * @prop reveal "hover" | "never" (default "hover"). hover: hover, focus-visible or tap shows the
+ *   true image (the script wraps the image in a button with aria-pressed). never: stays dithered.
+ */
+import { Picture } from 'astro:assets';
+import './dither.css';
+
+interface Props {
+	src: ImageMetadata;
+	alt: string;
+	ratio?: string;
+	widths?: number[];
+	sizes?: string;
+	tone?: 'ink' | 'accent';
+	reveal?: 'hover' | 'never';
+}
+const {
+	src,
+	alt,
+	ratio = `${src.width} / ${src.height}`,
+	widths = [480, 800, 1200],
+	sizes = '(min-width: 60rem) 38rem, 100vw',
+	tone = 'ink',
+	reveal = 'hover',
+} = Astro.props;
+---
+
+<div class="dither" data-dither data-tone={tone} data-reveal={reveal} style={`--ratio: ${ratio}`}>
+	<Picture src={src} alt={alt} widths={widths} sizes={sizes} formats={['webp']} />
+	<canvas aria-hidden="true"></canvas>
+</div>
+
+<script>
+	import './dither';
+</script>

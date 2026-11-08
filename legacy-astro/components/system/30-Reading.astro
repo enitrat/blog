@@ -1,0 +1,153 @@
+---
+// Media and reading: DitherImage, Prose, InShort. InShort and Prose render a real essay.
+import { getImage } from 'astro:assets';
+import { getEntry, render } from 'astro:content';
+import room from '../../assets/living-room.png';
+import banner from '../../content/blog/software-factories/banner.png';
+import results from '../../content/blog/using-dspy/results.jpg';
+import { inShort } from '../../utils/inShort';
+import InShort from '../reading/InShort.astro';
+import Prose from '../reading/Prose.astro';
+import Button from '../ui/Button.astro';
+import DitherImage from '../ui/DitherImage.astro';
+import Label from '../ui/Label.astro';
+import Lightbox from '../ui/Lightbox.astro';
+
+const entry = await getEntry('blog', 'software-factories');
+if (!entry) throw new Error('blog entry software-factories not found');
+const { Content, headings } = await render(entry);
+const items = inShort(entry, headings);
+const photos = await Promise.all(
+	[room, banner, results].map(async (src, n) => ({
+		src: (await getImage({ src, width: 1200, format: 'webp' })).src,
+		alt: `Sample photo ${n + 1}`,
+		caption: n === 0 ? 'A caption sits under the photo' : undefined,
+	})),
+);
+---
+
+<section class="reading" aria-labelledby="reading-h">
+	<Label as="h2" id="reading-h">Media and reading</Label>
+
+	<div class="group">
+		<Label as="h3">DitherImage</Label>
+		<div class="grid">
+			<figure>
+				<DitherImage src={banner} alt="Software factory banner" ratio="4 / 3" tone="ink" />
+				<figcaption>ink, 4 / 3</figcaption>
+			</figure>
+			<figure>
+				<DitherImage src={banner} alt="Software factory banner" ratio="4 / 3" tone="accent" />
+				<figcaption>accent</figcaption>
+			</figure>
+			<figure>
+				<DitherImage src={room} alt="The living room, rendered in 3D" ratio="16 / 10" tone="ink" />
+				<figcaption>room poster, ink</figcaption>
+			</figure>
+			<figure>
+				<DitherImage src={results} alt="Benchmark results chart" ratio="1 / 1" tone="accent" reveal="never" />
+				<figcaption>accent, reveal never</figcaption>
+			</figure>
+		</div>
+		<p class="note">
+			Plain responsive image without JS. With JS: 8x8 ordered dither in two semantic colours (the darker takes the
+			shadows, so dark mode stays a positive). Hover, focus or tap reveals the true image; the script wraps it in a
+			button with aria-pressed. reveal="never" stays dithered and non-interactive. Redraws on theme change and resize.
+		</p>
+	</div>
+
+	<div class="group">
+		<Label as="h3">InShort</Label>
+		<InShort items={items} />
+		<p class="note">
+			Built from the essay's own h2s and the verbatim first sentence of each section's first paragraph
+			(src/utils/inShort.ts). Override a hook in frontmatter: hooks: {"{"} "Heading text": "Sentence." {"}"}.
+		</p>
+	</div>
+
+	<div class="group">
+		<Label as="h3">Prose</Label>
+		<Label>Essay excerpt, software-factories</Label>
+		<div class="excerpt">
+			<Prose><Content /></Prose>
+		</div>
+		<p class="note">
+			Wrap rendered markdown. Justified and hyphenated (left-aligned fallback and on phones), accent only
+			on link hover. ditherFigures (default false) dithers images; leave it off for diagrams. Each section ends with
+			an arrow-up "In short" link when an InShort is on the page. The banner (first image) is the layout's to drop.
+		</p>
+	</div>
+
+	<div class="group">
+		<Label as="h3">Lightbox</Label>
+		<div>
+			<Button
+				variant="ghost"
+				size="sm"
+				href={photos[0].src}
+				data-lightbox
+				data-title="Sample set"
+				data-photos={JSON.stringify(photos)}
+			>
+				{photos.length} photos
+			</Button>
+		</div>
+		<p class="note">One native dialog per page. Any element with data-lightbox, data-title and data-photos opens it; use a real link to the first photo so it works without JS. Escape closes, arrows step, backdrop click closes.</p>
+	</div>
+	<Lightbox />
+</section>
+
+<style>
+	.reading {
+		display: grid;
+		gap: var(--space-10);
+	}
+	.group {
+		display: grid;
+		gap: var(--space-4);
+		padding: var(--pad-tile);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-tile);
+		background: var(--surface);
+		color: var(--surface-foreground);
+	}
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+		gap: var(--gap-bench);
+	}
+	figure {
+		margin: 0;
+	}
+	figcaption {
+		margin-block-start: var(--space-2);
+		font-family: var(--font-code);
+		font-size: var(--text-small);
+		color: var(--muted-foreground);
+	}
+	.note {
+		max-width: 48rem;
+		margin: 0;
+		font-size: var(--text-small);
+		line-height: var(--leading-ui);
+		color: var(--muted-foreground);
+	}
+	.excerpt {
+		position: relative;
+		max-height: 110rem;
+		overflow: hidden;
+		padding-block: var(--space-4);
+		border-block: 1px solid var(--border);
+	}
+	.excerpt::after {
+		content: '';
+		position: absolute;
+		inset: auto 0 0;
+		height: 8rem;
+		background: linear-gradient(to bottom, transparent, var(--surface));
+		pointer-events: none;
+	}
+	.excerpt :global(.prose > p:first-child:has(> img)) {
+		display: none;
+	}
+</style>

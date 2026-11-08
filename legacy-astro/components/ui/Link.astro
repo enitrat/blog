@@ -1,0 +1,95 @@
+---
+/**
+ * Link: text link. 44px hit area via a pseudo-element.
+ * @prop href Required
+ * @prop variant "inline" | "quiet" | "arrow" | "external" (default "inline")
+ *   inline: underlined in running text. quiet: muted, underline on hover.
+ *   arrow: UI action with a trailing arrow. external: opens in a new tab with a trailing glyph.
+ * @slot default Link text
+ */
+import Icon from './Icon.astro';
+
+interface Props extends Omit<astroHTML.JSX.AnchorHTMLAttributes, 'href'> {
+	href: string;
+	variant?: 'inline' | 'quiet' | 'arrow' | 'external';
+}
+const { href, variant = 'inline', class: cls, ...rest } = Astro.props;
+const ext = variant === 'external';
+---
+
+<a
+	href={href}
+	class:list={['link', cls]}
+	data-variant={variant}
+	target={ext ? '_blank' : undefined}
+	rel={ext ? 'noopener noreferrer' : undefined}
+	{...rest}
+>
+	<slot />
+	{variant === 'arrow' && <Icon name="arrow-right" size="sm" />}
+	{ext && <Icon name="external" size="sm" />}
+</a>
+
+<style>
+	.link {
+		position: relative;
+		display: inline-flex;
+		align-items: baseline;
+		gap: 0.35em;
+		color: var(--link);
+		text-decoration: none;
+		transition: color var(--duration-fast) var(--ease-out);
+	}
+	/* Invisible 44px target, centred on the text (inline text links are exempt). */
+	.link:not([data-variant="inline"])::after {
+		content: '';
+		position: absolute;
+		inset-inline: 0;
+		top: 50%;
+		height: var(--target-min);
+		transform: translateY(-50%);
+	}
+	.link[data-variant="inline"] {
+		display: inline;
+		text-decoration: underline;
+		text-decoration-thickness: 1px;
+		text-underline-offset: 0.2em;
+		text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+	}
+	.link[data-variant="inline"]:hover {
+		text-decoration-color: currentColor;
+	}
+	.link[data-variant="quiet"] {
+		color: var(--muted-foreground);
+	}
+	.link[data-variant="quiet"]:hover {
+		color: var(--link);
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+	}
+	.link[data-variant="arrow"],
+	.link[data-variant="external"] {
+		font-family: var(--font-ui);
+		font-size: var(--text-ui);
+		font-weight: var(--weight-ui);
+		align-items: center;
+	}
+	.link :global(.icon) {
+		transition: transform var(--duration-fast) var(--ease-out);
+	}
+	.link[data-variant="arrow"]:hover :global(.icon) {
+		transform: translateX(2px);
+	}
+	.link[data-variant="external"]:hover :global(.icon) {
+		transform: translate(1px, -1px);
+	}
+	.link:focus-visible {
+		outline: 2px solid var(--ring);
+		outline-offset: 3px;
+		border-radius: var(--radius-sm);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.link, .link :global(.icon) { transition: none; }
+		.link:hover :global(.icon) { transform: none; }
+	}
+</style>

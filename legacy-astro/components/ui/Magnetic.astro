@@ -1,0 +1,27 @@
+---
+/**
+ * Magnetic: its child (the wrapper stays put and is what is measured) drifts toward the pointer while the pointer is within its box (plus a
+ *   16px margin) and springs home on leave (port of beUI `Magnetic`). Use it on a button or pill.
+ *   One shared script (`pointer.ts`) drives every `[data-magnetic]`. Inert on touch and under
+ *   reduced motion. Keep strength low on small targets so they stay easy to hit.
+ * @prop strength Fraction of the pointer offset the child follows (default 0.35)
+ * @slot default The child
+ */
+interface Props {
+	strength?: number;
+	class?: string;
+}
+const { strength = 0.35, class: cls } = Astro.props;
+---
+
+<span class:list={['magnetic', cls]} data-magnetic data-magnetic-strength={strength}><slot /></span>
+
+<script>
+	import './pointer';
+</script>
+
+<style>
+	.magnetic {
+		display: inline-flex;
+	}
+</style>

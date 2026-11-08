@@ -13,7 +13,7 @@ This article was originally written [here](https://medium.com/nethermind-eth/und
 
 ## Introduction
 
-I recently attended two conference talks at Starkware’s Sessions about Sierra: [Enforcing Safety Using Typesystems](https://www.youtube.com/watch?v=-EHwaQuPuAASierra) by Shahar Papini and [Not Stopping at the Halting Problem](https://www.youtube.com/watch?v=wYxUedcdVZ4) by Ori Ziv. I highly recommend you watch these videos if you want to understand more about the Cairo stack. The following post is the first of a series in which I’ll dive into Sierra to understand more about Cairo, its mechanisms, and Starknet overall.
+I recently attended two conference talks at Starkware’s Sessions about Sierra: [Enforcing Safety Using Typesystems](https://www.youtube.com/watch?v=-EHwaQuPuAA) by Shahar Papini and [Not Stopping at the Halting Problem](https://www.youtube.com/watch?v=wYxUedcdVZ4) by Ori Ziv. I highly recommend you watch these videos if you want to understand more about the Cairo stack. The following post is the first of a series in which I’ll dive into Sierra to understand more about Cairo, its mechanisms, and Starknet overall.
 
 Sierra (**S**afe **I**nt**e**rmediate **R**ep**r**esent**a**tion) is an intermediate layer between the high-level language Cairo and compilation targets such as Cairo Assembly (CASM). The language is designed to ensure safety and prevent runtime errors. It guarantees that every function returns and that there are no infinite loops by using a compiler that can detect operations that could fail at compile time. Sierra uses a simple yet powerful type system to express mid-level code while ensuring safety. This allows for efficient compilation down to CASM.
 

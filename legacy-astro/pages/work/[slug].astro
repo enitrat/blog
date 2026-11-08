@@ -1,0 +1,71 @@
+---
+import { type CollectionEntry, getCollection, render } from 'astro:content';
+import Prose from '../../components/reading/Prose.astro';
+import Label from '../../components/ui/Label.astro';
+import Link from '../../components/ui/Link.astro';
+import ListRow from '../../components/ui/ListRow.astro';
+import ListRows from '../../components/ui/ListRows.astro';
+import Page from '../../components/ui/Page.astro';
+import PageTitle from '../../components/ui/PageTitle.astro';
+import Shell from '../../layouts/Shell.astro';
+import { getWorkIndex, workUrl } from '../../utils/work';
+
+export async function getStaticPaths() {
+	const reports = await getCollection('work');
+	return reports.map((report) => ({
+		params: { slug: report.id },
+		props: { report },
+	}));
+}
+
+type Props = { report: CollectionEntry<'work'> };
+
+const { report } = Astro.props;
+const { Content } = await render(report);
+const { title, summary, role, period, site } = report.data;
+const meta = [role, period].filter(Boolean).join(' · ');
+
+const siblings = (await getWorkIndex()).filter((r) => r.id !== report.id).slice(0, 2);
+---
+
+<Shell title={title} description={summary}>
+	<Page width="measure" as="article">
+		<PageTitle kicker={meta || undefined}>
+			{title}
+			<Fragment slot="lead">{summary}</Fragment>
+		</PageTitle>
+		{site && <p><Link variant="external" href={site}>Visit website</Link></p>}
+
+		<Prose><Content /></Prose>
+
+		<footer>
+			{
+				siblings.length > 0 && (
+					<nav aria-label="More work">
+						<Label as="h2" space="sm">More work</Label>
+						<ListRows>
+							{siblings.map((s) => (
+								<ListRow href={workUrl(s)} date={s.data.role} title={s.data.title} description={s.data.summary} />
+							))}
+						</ListRows>
+					</nav>
+				)
+			}
+			<p class="exits">
+				<Link variant="arrow" href="/work">All work</Link>
+				<Link variant="arrow" href="/writing">Writing</Link>
+			</p>
+		</footer>
+	</Page>
+</Shell>
+
+<style>
+	footer {
+		display: grid;
+		gap: var(--space-6);
+	}
+	.exits {
+		display: flex;
+		gap: var(--space-6);
+	}
+</style>

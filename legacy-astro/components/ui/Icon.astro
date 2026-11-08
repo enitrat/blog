@@ -1,0 +1,72 @@
+---
+/**
+ * Icon: inline SVG glyph in `currentColor`, hidden from assistive tech by default.
+ * @prop name "arrow-right" | "arrow-up" | "external" | "chevron-left" | "chevron-right" | "play" | "pause"
+ * @prop size "sm" | "md" (default "md"): 1em-based, sm is 0.85em
+ * @prop title Optional accessible name; when set the icon is exposed as an image
+ */
+interface Props {
+	name:
+		| 'arrow-right'
+		| 'arrow-up'
+		| 'external'
+		| 'chevron-left'
+		| 'chevron-right'
+		| 'play'
+		| 'pause';
+	size?: 'sm' | 'md';
+	title?: string;
+}
+const { name, size = 'md', title } = Astro.props;
+
+const stroke: Record<string, string> = {
+	'arrow-right': 'M5 12h14M13 6l6 6-6 6',
+	'arrow-up': 'M12 19V5M6 11l6-6 6 6',
+	external: 'M9 5H5v14h14v-4M13 5h6v6M19 5l-8 8',
+	'chevron-left': 'M15 5l-7 7 7 7',
+	'chevron-right': 'M9 5l7 7-7 7',
+};
+const fill: Record<string, string> = {
+	play: 'M7 4.5v15l12-7.5z',
+	pause: 'M6 4.5h4v15H6zM14 4.5h4v15h-4z',
+};
+---
+
+<svg
+	class="icon"
+	viewBox="0 0 24 24"
+	data-size={size}
+	data-kind={name in fill ? 'fill' : 'stroke'}
+	aria-hidden={title ? undefined : 'true'}
+	role={title ? 'img' : undefined}
+	aria-label={title}
+	focusable="false"
+>
+	{name in fill ? <path d={fill[name]} /> : <path d={stroke[name]} />}
+</svg>
+
+<style>
+	.icon {
+		display: inline-block;
+		flex: none;
+		width: 1.1em;
+		height: 1.1em;
+		vertical-align: -0.2em;
+	}
+	.icon[data-size="sm"] {
+		width: 0.85em;
+		height: 0.85em;
+		vertical-align: -0.1em;
+	}
+	.icon[data-kind="stroke"] {
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 1.75;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.icon[data-kind="fill"] {
+		fill: currentColor;
+		stroke: none;
+	}
+</style>

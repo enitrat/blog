@@ -1,0 +1,192 @@
+---
+import { type Book, books } from '../booksData';
+import BookLine from '../components/ui/BookLine.astro';
+import BookPile from '../components/ui/BookPile.astro';
+import { piles } from '../components/ui/book';
+import Label from '../components/ui/Label.astro';
+import ListRow from '../components/ui/ListRow.astro';
+import ListRows from '../components/ui/ListRows.astro';
+import Page from '../components/ui/Page.astro';
+import PageTitle from '../components/ui/PageTitle.astro';
+import StatusDot from '../components/ui/StatusDot.astro';
+import Shell from '../layouts/Shell.astro';
+import { readingLine } from '../utils/bookRecord';
+
+const time = (b: Book) => (b.dateFinished ?? b.dateStarted)?.getTime() ?? 0;
+const recent = (a: Book, b: Book) => time(b) - time(a);
+const short = (t: string) => t.replace(/\s*\(.*\)\s*$/, '');
+const pile = (bs: Book[]) => bs.map((b) => ({ title: b.title, pages: b.edition.pageCount }));
+const reading = books.filter((b) => b.status === 'reading').sort(recent);
+const finished = books.filter((b) => b.status === 'finished');
+
+// Author, date and rating only: the page stays a reading log, not a catalogue.
+const when = (b: Book) =>
+	[readingLine(b), b.rating === null ? undefined : `rated ${b.rating} of 5`]
+		.filter(Boolean)
+		.join(' · ');
+const picks = finished
+	.filter((b) => (b.rating ?? 0) >= 4)
+	.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+	.slice(0, 6);
+const unrated = finished.filter((b) => b.rating === null).length;
+
+// The archive by year, newest first; a book known only as "before 2020" closes it.
+const yearOf = (b: Book) =>
+	b.readingPeriod === 'before-2020'
+		? 'Before 2020'
+		: String((b.dateFinished ?? b.dateStarted)?.getFullYear());
+const years = [...Map.groupBy(finished.sort(recent), yearOf)].map(([year, bs]) => ({
+	year,
+	books: bs,
+	// Oldest at the bottom: the pile grows as the year goes on.
+	piles: piles(pile([...bs].reverse())),
+	// Books before 2020 fold away behind their heading, closed by default.
+	Wrap: year === 'Before 2020' ? 'details' : 'div',
+	Head: year === 'Before 2020' ? 'summary' : 'div',
+}));
+const wanted = books.filter((b) => b.status === 'want-to-read').sort(recent);
+const writingHref = (b: Book) => (b.writingSlug ? `/writing/${b.writingSlug}/` : undefined);
+const id = (s: string) => `y-${s.toLowerCase().replace(/\W+/g, '-')}`;
+---
+
+<Shell title="Reading" description="What I am reading, and everything I have read.">
+	<Page>
+		<PageTitle>Reading</PageTitle>
+
+		{
+			reading.length > 0 && (
+				<section aria-label="Reading now">
+					<ul class="books">
+						{reading.map((b) => (
+							<li class="book">
+								<div class="cover"><BookPile books={pile([b])} scale={3} /></div>
+								<div>
+									<BookLine title={b.title} author={b.author} size="lg">
+										<StatusDot slot="tag" />
+									</BookLine>
+								</div>
+							</li>
+						))}
+					</ul>
+				</section>
+			)
+		}
+
+		<section aria-labelledby="picks">
+			<Label as="h2" id="picks" space="sm">
+				[TK] Rated highest
+				<Fragment slot="meta">[TK] {unrated} of {finished.length} unrated</Fragment>
+			</Label>
+			<ul class="books picks">
+				{picks.map((b) => (
+					<li class="book">
+						<div class="cover"><BookPile books={pile([b])} scale={3} /></div>
+						<div>
+							<BookLine title={b.title} author={b.author}>{when(b)}</BookLine>
+						</div>
+					</li>
+				))}
+			</ul>
+		</section>
+
+		{
+			years.map(({ year, books, piles, Wrap, Head }) => (
+				<section aria-labelledby={id(year)}>
+					<Wrap>
+					<Head>
+					<Label as="h2" id={id(year)} space="sm">
+						{year}
+						<Fragment slot="meta">
+							{books.length}
+							{Wrap === 'details' && <span class="toggle" data-show>[TK] show</span>}
+							{Wrap === 'details' && <span class="toggle" data-hide>[TK] hide</span>}
+						</Fragment>
+					</Label>
+					</Head>
+					<div class="year">
+						<div class="piles">
+							{piles.map((p) => (
+								<BookPile books={p} />
+							))}
+						</div>
+						<ListRows>
+							{books.map((b) => (
+								<ListRow title={short(b.title)} description={`${b.author} · ${when(b)}`} href={writingHref(b)}>
+								</ListRow>
+							))}
+						</ListRows>
+					</div>
+					</Wrap>
+				</section>
+			))
+		}
+
+		{
+			wanted.length > 0 && (
+				<section aria-labelledby="g-want">
+					<Label as="h2" id="g-want" space="sm">
+						Reading list
+						<Fragment slot="meta">{wanted.length}</Fragment>
+					</Label>
+					<ListRows>
+						{wanted.map((b) => (
+							<ListRow title={short(b.title)} description={b.author} />
+						))}
+					</ListRows>
+				</section>
+			)
+		}
+	</Page>
+</Shell>
+
+<style>
+	.books {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: grid;
+		gap: var(--space-6);
+	}
+	.picks {
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+	}
+	.book {
+		display: flex;
+		align-items: center;
+		gap: var(--space-4);
+	}
+	.cover {
+		flex: none;
+	}
+	.year {
+		display: grid;
+		gap: var(--space-6);
+	}
+	.piles {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-end;
+		gap: var(--space-2) var(--space-4);
+	}
+	summary {
+		list-style: none;
+		cursor: pointer;
+	}
+	summary::-webkit-details-marker {
+		display: none;
+	}
+	.toggle {
+		margin-inline-start: var(--space-3);
+		text-decoration: underline;
+	}
+	details[open] [data-show],
+	details:not([open]) [data-hide] {
+		display: none;
+	}
+	@media (min-width: 64rem) {
+		.year {
+			grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+			align-items: start;
+		}
+	}
+</style>

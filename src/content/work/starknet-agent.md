@@ -2,7 +2,6 @@
 title: 'Starknet Agent'
 summary: 'An AI conversational agent for the Starknet ecosystem'
 kind: 'project'
-site: 'https://agent.starknet.io'
 order: 3
 ---
 
