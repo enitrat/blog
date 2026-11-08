@@ -1,70 +1,83 @@
 import 'server-only';
-import { TextLink } from '@/components/ui/text-link';
-import { Tile } from '@/components/ui/tile';
+import { ArrowUpRightIcon, PenLineIcon } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { bannerFor, getPosts, postUrl } from '@/lib/content';
-import { Deck } from '../deck';
-import { PostCard } from '../post-card';
+import { Card, CardHeader, Scrims } from '../card';
+
+const dateFormat = new Intl.DateTimeFormat('en-GB', {
+	day: 'numeric',
+	month: 'short',
+	year: 'numeric',
+	timeZone: 'UTC',
+});
+
+const FOCUS = 'outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
 /**
- * The last three posts as a stack of index cards that is the tile's whole composition: the newest
- * in front and readable at rest, the others peeking out behind; while the tile is in view and
- * untouched the front card is dealt to the back every 5s. Hovering or focusing inside fans them in
- * place and the card under the pointer comes forward; letting go squares the pile up. Where hover
- * is unavailable, or the tile is narrow, the same three cards show as a scrolling row.
+ * The newest post, its banner full-bleed under a scrim with the title set large, and links to the
+ * posts after it. The title link covers the card; the other links sit above it.
  */
-export async function WritingTile() {
-	const posts = await Promise.all(
-		getPosts()
-			.slice(0, 3)
-			.map(async (p) => ({ ...p, banner: await bannerFor(p) })),
-	);
-	if (posts.length === 0) return null;
-	const card = (p: (typeof posts)[number]) => (
-		<PostCard
-			key={p.id}
-			href={postUrl(p)}
-			title={p.data.title}
-			description={p.data.description}
-			date={p.data.pubDate}
-			image={p.banner}
-		/>
-	);
+export async function WritingTile({ className }: { className?: string }) {
+	const [latest, ...older] = getPosts();
+	if (!latest) return null;
+	const banner = await bannerFor(latest);
 	return (
-		<Tile
-			size="compact"
-			label="Writing"
-			labelAs="h2"
-			action={
-				<TextLink variant="action" icon="arrow" href="/writing/">
-					All writing
-				</TextLink>
-			}
-		>
-			<div className="flex h-full flex-col justify-center">
-				<Deck
-					label="Latest writing"
-					spread={0.7}
-					angle={5}
-					cycle={5}
-					max="8.5rem"
-					fit="100%"
-					className="hidden pointer-fine:sm:flex"
-					cards={posts.map((p) => card(p))}
+		<Card index={1} lift labelledBy="writing-title" className={className}>
+			{banner ? (
+				<Image
+					src={banner}
+					alt=""
+					fill
+					sizes="(min-width: 68.75rem) 75vw, 100vw"
+					className="-z-20 object-cover transition-transform duration-900 ease-[cubic-bezier(.23,1,.32,1)] motion-safe:group-hover/card:scale-[1.035]"
 				/>
-				<div className="relative -mx-4 pointer-fine:sm:hidden">
-					<ul className="flex snap-x snap-mandatory gap-1.5 overflow-x-auto px-4 py-2 [scrollbar-width:none]">
-						{posts.map((p) => (
-							<li key={p.id} className="flex-[0_0_min(72%,15rem)] snap-start">
-								{card(p)}
+			) : (
+				<span aria-hidden className="absolute inset-0 -z-20 bg-scrim" />
+			)}
+			<Scrims />
+			<CardHeader id="writing-title" icon={<PenLineIcon />} label="Writing" onMedia>
+				<Link
+					href="/writing/"
+					className={`relative z-10 inline-flex items-center gap-0.5 rounded-sm hover:underline ${FOCUS}`}
+				>
+					All writing
+					<ArrowUpRightIcon aria-hidden className="size-3.5" />
+				</Link>
+			</CardHeader>
+			<div className="mt-3 flex min-h-0 flex-1 flex-col justify-end text-scrim-foreground">
+				<time
+					dateTime={latest.data.pubDate.toISOString().slice(0, 10)}
+					className="font-mono text-xs tracking-[-0.01em] text-scrim-foreground/75 tabular-nums"
+				>
+					{dateFormat.format(latest.data.pubDate)}
+				</time>
+				<h3 className="mt-2 font-display text-[2.125rem] leading-none tracking-[-0.015em] text-balance sm:text-[2.75rem]">
+					<Link
+						href={postUrl(latest)}
+						className={`rounded-sm after:absolute after:inset-0 after:z-0 ${FOCUS}`}
+					>
+						{latest.data.title}
+					</Link>
+				</h3>
+				<p className="mt-2 line-clamp-2 max-w-[46ch] text-scrim-foreground/80 max-sm:hidden">
+					{latest.data.description}
+				</p>
+				{older.length > 0 && (
+					<ul className="mt-4 flex min-w-0 gap-1.5">
+						{older.slice(0, 3).map((p) => (
+							<li key={p.id} className="min-w-0">
+								<Link
+									href={postUrl(p)}
+									className={`relative z-10 block h-[26px] truncate rounded-full bg-scrim-foreground/15 px-2.5 text-xs leading-[26px] text-scrim-foreground/90 backdrop-blur-md transition-colors hover:bg-scrim-foreground/25 ${FOCUS}`}
+								>
+									{p.data.title}
+								</Link>
 							</li>
 						))}
 					</ul>
-					<div
-						aria-hidden="true"
-						className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-linear-to-l from-white via-white/50 via-75% to-white/0 dark:from-iron-900 dark:via-iron-900/50 dark:to-iron-900/0"
-					/>
-				</div>
+				)}
 			</div>
-		</Tile>
+		</Card>
 	);
 }

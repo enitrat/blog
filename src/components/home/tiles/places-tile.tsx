@@ -1,34 +1,42 @@
 import 'server-only';
-import { ListRow, ListRows } from '@/components/ui/list-row';
-import { TextLink } from '@/components/ui/text-link';
-import { Tile } from '@/components/ui/tile';
-import { getTrips, type Trip } from '@/lib/content';
+import { ArrowUpRightIcon, MapPinIcon } from 'lucide-react';
+import Link from 'next/link';
+import type { Trip } from '@/lib/content';
+import { Card, CardHeader } from '../card';
 
-/** The latest trips. Renders nothing until the first trip exists. */
+/** The latest trips as rows. The page renders it only when a trip exists. */
 export function PlacesTile({
-	trips = getTrips(),
+	trips,
+	index,
+	className,
 }: {
-	/** Defaults to every trip, newest first. */
-	trips?: readonly Pick<Trip, 'id' | 'data'>[];
+	trips: readonly Pick<Trip, 'id' | 'data'>[];
+	index: number;
+	className?: string;
 }) {
-	if (trips.length === 0) return null;
 	return (
-		<Tile
-			size="compact"
-			label="Places"
-			labelAs="h2"
-			dot
-			action={
-				<TextLink variant="action" icon="arrow" href="/places/">
+		<Card index={index} labelledBy="places-title" className={className}>
+			<CardHeader id="places-title" icon={<MapPinIcon />} label="Places">
+				<Link
+					href="/places/"
+					className="inline-flex items-center gap-0.5 rounded-sm outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+				>
 					All places
-				</TextLink>
-			}
-		>
-			<ListRows>
+					<ArrowUpRightIcon aria-hidden className="size-3.5" />
+				</Link>
+			</CardHeader>
+			<ul className="mt-3 flex min-h-0 flex-1 flex-col">
 				{trips.slice(0, 3).map((t) => (
-					<ListRow key={t.id} href="/places/" title={t.data.title ?? t.id} />
+					<li key={t.id} className="flex min-h-0 flex-1 border-t border-border first:border-t-0">
+						<Link
+							href="/places/"
+							className="-mx-2 flex min-w-0 flex-1 items-center rounded-media px-2 font-display text-xl outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+						>
+							<span className="truncate">{t.data.title}</span>
+						</Link>
+					</li>
 				))}
-			</ListRows>
-		</Tile>
+			</ul>
+		</Card>
 	);
 }

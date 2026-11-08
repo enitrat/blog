@@ -1,14 +1,14 @@
-import { Cell } from '@/components/home/cell';
-import { RoomTile } from '@/components/home/room-tile';
-import { Sidebar } from '@/components/home/sidebar';
+import { AboutTile } from '@/components/home/tiles/about-tile';
+import { BenchTile } from '@/components/home/tiles/bench-tile';
+import { ElsewhereTile } from '@/components/home/tiles/elsewhere-tile';
 import { NowTile } from '@/components/home/tiles/now-tile';
 import { PlacesTile } from '@/components/home/tiles/places-tile';
 import { ReadingTile } from '@/components/home/tiles/reading-tile';
 import { SetTile } from '@/components/home/tiles/set-tile';
-import { TkTile } from '@/components/home/tiles/tk-tile';
 import { WorkTile } from '@/components/home/tiles/work-tile';
 import { WritingTile } from '@/components/home/tiles/writing-tile';
 import { SITE_DESCRIPTION } from '@/consts';
+import { bench } from '@/data/lifts';
 import { now } from '@/data/now';
 import { getTrips } from '@/lib/content';
 import { pageMeta } from '@/lib/meta';
@@ -19,46 +19,37 @@ export const metadata = pageMeta({
 	path: '/',
 });
 
-/** A cell on phones and tablets; on lg a fixed slot of the 4 x 4 grid. */
-const CELL = 'min-h-60 lg:min-h-0';
-
 /**
- * From lg the home is one viewport: the sidebar on the left, a 4 x 4 grid of cards on the right.
- * `--chrome` is the height of the header and footer around `main`; the grid takes the rest.
- * Phones stack and scroll.
+ * The bento. Rows have a fixed height, so the grid keeps its proportions on any window and the
+ * spare height sits below it. Phones: 2 columns of 176px rows; tablets: 4 of 160px; from 1100px,
+ * 8 columns of 194px rows, which fill a 1440x900 window under the header:
+ *
+ *   About (2 x 2)   | Writing (6 x 2)
+ *   Elsewhere       | Set (4 x 1)    | Reading
+ *   Work (6 x 1)                     | (2 x 2)
+ *
+ * Places, Now and Bench, once they have data, share a fifth row, widths 3 : 2 : 1.
  */
 export default function Home() {
 	const trips = getTrips();
+	const extras = [
+		trips.length > 0 && <PlacesTile key="places" trips={trips} index={6} className="grow-3" />,
+		now.length > 0 && <NowTile key="now" index={7} className="grow-2" />,
+		bench && <BenchTile key="bench" {...bench} index={8} className="grow" />,
+	].filter(Boolean);
 	return (
-		<div className="flex flex-col gap-6 pb-4 [--chrome:11.25rem] lg:h-[calc(100dvh-var(--chrome))] lg:flex-row lg:gap-0 lg:pb-0">
-			<div className="lg:w-72 lg:flex-none lg:border-r lg:border-gray-200 lg:pb-1.5 xl:w-80 dark:lg:border-white/10">
-				<Cell index={0} hover={false} className="h-full">
-					<Sidebar />
-				</Cell>
-			</div>
-			<div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:flex-1 lg:grid-cols-[repeat(4,minmax(0,1fr))] lg:grid-rows-[repeat(4,minmax(0,1fr))] lg:pb-1.5 lg:pl-1.5">
-				<Cell index={1} className={`${CELL} lg:row-span-2`}>
-					<SetTile />
-				</Cell>
-				<Cell index={2} className={`${CELL} sm:col-span-2 lg:col-span-2 lg:row-span-2`}>
-					<WritingTile />
-				</Cell>
-				<Cell index={3} hover={false} className={`${CELL} lg:row-span-2`}>
-					<ReadingTile />
-				</Cell>
-				<Cell index={4} className={`${CELL} sm:col-span-2 lg:col-span-2 lg:row-span-2`}>
-					<WorkTile />
-				</Cell>
-				<Cell index={5} drag className={`${CELL} lg:row-span-2`}>
-					{trips.length > 0 ? <PlacesTile trips={trips} /> : <TkTile what="photo" />}
-				</Cell>
-				<Cell index={6} drag className={CELL}>
-					<RoomTile />
-				</Cell>
-				<Cell index={7} drag className={CELL}>
-					{now.length > 0 ? <NowTile /> : <TkTile what="currently listening" />}
-				</Cell>
-			</div>
+		<div className="grid grid-flow-dense auto-rows-[11rem] grid-cols-2 gap-gutter pb-6 sm:auto-rows-[10rem] sm:grid-cols-4 min-[68.75rem]:auto-rows-[12.125rem] min-[68.75rem]:grid-cols-8">
+			<AboutTile className="col-span-2 row-span-2 min-[68.75rem]:col-[1/3] min-[68.75rem]:row-[1/3]" />
+			<WritingTile className="col-span-2 row-span-2 min-[68.75rem]:col-[3/9] min-[68.75rem]:row-[1/3]" />
+			<SetTile className="col-span-2 min-[68.75rem]:col-[3/7] min-[68.75rem]:row-3" />
+			<ReadingTile className="row-span-2 min-[68.75rem]:col-[7/9] min-[68.75rem]:row-[3/5]" />
+			<ElsewhereTile className="row-span-2 min-[68.75rem]:col-[1/3] min-[68.75rem]:row-3" />
+			<WorkTile className="col-span-2 min-[68.75rem]:col-[1/7] min-[68.75rem]:row-4" />
+			{extras.length > 0 && (
+				<div className="contents *:col-span-2 min-[68.75rem]:col-span-full min-[68.75rem]:flex min-[68.75rem]:gap-gutter min-[68.75rem]:*:basis-0">
+					{extras}
+				</div>
+			)}
 		</div>
 	);
 }
