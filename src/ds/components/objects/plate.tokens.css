@@ -1,0 +1,44 @@
+/* Plate: an object on a tile. `--plate-shadow`, `--plate-glow-strength` and `--plate-glow-inset`
+   are read with fallbacks, never declared here, so a parent (a Deck card, a PostCard, a spinning
+   record) can set them and the plate inherits. */
+@layer base {
+	:where(.plate) {
+		--plate-radius: var(--radius-sm);
+		--plate-glow-blur: 1.25rem;
+	}
+	:where(.plate[data-radius="md"]) {
+		--plate-radius: var(--radius-md);
+	}
+}
+
+@layer components {
+	.plate-glow {
+		position: absolute;
+		inset: var(--plate-glow-inset, -4%);
+		border-radius: var(--radius-md);
+		background: var(--plate-glow);
+		opacity: var(--plate-glow-strength, 0.35);
+		filter: blur(var(--plate-glow-blur));
+		transition: opacity var(--duration-base) var(--ease-out);
+		pointer-events: none;
+	}
+	.plate-face {
+		position: relative;
+		height: 100%;
+		overflow: hidden;
+		border-radius: var(--plate-radius);
+		background: var(--muted);
+		box-shadow: var(--plate-shadow, var(--elevation-object));
+		transition: box-shadow var(--duration-base) var(--ease-out);
+
+		/* the hairline sits over the image, so a light cover still has an edge */
+		&::after {
+			content: "";
+			position: absolute;
+			inset: 0;
+			border-radius: inherit;
+			box-shadow: inset 0 0 0 var(--border-hairline) var(--border);
+			pointer-events: none;
+		}
+	}
+}

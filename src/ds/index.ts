@@ -1,6 +1,11 @@
 export { Equalizer } from './components/motion/equalizer';
 export { Magnetic } from './components/motion/magnetic';
 export { Tilt } from './components/motion/tilt';
+export { Deck } from './components/objects/deck';
+export { IsoGlyph, IsoPart } from './components/objects/iso-glyph';
+export { Plate, type PlateRatio } from './components/objects/plate';
+export { PostCard, type PostCardSize } from './components/objects/post-card';
+export { Readout, type ReadoutMode } from './components/objects/readout';
 export {
 	Button,
 	type ButtonProps,

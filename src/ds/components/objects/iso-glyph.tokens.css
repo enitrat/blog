@@ -1,0 +1,41 @@
+/* IsoGlyph: tones come from the iso roles in surfaces.css, so a glyph re-tints on any surface. A
+   glyph sets `--pose` on its own root class; its `.iso-part` moves there while the nearest
+   `[data-glyph-host]` is hovered or holds keyboard focus. */
+@layer components {
+	.iso-glyph {
+		display: block;
+		flex: none;
+		overflow: visible;
+
+		& :is(polygon, path, circle, ellipse, line, polyline) {
+			stroke: var(--iso-edge);
+			stroke-width: var(--border-hairline);
+			stroke-linejoin: round;
+			stroke-linecap: round;
+			vector-effect: non-scaling-stroke;
+		}
+		& .t {
+			fill: var(--iso-top);
+		}
+		& .l {
+			fill: var(--iso-left);
+		}
+		& .r {
+			fill: var(--iso-right);
+		}
+		& .iso-part {
+			transform-origin: 0 0;
+			transition: transform var(--duration-base) var(--ease-out);
+		}
+	}
+
+	/* under reduced motion nothing moves */
+	@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+		[data-glyph-host]:hover .iso-part,
+		[data-glyph-host]:has(:focus-visible) .iso-part {
+			transform: var(--pose);
+			transition-duration: var(--duration-moderate);
+			transition-timing-function: var(--ease-spring);
+		}
+	}
+}
