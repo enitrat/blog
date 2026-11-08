@@ -1,6 +1,6 @@
-import { ListRow, ListRows } from '@/components/ui/list-row';
 import { Page, PageHeader } from '@/components/ui/page';
-import { getPosts, postUrl } from '@/lib/content';
+import { WritingRow } from '@/components/writing/writing-row';
+import { bannerFor, getPosts, postUrl } from '@/lib/content';
 import { pageMeta } from '@/lib/meta';
 
 export const metadata = pageMeta({
@@ -12,25 +12,26 @@ export const metadata = pageMeta({
 const fmt = (d: Date) =>
 	d.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: '2-digit' });
 
-export default function WritingPage() {
+export default async function WritingPage() {
 	const posts = getPosts();
+	const banners = await Promise.all(posts.map(bannerFor));
 	return (
-		<Page>
+		<Page width="wide">
 			<PageHeader>Writing</PageHeader>
 			{posts.length > 0 ? (
-				<ListRows>
-					{posts.map((post) => (
-						<ListRow
+				<ul className="flex flex-col">
+					{posts.map((post, i) => (
+						<WritingRow
 							key={post.id}
-							headingLevel="h2"
 							href={postUrl(post)}
 							date={fmt(post.data.pubDate)}
 							datetime={post.data.pubDate.toISOString()}
 							title={post.data.title}
 							description={post.data.description}
+							banner={banners[i]}
 						/>
 					))}
-				</ListRows>
+				</ul>
 			) : (
 				<p className="text-sm text-muted-foreground">No posts yet.</p>
 			)}
