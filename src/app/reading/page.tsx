@@ -1,12 +1,15 @@
+import type { StaticImageData } from 'next/image';
 import type { ReactNode } from 'react';
 import { type Book, books } from '@/booksData';
 import { piles } from '@/components/books/book';
+import { BookCover } from '@/components/books/book-cover';
 import { BookLine } from '@/components/books/book-line';
 import { BookPile } from '@/components/books/book-pile';
 import { Eyebrow } from '@/components/ui/eyebrow';
 import { ListRow, ListRows } from '@/components/ui/list-row';
 import { Page, PageHeader } from '@/components/ui/page';
 import { StatusDot } from '@/components/ui/status-dot';
+import { findImage } from '@/lib/media';
 import { pageMeta } from '@/lib/meta';
 import { cn } from '@/lib/utils';
 import { readingLine } from '@/utils/bookRecord';
@@ -27,7 +30,9 @@ const pile = (bs: Book[]) => bs.map((b) => ({ title: b.title, pages: b.edition.p
 const when = (b: Book) =>
 	[readingLine(b), b.rating === null ? undefined : `rated ${b.rating} of 5`]
 		.filter(Boolean)
-		.join(' · ');
+		.join(' · ')
+		// "rated 4.4 of 5" stays on one line.
+		.replace(/rated (\S+) of 5/, 'rated $1 of 5');
 const yearOf = (b: Book) =>
 	b.readingPeriod === 'before-2020'
 		? BEFORE_2020
@@ -35,25 +40,50 @@ const yearOf = (b: Book) =>
 const writingHref = (b: Book) => (b.writingSlug ? `/writing/${b.writingSlug}/` : undefined);
 const id = (s: string) => `y-${s.toLowerCase().replace(/\W+/g, '-')}`;
 
-/** A book with its own small pile beside its title line. */
-function BookItem({ book, children }: { book: Book; children: ReactNode }) {
+type Shown = { book: Book; cover: StaticImageData | undefined };
+
+const withCover = (b: Book): Promise<Shown> =>
+	findImage(`covers/${b.edition.isbn13}`).then((cover) => ({ book: b, cover }));
+
+/** A book beside its title line: its cover when it has one, else its own small pile. */
+function BookItem({
+	shown: { book, cover },
+	coverClass,
+	children,
+}: {
+	shown: Shown;
+	coverClass: string;
+	children: ReactNode;
+}) {
 	return (
-		<li className="flex items-center gap-4">
-			<div className="flex-none">
-				<BookPile books={pile([book])} scale={3} />
-			</div>
-			<div>{children}</div>
+		<li className="flex items-center gap-4 sm:gap-5">
+			{cover ? (
+				<BookCover cover={cover} className={coverClass} />
+			) : (
+				<div className="flex-none">
+					<BookPile books={pile([book])} scale={3} />
+				</div>
+			)}
+			<div className="min-w-0">{children}</div>
 		</li>
 	);
 }
 
-export default function ReadingPage() {
-	const reading = books.filter((b) => b.status === 'reading').sort(recent);
+export default async function ReadingPage() {
+	const reading = await Promise.all(
+		books
+			.filter((b) => b.status === 'reading')
+			.sort(recent)
+			.map(withCover),
+	);
 	const finished = books.filter((b) => b.status === 'finished');
-	const picks = finished
-		.filter((b) => (b.rating ?? 0) >= 4)
-		.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
-		.slice(0, 6);
+	const picks = await Promise.all(
+		finished
+			.filter((b) => (b.rating ?? 0) >= 4)
+			.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+			.slice(0, 6)
+			.map(withCover),
+	);
 	const unrated = finished.filter((b) => b.rating === null).length;
 	// The archive by year, newest first; a book known only as "before 2020" closes it.
 	const years = [...Map.groupBy([...finished].sort(recent), yearOf)].map(([year, bs]) => ({
@@ -73,9 +103,14 @@ export default function ReadingPage() {
 			{reading.length > 0 && (
 				<section aria-label="Reading now">
 					<ul className="grid gap-4">
-						{reading.map((b) => (
-							<BookItem key={b.title} book={b}>
-								<BookLine title={b.title} author={b.author} size="lg" tag={<StatusDot />} />
+						{reading.map((r) => (
+							<BookItem key={r.book.title} shown={r} coverClass="h-44 max-w-32">
+								<BookLine
+									title={r.book.title}
+									author={r.book.author}
+									size="lg"
+									tag={<StatusDot />}
+								/>
 							</BookItem>
 						))}
 					</ul>
@@ -96,10 +131,10 @@ export default function ReadingPage() {
 					</Eyebrow>
 				</div>
 				<ul className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,18rem),1fr))] gap-4">
-					{picks.map((b) => (
-						<BookItem key={b.title} book={b}>
-							<BookLine title={b.title} author={b.author}>
-								{when(b)}
+					{picks.map((p) => (
+						<BookItem key={p.book.title} shown={p} coverClass="h-32 max-w-24">
+							<BookLine title={p.book.title} author={p.book.author}>
+								{when(p.book)}
 							</BookLine>
 						</BookItem>
 					))}
