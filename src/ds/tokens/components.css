@@ -12,9 +12,20 @@
 @import "../components/motion/equalizer.tokens.css";
 @import "../components/motion/tilt.tokens.css";
 
+/* ds/components/objects */
+@import "../components/objects/deck.tokens.css";
+@import "../components/objects/iso-glyph.tokens.css";
+@import "../components/objects/plate.tokens.css";
+@import "../components/objects/post-card.tokens.css";
+@import "../components/objects/readout.tokens.css";
+
 /* site: reading surfaces (src/components/reading, src/app/{writing,work,reading,places}) */
 @import "../../components/reading/prose.css";
 
 /* site: home bench (src/components/home, except room) */
+@import "../../components/home/glyphs/glyphs.tokens.css";
+@import "../../components/home/tiles/reading-tile.tokens.css";
+@import "../../components/home/tiles/set-tile.tokens.css";
+@import "../../components/home/tiles/writing-tile.tokens.css";
 
 /* site: room (src/components/home/room) */

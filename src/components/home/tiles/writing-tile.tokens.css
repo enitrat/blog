@@ -1,0 +1,34 @@
+/* Writing tile: the deck may bleed half a padding into the tile, leaving room for the outer
+   cards' tilt. With no hover, or on a narrow tile, the three cards show as a row instead. */
+@layer components {
+	.writing-deck {
+		--deck-max: 20rem;
+		--deck-fit: calc(100% + var(--pad-tile) * 0.5);
+		--deck-radius: var(--radius-md);
+		margin-block: auto;
+	}
+	.writing-row {
+		display: none;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	@media (hover: none), (max-width: 40rem) {
+		.writing-deck {
+			display: none;
+		}
+		.writing-row {
+			display: flex;
+			gap: calc(var(--spacing) * 3);
+			overflow-x: auto;
+			padding-block: calc(var(--spacing) * 2);
+			scroll-snap-type: x mandatory;
+			scrollbar-width: none;
+
+			& > li {
+				flex: 0 0 min(72%, 15rem);
+				scroll-snap-align: start;
+			}
+		}
+	}
+}
