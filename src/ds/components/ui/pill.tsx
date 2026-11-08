@@ -5,7 +5,7 @@ import type { ComponentProps } from 'react';
 import { cn } from '@/ds/lib/cn';
 
 const BASE =
-	'relative inline-flex min-h-(--pill-h) items-center whitespace-nowrap rounded-(--pill-radius) border-0 px-(--pill-px) font-mono text-label font-medium leading-none no-underline';
+	'relative inline-flex min-h-(--pill-h) items-center whitespace-nowrap rounded-(--pill-radius) border-0 px-(--pill-px) font-mono text-label font-medium leading-none tracking-normal no-underline';
 const INTERACTIVE = 'press focus-ring hit-area cursor-pointer';
 
 const VARIANTS = {
