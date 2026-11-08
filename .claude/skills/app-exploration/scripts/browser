@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Open a capture-ready agent-browser session and print its name.
+#
+#   browser <prefix> [width height scale] [light|dark] [reduce]   default 1440 900 2 light
+#
+# Phone: `browser <prefix> 390 844 3`. Every page the session loads runs `session-init.js`: it
+# defines `pageSettled()` and hides dev badges and the analytics script's noise from screenshots.
+# The name is unique to this worktree and prefix, so give every agent and every state its own prefix.
+set -euo pipefail
+
+usage="usage: browser <prefix> [width height scale] [light|dark] [reduce]"
+prefix=${1:?$usage}
+width=${2:-1440} height=${3:-900} scale=${4:-2}
+scheme=${5:-light}
+motion=${6:-}
+session=$(agent-browser session id --scope worktree --prefix "$prefix")
+ab() { agent-browser --session "$session" "$@" >/dev/null; }
+# An init script registers with the session's first real navigation and holds for every later one.
+ab --init-script "$(dirname "$0")/session-init.js" open about:blank
+ab set viewport "$width" "$height" "$scale"
+if [ "$motion" = reduce ]; then ab set media "$scheme" reduced-motion; else ab set media "$scheme"; fi
+echo "$session"
