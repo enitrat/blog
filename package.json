@@ -13,7 +13,8 @@
 		"format": "biome format --write .",
 		"test": "bun test --conditions react-server --pass-with-no-tests",
 		"room": "next dev --hostname 127.0.0.1",
-		"room:bake": "bun scripts/bake-room.mjs"
+		"room:bake": "bun scripts/bake-room.mjs",
+		"covers:fetch": "bun scripts/fetch-covers.ts"
 	},
 	"dependencies": {
 		"@base-ui/react": "1.9.0",
