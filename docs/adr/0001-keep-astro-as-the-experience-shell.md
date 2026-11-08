@@ -1,5 +1,7 @@
 # Keep Astro as the experience shell
 
+Superseded by [ADR 0003](./0003-move-to-nextjs.md).
+
 The site stays on Astro, not Next.js or a site-wide single-page app.
 
 ## Reading wants static HTML

@@ -4,10 +4,11 @@
 
 - Keep Mathieu's prose, claims, contact details, and artwork as he wrote them.
   Ask before you replace it. This includes UI microcopy: labels, counters,
-  placeholders, and button text in `.astro` files. A brief from an
+  placeholders, and button text in `.tsx` files. A brief from an
   orchestrating agent does not count as his approval.
 - Change `DESIGN.md`, `CONTEXT.md`, and `PRODUCT.md` only through the
-  impeccable skill. `DESIGN.md` generates `src/styles/tokens.css`.
+  impeccable skill. `src/ds/tokens/` holds every design value;
+  `scripts/check-design-tokens.mjs` fails the build when `DESIGN.md` disagrees.
 
 ## Blender room
 
@@ -20,7 +21,7 @@ Read `docs/room-workflow.md` before any room change.
 
 ## Home bench and UI atoms
 
-Read `src/components/ui/README.md` before changing an atom or a tile.
+Read `src/ds/README.md` before changing a token, an atom, or a tile.
 
 - A visual or motion change is done when `bun run lint`, `bun test`,
   `bun run build`, and `bun run motion:check chromium` pass. Add
@@ -33,7 +34,7 @@ Read `src/components/ui/README.md` before changing an atom or a tile.
 - macOS has no `timeout`. Run the checks bare; each carries its own limits.
 - Never measure while another agent edits the tree. `motion:check` builds and
   serves `dist/`; run it after edits land, or in a separate worktree. Never
-  point a measurement at a shared `astro dev`.
+  point a measurement at a shared `next dev`.
 - Headless runs stub WebGL so the bench is measurable. The room is covered
   only by `room:check`, so a green `motion:check` says nothing about the room.
 

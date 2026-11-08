@@ -1,12 +1,14 @@
 # Mathieu Saugier
 
 Mathieu's site: work, writing, bookshelf, and About page.
-[Astro](https://astro.build) builds it to static HTML. The homepage adds a 3D
-living room, baked in Blender and drawn by Three.js.
+[Next.js](https://nextjs.org) exports it to static HTML. The design system in
+`src/ds/` (Tailwind CSS, shadcn on Base UI) draws every page. The homepage adds a
+3D living room, baked in Blender and drawn by Three.js.
 
 ```mermaid
 flowchart LR
-	M["src/content"] --> A["Astro build"]
+	M["src/content"] --> A["next build"]
+	D["src/ds"] --> A
 	B["src/booksData.ts"] --> A
 	P["scripts/room.py"] --> K["Blender bake"]
 	K --> G["src/assets/room"]
@@ -18,7 +20,7 @@ flowchart LR
 
 ```sh
 bun install
-bun run dev        # http://localhost:4321
+bun run dev        # http://localhost:3000
 bun run build      # the deploy build
 bun run lint
 bunx playwright install chromium webkit   # once, for checks
@@ -31,7 +33,8 @@ bunx playwright install chromium webkit   # once, for checks
 | Audience and hard limits | [PRODUCT.md](./PRODUCT.md) |
 | Names for the site's parts | [CONTEXT.md](./CONTEXT.md) |
 | Colors, type, and layout | [DESIGN.md](./DESIGN.md) |
-| Why Astro | [ADR 0001](./docs/adr/0001-keep-astro-as-the-experience-shell.md) |
+| Tokens and components | [src/ds/README.md](./src/ds/README.md) |
+| Why Next.js | [ADR 0003](./docs/adr/0003-move-to-nextjs.md) |
 | Changing the living room | [Room workflow](./docs/room-workflow.md) |
 | How the room looks and behaves | [Room direction](./docs/room-direction.md) |
 | Why the room bakes this way | [ADR 0002](./docs/adr/0002-room-bake-pipeline.md) |
