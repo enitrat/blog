@@ -28,7 +28,7 @@ export function ListRow({
 	const body = (
 		<>
 			{date && (
-				<div className="flex flex-wrap gap-x-2 text-xs font-medium text-gray-400 tabular-nums sm:w-32 sm:flex-none dark:text-iron-500">
+				<div className="flex flex-wrap gap-x-2 text-xs font-medium text-faint tabular-nums sm:w-32 sm:flex-none">
 					<Stamp dateTime={datetime} className="flex flex-wrap gap-x-1.5 sm:flex-col">
 						{range?.length === 2 ? (
 							<>
@@ -42,11 +42,11 @@ export function ListRow({
 				</div>
 			)}
 			<div className="min-w-0 flex-1">
-				<Heading className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-balance text-gray-800 dark:text-iron-100">
+				<Heading className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-balance text-foreground">
 					{title}
 				</Heading>
 				{description && (
-					<p className="mt-0.5 text-sm leading-relaxed text-pretty text-gray-500 dark:text-iron-400">
+					<p className="mt-0.5 text-sm leading-relaxed text-pretty text-muted-foreground">
 						{description}
 					</p>
 				)}
@@ -54,7 +54,7 @@ export function ListRow({
 			{href && (
 				<ArrowRightIcon
 					aria-hidden
-					className="hidden size-4 flex-none -translate-x-1 self-center text-gray-400 opacity-0 transition group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:opacity-100 sm:block dark:text-iron-400"
+					className="hidden size-4 flex-none -translate-x-1 self-center text-faint opacity-0 transition group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:opacity-100 sm:block"
 				/>
 			)}
 		</>
@@ -62,10 +62,10 @@ export function ListRow({
 	const row = cn(
 		'group flex flex-col gap-1 py-4 sm:flex-row sm:items-baseline sm:gap-4',
 		href &&
-			'-mx-3 rounded-xl px-3 transition-colors outline-none hover:bg-gray-100/50 focus-visible:ring-2 focus-visible:ring-brand-500/60 dark:hover:bg-white/5',
+			'-mx-3 rounded-xl px-3 transition-colors outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring',
 	);
 	return (
-		<li className="border-t border-gray-200 first:border-t-0 dark:border-white/10">
+		<li className="border-t border-border first:border-t-0">
 			{href?.startsWith('/') ? (
 				<NextLink href={href} className={row}>
 					{body}

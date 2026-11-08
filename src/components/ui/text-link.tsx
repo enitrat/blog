@@ -5,22 +5,21 @@ import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 const textLinkVariants = cva(
-	'group/link transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60',
+	'group/link transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
 	{
 		variants: {
 			variant: {
 				/** Muted; one step darker on hover. Under a page or beside a control. */
 				muted:
-					'inline-flex items-center gap-1 rounded-xs text-sm font-medium text-gray-500 hover:text-gray-800 dark:text-iron-400 dark:hover:text-iron-100',
-				/** Brand text link in running text. */
+					'inline-flex items-center gap-1 rounded-xs text-sm font-medium text-muted-foreground hover:text-foreground',
+				/** Accent text link in running text. */
 				inline:
-					'rounded-sm text-brand-600 underline decoration-brand-600/30 underline-offset-[22%] hover:text-brand-700 hover:decoration-brand-700 dark:text-brand-400 dark:decoration-brand-400/30 dark:hover:text-brand-300',
+					'rounded-sm text-primary underline decoration-primary/30 underline-offset-[22%] hover:decoration-primary',
 				/** Lighter than muted. */
-				quiet:
-					'rounded-sm text-gray-400 hover:text-gray-600 dark:text-iron-400 dark:hover:text-iron-100',
+				quiet: 'rounded-sm text-faint hover:text-foreground',
 				/** A tile's header action. */
 				action:
-					'inline-flex items-center gap-1 rounded-sm text-xs font-medium text-gray-500 hover:text-gray-800 dark:text-iron-400 dark:hover:text-white',
+					'inline-flex items-center gap-1 rounded-sm text-xs font-medium text-muted-foreground hover:text-foreground',
 			},
 		},
 		defaultVariants: { variant: 'muted' },

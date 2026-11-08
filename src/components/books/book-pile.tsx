@@ -1,11 +1,7 @@
 import { cn } from '@/lib/utils';
 import { PILE_WIDTH, type PileBook, stack } from './book';
 
-const TONES = [
-	'bg-white dark:bg-iron-800',
-	'bg-gray-100 dark:bg-iron-700',
-	'bg-gray-200 dark:bg-iron-900',
-] as const;
+const TONES = ['bg-card', 'bg-muted', 'bg-muted-foreground/15'] as const;
 
 /** Spines thinner than this many pixels carry no title. */
 const TITLE_MIN = 9;
@@ -41,14 +37,14 @@ export function BookPile({
 						key={i}
 						title={b.title}
 						className={cn(
-							'flex max-w-full items-center overflow-hidden rounded-b-xs border border-gray-200 px-1.5 shadow-sm shadow-zinc-800/15 dark:border-white/10',
+							'flex max-w-full items-center overflow-hidden rounded-b-xs px-1.5 shadow-card',
 							TONES[b.tone],
 						)}
 						style={{ width: b.length * scale, height, marginLeft: b.offset * scale }}
 					>
 						{height >= TITLE_MIN && (
 							<span
-								className="truncate leading-none font-semibold text-gray-600 dark:text-iron-300"
+								className="truncate leading-none font-semibold text-muted-foreground"
 								style={{ fontSize: Math.min(12, height * 0.6) }}
 							>
 								{b.title}

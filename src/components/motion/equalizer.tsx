@@ -19,7 +19,7 @@ export function Equalizer({ playing, className }: { playing: boolean; className?
 			aria-hidden="true"
 			className={cn(
 				'inline-flex h-3 flex-none items-end gap-0.5 transition-colors',
-				playing ? 'text-brand-500 dark:text-brand-400' : 'text-gray-400 dark:text-iron-500',
+				playing ? 'text-primary' : 'text-faint',
 				className,
 			)}
 		>

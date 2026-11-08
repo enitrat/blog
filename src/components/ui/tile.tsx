@@ -6,18 +6,18 @@ import { cn } from '@/lib/utils';
 import { Eyebrow } from './eyebrow';
 
 const tileVariants = cva(
-	'relative flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xs dark:border-white/10 dark:bg-iron-900',
+	'relative flex h-full min-w-0 flex-col overflow-hidden rounded-card bg-card shadow-card',
 	{
 		variants: {
 			/** `compact`: tighter padding for cards that must fit a fixed cell. */
-			size: { default: 'gap-4 p-4', compact: 'gap-2 p-3' },
-			linked: { true: 'outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60' },
+			size: { default: 'gap-4 p-inset', compact: 'gap-2 p-3' },
+			linked: { true: 'outline-none focus-visible:ring-2 focus-visible:ring-ring' },
 		},
 		defaultVariants: { size: 'default' },
 	},
 );
 
-/** A card: hairline, shadow-xs, rounded-xl, with an optional header of label, meta and action. */
+/** A card from the card system, with an optional header of label, meta and action. */
 export function Tile({
 	label,
 	labelAs,

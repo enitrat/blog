@@ -23,11 +23,11 @@ export default async function AboutPage() {
 		<Page width="text" as="article">
 			<PageHeader>About</PageHeader>
 			<Prose tree={tree} />
-			<dl className="border-t border-gray-200 pt-6 text-sm dark:border-white/10">
+			<dl className="border-t border-border pt-6 text-sm">
 				<dt>
 					<Eyebrow>Currently</Eyebrow>
 				</dt>
-				<dd className="mt-1 text-gray-800 dark:text-iron-100">Senior Protocol Engineer at Zama</dd>
+				<dd className="mt-1 text-foreground">Senior Protocol Engineer at Zama</dd>
 			</dl>
 		</Page>
 	);

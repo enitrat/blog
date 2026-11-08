@@ -62,13 +62,13 @@ export function Lightbox({
 			</a>
 			<Dialog open={open} onOpenChange={setOpen}>
 				<DialogPortal>
-					<DialogOverlay className="bg-gray-900/80 dark:bg-black/80" />
+					<DialogOverlay className="bg-scrim/85" />
 					<DialogPrimitive.Popup
 						aria-label="Photos"
 						onClick={(e) => {
 							if (e.target === e.currentTarget) setOpen(false);
 						}}
-						className="fixed inset-0 z-50 mx-auto flex max-w-6xl flex-col justify-center p-4 text-white outline-none transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0"
+						className="fixed inset-0 z-50 mx-auto flex max-w-6xl flex-col justify-center p-4 text-scrim-foreground outline-none transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0"
 					>
 						<Carousel setApi={setApi} opts={{ loop: true }} className="flex flex-col gap-4">
 							<div className="flex items-center justify-between gap-4">

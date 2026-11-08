@@ -2,7 +2,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import type { ReactNode } from 'react';
 
 const titleVariants = cva(
-	'flex flex-wrap items-center gap-1.5 font-semibold text-balance text-gray-800 dark:text-iron-100',
+	'flex flex-wrap items-center gap-1.5 font-semibold text-balance text-foreground',
 	{ variants: { size: { md: 'text-sm', lg: 'text-lg' } }, defaultVariants: { size: 'md' } },
 );
 
@@ -29,10 +29,8 @@ export function BookLine({
 				{title.replace(/\s*\(.*\)\s*$/, '')}
 				{tag}
 			</p>
-			<p className="mt-1 text-sm text-gray-500 dark:text-iron-400">{author}</p>
-			{children && (
-				<p className="mt-1 font-mono text-xs text-gray-400 dark:text-iron-500">{children}</p>
-			)}
+			<p className="mt-1 text-sm text-muted-foreground">{author}</p>
+			{children && <p className="mt-1 font-mono text-xs text-faint">{children}</p>}
 		</div>
 	);
 }

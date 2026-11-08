@@ -2,12 +2,12 @@ import { cn } from '@/lib/utils';
 
 /** Cloth tones, readable in both themes; a title hash picks one. */
 const TONES = [
-	'bg-gray-800 text-white dark:bg-iron-100 dark:text-iron-950',
-	'bg-gray-500 text-white dark:bg-iron-500 dark:text-iron-950',
-	'bg-gray-100 text-gray-800 dark:bg-iron-800 dark:text-iron-100',
-	'bg-gray-600 text-white dark:bg-iron-300 dark:text-iron-950',
-	'bg-white text-gray-800 dark:bg-iron-900 dark:text-iron-100',
-	'bg-gray-300 text-gray-800 dark:bg-iron-700 dark:text-iron-100',
+	'bg-foreground text-background',
+	'bg-faint text-background',
+	'bg-muted text-foreground',
+	'bg-muted-foreground text-background',
+	'bg-card text-foreground',
+	'bg-muted-foreground/30 text-foreground',
 ] as const;
 
 const STATUS = {
@@ -49,10 +49,10 @@ export function BookSpine({
 			href={href}
 			title={`${short}, ${author}`}
 			className={cn(
-				'relative flex-none overflow-hidden rounded-t-xs border border-b-0 border-gray-200 py-3 no-underline shadow-sm shadow-zinc-800/15 dark:border-white/10',
+				'relative flex-none overflow-hidden rounded-t-xs py-3 no-underline shadow-card',
 				TONES[hash % TONES.length],
 				href &&
-					'transition-transform duration-150 ease-out outline-none hover:-translate-y-2 focus-visible:-translate-y-2 focus-visible:ring-2 focus-visible:ring-brand-500/60 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:focus-visible:translate-y-0',
+					'transition-transform duration-150 ease-out outline-none hover:-translate-y-2 focus-visible:-translate-y-2 focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:focus-visible:translate-y-0',
 			)}
 			style={{ width: `${width.toFixed(2)}rem`, height: `${height.toFixed(2)}rem` }}
 		>

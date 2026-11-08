@@ -2,10 +2,11 @@ import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { StatusDot } from './status-dot';
 
-/** Small muted caption, with an optional status dot and right-aligned meta. */
+/** Small-caps caption, with an optional status dot or icon and right-aligned meta. */
 export function Eyebrow({
 	as: Tag = 'span',
 	dot,
+	icon,
 	meta,
 	id,
 	className,
@@ -14,6 +15,7 @@ export function Eyebrow({
 	id?: string;
 	as?: 'span' | 'p' | 'h2' | 'h3' | 'div';
 	dot?: boolean;
+	icon?: ReactNode;
 	meta?: ReactNode;
 	className?: string;
 	children?: ReactNode;
@@ -22,11 +24,12 @@ export function Eyebrow({
 		<Tag
 			id={id}
 			className={cn(
-				'flex items-center gap-1.5 text-xs font-medium text-gray-400 dark:text-iron-400',
+				'flex items-center gap-1.5 text-eyebrow font-medium text-faint uppercase [&_svg]:size-3.5 [&_svg]:shrink-0',
 				className,
 			)}
 		>
 			{dot && <StatusDot />}
+			{icon}
 			{children}
 			{meta && <span className="ms-auto text-end">{meta}</span>}
 		</Tag>

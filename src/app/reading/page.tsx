@@ -109,8 +109,7 @@ export default function ReadingPage() {
 			{years.map(({ year, books: bs, piles: ps, folded }) => {
 				const Wrap = folded ? 'details' : 'div';
 				const Head = folded ? 'summary' : 'div';
-				const link =
-					'underline underline-offset-[22%] hover:text-gray-500 dark:hover:text-iron-300';
+				const link = 'underline underline-offset-[22%] hover:text-foreground';
 				return (
 					<section key={year} aria-labelledby={id(year)}>
 						<Wrap className="group">
@@ -118,7 +117,7 @@ export default function ReadingPage() {
 								id={id(year)}
 								className={
 									folded
-										? 'cursor-pointer list-none rounded-md outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 [&::-webkit-details-marker]:hidden'
+										? 'cursor-pointer list-none rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden'
 										: undefined
 								}
 							>

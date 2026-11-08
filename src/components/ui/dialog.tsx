@@ -28,7 +28,7 @@ function DialogOverlay({ className, ...props }: DialogPrimitive.Backdrop.Props) 
 		<DialogPrimitive.Backdrop
 			data-slot="dialog-overlay"
 			className={cn(
-				'fixed inset-0 isolate z-50 bg-gray-900/20 backdrop-blur-xs backdrop-saturate-150 transition-opacity duration-150 data-starting-style:opacity-0 data-ending-style:opacity-0 dark:bg-black/50',
+				'fixed inset-0 isolate z-50 bg-scrim/25 backdrop-blur-xs backdrop-saturate-150 transition-opacity duration-150 data-starting-style:opacity-0 data-ending-style:opacity-0',
 				className,
 			)}
 			{...props}
@@ -50,7 +50,7 @@ function DialogContent({
 			<DialogPrimitive.Popup
 				data-slot="dialog-content"
 				className={cn(
-					'fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl border border-gray-100 bg-white/80 p-4 text-sm text-gray-800 shadow-xs backdrop-blur-sm backdrop-saturate-150 outline-none transition-[opacity,scale] duration-150 data-starting-style:scale-95 data-starting-style:opacity-0 data-ending-style:scale-95 data-ending-style:opacity-0 sm:max-w-sm dark:border-iron-900 dark:bg-iron-950/80 dark:text-iron-100',
+					'fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl bg-card/80 p-4 text-sm text-foreground shadow-raised backdrop-blur-sm backdrop-saturate-150 outline-none transition-[opacity,scale] duration-150 data-starting-style:scale-95 data-starting-style:opacity-0 data-ending-style:scale-95 data-ending-style:opacity-0 sm:max-w-sm',
 					className,
 				)}
 				{...props}
@@ -88,7 +88,7 @@ function DialogFooter({
 		<div
 			data-slot="dialog-footer"
 			className={cn(
-				'-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-2xl border-t border-gray-100 p-4 sm:flex-row sm:justify-end dark:border-white/10',
+				'-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-2xl border-t border-border p-4 sm:flex-row sm:justify-end',
 				className,
 			)}
 			{...props}
@@ -115,7 +115,7 @@ function DialogDescription({ className, ...props }: DialogPrimitive.Description.
 	return (
 		<DialogPrimitive.Description
 			data-slot="dialog-description"
-			className={cn('text-sm text-gray-500 dark:text-iron-400', className)}
+			className={cn('text-sm text-muted-foreground', className)}
 			{...props}
 		/>
 	);

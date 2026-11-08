@@ -34,14 +34,8 @@ export function PageHeader({
 	return (
 		<header className="flex flex-col gap-2">
 			{kicker}
-			<h1 className="text-xl font-semibold text-balance text-gray-900 dark:text-white">
-				{children}
-			</h1>
-			{lead && (
-				<p className="text-sm leading-relaxed text-pretty text-gray-500 dark:text-iron-300">
-					{lead}
-				</p>
-			)}
+			<h1 className="font-display text-4xl text-balance text-foreground sm:text-5xl">{children}</h1>
+			{lead && <p className="text-sm leading-relaxed text-pretty text-muted-foreground">{lead}</p>}
 		</header>
 	);
 }

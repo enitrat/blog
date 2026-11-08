@@ -57,7 +57,7 @@ export default async function PlacesPage() {
 		<Page width="wide">
 			<PageHeader>Places</PageHeader>
 			{trips.length === 0 ? (
-				<p className="text-sm text-gray-500 dark:text-iron-400">No trips yet.</p>
+				<p className="text-sm text-muted-foreground">No trips yet.</p>
 			) : (
 				<div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:auto-rows-[minmax(11rem,auto)]">
 					{trips.map((t) => (
@@ -68,15 +68,13 @@ export default async function PlacesPage() {
 									alt={`${t.title}, ${t.country}`}
 									ratio="4 / 3"
 									sizes="(min-width: 64rem) 38rem, 100vw"
-									className="rounded-lg border border-iron-950/10 dark:border-white/10"
+									className="rounded-media border border-border"
 								/>
 								<div className="flex flex-col gap-1.5">
 									<Eyebrow dot>{monthYear.format(t.date)}</Eyebrow>
-									<h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+									<h2 className="text-lg font-semibold text-foreground">
 										{t.title}
-										<span className="font-normal text-gray-500 dark:text-iron-400">
-											, {t.country}
-										</span>
+										<span className="font-normal text-muted-foreground">, {t.country}</span>
 									</h2>
 								</div>
 								{t.set.length > 0 && (

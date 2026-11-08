@@ -1,7 +1,8 @@
 import { Analytics } from '@vercel/analytics/next';
 import { GeistMono } from 'geist/font/mono';
+import { GeistSans } from 'geist/font/sans';
 import type { Metadata, Viewport } from 'next';
-import { Figtree } from 'next/font/google';
+import { Instrument_Serif } from 'next/font/google';
 import type { ReactNode } from 'react';
 import { Footer } from '@/components/site/footer';
 import { Header, type NavLink } from '@/components/site/header';
@@ -11,7 +12,13 @@ import { SITE_URL } from '@/lib/meta';
 import { cn } from '@/lib/utils';
 import './globals.css';
 
-const figtree = Figtree({ subsets: ['latin'], variable: '--font-figtree', display: 'swap' });
+const instrumentSerif = Instrument_Serif({
+	subsets: ['latin'],
+	weight: '400',
+	style: ['normal', 'italic'],
+	variable: '--font-instrument-serif',
+	display: 'swap',
+});
 
 export const metadata: Metadata = {
 	metadataBase: new URL(SITE_URL),
@@ -20,8 +27,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
 	themeColor: [
-		{ media: '(prefers-color-scheme: light)', color: '#f9fafb' },
-		{ media: '(prefers-color-scheme: dark)', color: '#131316' },
+		{ media: '(prefers-color-scheme: light)', color: 'oklch(0.972 0.006 85)' },
+		{ media: '(prefers-color-scheme: dark)', color: 'oklch(0.165 0.01 50)' },
 	],
 };
 
@@ -33,16 +40,20 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 		{ label: 'About', href: '/about' },
 	].filter((l) => l.href !== '/places' || getTrips().length > 0);
 	return (
-		<html lang="en" className={cn(figtree.variable, GeistMono.variable)} suppressHydrationWarning>
+		<html
+			lang="en"
+			className={cn(GeistSans.variable, GeistMono.variable, instrumentSerif.variable)}
+			suppressHydrationWarning
+		>
 			<body>
 				<ThemeProvider>
 					<a
 						href="#main"
-						className="sr-only rounded-full bg-gray-900 px-4 py-2 text-sm text-white focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50"
+						className="sr-only rounded-full bg-foreground px-4 py-2 text-sm text-background focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50"
 					>
 						Skip to content
 					</a>
-					<div className="mx-auto w-full max-w-7xl px-4">
+					<div className="mx-auto w-full max-w-[90rem] px-4 sm:px-8">
 						<Header links={links} />
 						<main id="main">{children}</main>
 						<Footer />

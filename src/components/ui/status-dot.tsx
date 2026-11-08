@@ -10,7 +10,7 @@ export function StatusDot({ live = false, className }: { live?: boolean; classNa
 			<span
 				className={cn(
 					'relative inline-flex size-1.5 rounded-full',
-					live ? 'bg-green-500' : 'bg-brand-500',
+					live ? 'bg-green-500' : 'bg-primary',
 				)}
 			/>
 		</span>

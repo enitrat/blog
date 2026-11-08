@@ -4,19 +4,7 @@ import Image, { type StaticImageData } from 'next/image';
 import { useTheme } from 'next-themes';
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { paint } from './dither';
-
-/** Ink and paper per theme, darker first: gray-800 on gray-50, iron-900 under iron-300. */
-const DUOTONE = {
-	light: [
-		[0x18, 0x22, 0x30],
-		[0xf9, 0xfa, 0xfb],
-	],
-	dark: [
-		[0x1a, 0x1a, 0x1e],
-		[0xd1, 0xd1, 0xd6],
-	],
-} as const;
+import { paint, toRgb } from './dither';
 
 /** Milliseconds a resize settles before the redraw. */
 const SETTLE = 120;
@@ -44,11 +32,16 @@ export function DitherImage({
 	const [ready, setReady] = useState(false);
 	const [revealed, setRevealed] = useState(false);
 	const { resolvedTheme } = useTheme();
-	const [dark, light] = DUOTONE[resolvedTheme === 'dark' ? 'dark' : 'light'];
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: a theme change re-roles the duotone, so redraw
 	useEffect(() => {
 		const cv = canvas.current;
 		if (!img.current || !cv) return;
+		const style = getComputedStyle(cv);
+		const [dark, light] = toRgb(
+			style.getPropertyValue('--dither-ink'),
+			style.getPropertyValue('--dither-paper'),
+		);
 		const draw = () => {
 			if (img.current && paint(img.current, cv, dark, light)) setReady(true);
 		};
@@ -66,7 +59,7 @@ export function DitherImage({
 			ro.disconnect();
 			el.removeEventListener('load', draw);
 		};
-	}, [dark, light]);
+	}, [resolvedTheme]);
 
 	return (
 		<button
@@ -74,7 +67,7 @@ export function DitherImage({
 			aria-pressed={revealed}
 			onClick={() => setRevealed((r) => !r)}
 			className={cn(
-				'group relative block w-full cursor-pointer overflow-hidden bg-gray-50 outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 dark:bg-iron-900',
+				'group relative block w-full cursor-pointer overflow-hidden bg-muted outline-none focus-visible:ring-2 focus-visible:ring-ring',
 				className,
 			)}
 			style={{ aspectRatio: ratio }}

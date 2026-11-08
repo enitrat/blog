@@ -5,6 +5,19 @@ const CELL = 2;
 
 type Rgb = readonly [number, number, number];
 
+/** Resolves CSS colours, in any syntax a canvas accepts, to RGB. */
+export function toRgb(...colors: string[]): Rgb[] {
+	const ctx = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+	return colors.map((c) => {
+		if (!ctx) return [0, 0, 0];
+		ctx.clearRect(0, 0, 1, 1);
+		ctx.fillStyle = c;
+		ctx.fillRect(0, 0, 1, 1);
+		const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+		return [r, g, b];
+	});
+}
+
 const bayer = (n: number): number[][] => {
 	let m = [[0]];
 	while (m.length < n) {

@@ -32,7 +32,7 @@ export default function WritingPage() {
 					))}
 				</ListRows>
 			) : (
-				<p className="text-sm text-gray-500 dark:text-iron-400">No posts yet.</p>
+				<p className="text-sm text-muted-foreground">No posts yet.</p>
 			)}
 		</Page>
 	);
