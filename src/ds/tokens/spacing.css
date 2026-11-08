@@ -1,5 +1,0 @@
-/* Every p-*, m-*, gap-*, w-*, h-* step is a multiple of the 4px base (p-4 = 1rem, gap-10 = 2.5rem).
-   The old `--space-N` scale is exactly `--spacing * N`. */
-@theme {
-	--spacing: 0.25rem;
-}

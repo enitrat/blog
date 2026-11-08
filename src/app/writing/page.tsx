@@ -1,4 +1,5 @@
-import { ListRow, ListRows, Page, PageTitle } from '@/ds';
+import { ListRow, ListRows } from '@/components/ui/list-row';
+import { Page, PageHeader } from '@/components/ui/page';
 import { pageMeta } from '@/lib/meta';
 import { getWritingIndex, postUrl } from '@/utils/writing';
 
@@ -15,21 +16,24 @@ export default function WritingPage() {
 	const posts = getWritingIndex();
 	return (
 		<Page>
-			<PageTitle>Writing</PageTitle>
-			<ListRows>
-				{posts.map((post) => (
-					<ListRow
-						key={post.id}
-						headingLevel="h2"
-						href={postUrl(post)}
-						date={fmt(post.data.pubDate)}
-						datetime={post.data.pubDate.toISOString()}
-						title={post.data.title}
-						description={post.data.description}
-					/>
-				))}
-			</ListRows>
-			{posts.length === 0 && <p>No posts yet.</p>}
+			<PageHeader>Writing</PageHeader>
+			{posts.length > 0 ? (
+				<ListRows>
+					{posts.map((post) => (
+						<ListRow
+							key={post.id}
+							headingLevel="h2"
+							href={postUrl(post)}
+							date={fmt(post.data.pubDate)}
+							datetime={post.data.pubDate.toISOString()}
+							title={post.data.title}
+							description={post.data.description}
+						/>
+					))}
+				</ListRows>
+			) : (
+				<p className="text-sm text-gray-500 dark:text-iron-400">No posts yet.</p>
+			)}
 		</Page>
 	);
 }

@@ -1,13 +1,13 @@
 import { Analytics } from '@vercel/analytics/next';
-import { GeistMono } from 'geist/font/mono';
-import { GeistSans } from 'geist/font/sans';
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import { Footer } from '@/components/site/footer';
 import { Header, type NavLink } from '@/components/site/header';
-import { cn } from '@/ds';
+import { ThemeProvider } from '@/components/theme-provider';
 import { getTrips } from '@/lib/content';
+import { mono, sans } from '@/lib/fonts';
 import { SITE_URL } from '@/lib/meta';
+import { cn } from '@/lib/utils';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -15,31 +15,36 @@ export const metadata: Metadata = {
 	icons: { icon: { url: '/favicon.svg', type: 'image/svg+xml' } },
 };
 
-export const viewport: Viewport = { width: 'device-width', initialScale: 1 };
+export const viewport: Viewport = {
+	themeColor: [
+		{ media: '(prefers-color-scheme: light)', color: '#f9fafb' },
+		{ media: '(prefers-color-scheme: dark)', color: '#131316' },
+	],
+};
 
-/** The one shell: header, main and footer on the `--background` bench, inside `--page-max`. */
 export default function RootLayout({ children }: { children: ReactNode }) {
-	const hasTrips = getTrips().length > 0;
 	const links: NavLink[] = [
 		{ label: 'Writing', href: '/writing' },
 		{ label: 'Reading', href: '/reading' },
 		{ label: 'Places', href: '/places' },
 		{ label: 'About', href: '/about' },
-	].filter((l) => l.href !== '/places' || hasTrips);
+	].filter((l) => l.href !== '/places' || getTrips().length > 0);
 	return (
-		<html lang="en" className={cn(GeistSans.variable, GeistMono.variable)} suppressHydrationWarning>
+		<html lang="en" className={cn(sans.variable, mono.variable)} suppressHydrationWarning>
 			<body>
-				<a
-					className="skip absolute top-3 left-3 z-(--z-skip) -translate-y-[200%] rounded-pill bg-foreground px-4 py-2 text-surface focus-visible:translate-y-0"
-					href="#main"
-				>
-					Skip to content
-				</a>
-				<div className="shell mx-auto w-[min(100%,var(--page-max))] px-(--page-gutter)">
-					<Header links={links} />
-					<main id="main">{children}</main>
-					<Footer />
-				</div>
+				<ThemeProvider>
+					<a
+						href="#main"
+						className="sr-only rounded-full bg-gray-900 px-4 py-2 text-sm text-white focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50"
+					>
+						Skip to content
+					</a>
+					<div className="mx-auto w-full max-w-7xl px-4">
+						<Header links={links} />
+						<main id="main">{children}</main>
+						<Footer />
+					</div>
+				</ThemeProvider>
 				<Analytics />
 			</body>
 		</html>

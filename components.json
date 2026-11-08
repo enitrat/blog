@@ -7,17 +7,16 @@
 		"config": "",
 		"css": "src/app/globals.css",
 		"baseColor": "neutral",
-		"cssVariables": true,
+		"cssVariables": false,
 		"prefix": ""
 	},
 	"iconLibrary": "lucide",
-	"rtl": false,
 	"aliases": {
 		"components": "@/components",
-		"utils": "@/ds/lib/cn",
-		"ui": "@/ds/components/ui",
-		"lib": "@/ds/lib",
-		"hooks": "@/ds/hooks"
+		"utils": "@/lib/utils",
+		"ui": "@/components/ui",
+		"lib": "@/lib",
+		"hooks": "@/hooks"
 	},
 	"registries": {}
 }

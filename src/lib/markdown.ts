@@ -1,18 +1,17 @@
 import 'server-only';
-import rehypeShiki from '@shikijs/rehype';
 import type { Element, Root as HastRoot } from 'hast';
 import { toString as hastToString } from 'hast-util-to-string';
 import type { Root as MdastRoot } from 'mdast';
+import rehypePrettyCode from 'rehype-pretty-code';
 import rehypeRaw from 'rehype-raw';
 import rehypeSlug from 'rehype-slug';
 import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
 import remarkSmartypants from 'remark-smartypants';
+import type { ShikiTransformer } from 'shiki';
 import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
-import codeThemeLight from '@/styles/code-theme.json';
-import codeThemeDark from '@/styles/code-theme-dark.json';
 import { maybeImage } from './media';
 
 export type Heading = { depth: number; slug: string; text: string };
@@ -59,24 +58,18 @@ const rehypeCollectHeadings = (out: Heading[]) => () => (tree: HastRoot) => {
  * Names every code block after its language and its place among blocks of that language
  * ("ts sample 2"), so a reader knows which sample a Copy button copies. `CodeBlock` reads it.
  */
-const rehypeCodeLabels = () => (tree: HastRoot) => {
+const sampleLabels = (): ShikiTransformer => {
 	const seen = new Map<string, number>();
-	visit(tree, 'element', (node: Element) => {
-		if (node.tagName !== 'pre') return;
-		const code = node.children.find(
-			(c): c is Element => c.type === 'element' && c.tagName === 'code',
-		);
-		if (!code) return;
-		// Shiki writes `class` as a string; remark-rehype writes `className` as a list.
-		const classes = [code.properties.className ?? [], code.properties.class ?? []]
-			.flat()
-			.flatMap((c) => String(c).split(/\s+/));
-		const language = classes.find((c) => c.startsWith('language-'))?.slice('language-'.length);
-		const kind = language && language !== 'plaintext' && language !== 'text' ? language : 'code';
-		const ordinal = (seen.get(kind) ?? 0) + 1;
-		seen.set(kind, ordinal);
-		node.properties.dataCopyLabel = `${kind} sample ${ordinal}`;
-	});
+	return {
+		name: 'sample-labels',
+		pre(node) {
+			const { lang } = this.options;
+			const kind = lang === 'plaintext' || lang === 'text' ? 'code' : lang;
+			const ordinal = (seen.get(kind) ?? 0) + 1;
+			seen.set(kind, ordinal);
+			node.properties.dataCopyLabel = `${kind} sample ${ordinal}`;
+		},
+	};
 };
 
 const processor = (dir: string, headings: Heading[]) =>
@@ -91,24 +84,19 @@ const processor = (dir: string, headings: Heading[]) =>
 		.use(rehypeSlug)
 		.use(rehypeCollectHeadings(headings))
 		.use(rehypeLocalImages(dir))
-		.use(rehypeShiki, {
-			themes: {
-				light: { ...codeThemeLight, type: 'light' } as never,
-				dark: { ...codeThemeDark, type: 'dark' } as never,
-			},
-			defaultColor: 'light',
-			// Mermaid diagrams are added as images.
-			langs: [],
-			lazy: true,
-			fallbackLanguage: 'text',
-			addLanguageClass: true,
-		})
-		.use(rehypeCodeLabels);
+		.use(rehypePrettyCode, {
+			// Each token carries `--shiki-light` and `--shiki-dark`; Prose picks one.
+			theme: { light: 'github-light', dark: 'github-dark-dimmed' },
+			keepBackground: false,
+			bypassInlineCode: true,
+			defaultLang: { block: 'plaintext' },
+			transformers: [sampleLabels()],
+		});
 
 /**
- * Markdown to a hast tree at build time: GFM, inline HTML, heading ids, Shiki in two themes (light
- * inlined as `color`, dark as `--shiki-dark`; Prose picks one), and local images resolved to their
- * bundled files. `dir` is the entry's folder under `src/content`. `Prose` renders the tree as React.
+ * Markdown to a hast tree at build time: GFM, inline HTML, heading ids, code highlighted in two
+ * themes, and local images resolved to their bundled files. `dir` is the entry's folder under
+ * `src/content`. `Prose` renders the tree as React.
  */
 export async function renderMarkdown(body: string, dir: string): Promise<Rendered> {
 	const headings: Heading[] = [];

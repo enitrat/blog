@@ -1,4 +1,5 @@
-import { ListRow, ListRows, Page, PageTitle } from '@/ds';
+import { ListRow, ListRows } from '@/components/ui/list-row';
+import { Page, PageHeader } from '@/components/ui/page';
 
 export const metadata = { title: 'Not found', description: 'This page does not exist.' };
 
@@ -12,9 +13,9 @@ const destinations = [
 export default function NotFound() {
 	return (
 		<Page>
-			<PageTitle lead="This address doesn't name anything here. Try one of these four pages:">
+			<PageHeader lead="This address doesn't name anything here. Try one of these four pages:">
 				Not found
-			</PageTitle>
+			</PageHeader>
 			<ListRows>
 				{destinations.map((d) => (
 					<ListRow key={d.href} {...d} />

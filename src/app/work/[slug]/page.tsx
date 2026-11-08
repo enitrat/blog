@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Prose } from '@/components/reading/prose';
-import { Label, Link, ListRow, ListRows, Page, PageTitle } from '@/ds';
+import { TextLink } from '@/components/reading/text-link';
+import { Eyebrow } from '@/components/ui/eyebrow';
+import { ListRow, ListRows } from '@/components/ui/list-row';
+import { Page, PageHeader } from '@/components/ui/page';
 import { getReports } from '@/lib/content';
 import { renderMarkdown } from '@/lib/markdown';
 import { pageMeta } from '@/lib/meta';
@@ -38,26 +41,24 @@ export default async function ReportPage(props: Params) {
 		.filter((r) => r.id !== report.id)
 		.slice(0, 2);
 	return (
-		<Page width="measure" as="article">
-			<PageTitle kicker={meta || undefined} lead={summary}>
+		<Page width="text" as="article">
+			<PageHeader kicker={meta ? <Eyebrow as="p">{meta}</Eyebrow> : undefined} lead={summary}>
 				{title}
-			</PageTitle>
+			</PageHeader>
 			{site && (
 				<p>
-					<Link variant="external" href={site}>
+					<TextLink href={site} icon="external">
 						Visit website
-					</Link>
+					</TextLink>
 				</p>
 			)}
 
 			<Prose tree={tree} />
 
-			<footer className="grid gap-6">
+			<footer className="flex flex-col gap-6">
 				{siblings.length > 0 && (
-					<nav aria-label="More work">
-						<Label as="h2" space="sm">
-							More work
-						</Label>
+					<nav aria-label="More work" className="flex flex-col gap-2">
+						<Eyebrow as="h2">More work</Eyebrow>
 						<ListRows>
 							{siblings.map((s) => (
 								<ListRow
@@ -72,12 +73,12 @@ export default async function ReportPage(props: Params) {
 					</nav>
 				)}
 				<p className="flex gap-6">
-					<Link variant="arrow" href="/work">
+					<TextLink href="/work" icon="arrow">
 						All work
-					</Link>
-					<Link variant="arrow" href="/writing">
+					</TextLink>
+					<TextLink href="/writing" icon="arrow">
 						Writing
-					</Link>
+					</TextLink>
 				</p>
 			</footer>
 		</Page>

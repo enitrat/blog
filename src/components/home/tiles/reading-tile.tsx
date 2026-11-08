@@ -1,22 +1,20 @@
 import 'server-only';
 import { books } from '@/booksData';
-import { Tile } from '@/ds';
-import { Deck } from '@/ds/components/objects/deck';
-import { Plate } from '@/ds/components/objects/plate';
-import { Readout } from '@/ds/components/objects/readout';
+import { Tile } from '@/components/ui/tile';
 import { coverFor } from '@/utils/covers';
-import { glowOf } from '@/utils/glow';
+import { Deck } from '../deck';
+import { Plate } from '../plate';
 
 const stamp = (d: Date | null) => d?.getTime() ?? 0;
 const short = (t: string) => t.replace(/\s*\(.*\)\s*$/, '');
 
 /**
- * The books being read now as a pile of covers, each with a glow in its dominant colour. Hover
- * pulls the book under the pointer up and out of the pile; letting go squares the pile. A Readout
- * under it follows the held book (title, author). The whole tile links to /reading. With no
- * current book it shows the last one finished.
+ * The books being read now as a pile of covers, each glowing in its own colours. Hover pulls the
+ * book under the pointer up and out of the pile; letting go squares the pile. The caption under it
+ * follows the held book (title, author). The whole tile links to /reading. With no current book it
+ * shows the last one finished.
  */
-export async function ReadingTile({ order }: { order?: number }) {
+export async function ReadingTile() {
 	const current = books
 		.filter((b) => b.status === 'reading')
 		.sort((a, b) => stamp(b.dateStarted) - stamp(a.dateStarted));
@@ -26,54 +24,41 @@ export async function ReadingTile({ order }: { order?: number }) {
 	const label = current.length ? 'Reading' : 'Last read';
 	const shown = (current.length ? current : last ? [last] : []).slice(0, 2);
 	const stack = await Promise.all(
-		shown.map(async (book) => {
-			const cover = await coverFor(book.edition.isbn13);
-			return { book, cover, glow: cover ? await glowOf(cover) : undefined };
-		}),
+		shown.map(async (book) => ({ book, cover: await coverFor(book.edition.isbn13) })),
 	);
-	const captions = stack.map(({ book }) => ({ title: short(book.title), author: book.author }));
 	return (
 		<Tile
+			compact
 			label={label}
 			href="/reading/"
-			data-deck-host=""
-			span={{ md: 3, lg: 4 }}
-			order={order}
 			meta={current.length > 1 ? `+${current.length - 1} more` : undefined}
 		>
-			{captions.length > 0 && (
-				<div className="reading-tile-body">
-					<Deck
-						id="reading-deck"
-						captions={captions}
-						hold="pull"
-						lift={9}
-						host="ancestor"
-						className="reading-deck"
-						cards={stack.map(({ book, cover, glow }) => (
-							<Plate key={book.edition.isbn13} src={cover} alt="" glow={glow} sizes="12rem">
-								<span className="grid h-full content-end gap-1 p-3 text-left text-small text-muted-foreground">
-									<strong className="font-semibold text-foreground">{short(book.title)}</strong>
-									<span>{book.author}</span>
-								</span>
-							</Plate>
-						))}
-					/>
-					<div className="mt-4">
-						<Readout
-							follow="reading-deck"
-							field="title"
-							value={captions[0].title}
-							className="text-ui font-semibold leading-normal"
-						/>
-						<Readout
-							follow="reading-deck"
-							field="author"
-							value={captions[0].author}
-							className="text-small leading-normal text-muted-foreground"
-						/>
-					</div>
-				</div>
+			{stack.length > 0 && (
+				<Deck
+					hold="pull"
+					lift={9}
+					max="var(--deck-max, min(6.5rem, 62%))"
+					className="h-full justify-between gap-2 pt-2 text-right max-lg:[--deck-max:min(9rem,62%)]"
+					captionClassName="justify-items-end"
+					cards={stack.map(({ book, cover }) => (
+						<Plate key={book.edition.isbn13} src={cover} alt="" glow sizes="12rem">
+							<span className="grid h-full content-end gap-1 p-3 text-left text-xs text-gray-500 dark:text-iron-400">
+								<strong className="font-semibold text-gray-800 dark:text-iron-100">
+									{short(book.title)}
+								</strong>
+								<span>{book.author}</span>
+							</span>
+						</Plate>
+					))}
+					captions={stack.map(({ book }) => (
+						<span key={book.edition.isbn13} className="grid">
+							<span className="truncate text-sm font-semibold">{short(book.title)}</span>
+							<span className="truncate text-xs text-gray-500 dark:text-iron-400">
+								{book.author}
+							</span>
+						</span>
+					))}
+				/>
 			)}
 		</Tile>
 	);

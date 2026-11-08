@@ -19,6 +19,8 @@ let widget: Widget | null = null;
 let connecting: Promise<Widget> | null = null;
 let playback: Playback = 'stopped';
 let volume = 100;
+/** Elapsed whole seconds of the playing mix; 0 when stopped. */
+let position = 0;
 const listeners = new Set<(state: Playback) => void>();
 const positionListeners = new Set<(seconds: number) => void>();
 let ticker: ReturnType<typeof setInterval> | undefined;
@@ -28,13 +30,15 @@ function tick() {
 	if (document.hidden || !positionListeners.size) return;
 	widget?.getPosition((ms) => {
 		if (playback !== 'playing') return;
-		for (const listener of positionListeners) listener(Math.floor(ms / 1000));
+		position = Math.floor(ms / 1000);
+		for (const listener of positionListeners) listener(position);
 	});
 }
 
 function set(next: Playback) {
 	if (next === playback) return;
 	playback = next;
+	if (next === 'stopped') position = 0;
 	// Pure-CSS views (`:root[data-set-playback="playing"] ...`) need no wiring.
 	document.documentElement.dataset.setPlayback = next;
 	for (const listener of listeners) listener(next);
@@ -72,8 +76,8 @@ async function connect() {
 	created.bind(events.PAUSE, () => {
 		if (document.hidden) return;
 
-		created.getPosition((position) => {
-			if (position > 0) stop();
+		created.getPosition((ms) => {
+			if (ms > 0) stop();
 		});
 	});
 	created.bind(events.FINISH, stop);
@@ -116,22 +120,29 @@ function play() {
 
 // Only a mix that actually started is worth resuming: intent that never
 // became playback should not begin on its own on the way back.
+// Guarded: client components import this module while they render on the server.
 let resume = false;
-document.addEventListener('visibilitychange', () => {
-	if (document.hidden) {
-		resume = playback === 'playing';
-		if (resume) widget?.pause();
-	} else if (resume) {
-		resume = false;
-		widget?.play();
-	}
-});
+if (typeof document !== 'undefined') {
+	document.addEventListener('visibilitychange', () => {
+		if (document.hidden) {
+			resume = playback === 'playing';
+			if (resume) widget?.pause();
+		} else if (resume) {
+			resume = false;
+			widget?.play();
+		}
+	});
+}
 
 /** The one SoundCloud widget on the page, shared by every view of the set. The
  *  iframe and api.js load on the first `play()`, never on page load. */
 export const setPlayer = {
 	get state() {
 		return playback;
+	},
+	/** Elapsed whole seconds; 0 when stopped. */
+	get position() {
+		return position;
 	},
 	play,
 	stop,

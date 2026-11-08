@@ -1,4 +1,6 @@
-import { Label, ListRow, ListRows, Page, PageTitle } from '@/ds';
+import { Eyebrow } from '@/components/ui/eyebrow';
+import { ListRow, ListRows } from '@/components/ui/list-row';
+import { Page, PageHeader } from '@/components/ui/page';
 import { pageMeta } from '@/lib/meta';
 import { getWorkIndex, workUrl } from '@/utils/work';
 
@@ -10,7 +12,7 @@ export const metadata = pageMeta({
 
 export default function WorkPage() {
 	const reports = getWorkIndex();
-	// Same two groups as the homepage index. Each heading id is the fragment the homepage links
+	// Same two groups as the homepage index. Each section id is the fragment the homepage links
 	// to, so `/work/#projects` lands on the group it names.
 	const groups = [
 		{ id: 'work', label: 'Work', reports: reports.filter((r) => r.data.kind === 'work') },
@@ -22,12 +24,15 @@ export default function WorkPage() {
 	].filter((group) => group.reports.length > 0);
 	return (
 		<Page>
-			<PageTitle>Work</PageTitle>
+			<PageHeader>Work</PageHeader>
 			{groups.map((group) => (
-				<section key={group.id} aria-labelledby={group.id}>
-					<Label as="h2" id={group.id} space="sm">
-						{group.label}
-					</Label>
+				<section
+					key={group.id}
+					id={group.id}
+					aria-label={group.label}
+					className="flex scroll-mt-6 flex-col gap-2"
+				>
+					<Eyebrow as="h2">{group.label}</Eyebrow>
 					<ListRows>
 						{group.reports.map((r) => (
 							<ListRow

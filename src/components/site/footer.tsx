@@ -1,15 +1,19 @@
 import { CONTACT_LINKS } from '@/consts';
-import { Link } from '@/ds';
 
-/** Contact links. */
 export function Footer() {
 	return (
-		<footer className="footer pt-10 pb-8">
-			<nav aria-label="Contact" className="flex flex-wrap gap-x-5 gap-y-2">
+		<footer className="pt-10 pb-8">
+			<nav aria-label="Contact" className="flex flex-wrap gap-x-4 gap-y-1.5 text-sm">
 				{CONTACT_LINKS.map((c) => (
-					<Link key={c.href} variant="quiet" href={c.href} rel="me noreferrer" target="_blank">
+					<a
+						key={c.href}
+						href={c.href}
+						rel="me noreferrer"
+						target="_blank"
+						className="text-gray-400 transition-colors hover:text-gray-600 dark:text-iron-400 dark:hover:text-iron-100"
+					>
 						{c.label}
-					</Link>
+					</a>
 				))}
 			</nav>
 		</footer>

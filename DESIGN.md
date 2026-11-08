@@ -1,268 +1,260 @@
 ---
 name: Mathieu Saugier
-description: A cool grey bench of flat tiles, Geist type, one signal orange for state, and one dark lit room.
-# Reference tokens: generated into src/styles/tokens.css by scripts/generate-tokens.mjs.
+description: A living desk of small springy cards on cool gray paper, Figtree type, an iron dark mode, and violet for the brand.
 colors:
-  grey-50: "#f5f5f3"
-  grey-100: "#eaeaed"
-  grey-200: "#dcdde0"
-  sand-200: "#e8e7df"
-  grey-300: "#c3c5c9"
-  grey-400: "#8e939a"
-  grey-500: "#6b6f76"
-  grey-600: "#575b62"
-  grey-700: "#3f4247"
-  grey-800: "#26282c"
-  grey-850: "#1b1c1f"
-  grey-900: "#16171a"
-  grey-950: "#0e0e10"
-  orange-300: "#ff9a70"
-  orange-400: "#ff7a47"
-  orange-500: "#ff5b1f"
-  orange-600: "#c2410c"
-  manuscript-paper: "#f5f0e5"
-  manuscript-ink: "#242018"
-  manuscript-scroll: "#94856b"
-  manuscript-rule: "#d8cfbd"
-  manuscript-shade: "#766647"
-  manuscript-shadow: "rgb(25 18 10)"
-  manuscript-scrim: "rgb(28 23 17)"
-  lamp-floor: "rgb(255 196 120)"
-  lamp-banker: "rgb(150 255 170)"
-  lamp-amber: "rgb(255 190 110)"
-  lamp-glow: "rgb(255 214 150)"
-  lamp-ember: "rgb(255 180 110)"
-fonts:
-  geist: '"Geist Variable", system-ui, -apple-system, "Segoe UI", sans-serif'
-  geist-mono: '"Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace'
-fontSize:
-  xs: "0.6875rem"
-  sm: "0.8125rem"
-  base: "0.9375rem"
-  md: "1.125rem"
-  lg: "1.5rem"
-  xl: "1.75rem"
-  2xl: "clamp(1.75rem, 1rem + 2.4vw, 2.75rem)"
-  3xl: "clamp(2.5rem, 1.5rem + 4vw, 4.5rem)"
-leading:
-  tight: "1.1"
-  snug: "1.25"
-  normal: "1.5"
-  relaxed: "1.62"
-weight:
-  regular: "400"
-  medium: "500"
-  semibold: "600"
-tracking:
-  tight: "-0.03em"
-  snug: "-0.02em"
-  normal: "0"
-  wide: "0.09em"
-space:
-  1: "0.25rem"
-  2: "0.5rem"
-  3: "0.75rem"
-  4: "1rem"
-  5: "1.25rem"
-  6: "1.5rem"
-  8: "2rem"
-  10: "2.5rem"
-  12: "3rem"
-  16: "4rem"
-  20: "5rem"
-  24: "6rem"
-layout:
-  page-gutter: "clamp(1rem, 2.5vw + 0.25rem, 1.75rem)"
-  bench-gap: "1.25rem"
-  tile-pad: "1.625rem"
-  page-max: "77.5rem"
-  measure: "38rem"
+  gray-25: "#fcfcfd"
+  gray-50: "#f9fafb"
+  gray-100: "#f2f4f7"
+  gray-200: "#eaecf0"
+  gray-300: "#d0d5dd"
+  gray-400: "#98a2b3"
+  gray-500: "#667085"
+  gray-600: "#475467"
+  gray-700: "#344054"
+  gray-800: "#182230"
+  gray-900: "#101828"
+  iron-100: "#f4f4f5"
+  iron-200: "#e4e4e7"
+  iron-300: "#d1d1d6"
+  iron-400: "#a0a0ab"
+  iron-500: "#70707b"
+  iron-600: "#51525c"
+  iron-700: "#3f3f46"
+  iron-800: "#27272a"
+  iron-900: "#1a1a1e"
+  iron-950: "#131316"
+  iron-fade: "#17171a"
+  brand-200: "#d9d6fe"
+  brand-300: "#bdb4fe"
+  brand-400: "#9b8afb"
+  brand-500: "#7a5af8"
+  brand-600: "#6938ef"
+  brand-700: "#5925dc"
+  brand-800: "#4a1fb8"
+  brand-900: "#3e1c96"
+  red-500: "#f04438"
+  green-500: "#00c758"
+  white: "#ffffff"
+typography:
+  title:
+    fontFamily: "Figtree, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "1.25rem"
+    fontWeight: 600
+    lineHeight: 1.4
+    letterSpacing: "-0.025em"
+  heading:
+    fontFamily: "Figtree, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "1.125rem"
+    fontWeight: 600
+    lineHeight: 1.55
+    letterSpacing: "-0.025em"
+  body:
+    fontFamily: "Figtree, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "0.875rem"
+    fontWeight: 400
+    lineHeight: 1.625
+    letterSpacing: "-0.025em"
+  label:
+    fontFamily: "Figtree, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "0.75rem"
+    fontWeight: 400
+    lineHeight: 1.33
+    letterSpacing: "-0.025em"
+  code:
+    fontFamily: "Geist Mono, ui-monospace, SFMono-Regular, Menlo, monospace"
+    fontSize: "0.8125rem"
+    fontWeight: 400
+    lineHeight: 1.7
 rounded:
-  sm: "6px"
-  md: "10px"
-  lg: "14px"
-  xl: "18px"
-  full: "999px"
-motion:
-  duration:
-    fast: "150ms"
-    base: "250ms"
-    slow: "600ms"
-    slower: "1200ms"
-    moderate: "350ms"
-  ease:
-    out: "cubic-bezier(0.2, 0.8, 0.2, 1)"
-    in-out: "cubic-bezier(0.65, 0, 0.35, 1)"
-    spring: "cubic-bezier(0.34, 1.4, 0.64, 1)"
-elevation:
-  tile: "0 1px 2px rgb(22 23 26 / 0.04), 0 2px 6px rgb(22 23 26 / 0.04)"
-  tile-lift: "0 2px 4px rgb(22 23 26 / 0.05), 0 14px 28px -10px rgb(22 23 26 / 0.18)"
-  object: "0 1px 2px rgb(22 23 26 / 0.12), 0 6px 16px -4px rgb(22 23 26 / 0.22)"
-  object-lift: "0 2px 4px rgb(22 23 26 / 0.12), 0 20px 36px -12px rgb(22 23 26 / 0.34)"
-  tile-dark: "0 1px 2px rgb(0 0 0 / 0.4), inset 0 1px 0 rgb(255 255 255 / 0.04)"
-  tile-lift-dark: "0 2px 4px rgb(0 0 0 / 0.45), 0 16px 32px -10px rgb(0 0 0 / 0.6), inset 0 1px 0 rgb(255 255 255 / 0.06)"
-  object-dark: "0 1px 2px rgb(0 0 0 / 0.5), 0 8px 18px -4px rgb(0 0 0 / 0.55)"
-  object-lift-dark: "0 2px 4px rgb(0 0 0 / 0.5), 0 22px 40px -12px rgb(0 0 0 / 0.7)"
+  xs: "2px"
+  sm: "4px"
+  md: "6px"
+  lg: "8px"
+  xl: "12px"
+  2xl: "16px"
+  full: "9999px"
+spacing:
+  0.5: "2px"
+  1: "4px"
+  1.5: "6px"
+  2: "8px"
+  4: "16px"
+components:
+  button-default:
+    backgroundColor: "{colors.white}"
+    textColor: "{colors.gray-800}"
+    rounded: "{rounded.full}"
+    padding: "8px 16px 6px 14px"
+    height: "36px"
+  button-default-hover:
+    backgroundColor: "{colors.gray-100}"
+  button-brand:
+    backgroundColor: "{colors.brand-500}"
+    textColor: "{colors.white}"
+    rounded: "{rounded.full}"
+    padding: "8px 16px 6px 14px"
+    height: "36px"
+  button-glass:
+    textColor: "{colors.gray-800}"
+    rounded: "{rounded.full}"
+    height: "36px"
+  card:
+    backgroundColor: "{colors.white}"
+    rounded: "{rounded.xl}"
+    padding: "16px"
+  card-dark:
+    backgroundColor: "{colors.iron-900}"
+    rounded: "{rounded.xl}"
+    padding: "16px"
+  nav-pill:
+    textColor: "{colors.gray-500}"
+    rounded: "{rounded.full}"
+    padding: "6px 12px"
+  badge:
+    textColor: "{colors.brand-600}"
+    rounded: "{rounded.full}"
+    padding: "2px 8px"
 ---
 
 # Design System: Mathieu Saugier
 
 ## Overview
 
-**Creative North Star: "The Bench"**
+**Creative North Star: "The Living Desk"**
 
-The site is a sand-tinted workbench on which small, real objects from Mathieu's life are laid out: a bio, what he is doing now, the book he is reading, the latest essay, a trip, the work. Each object is a flat tile and each tile is a door. Recognisable with the content removed: a sand field, flat near-white rectangles of varied size, mono caps labels, one orange dot. Geist does all the talking; Geist Mono labels and counts.
+The site is a tidy desk of small, live objects from Mathieu's life: the last DJ set, the essay on top of the pile, the book being read, the work, the places. Each one is a white card with a hairline and the faintest shadow, laid on cool gray paper. Nothing on the desk is loud at rest. The personality arrives when a hand reaches for it: cards spring up a little, small things pop, decks fan open, and objects settle back with a light overshoot.
 
-The system is flat on purpose. Tiles are separated by space and a 1px hairline, never by shadow, glass or gradient. Orange is a signal for state (playing, current, latest, pressed, focus), not decoration. The only dark, textured, lit object on the bench is the 3D living room. Everything else is paper and graphite.
+The system is restrained in colour, size and weight, and generous in motion. Type is one family, Figtree, set small and tight. Violet carries the brand: links, emphasis, badges, selection, and the occasional gradient tile. Dark mode is not an inverted light mode; it is a separate desk in neutral iron, with violet stepping one shade lighter so it keeps its weight.
 
-The essay breaks no rule of the bench; it only removes the bench. Reading pages are a single plain column, no banner, no sidebar, no cards.
+Glass is thin. Chrome that floats over content (the nav pill, dialogs, composer-style bars) is a translucent fill with a low-alpha hairline, a small 4 to 8px blur and 150% saturation. Saturation, not blur, is what makes it read as glass.
 
 **Key Characteristics:**
-- Flat tiles on a grey field: 1px hairline, no drop shadow, no glass, no blur.
-- One family (Geist) plus its mono (Geist Mono) for labels, data and code.
-- Orange only for state; `--accent-graphic` for small marks (dots, underlines), `--accent` for fills.
-- Light and dark are both first-class; a tile can locally invert without any prop on its atoms.
-- Photos are ordered-dither duotones that reveal true colour on hover, focus or tap.
-- The room is the one dark object, painted with its own art-direction colours that never change with the theme.
+- Cool, blue-tinted gray paper in light mode; a separate neutral iron ramp in dark mode.
+- White cards, 1px hairlines, and `shadow-xs` as the signature depth.
+- Figtree throughout, text-sm as the workhorse, tracking-tight, medium and semibold for emphasis.
+- Violet as the brand voice, in light and dark.
+- Personality lives in spring motion, not in colour or size.
+- Radius shrinks as nesting deepens.
 
 ## Colors
 
-A cool grey scale does nearly all the work; one signal orange marks state. Two sets of fixed art colours belong to the room and are not part of the interface palette.
+A cool gray paper desk by day, a neutral iron desk by night, and one violet that carries the brand across both.
 
 ### Primary
-- **Signal Orange** (`orange-500`, `orange-400` and `orange-300` for lighter steps): state fills (primary button, pressed toggle, text selection) and, via `--accent`, the one accent on a bench. Dark text sits on it (`--accent-foreground`).
-- **Burnt Orange** (`orange-600`): the accent for small marks and focus rings on paper, so dots, underlines and rings reach 3:1 on the near-white surface. Exposed as `--accent-graphic` and `--ring`; on dark and inverse surfaces they swap to `orange-500` and `orange-400`.
+- **Desk Violet** (brand-500 / brand-600): The brand. Links and their hover step (600 → 700 in light, 400 → 300 in dark), badges, the text selection, focus rings, and brand gradient tiles (brand-300 → 400 or 400 → 500).
+- **Deep Violet** (brand-700 to brand-900): Pressed and hovered brand text, selection text, and the bottom of gradients.
+- **Pale Violet** (brand-200 / brand-300): Selection fill in light mode and the top of light gradient tiles.
 
 ### Neutral
-- **Bench Sand** (`sand-200` light, `grey-950` dark): the page field behind the tiles (`--background`), a light grey, barely warm (OKLCH C 0.011), so the near-white tiles still read against it. Every page sits on it, essays included.
-- **Paper** (`grey-50` light, `grey-850` dark): the tile surface (`--surface`).
-- **Graphite** (`grey-850` light, `grey-100` dark): the inverse surface (`--surface-inverse`), the one graphite tile family.
-- **Ink** (`grey-900` light, `grey-100` dark): text and neutral link colour. Links are not blue.
-- **Muted** (`grey-600` light, `grey-400` dark for text; `grey-100` / `grey-800` for fills): metadata and secondary lines.
-- **Hairline**: `--border` is `grey-900` at 12% (light) or `grey-50` at 14% (dark). `grey-300` through `grey-700` fill out the scale.
-- **Scrim** (`grey-950` at 75% and 94%): a fixed dark overlay that never flips, so text over photos stays readable in both themes.
-
-### Art colours (the room only)
-- **Manuscript** (`manuscript-paper`, `-ink`, `-scroll`, `-rule`, `-shade`, `-shadow`, `-scrim`): the warm parchment of the open book and bookshelf inside the room.
-- **Lamp** (`lamp-floor`, `-banker`, `-amber`, `-glow`, `-ember`): the lamplight painted into the render and its overlays.
-
-These are aliased once in `src/components/home/room/room.css` and used only by room components. They are the one sanctioned place a component reads a reference colour directly.
+- **Paper** (gray-50): The light page background, and the colour edge fades dissolve into.
+- **Card White** (white): Card and button surfaces in light mode.
+- **Hairline Gray** (gray-200 / gray-100): Borders and dividers in light mode, at full strength or 40 to 80% alpha.
+- **Ink Steps** (gray-400 → gray-900): Text, from muted captions (400) through secondary text (500, 600) to headings (800, 900).
+- **Iron Night** (iron-950): The dark page background, fading into iron-fade at edges.
+- **Iron Card** (iron-900): Card surfaces in dark mode.
+- **Iron Steps** (iron-400 → iron-100): Dark-mode text. Body prose is iron-300; muted captions iron-400; headings iron-100 or white.
+- **Signal Red / Live Green** (red-500, green-500): Errors and live-status dots only.
 
 ### Named Rules
-**The Orange Is State Rule.** Orange means playing, current, latest, pressed or focused. If removing it loses no meaning, it should not be there.
-**The Small Marks Rule.** Dots and underlines use `--accent-graphic`; fills use `--accent`. Never paint a small orange mark with `--accent` on paper.
-**The Fixed Scrim Rule.** Text over a photo uses `--scrim` and `--scrim-foreground`, which do not change with the theme.
+**The Two Desks Rule.** Dark mode uses the iron ramp, never an inverted gray. Light gray-600 text becomes iron-300, not gray-400.
+
+**The Lighter Violet Rule.** Wherever light mode uses brand-600 or brand-700 for emphasis, dark mode uses brand-500 or brand-400.
+
+**The Dark Hairline Rule.** Dark borders are white/10, or iron-800 at 15 to 60% alpha. Never a solid light border on iron.
 
 ## Typography
 
-**Display / Body / UI Font:** Geist Variable (system-ui, sans-serif fallbacks)
-**Label / Mono / Code Font:** Geist Mono Variable (ui-monospace fallbacks)
+**Body Font:** Figtree (with ui-sans-serif, system-ui)
+**Code Font:** Geist Mono (with ui-monospace, Menlo)
 
-**Character:** One quiet grotesque for everything, with mono as the instrument-panel voice for labels, dates, counts and code. Hierarchy comes from size, tracking and weight, not from a second display face.
+**Character:** One geometric grotesk with a friendly, rounded voice, set small, tight and antialiased. Hierarchy comes from weight and gray step, not from size jumps.
 
 ### Hierarchy
-- **Display** (`--text-display`, 2xl: clamp 1.75rem to 2.75rem, leading 1.1, tracking -0.03em): the bio statement.
-- **Title** (`--text-title`, xl: 1.75rem, leading 1.25, tracking -0.02em, semibold, balanced wrap): the one `PageTitle` h1 voice on every page; large `BookLine` titles.
-- **Heading** (`--text-heading`, lg: 1.5rem, leading 1.25): essay section headings, page lead line, book titles.
-- **Body** (`--text-body`, md: 1.125rem, leading 1.62, regular): essay prose, `--measure` 38rem.
-- **UI** (`--text-ui`, base: 0.9375rem, leading 1.5, medium for controls): default text, buttons, rows.
-- **Small** (`--text-small`, sm: 0.8125rem): descriptions, dates, captions.
-- **Label** (`--text-label`, xs: 0.6875rem, Geist Mono, tracking 0.09em, uppercase): tile headers, tags, pills, meta.
+- **Title** (600, 1.25rem): Page titles. Used once per page.
+- **Heading** (600, 1.125rem): Section headings in prose and large card titles.
+- **Body** (400, 0.875rem, line-height 1.625): The workhorse for UI and card text. Prose uses leading-relaxed and `text-wrap: pretty`, measured to max-w-xl.
+- **Label** (400, 0.75rem): Card eyebrows, dates, metadata, counts.
+- **Code** (Geist Mono 400, 0.8125rem): Code blocks and inline code only.
 
 ### Named Rules
-**The One Family Rule.** Geist for everything, Geist Mono for labels, data and code. No second display face, no serif.
-**The Semantic Size Rule.** Components use the `--text-*` roles, never raw `--font-size-*` or literal sizes.
+**The Small Type Rule.** text-sm is the default. Reach for text-lg or text-xl only for page and section titles.
+
+**The Two Weights Rule.** Emphasis is medium or semibold. Regular is for running text only; bold is not used.
 
 ## Layout
 
-A flat bench: one column on phones, a 6-column grid from 40rem, a 12-column grid from 64rem (`Bench`). Each `Tile` declares its `span` at md and lg, optional `rows` at lg, and an `order` for the phone stack. The gap is `--gap-bench` (1.25rem); tile padding is `--pad-tile` (1.625rem); the page gutter is `--page-gutter` (clamp 1rem to 1.75rem); the page container is `--page-max` (77.5rem).
+Spacing runs on a 4px base. gap-1.5 (6px) is the default rhythm between cards and controls; gap-1, gap-2, gap-4 and gap-0.5 follow. Containers are max-w-xl (36rem) for reading, max-w-3xl (48rem) for lists, and max-w-7xl (80rem) for the shell.
 
-Spacing steps are `--space-1` to `--space-24` (0.25rem to 6rem). A `Page` is a single grid column with `--space-10` between sections. Width `wide` fills `--page-max` for index pages; width `measure` centres a 38rem column for essays, about and work detail. Index lists cap at `--list-max` (1.5 times the measure) so rows stay readable.
+The home page is one viewport on desktop. A sidebar on the left holds the introduction; a dense grid of small cards fills the rest, sized so nothing scrolls from 1024px up. On phones the sidebar and cards stack in one column and the page scrolls.
 
-Every interactive target reaches 44px (`--target-min`); small controls extend an invisible hit area with a pseudo-element.
-
-### Essay reading rules
-- **In short** opens every essay: a mono label and a numbered list of section titles, each with its first sentence, each linking to its section. Built at build time, works without JS. Each section links back to it.
-- Body is left-aligned with no automatic hyphenation, at Geist `--text-body`, measure 38rem.
-- No banner image, no sidebar, no floating contents, no cards. The page is the title, a dot-separated meta line, In short, and the prose.
-
-### Named Rules
-**The Bench Grid Rule.** Tiles are placed with `span`, `rows` and `order`; pages never write their own grid for a bench.
-**The Plain Reading Rule.** The essay is one column. Apparatus (In short, back links) is orientation, never the only path.
+Pills use asymmetric, optically weighted padding: tighter at the bottom and left, looser at the top and right (8px 16px 6px 14px).
 
 ## Elevation & Depth
 
-Two levels, both soft and offset. Tiles sit on the sand with a barely-there shadow (`--elevation-tile`) and a 1px hairline; a linked tile lifts 2px on hover to `--elevation-tile-lift` and settles on press. Objects inside tiles (book covers, set artwork, writing cards) are physical things on the tile and carry `--elevation-object`, deepening to `--elevation-object-lift` when they move. Dark mode swaps in deeper black shadows with a faint top highlight. Controls draw their outline with an inset 1px ring, not a shadow.
+Depth is quiet and mostly structural. Cards sit on the paper with a hairline and `shadow-xs`; motion, not shadow, signals that something can be picked up.
+
+### Shadow Vocabulary
+- **Signature** (`box-shadow: 0 1px 2px rgb(16 24 40 / 0.05)`): Every card, button and composer bar. The default.
+- **Stacked** (`shadow-sm` tinted zinc-800/15): Cards stacked on cards, such as decks and book piles.
+- **Brand lift** (`shadow-md`): Brand gradient tiles only.
+- **Image glow**: A duplicate of the image behind it, blurred 16px, saturated ×6, at 70% opacity and shifted 8px down; in dark mode 15% opacity and saturation ×12.
 
 ### Named Rules
-**The Objects Cast Shadows Rule.** Shadow says "this is a thing you can pick up": tiles and the objects on them. Text, labels, pills and the reading pages never cast one. No glass, no blur, no zero-offset coloured halos except the cover glow sampled from the cover itself.
-**The Lift Means Link Rule.** Only something that goes somewhere when clicked lifts on hover.
+**The Faint Shadow Rule.** shadow-xs is the ceiling for ordinary surfaces. Larger shadows belong to brand tiles and stacked objects only.
+
+**The Saturation Glass Rule.** Glass is 50 to 80% fill, a low-alpha hairline, 4 to 8px blur and backdrop-saturate-150. Never a heavy blur.
 
 ## Shapes
 
-Soft but not round: tiles use `--radius-tile` (18px, `xl`); smaller scale steps are sm 6px, md 10px, lg 14px. Pills and buttons are fully round (`--radius-pill`, 999px). Hairlines are always 1px. Photos inherit the tile's corner via `border-radius: inherit` and `overflow: hidden`.
+Corners are soft and get tighter as nesting deepens: pills and avatars are fully round, cards and media frames are 12px, chat bubbles and glow tiles 16px, mini cards 6px, and the lowest piece of a stack 2px at the bottom. Media frames carry a translucent hairline (iron-950/10). Edge fades are three-stop and eased (from paper, through paper/50 at 75%, to transparent), never a plain two-stop fade.
 
 ## Components
 
-Layering runs one way: atoms, then molecules, then tiles, then pages. Look before creating; add a variant instead of a new component; when something replaces another, delete the old one. `src/components/ui/README.md` is the convention document and `/system` is the living render of it.
+### Buttons
+- **Shape:** Full pill (9999px), 36px tall; 28px in the small size.
+- **Default:** White fill, gray-200 hairline, shadow-xs, gray-800 semibold text; hover lifts to gray-100/50. Dark: iron-900 on a white/10 hairline.
+- **Brand:** Violet gradient (brand-400 → 500) with white text and shadow-md.
+- **Glass:** white/50 fill, gray-200/50 hairline, 4px blur, saturate 150; dark iron-950/65 on iron-600/25.
+- **Ghost:** Text only, with a gray-100 (dark iron-800) fill on hover.
+- **Focus:** A 2px brand-500/60 ring with an offset, on every interactive element.
 
-### Three token layers
-1. **Reference** (this file's frontmatter, generated into `src/styles/tokens.css`): raw values `--color-*`, `--font-*`, `--font-size-*`, `--space-*`, `--layout-*`, `--radius-*`, `--duration-*`, `--ease-*`. Primitives never reference each other.
-2. **Semantic** (`src/styles/theme.css`, hand-written): intent with light and dark values (`--surface`, `--muted-foreground`, `--text-label`, `--radius-tile`). May reference reference tokens only.
-3. **Component** (custom properties inside a component's `<style>`): may reference semantic tokens only.
+### Cards / Containers
+- **Corner Style:** 12px.
+- **Background:** White in light mode, iron-900 in dark mode.
+- **Shadow Strategy:** Signature shadow-xs (see Elevation & Depth).
+- **Border:** 1px gray-200, or white/10 in dark mode.
+- **Internal Padding:** 16px, with gap-4 between the eyebrow header and the body.
+- **Motion:** A linked card springs to scale 1.02 on hover (stiffness 450, damping 18); cards pop in on load with a short stagger.
 
-Colour, font families and text roles come from semantic tokens. Scale primitives (spacing, radius, motion) may be used directly. No literal colours, font sizes or durations outside `tokens.css` and `theme.css`; the room's art colours are the one declared exception.
+### Navigation
+- **Style:** A light glass pill holding text links. A gray-100 (dark iron-800) highlight follows the pointer between links on a layout spring (400 / 40).
+- **States:** Links step one gray darker on hover; the current page is gray-900 (dark white).
+- **Mobile:** The same pill with tighter link padding.
 
-### Scoped inverse surface
-Atoms never take an inverse prop. `[data-surface="inverse"]` and inverse or media `Tile`s re-map the paper names (`--surface`, `--foreground`, `--muted-foreground`, `--border`, `--link`, `--ring`, `--accent-graphic`) once, in `theme.css`. Write atoms against the paper names; an inverse fill is `background: var(--foreground); color: var(--surface)` and flips by itself. A paper tile nested in an inverse one resets through the `--paper-*` names frozen at `:root`. Never swap `--surface` and `--surface-inverse` inside the rule: it creates a cycle.
+### Badge
+- **Style:** A violet tint pill (brand-500/10 fill, brand-600 text; dark brand-400/15 and brand-400), text-xs, for flags such as "Latest".
 
-### Atoms (`src/components/ui/`)
-- **Tile / Bench**: the flat surface and its grid. Variants `paper`, `inverse`, `media` (zero padding, full-bleed, header over a scrim). A tile with `href` is one link and holds no links or buttons.
-- **Button**: pill action, 44px tall. `primary` (orange fill), `ghost` (hairline outline), `inverse` (foreground fill). Sizes `md`, `sm`.
-- **Pill**: small mono capsule. `link` (foreground fill, orange on hover), `chip` (outlined), `toggle` (outlined, orange when pressed).
-- **Label**: mono caps caption with optional status dot and right-aligned meta.
-- **Link**: `inline`, `quiet`, `arrow`, `external`.
-- **Tag**, **StatusDot** (7px), **Icon**, **Rule**.
-- **ListRow / ListRows**: mono date column, title, muted description, optional tag; arrow appears on hover and focus.
-- **PageTitle / Page**: the one h1 voice and the one page layout.
-- **BookLine / BookSpine / Shelf**: the reading list.
-- **DitherImage / Lightbox**: photo treatment and viewer.
-- **Plate**: one physical object on a tile (cover, artwork, card image) with `--elevation-object`, a hairline, a fixed ratio and an optional `glow` sampled from its own image at build time.
-- **Fan / FanItem**: a stack of objects with a rest, open and touch pose per item; it opens while its host (`data-fan-host`) is hovered or focused within, and the hovered item comes forward while its siblings recede. Reading covers and Writing cards are both a Fan.
-- **PostCard**: a small index card for one piece of writing: Plate (banner or typographic fallback), title, headline.
-- **Equalizer**: bars in `--accent-graphic` that move only inside `[data-playing]`.
-- **IsoGlyph**: a small isometric drawing, top faces first, shaded by `--iso-top/left/right/edge`; a part with `--pose` reacts when its `[data-glyph-host]` row is hovered.
-- **set player** (`src/lib/set-player.ts`): the one SoundCloud widget; the room's record player and the Last set tile are two views of it.
+### Live Dot
+- **Style:** A 6px green-500 dot with the `ping` keyframe ring behind it, the only CSS keyframe in the system. Hidden ring under reduced motion.
 
-### Molecules and tiles
-- **Reading** (`src/components/reading/`): `Prose`, `InShort`, `CopyCodeButton`.
-- **Site** (`src/components/site/`): `Header`, `Footer`, inside `src/layouts/Shell.astro` (the one shell).
-- **Home tiles** (`src/components/home/tiles/`): `BioTile`, `NowTile`, `ReadingTile`, `WritingTile`, `PlacesTile`, `WorkTile`, plus `RoomTile` and `LivingRoom` for the room.
-- **Pages** (`src/pages/`, `src/layouts/BlogPost.astro`): compose Shell, Page, PageTitle and tiles. Pages never reach into an atom with `:global(...)`; they use its props.
-
-### The room (signature object)
-The live 3D living room sits in a 4:3 tile and opens in a dialog. It is the one dark, lit object on the bench: its tile keeps the paper hairline and fill (so dark mode shows no bright edge round the picture), and its lamp and manuscript colours do not follow the theme. The record player is the SoundCloud set; the bookshelf is the book list.
-
-### Dither treatment
-Photos are ordered-dither duotones drawn to a canvas from the container's own colours, so they follow the surface and the theme. `tone="ink"` pairs `--surface-inverse` with `--surface`; `tone="accent"` pairs `--accent` with `--surface`; the darker colour takes the shadows. Hover, keyboard focus or tap reveals the true colours (`reveal="hover"`); `reveal="never"` stays dithered. Without JS the image is an ordinary responsive image.
-
-### Motion
-Short and functional: `--duration-fast` 150ms for hover and state, `--duration-base` 250ms for fades such as the dither reveal and for every exit, `--duration-moderate` 350ms with `--ease-spring` for an object opening (a fan spreading, a glyph reacting, staggered 40ms per item), `--duration-slow` 600ms and `--duration-slower` 1200ms for scene and entrance moments. Easing is `--ease-out` for state changes and `--ease-in-out` for larger moves. Under `prefers-reduced-motion: reduce` every duration collapses to near zero and smooth scrolling stops.
+### Deck
+- **Character:** A stack of mini cards that fans open like a hand when reached for, on the fan spring (stiffness 320, damping 18, 33.5ms stagger per card); the held card rises and its caption pops in.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** separate tiles with space and a 1px `--border` hairline.
-- **Do** write atoms against the paper semantic names so they retint on any inverse surface.
-- **Do** use `--accent-graphic` for dots and underlines, `--accent` for fills, and only for state.
-- **Do** use `Bench`, `Tile`, `Page` and `PageTitle` for layout; add a variant before adding a component.
-- **Do** keep every target 44px and keep light and dark identical in structure.
-- **Do** keep the essay a single left-aligned 38rem column opening with In short.
+- **Do** use shadow-xs and a 1px hairline for every card.
+- **Do** take every spring from `src/lib/motion.ts`: hover 1.02 on large surfaces, 1.08 on small ones, tap 0.95, exit to y −30 and scale 0.9.
+- **Do** keep stiffness between 250 and 550 and damping between 12 and 40; bounce stays between 0.1 and 0.25.
+- **Do** step text links one gray darker on hover in light mode and one iron lighter in dark mode, with `transition-colors` (150ms).
+- **Do** set prose links underlined at a 22% offset, with the decoration colour shifting on hover.
+- **Do** give every interactive element a visible focus-visible ring.
+- **Do** respect reduced motion: state still changes, nothing springs or translates.
 
 ### Don't:
-- **Don't** add drop shadows, glass, blur or gradients to tiles, controls or pages (the lit room scene is the exception, inside the room).
-- **Don't** use orange as decoration or for large areas outside primary buttons and pressed toggles.
-- **Don't** introduce a second typeface or colour literals outside `tokens.css` and `theme.css`.
-- **Don't** nest links or buttons inside a linked `Tile`.
-- **Don't** swap `--surface` and `--surface-inverse` inside the inverse rule.
-- **Don't** add a banner, sidebar or card to the essay.
+- **Don't** invert gray for dark mode; use iron.
+- **Don't** use heavy blur for glass; saturation carries it.
+- **Don't** use shadow-md outside brand gradient tiles.
+- **Don't** add CSS keyframes beyond `ping`; motion belongs to springs.
+- **Don't** set type above text-xl, or use bold.
+- **Don't** remove focus outlines without a replacement ring.

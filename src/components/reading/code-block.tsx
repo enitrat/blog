@@ -1,7 +1,7 @@
 'use client';
 
 import { type ComponentProps, useEffect, useRef, useState } from 'react';
-import { Button } from '@/ds';
+import { Button } from '@/components/ui/button';
 
 /** Milliseconds "Copied!" stays before the button reads "Copy" again. */
 const RESET = 2000;
@@ -24,8 +24,8 @@ export function CodeBlock({
 	const [overflows, setOverflows] = useState(false);
 	const [state, setState] = useState<keyof typeof BUTTON>('idle');
 
-	// A scroll container is reachable by keyboard only if it is focusable, but a block with
-	// nothing to scroll would be a tab stop that does nothing.
+	// A scroll box is reachable by keyboard only if it is focusable, but a block with nothing to
+	// scroll would be a tab stop that does nothing.
 	useEffect(() => {
 		setReady(true);
 		const el = ref.current;
@@ -42,10 +42,8 @@ export function CodeBlock({
 	}, [state]);
 
 	const copy = async () => {
-		// The markdown fence leaves a closing newline in the code; the copy leaves it out.
-		const text = (ref.current?.querySelector('code')?.textContent ?? '').replace(/\n$/, '');
 		try {
-			await navigator.clipboard.writeText(text);
+			await navigator.clipboard.writeText(ref.current?.textContent ?? '');
 			setState('copied');
 		} catch {
 			setState('failed');
@@ -53,25 +51,24 @@ export function CodeBlock({
 	};
 
 	return (
-		// biome-ignore lint/a11y/useSemanticElements: the block itself is the named region; a wrapping <section> would split it from its scroll box
-		<pre
-			ref={ref}
-			{...props}
-			data-copy-code=""
-			role="region"
-			aria-label={label}
-			tabIndex={overflows ? 0 : undefined}
-		>
-			{children}
+		<div className="relative">
+			{/* biome-ignore lint/a11y/useSemanticElements: the block itself is the named region; a wrapping <section> would split it from its scroll box */}
+			<pre
+				ref={ref}
+				{...props}
+				role="region"
+				aria-label={label}
+				tabIndex={overflows ? 0 : undefined}
+			>
+				{children}
+			</pre>
 			{ready && (
 				<>
 					<Button
 						variant="ghost"
 						size="sm"
-						// The block is mono; the button keeps the UI face.
-						className="copy-btn absolute top-(--copy-code-inset) right-(--copy-code-inset) font-sans"
+						className="absolute top-2 right-2 bg-white/80 font-sans backdrop-blur-sm dark:bg-iron-950/80"
 						aria-label={`Copy ${label}`}
-						data-copied={state === 'copied' ? '' : undefined}
 						onClick={copy}
 					>
 						{BUTTON[state]}
@@ -81,6 +78,6 @@ export function CodeBlock({
 					</span>
 				</>
 			)}
-		</pre>
+		</div>
 	);
 }

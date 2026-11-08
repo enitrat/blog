@@ -1,5 +1,7 @@
-import { box, pts } from '@/ds/components/objects/iso';
-import { IsoGlyph, IsoPart } from '@/ds/components/objects/iso-glyph';
+import { box, pts } from './iso';
+import { IsoGlyph, IsoPart } from './iso-glyph';
+
+const HAIR = { fill: 'none', opacity: 0.5 };
 
 const foot = box(-15, -11, 15, 11, 0, 1.2);
 const pages = box(-14, -10, 14, 10.4, 1.2, 5.8);
@@ -19,24 +21,24 @@ const frame = pts(
 /** A closed hardback lying flat; the spine faces left. The top board lifts a hair on hover. */
 export function Book({ size }: { size?: number }) {
 	return (
-		<IsoGlyph size={size} frame={[0, -3.9, 43]} className="glyph-book">
+		<IsoGlyph size={size} frame={[0, -3.9, 43]}>
 			<polygon className="l" points={foot.left} />
 			<polygon className="r" points={foot.right} />
 			<polygon className="r" points={pages.right} />
 			<polygon className="t" points={pages.top} />
 			{sheets.map((s) => (
-				<polyline key={s} className="hair" points={s} />
+				<polyline key={s} style={HAIR} points={s} />
 			))}
 			<polygon className="l" points={spine.left} />
 			<polygon className="r" points={spine.right} />
 			{band.map((b) => (
-				<polyline key={b} className="hair" points={b} />
+				<polyline key={b} style={HAIR} points={b} />
 			))}
-			<IsoPart>
+			<IsoPart pose="motion-safe:group-hover/glyph:-translate-y-[1.6px]">
 				<polygon className="l" points={cover.left} />
 				<polygon className="r" points={cover.right} />
 				<polygon className="t" points={cover.top} />
-				<polyline className="hair" points={frame} />
+				<polyline style={HAIR} points={frame} />
 				{title.map((t) => (
 					<polyline key={t} points={t} />
 				))}

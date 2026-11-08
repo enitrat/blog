@@ -1,355 +1,260 @@
 {
 	"schemaVersion": 2,
-	"generatedAt": "2026-10-18T00:00:00.000Z",
+	"generatedAt": "2026-11-08T14:59:23.139412Z",
 	"title": "Design System: Mathieu Saugier",
 	"extensions": {
 		"colorMeta": {
-			"sand-200": {
-				"role": "neutral",
-				"displayName": "Bench Sand",
-				"canonical": "#e8e7df",
+			"brand-500": {
+				"role": "primary",
+				"displayName": "Desk Violet",
+				"canonical": "#7a5af8",
 				"tonalRamp": [
-					"#0c0b07",
-					"#272721",
-					"#46453f",
-					"#67665f",
-					"#8a8982",
-					"#afaea7",
-					"#d2d1c9",
-					"#f0efe7"
+					"#3e1c96",
+					"#4a1fb8",
+					"#5925dc",
+					"#6938ef",
+					"#7a5af8",
+					"#9b8afb",
+					"#bdb4fe",
+					"#d9d6fe"
 				]
 			},
-			"grey-50": {
+			"gray-50": {
 				"role": "neutral",
 				"displayName": "Paper",
-				"canonical": "#f5f5f3",
+				"canonical": "#f9fafb",
 				"tonalRamp": [
-					"#26282c",
-					"#3f4247",
-					"#6b6f76",
-					"#8e939a",
-					"#c3c5c9",
-					"#dcdde0",
-					"#eaeaed",
-					"#f5f5f3"
+					"#101828",
+					"#182230",
+					"#344054",
+					"#475467",
+					"#667085",
+					"#98a2b3",
+					"#eaecf0",
+					"#f9fafb"
 				]
 			},
-			"grey-850": {
+			"iron-950": {
 				"role": "neutral",
-				"displayName": "Graphite",
-				"canonical": "#1b1c1f",
+				"displayName": "Iron Night",
+				"canonical": "#131316",
 				"tonalRamp": [
-					"#0e0e10",
-					"#16171a",
-					"#1b1c1f",
-					"#26282c",
-					"#3f4247",
-					"#575b62",
-					"#6b6f76",
-					"#8e939a"
+					"#131316",
+					"#1a1a1e",
+					"#27272a",
+					"#3f3f46",
+					"#51525c",
+					"#70707b",
+					"#a0a0ab",
+					"#e4e4e7"
 				]
 			},
-			"orange-500": {
-				"role": "primary",
-				"displayName": "Signal Orange",
-				"canonical": "#ff5b1f",
-				"tonalRamp": [
-					"#c2410c",
-					"#ff5b1f",
-					"#ff7a47",
-					"#ff9a70"
-				]
+			"green-500": {
+				"role": "neutral",
+				"displayName": "Live Green",
+				"canonical": "#00c758"
 			},
-			"orange-600": {
-				"role": "primary",
-				"displayName": "Burnt Orange",
-				"canonical": "#c2410c",
-				"tonalRamp": [
-					"#c2410c",
-					"#ff5b1f",
-					"#ff7a47",
-					"#ff9a70"
-				]
-			},
-			"manuscript-paper": {
-				"role": "art",
-				"displayName": "Manuscript Paper",
-				"canonical": "#f5f0e5",
-				"tonalRamp": [
-					"#242018",
-					"#766647",
-					"#94856b",
-					"#d8cfbd",
-					"#f5f0e5"
-				]
-			},
-			"lamp-amber": {
-				"role": "art",
-				"displayName": "Lamp Amber",
-				"canonical": "rgb(255 190 110)",
-				"tonalRamp": [
-					"rgb(255 180 110)",
-					"rgb(255 190 110)",
-					"rgb(255 196 120)",
-					"rgb(255 214 150)"
-				]
+			"red-500": {
+				"role": "neutral",
+				"displayName": "Signal Red",
+				"canonical": "#f04438"
 			}
 		},
 		"typographyMeta": {
-			"display": {
-				"displayName": "Display",
-				"purpose": "Bio statement; clamp(1.75rem, 1rem + 2.4vw, 2.75rem), tracking -0.03em."
-			},
 			"title": {
 				"displayName": "Title",
-				"purpose": "The one PageTitle h1, 1.75rem semibold."
-			},
-			"heading": {
-				"displayName": "Heading",
-				"purpose": "Essay section headings, lead line, book titles, 1.5rem."
+				"purpose": "Page titles, once per page."
 			},
 			"body": {
 				"displayName": "Body",
-				"purpose": "Essay prose, 1.125rem / 1.62, left-aligned, 38rem measure."
-			},
-			"ui": {
-				"displayName": "UI",
-				"purpose": "Default text, buttons, rows, 0.9375rem."
-			},
-			"small": {
-				"displayName": "Small",
-				"purpose": "Descriptions, dates, captions, 0.8125rem."
+				"purpose": "Workhorse UI and card text; prose at leading-relaxed."
 			},
 			"label": {
 				"displayName": "Label",
-				"purpose": "Geist Mono caps, 0.6875rem, tracking 0.09em: tile headers, tags, pills, meta."
+				"purpose": "Eyebrows, dates, metadata."
+			},
+			"code": {
+				"displayName": "Code",
+				"purpose": "Code blocks and inline code."
 			}
 		},
 		"shadows": [
 			{
-				"name": "tile",
-				"value": "0 1px 2px rgb(22 23 26 / 0.04), 0 2px 6px rgb(22 23 26 / 0.04)",
-				"purpose": "A tile at rest on the field, with its 1px hairline."
+				"name": "xs",
+				"value": "0 1px 2px rgb(16 24 40 / 0.05)",
+				"purpose": "Signature shadow on every card, button and bar."
 			},
 			{
-				"name": "tile-lift",
-				"value": "0 2px 4px rgb(22 23 26 / 0.05), 0 14px 28px -10px rgb(22 23 26 / 0.18)",
-				"purpose": "A linked tile on hover, 2px up."
+				"name": "sm-stacked",
+				"value": "0 1px 3px rgb(39 39 42 / 0.15), 0 1px 2px -1px rgb(39 39 42 / 0.15)",
+				"purpose": "Cards stacked on cards."
 			},
 			{
-				"name": "object",
-				"value": "0 1px 2px rgb(22 23 26 / 0.12), 0 6px 16px -4px rgb(22 23 26 / 0.22)",
-				"purpose": "A physical object on a tile: cover, set artwork, writing card."
-			},
-			{
-				"name": "object-lift",
-				"value": "0 2px 4px rgb(22 23 26 / 0.12), 0 20px 36px -12px rgb(22 23 26 / 0.34)",
-				"purpose": "An object while it moves (fan opening, hover)."
-			},
-			{
-				"name": "tile-dark",
-				"value": "0 1px 2px rgb(0 0 0 / 0.4), inset 0 1px 0 rgb(255 255 255 / 0.04)",
-				"purpose": "A tile at rest on the field, with its 1px hairline. Dark mode."
-			},
-			{
-				"name": "tile-lift-dark",
-				"value": "0 2px 4px rgb(0 0 0 / 0.45), 0 16px 32px -10px rgb(0 0 0 / 0.6), inset 0 1px 0 rgb(255 255 255 / 0.06)",
-				"purpose": "A linked tile on hover, 2px up. Dark mode."
-			},
-			{
-				"name": "object-dark",
-				"value": "0 1px 2px rgb(0 0 0 / 0.5), 0 8px 18px -4px rgb(0 0 0 / 0.55)",
-				"purpose": "A physical object on a tile: cover, set artwork, writing card. Dark mode."
-			},
-			{
-				"name": "object-lift-dark",
-				"value": "0 2px 4px rgb(0 0 0 / 0.5), 0 22px 40px -12px rgb(0 0 0 / 0.7)",
-				"purpose": "An object while it moves (fan opening, hover). Dark mode."
+				"name": "md",
+				"value": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+				"purpose": "Brand gradient tiles only."
 			}
 		],
 		"motion": [
 			{
-				"name": "duration-fast",
-				"value": "150ms",
-				"purpose": "Hover and state."
+				"name": "spring-hover",
+				"value": "spring stiffness 450 damping 18 bounce 0.1",
+				"purpose": "Card and media hover, scale 1.02."
 			},
 			{
-				"name": "duration-base",
-				"value": "250ms",
-				"purpose": "Fades such as the dither reveal, and every exit."
+				"name": "spring-pop",
+				"value": "spring stiffness 420 damping 16 bounce 0.2",
+				"purpose": "Small items hover, scale 1.08."
 			},
 			{
-				"name": "duration-slow",
-				"value": "600ms",
-				"purpose": "Scene and entrance moments."
+				"name": "spring-layout",
+				"value": "spring stiffness 400 damping 40",
+				"purpose": "Layout shifts and the nav highlight."
 			},
 			{
-				"name": "duration-slower",
-				"value": "1200ms",
-				"purpose": "Longest scene moves."
+				"name": "spring-fan",
+				"value": "spring stiffness 320 damping 18, stagger 33.5ms",
+				"purpose": "Deck and photo fan."
 			},
 			{
-				"name": "duration-moderate",
-				"value": "350ms",
-				"purpose": "An object opening: a fan spreading, a glyph reacting (staggered 40ms per item)."
+				"name": "spring-enter",
+				"value": "spring stiffness 450 damping 32 bounce 0.15",
+				"purpose": "Pop-in and exit (y -30, scale 0.9)."
 			},
 			{
-				"name": "ease-out",
-				"value": "cubic-bezier(0.2, 0.8, 0.2, 1)",
-				"purpose": "State changes."
-			},
-			{
-				"name": "ease-in-out",
-				"value": "cubic-bezier(0.65, 0, 0.35, 1)",
-				"purpose": "Larger moves."
-			},
-			{
-				"name": "ease-spring",
-				"value": "cubic-bezier(0.34, 1.4, 0.64, 1)",
-				"purpose": "Objects opening, with --duration-moderate."
+				"name": "ease-standard",
+				"value": "cubic-bezier(0.4, 0, 0.2, 1) 150ms",
+				"purpose": "CSS colour transitions."
 			}
 		],
 		"breakpoints": [
 			{
-				"name": "md (6-col bench)",
-				"value": "40rem"
+				"name": "sm",
+				"value": "640px"
 			},
 			{
-				"name": "lg (12-col bench)",
-				"value": "64rem"
+				"name": "lg",
+				"value": "1024px"
+			},
+			{
+				"name": "xl",
+				"value": "1280px"
 			}
-		],
-		"tokenLayers": [
-			"reference (DESIGN.md frontmatter -> tokens.css)",
-			"semantic (theme.css, references reference only)",
-			"component (component <style>, references semantic only)"
 		]
 	},
 	"components": [
 		{
-			"name": "Tile (paper)",
-			"kind": "card",
-			"description": "Flat bench surface: 1px hairline, no shadow, mono caps header.",
-			"html": "<div class=\"ds-tile\"><div class=\"ds-tile-head\"><span class=\"ds-dot\"></span>Now</div><p>A short line Mathieu wrote himself.</p></div>",
-			"css": ".ds-tile{background:var(--surface,#f5f5f3);color:var(--surface-foreground,#16171a);border:1px solid var(--border,rgba(22,23,26,.12));border-radius:var(--radius-tile,18px);padding:var(--pad-tile,1.625rem);display:grid;gap:1.25rem;font-family:var(--font-geist,system-ui);transition:border-color .15s}.ds-tile:hover{border-color:var(--foreground,#16171a)}.ds-tile-head{display:flex;align-items:center;gap:.5rem;font-family:var(--font-code,monospace);font-size:.6875rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted-foreground,#575b62)}.ds-dot{width:7px;height:7px;border-radius:999px;background:var(--accent-graphic,#c2410c)}.ds-tile p{margin:0;font-size:.9375rem}"
-		},
-		{
-			"name": "Tile (inverse)",
-			"kind": "card",
-			"description": "Graphite tile; the scoped inverse rule re-maps the paper names.",
-			"html": "<div class=\"ds-tile ds-inv\"><div class=\"ds-tile-head\">Latest</div><p>Atoms inside need no inverse prop.</p></div>",
-			"css": ".ds-inv{--surface:#1b1c1f;--surface-foreground:#eaeaed;--muted-foreground:#8e939a;--border:rgba(245,245,243,.14);background:var(--surface);color:var(--surface-foreground);border:1px solid var(--border);border-radius:18px;padding:1.625rem;font-family:var(--font-geist,system-ui)}.ds-inv .ds-tile-head{font-family:var(--font-code,monospace);font-size:.6875rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted-foreground)}.ds-inv p{margin:.75rem 0 0;font-size:.9375rem}"
-		},
-		{
-			"name": "Primary Button",
+			"name": "Default Button",
 			"kind": "button",
-			"refersTo": "button",
-			"description": "Orange fill pill, 44px tall; the one place orange fills.",
-			"html": "<button class=\"ds-btn ds-btn-primary\">Listen</button>",
-			"css": ".ds-btn{min-height:44px;padding:0 1.1rem;border:0;border-radius:999px;font:500 .9375rem var(--font-geist,system-ui);cursor:pointer;transition:background .15s,box-shadow .15s}.ds-btn-primary{background:var(--accent,#ff5b1f);color:var(--accent-foreground,#16171a)}.ds-btn-primary:hover{background:color-mix(in srgb,var(--accent,#ff5b1f) 85%,#16171a)}.ds-btn:focus-visible{outline:2px solid var(--ring,#c2410c);outline-offset:3px}"
+			"refersTo": "button-default",
+			"description": "White pill for ordinary actions.",
+			"html": "<button class=\"ds-btn\">Play</button>",
+			"css": ".ds-btn{font:600 14px/1 Figtree,system-ui,sans-serif;letter-spacing:-0.025em;color:#182230;background:#fff;border:1px solid #eaecf0;border-radius:9999px;padding:8px 16px 6px 14px;height:36px;box-shadow:0 1px 2px rgb(16 24 40/.05);transition:background-color .15s cubic-bezier(.4,0,.2,1);cursor:pointer}.ds-btn:hover{background:rgb(242 244 247/.5)}.ds-btn:focus-visible{outline:none;box-shadow:0 0 0 2px #f9fafb,0 0 0 4px rgb(122 90 248/.6)}"
 		},
 		{
-			"name": "Ghost Button",
+			"name": "Brand Button",
 			"kind": "button",
-			"description": "Hairline outline pill; border goes to currentColor on hover.",
-			"html": "<button class=\"ds-btn ds-btn-ghost\">All writing</button>",
-			"css": ".ds-btn{min-height:44px;padding:0 1.1rem;border:0;border-radius:999px;font:500 .9375rem var(--font-geist,system-ui);cursor:pointer;transition:box-shadow .15s}.ds-btn-ghost{background:transparent;color:var(--foreground,#16171a);box-shadow:inset 0 0 0 1px var(--border,rgba(22,23,26,.12))}.ds-btn-ghost:hover{box-shadow:inset 0 0 0 1px currentColor}.ds-btn:focus-visible{outline:2px solid var(--ring,#c2410c);outline-offset:3px}"
+			"refersTo": "button-brand",
+			"description": "Violet gradient pill, used sparingly.",
+			"html": "<button class=\"ds-btn-brand\">Say hi</button>",
+			"css": ".ds-btn-brand{font:600 14px/1 Figtree,system-ui,sans-serif;color:#fff;background:linear-gradient(to bottom,#9b8afb,#7a5af8);border:0;border-radius:9999px;padding:8px 16px 6px 14px;height:36px;box-shadow:0 4px 6px -1px rgb(0 0 0/.1),0 2px 4px -2px rgb(0 0 0/.1);cursor:pointer}.ds-btn-brand:hover{background:linear-gradient(to bottom,#7a5af8,#6938ef)}.ds-btn-brand:focus-visible{outline:none;box-shadow:0 0 0 2px #f9fafb,0 0 0 4px rgb(122 90 248/.6)}"
 		},
 		{
-			"name": "Pill",
-			"kind": "chip",
-			"description": "Small mono capsule: link (filled), chip (outlined), toggle (orange when pressed).",
-			"html": "<a class=\"ds-pill\" href=\"#\">GitHub</a> <button class=\"ds-pill ds-pill-toggle\" aria-pressed=\"true\">Essays</button>",
-			"css": ".ds-pill{display:inline-flex;align-items:center;min-height:2rem;padding:0 .75rem;border:0;border-radius:999px;font:500 .6875rem/1 var(--font-code,monospace);text-decoration:none;background:var(--foreground,#16171a);color:var(--surface,#f5f5f3);cursor:pointer;transition:background .15s,color .15s}.ds-pill:hover{background:var(--accent,#ff5b1f);color:var(--accent-foreground,#16171a)}.ds-pill-toggle{background:transparent;color:var(--foreground,#16171a);box-shadow:inset 0 0 0 1px var(--border,rgba(22,23,26,.12))}.ds-pill-toggle[aria-pressed=true]{background:var(--accent,#ff5b1f);color:var(--accent-foreground,#16171a);box-shadow:none}.ds-pill:focus-visible{outline:2px solid var(--ring,#c2410c);outline-offset:2px}"
-		},
-		{
-			"name": "List Row",
+			"name": "Glass Nav",
 			"kind": "nav",
-			"description": "Mono date column, title, muted description; arrow on hover and focus.",
-			"html": "<a class=\"ds-row\" href=\"#\"><span class=\"ds-date\">12 Mar</span><span><strong>Essay title</strong><span class=\"ds-desc\">First sentence of the piece.</span></span></a>",
-			"css": ".ds-row{display:grid;grid-template-columns:5rem 1fr;gap:1rem;padding:.75rem 0;border-bottom:1px solid var(--border,rgba(22,23,26,.12));color:var(--foreground,#16171a);text-decoration:none;font-family:var(--font-geist,system-ui);font-size:.9375rem}.ds-date{font-family:var(--font-code,monospace);font-size:.8125rem;color:var(--muted-foreground,#575b62)}.ds-row strong{display:block;font-weight:600;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:.2em}.ds-row:hover strong{text-decoration-color:var(--accent-graphic,#c2410c)}.ds-desc{color:var(--muted-foreground,#575b62)}.ds-row:focus-visible{outline:2px solid var(--ring,#c2410c);outline-offset:2px}"
+			"refersTo": "nav-pill",
+			"description": "Light glass pill holding the primary links.",
+			"html": "<nav class=\"ds-nav\"><a class=\"ds-nav-a ds-on\" href=\"#\">Writing</a><a class=\"ds-nav-a\" href=\"#\">Reading</a><a class=\"ds-nav-a\" href=\"#\">About</a></nav>",
+			"css": ".ds-nav{display:inline-flex;padding:2px;border-radius:9999px;border:1px solid rgb(234 236 240/.5);background:rgb(255 255 255/.5);backdrop-filter:blur(4px) saturate(1.5)}.ds-nav-a{font:400 14px/1 Figtree,system-ui,sans-serif;letter-spacing:-0.025em;color:#667085;text-decoration:none;padding:8px 12px;border-radius:9999px;transition:color .15s,background-color .15s}.ds-nav-a:hover{color:#182230;background:#f2f4f7}.ds-nav-a.ds-on{color:#101828}.ds-nav-a:focus-visible{outline:2px solid rgb(122 90 248/.6)}"
 		},
 		{
-			"name": "In short",
+			"name": "Card",
+			"kind": "card",
+			"refersTo": "card",
+			"description": "The desk object: white, hairline, shadow-xs.",
+			"html": "<article class=\"ds-card\"><span class=\"ds-eyebrow\">Last set</span><strong>Bouncyx Seven</strong></article>",
+			"css": ".ds-card{display:flex;flex-direction:column;gap:16px;padding:16px;background:#fff;border:1px solid #eaecf0;border-radius:12px;box-shadow:0 1px 2px rgb(16 24 40/.05);font:600 14px/1.4 Figtree,system-ui,sans-serif;color:#182230;transition:transform .2s cubic-bezier(.34,1.4,.64,1)}.ds-card:hover{transform:scale(1.02)}.ds-eyebrow{font-size:12px;font-weight:400;color:#98a2b3}"
+		},
+		{
+			"name": "Badge",
+			"kind": "chip",
+			"refersTo": "badge",
+			"description": "Violet tint flag.",
+			"html": "<span class=\"ds-badge\">Latest</span>",
+			"css": ".ds-badge{display:inline-flex;font:400 12px/1.33 Figtree,system-ui,sans-serif;color:#6938ef;background:rgb(122 90 248/.1);border-radius:9999px;padding:2px 8px}"
+		},
+		{
+			"name": "Live Dot",
 			"kind": "custom",
-			"description": "Essay skim block: mono label, numbered section titles with their first sentence.",
-			"html": "<nav class=\"ds-short\"><div class=\"ds-lab\">In short</div><a href=\"#\"><span class=\"ds-n\">01</span><span><strong>Section title</strong><span class=\"ds-desc\">Its first sentence.</span></span></a></nav>",
-			"css": ".ds-short{max-width:38rem;padding-bottom:2rem;border-bottom:1px solid var(--border,rgba(22,23,26,.12));font-family:var(--font-geist,system-ui);font-size:.9375rem}.ds-lab{font-family:var(--font-code,monospace);font-size:.6875rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted-foreground,#575b62);margin-bottom:1rem}.ds-short a{display:grid;grid-template-columns:1.75rem 1fr;padding:.5rem 0;color:var(--foreground,#16171a);text-decoration:none}.ds-n{font-family:var(--font-code,monospace);font-size:.8125rem;color:var(--muted-foreground,#575b62)}.ds-short strong{display:block;font-weight:600;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:.2em}.ds-short a:hover strong{text-decoration-color:var(--accent-graphic,#c2410c)}.ds-desc{color:var(--muted-foreground,#575b62)}"
+			"description": "Green status dot with a ping ring.",
+			"html": "<span class=\"ds-dot\"><i></i></span>",
+			"css": ".ds-dot{position:relative;display:inline-flex;width:6px;height:6px;border-radius:9999px;background:#00c758}.ds-dot i{position:absolute;inset:0;border-radius:9999px;background:#00c758;opacity:.75;animation:ds-ping 1s cubic-bezier(0,0,.2,1) infinite}@keyframes ds-ping{75%,100%{transform:scale(2);opacity:0}}"
 		}
 	],
 	"narrative": {
-		"northStar": "The Bench",
-		"overview": "The site is a sand-tinted workbench on which small, real objects from Mathieu's life are laid out: a bio, what he is doing now, the book he is reading, the latest essay, a trip, the work. Each object is a flat tile and each tile is a door. Recognisable with the content removed: a sand field, flat near-white rectangles of varied size, mono caps labels, one orange dot. Geist does all the talking; Geist Mono labels and counts.\n\nThe system is flat on purpose. Tiles are separated by space and a 1px hairline, never by shadow, glass or gradient. Orange is a signal for state (playing, current, latest, pressed, focus), not decoration. The only dark, textured, lit object on the bench is the 3D living room. Everything else is paper and graphite.\n\nThe essay breaks no rule of the bench; it only removes the bench. Reading pages are a single plain column, no banner, no sidebar, no cards.",
+		"northStar": "The Living Desk",
+		"overview": "The site is a tidy desk of small, live objects from Mathieu's life: the last DJ set, the essay on top of the pile, the book being read, the work, the places. Each one is a white card with a hairline and the faintest shadow, laid on cool gray paper. Nothing on the desk is loud at rest. The personality arrives when a hand reaches for it: cards spring up a little, small things pop, decks fan open, and objects settle back with a light overshoot.\n\nThe system is restrained in colour, size and weight, and generous in motion. Type is one family, Figtree, set small and tight. Violet carries the brand: links, emphasis, badges, selection, and the occasional gradient tile. Dark mode is not an inverted light mode; it is a separate desk in neutral iron, with violet stepping one shade lighter so it keeps its weight.\n\nGlass is thin. Chrome that floats over content (the nav pill, dialogs, composer-style bars) is a translucent fill with a low-alpha hairline, a small 4 to 8px blur and 150% saturation. Saturation, not blur, is what makes it read as glass.",
 		"keyCharacteristics": [
-			"Flat tiles on a grey field: 1px hairline, no drop shadow, no glass, no blur.",
-			"One family (Geist) plus its mono (Geist Mono) for labels, data and code.",
-			"Orange only for state; `--accent-graphic` for small marks (dots, underlines), `--accent` for fills.",
-			"Light and dark are both first-class; a tile can locally invert without any prop on its atoms.",
-			"Photos are ordered-dither duotones that reveal true colour on hover, focus or tap.",
-			"The room is the one dark object, painted with its own art-direction colours that never change with the theme."
+			"Cool, blue-tinted gray paper in light mode; a separate neutral iron ramp in dark mode.",
+			"White cards, 1px hairlines, and `shadow-xs` as the signature depth.",
+			"Figtree throughout, text-sm as the workhorse, tracking-tight, medium and semibold for emphasis.",
+			"Violet as the brand voice, in light and dark.",
+			"Personality lives in spring motion, not in colour or size.",
+			"Radius shrinks as nesting deepens."
 		],
 		"rules": [
 			{
-				"name": "The Orange Is State Rule",
-				"body": "Orange means playing, current, latest, pressed or focused. If removing it loses no meaning, it should not be there.",
+				"name": "The Two Desks Rule",
+				"body": "Dark mode uses the iron ramp, never an inverted gray. Light gray-600 text becomes iron-300, not gray-400.",
 				"section": "colors"
 			},
 			{
-				"name": "The Small Marks Rule",
-				"body": "Dots and underlines use `--accent-graphic`; fills use `--accent`. Never paint a small orange mark with `--accent` on paper.",
+				"name": "The Lighter Violet Rule",
+				"body": "Wherever light mode uses brand-600 or brand-700 for emphasis, dark mode uses brand-500 or brand-400.",
 				"section": "colors"
 			},
 			{
-				"name": "The Fixed Scrim Rule",
-				"body": "Text over a photo uses `--scrim` and `--scrim-foreground`, which do not change with the theme.",
+				"name": "The Dark Hairline Rule",
+				"body": "Dark borders are white/10, or iron-800 at 15 to 60% alpha. Never a solid light border on iron.",
 				"section": "colors"
 			},
 			{
-				"name": "The One Family Rule",
-				"body": "Geist for everything, Geist Mono for labels, data and code. No second display face, no serif.",
+				"name": "The Small Type Rule",
+				"body": "text-sm is the default. Reach for text-lg or text-xl only for page and section titles.",
 				"section": "typography"
 			},
 			{
-				"name": "The Semantic Size Rule",
-				"body": "Components use the `--text-*` roles, never raw `--font-size-*` or literal sizes.",
+				"name": "The Two Weights Rule",
+				"body": "Emphasis is medium or semibold. Regular is for running text only; bold is not used.",
 				"section": "typography"
 			},
 			{
-				"name": "The Bench Grid Rule",
-				"body": "Tiles are placed with `span`, `rows` and `order`; pages never write their own grid for a bench.",
-				"section": "layout"
-			},
-			{
-				"name": "The Plain Reading Rule",
-				"body": "The essay is one column. Apparatus (In short, back links) is orientation, never the only path.",
-				"section": "layout"
-			},
-			{
-				"name": "The Objects Cast Shadows Rule",
-				"body": "Shadow says \"this is a thing you can pick up\": tiles and the objects on them. Text, labels, pills and the reading pages never cast one. No glass, no blur, no zero-offset coloured halos except the cover glow sampled from the cover itself.",
+				"name": "The Faint Shadow Rule",
+				"body": "shadow-xs is the ceiling for ordinary surfaces. Larger shadows belong to brand tiles and stacked objects only.",
 				"section": "elevation"
 			},
 			{
-				"name": "The Lift Means Link Rule",
-				"body": "Only something that goes somewhere when clicked lifts on hover.",
+				"name": "The Saturation Glass Rule",
+				"body": "Glass is 50 to 80% fill, a low-alpha hairline, 4 to 8px blur and backdrop-saturate-150. Never a heavy blur.",
 				"section": "elevation"
 			}
 		],
 		"dos": [
-			"**Do** separate tiles with space and a 1px `--border` hairline.",
-			"**Do** write atoms against the paper semantic names so they retint on any inverse surface.",
-			"**Do** use `--accent-graphic` for dots and underlines, `--accent` for fills, and only for state.",
-			"**Do** use `Bench`, `Tile`, `Page` and `PageTitle` for layout; add a variant before adding a component.",
-			"**Do** keep every target 44px and keep light and dark identical in structure.",
-			"**Do** keep the essay a single left-aligned 38rem column opening with In short."
+			"**Do** use shadow-xs and a 1px hairline for every card.",
+			"**Do** take every spring from `src/lib/motion.ts`: hover 1.02 on large surfaces, 1.08 on small ones, tap 0.95, exit to y −30 and scale 0.9.",
+			"**Do** keep stiffness between 250 and 550 and damping between 12 and 40; bounce stays between 0.1 and 0.25.",
+			"**Do** step text links one gray darker on hover in light mode and one iron lighter in dark mode, with `transition-colors` (150ms).",
+			"**Do** set prose links underlined at a 22% offset, with the decoration colour shifting on hover.",
+			"**Do** give every interactive element a visible focus-visible ring.",
+			"**Do** respect reduced motion: state still changes, nothing springs or translates."
 		],
 		"donts": [
-			"**Don't** add drop shadows, glass, blur or gradients to tiles, controls or pages (the lit room scene is the exception, inside the room).",
-			"**Don't** use orange as decoration or for large areas outside primary buttons and pressed toggles.",
-			"**Don't** introduce a second typeface or colour literals outside `tokens.css` and `theme.css`.",
-			"**Don't** nest links or buttons inside a linked `Tile`.",
-			"**Don't** swap `--surface` and `--surface-inverse` inside the inverse rule.",
-			"**Don't** add a banner, sidebar or card to the essay."
+			"**Don't** invert gray for dark mode; use iron.",
+			"**Don't** use heavy blur for glass; saturation carries it.",
+			"**Don't** use shadow-md outside brand gradient tiles.",
+			"**Don't** add CSS keyframes beyond `ping`; motion belongs to springs.",
+			"**Don't** set type above text-xl, or use bold.",
+			"**Don't** remove focus outlines without a replacement ring."
 		]
 	}
 }

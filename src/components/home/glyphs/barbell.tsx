@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
-import { P } from '@/ds/components/objects/iso';
-import { IsoGlyph, IsoPart } from '@/ds/components/objects/iso-glyph';
+import { P } from './iso';
+import { IsoGlyph, IsoPart } from './iso-glyph';
 
 const R = 8.5;
 type Disc = [x0: number, x1: number, radius: number];
@@ -31,8 +31,15 @@ const tip = bar(20.5, 26);
 function Bar({ seg }: { seg: ReturnType<typeof bar> }) {
 	return (
 		<>
-			<line className="bar-edge" x1={seg.a[0]} y1={seg.a[1]} x2={seg.b[0]} y2={seg.b[1]} />
-			<line className="bar" x1={seg.a[0]} y1={seg.a[1]} x2={seg.b[0]} y2={seg.b[1]} />
+			<line style={{ strokeWidth: 3.2 }} x1={seg.a[0]} y1={seg.a[1]} x2={seg.b[0]} y2={seg.b[1]} />
+			<line
+				className="stroke-white! dark:stroke-iron-600!"
+				style={{ strokeWidth: 1.4 }}
+				x1={seg.a[0]}
+				y1={seg.a[1]}
+				x2={seg.b[0]}
+				y2={seg.b[1]}
+			/>
 		</>
 	);
 }
@@ -40,9 +47,9 @@ function Bar({ seg }: { seg: ReturnType<typeof bar> }) {
 /** A bar loaded with two plates a side and collars, lying on the floor along x. It dips on hover. */
 export function Barbell({ size }: { size?: number }) {
 	return (
-		<IsoGlyph size={size} frame={[0.55, -6.6, 42]} className="glyph-barbell">
+		<IsoGlyph size={size} frame={[0.55, -6.6, 42]}>
 			<g transform="translate(0 3)">
-				<IsoPart>
+				<IsoPart pose="motion-safe:group-hover/glyph:translate-y-[1.5px]">
 					{[far, near].map((group, i) => (
 						<Fragment key={i === 0 ? 'far' : 'near'}>
 							{i === 1 && <Bar seg={mid} />}

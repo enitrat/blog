@@ -1,35 +1,30 @@
 import 'server-only';
-import { Link, ListRow, ListRows, Tile } from '@/ds';
+import { ListRow, ListRows } from '@/components/ui/list-row';
+import { Tile } from '@/components/ui/tile';
 import { getTrips, type Trip } from '@/lib/content';
+import { HomeLink } from '../home-link';
 
 /** The latest trips. Renders nothing until the first trip exists. */
 export function PlacesTile({
 	trips = getTrips(),
-	span,
-	order,
 }: {
 	/** Defaults to every trip, newest first. */
 	trips?: readonly Pick<Trip, 'id' | 'data'>[];
-	span?: { md?: number; lg?: number };
-	order?: number;
 }) {
 	if (trips.length === 0) return null;
 	return (
 		<Tile
+			compact
 			label="Places"
 			labelAs="h2"
 			dot
-			dotTone="muted"
-			span={span}
-			order={order}
-			as="section"
 			action={
-				<Link variant="arrow" href="/places/">
+				<HomeLink variant="arrow" href="/places/">
 					All places
-				</Link>
+				</HomeLink>
 			}
 		>
-			<ListRows variant="tile">
+			<ListRows>
 				{trips.slice(0, 3).map((t) => (
 					<ListRow key={t.id} href="/places/" title={t.data.title ?? t.id} />
 				))}

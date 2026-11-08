@@ -1,17 +1,14 @@
 import type { ReactNode } from 'react';
 import { type Book, books } from '@/booksData';
-import {
-	BookLine,
-	BookPile,
-	Label,
-	ListRow,
-	ListRows,
-	Page,
-	PageTitle,
-	piles,
-	StatusDot,
-} from '@/ds';
+import { piles } from '@/components/books/book';
+import { BookLine } from '@/components/books/book-line';
+import { BookPile } from '@/components/books/book-pile';
+import { Eyebrow } from '@/components/ui/eyebrow';
+import { ListRow, ListRows } from '@/components/ui/list-row';
+import { Page, PageHeader } from '@/components/ui/page';
+import { StatusDot } from '@/components/ui/status-dot';
 import { pageMeta } from '@/lib/meta';
+import { cn } from '@/lib/utils';
 import { readingLine } from '@/utils/bookRecord';
 
 export const metadata = pageMeta({
@@ -41,8 +38,8 @@ const id = (s: string) => `y-${s.toLowerCase().replace(/\W+/g, '-')}`;
 /** A book with its own small pile beside its title line. */
 function BookItem({ book, children }: { book: Book; children: ReactNode }) {
 	return (
-		<li className="book flex items-center gap-4">
-			<div className="cover flex-none">
+		<li className="flex items-center gap-4">
+			<div className="flex-none">
 				<BookPile books={pile([book])} scale={3} />
 			</div>
 			<div>{children}</div>
@@ -70,27 +67,25 @@ export default function ReadingPage() {
 	const wanted = books.filter((b) => b.status === 'want-to-read').sort(recent);
 
 	return (
-		<div data-slot="reading-page">
-			<Page>
-				<PageTitle>Reading</PageTitle>
+		<Page>
+			<PageHeader>Reading</PageHeader>
 
-				{reading.length > 0 && (
-					<section aria-label="Reading now">
-						<ul className="books m-0 grid list-none gap-6 p-0">
-							{reading.map((b) => (
-								<BookItem key={b.title} book={b}>
-									<BookLine title={b.title} author={b.author} size="lg" tag={<StatusDot />} />
-								</BookItem>
-							))}
-						</ul>
-					</section>
-				)}
+			{reading.length > 0 && (
+				<section aria-label="Reading now">
+					<ul className="grid gap-4">
+						{reading.map((b) => (
+							<BookItem key={b.title} book={b}>
+								<BookLine title={b.title} author={b.author} size="lg" tag={<StatusDot />} />
+							</BookItem>
+						))}
+					</ul>
+				</section>
+			)}
 
-				<section aria-labelledby="picks">
-					<Label
+			<section aria-labelledby="picks">
+				<div id="picks" className="mb-4">
+					<Eyebrow
 						as="h2"
-						id="picks"
-						space="sm"
 						meta={
 							<>
 								[TK] {unrated} of {finished.length} unrated
@@ -98,83 +93,91 @@ export default function ReadingPage() {
 						}
 					>
 						[TK] Rated highest
-					</Label>
-					<ul className="books picks m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(min(100%,var(--reading-pick-min)),1fr))] gap-6 p-0">
-						{picks.map((b) => (
-							<BookItem key={b.title} book={b}>
-								<BookLine title={b.title} author={b.author}>
-									{when(b)}
-								</BookLine>
-							</BookItem>
-						))}
-					</ul>
-				</section>
+					</Eyebrow>
+				</div>
+				<ul className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,18rem),1fr))] gap-4">
+					{picks.map((b) => (
+						<BookItem key={b.title} book={b}>
+							<BookLine title={b.title} author={b.author}>
+								{when(b)}
+							</BookLine>
+						</BookItem>
+					))}
+				</ul>
+			</section>
 
-				{years.map(({ year, books: bs, piles: ps, folded }) => {
-					const Wrap = folded ? 'details' : 'div';
-					const Head = folded ? 'summary' : 'div';
-					return (
-						<section key={year} aria-labelledby={id(year)}>
-							<Wrap>
-								<Head>
-									<Label
-										as="h2"
-										id={id(year)}
-										space="sm"
-										meta={
-											<>
-												{bs.length}
-												{folded && (
-													<>
-														<span className="toggle ms-3 underline" data-show="">
-															[TK] show
-														</span>
-														<span className="toggle ms-3 underline" data-hide="">
-															[TK] hide
-														</span>
-													</>
-												)}
-											</>
-										}
-									>
-										{year}
-									</Label>
-								</Head>
-								<div className="year grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
-									<div className="piles flex flex-wrap items-end gap-x-4 gap-y-2">
-										{ps.map((p) => (
-											<BookPile key={p[0].title} books={p} />
-										))}
-									</div>
-									<ListRows>
-										{bs.map((b) => (
-											<ListRow
-												key={b.title}
-												title={short(b.title)}
-												description={`${b.author} · ${when(b)}`}
-												href={writingHref(b)}
-											/>
-										))}
-									</ListRows>
+			{years.map(({ year, books: bs, piles: ps, folded }) => {
+				const Wrap = folded ? 'details' : 'div';
+				const Head = folded ? 'summary' : 'div';
+				const link =
+					'underline underline-offset-[22%] hover:text-gray-500 dark:hover:text-iron-300';
+				return (
+					<section key={year} aria-labelledby={id(year)}>
+						<Wrap className="group">
+							<Head
+								id={id(year)}
+								className={
+									folded
+										? 'cursor-pointer list-none rounded-md outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 [&::-webkit-details-marker]:hidden'
+										: undefined
+								}
+							>
+								<Eyebrow
+									as="h2"
+									className="mb-4"
+									meta={
+										<>
+											{bs.length}
+											{folded && (
+												<>
+													<span className={cn('ms-3 group-open:hidden', link)}>[TK] show</span>
+													<span className={cn('ms-3 hidden group-open:inline', link)}>
+														[TK] hide
+													</span>
+												</>
+											)}
+										</>
+									}
+								>
+									{year}
+								</Eyebrow>
+							</Head>
+							<div className="grid gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
+								<div className="flex flex-wrap items-end gap-x-4 gap-y-2">
+									{ps.map((p) => (
+										<BookPile key={p[0].title} books={p} />
+									))}
 								</div>
-							</Wrap>
-						</section>
-					);
-				})}
-
-				{wanted.length > 0 && (
-					<section aria-labelledby="g-want">
-						<Label as="h2" id="g-want" space="sm" meta={wanted.length}>
-							Reading list
-						</Label>
-						<ListRows>
-							{wanted.map((b) => (
-								<ListRow key={b.title} title={short(b.title)} description={b.author} />
-							))}
-						</ListRows>
+								<ListRows>
+									{bs.map((b) => (
+										<ListRow
+											key={b.title}
+											title={short(b.title)}
+											description={`${b.author} · ${when(b)}`}
+											href={writingHref(b)}
+										/>
+									))}
+								</ListRows>
+							</div>
+						</Wrap>
 					</section>
-				)}
-			</Page>
-		</div>
+				);
+			})}
+
+			{wanted.length > 0 && (
+				<section aria-labelledby="g-want">
+					<div id="g-want" className="mb-4">
+						<Eyebrow as="h2" meta={wanted.length}>
+							Reading list
+						</Eyebrow>
+					</div>
+					<ListRows>
+						{wanted.map((b) => (
+							<ListRow key={b.title} title={short(b.title)} description={b.author} />
+						))}
+					</ListRows>
+				</section>
+			)}
+		</Page>
 	);
 }

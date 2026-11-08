@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Prose } from '@/components/reading/prose';
-import { Label, Page, PageTitle } from '@/ds';
+import { Eyebrow } from '@/components/ui/eyebrow';
+import { Page, PageHeader } from '@/components/ui/page';
 import { renderMarkdown } from '@/lib/markdown';
 import { pageMeta } from '@/lib/meta';
 
@@ -19,16 +20,14 @@ export default async function AboutPage() {
 		'.',
 	);
 	return (
-		<Page width="measure" as="article">
-			<PageTitle>About</PageTitle>
+		<Page width="text" as="article">
+			<PageHeader>About</PageHeader>
 			<Prose tree={tree} />
-			<dl className="m-0 grid gap-4 border-t border-border pt-6 text-ui">
-				<div>
-					<dt>
-						<Label>Currently</Label>
-					</dt>
-					<dd className="mt-1">Senior Protocol Engineer at Zama</dd>
-				</div>
+			<dl className="border-t border-gray-200 pt-6 text-sm dark:border-white/10">
+				<dt>
+					<Eyebrow>Currently</Eyebrow>
+				</dt>
+				<dd className="mt-1 text-gray-800 dark:text-iron-100">Senior Protocol Engineer at Zama</dd>
 			</dl>
 		</Page>
 	);

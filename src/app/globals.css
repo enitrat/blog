@@ -1,5 +1,59 @@
 @import "tailwindcss";
-@import "../ds/tokens/index.css";
+@plugin "@tailwindcss/typography";
 
-/* Tailwind scans these for class names. */
-@source "../";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+	--font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+	--font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+	/* Light: cool, blue-tinted gray. */
+	--color-gray-25: #fcfcfd;
+	--color-gray-50: #f9fafb;
+	--color-gray-100: #f2f4f7;
+	--color-gray-200: #eaecf0;
+	--color-gray-300: #d0d5dd;
+	--color-gray-400: #98a2b3;
+	--color-gray-500: #667085;
+	--color-gray-600: #475467;
+	--color-gray-700: #344054;
+	--color-gray-800: #182230;
+	--color-gray-900: #101828;
+
+	/* Dark: a separate neutral ramp, not an inverted gray. */
+	--color-iron-100: #f4f4f5;
+	--color-iron-200: #e4e4e7;
+	--color-iron-300: #d1d1d6;
+	--color-iron-400: #a0a0ab;
+	--color-iron-500: #70707b;
+	--color-iron-600: #51525c;
+	--color-iron-700: #3f3f46;
+	--color-iron-800: #27272a;
+	--color-iron-900: #1a1a1e;
+	--color-iron-950: #131316;
+	--color-iron-fade: #17171a;
+
+	--color-brand-200: #d9d6fe;
+	--color-brand-300: #bdb4fe;
+	--color-brand-400: #9b8afb;
+	--color-brand-500: #7a5af8;
+	--color-brand-600: #6938ef;
+	--color-brand-700: #5925dc;
+	--color-brand-800: #4a1fb8;
+	--color-brand-900: #3e1c96;
+
+	--color-red-500: #f04438;
+	--color-green-500: #00c758;
+
+	--shadow-xs: 0 1px 2px rgb(16 24 40 / 0.05);
+}
+
+@layer base {
+	body {
+		@apply bg-gray-50 font-sans tracking-tight text-gray-900 antialiased dark:bg-iron-950 dark:text-iron-100;
+	}
+
+	::selection {
+		@apply bg-brand-200 text-brand-900 dark:bg-brand-800 dark:text-white;
+	}
+}

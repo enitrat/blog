@@ -1,9 +1,12 @@
 import type { Root } from 'hast';
-import { Label, Link, ListRow, ListRows, Page, PageTitle } from '@/ds';
+import { Eyebrow } from '@/components/ui/eyebrow';
+import { ListRow, ListRows } from '@/components/ui/list-row';
+import { Page, PageHeader } from '@/components/ui/page';
 import type { BlogData } from '@/lib/content';
 import type { InShortItem } from '@/utils/inShort';
 import { InShort } from './in-short';
 import { Prose } from './prose';
+import { TextLink } from './text-link';
 
 type Adjacent = { href: string; title: string };
 
@@ -18,7 +21,7 @@ const formatDate = (date: Date) =>
 	date.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' });
 
 /**
- * The essay page: a mono meta line, the title, the build-time "In short" block, then the prose.
+ * The essay page: a meta line, the title, the build-time "In short" block, then the prose.
  * No banner, no sidebar, nothing sticky. Onward links close it.
  */
 export function BlogPost({
@@ -55,15 +58,18 @@ export function BlogPost({
 		dateModified: (updatedDate ?? pubDate).toISOString(),
 	};
 	return (
-		<Page width="measure" as="article">
+		<Page width="text" as="article">
 			<script
 				type="application/ld+json"
 				// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD of build-time frontmatter
 				dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
 			/>
-			<PageTitle
+			<PageHeader
 				kicker={
-					<Label separated>
+					<Eyebrow
+						as="p"
+						className="flex-wrap gap-x-1.5 tabular-nums [&>:not(:first-child)]:before:me-1.5 [&>:not(:first-child)]:before:content-['·']"
+					>
 						<span>Mathieu Saugier</span>
 						<time dateTime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
 						{minutes && (
@@ -77,22 +83,20 @@ export function BlogPost({
 								<time dateTime={updatedDate.toISOString()}>{formatDate(updatedDate)}</time>
 							</span>
 						)}
-					</Label>
+					</Eyebrow>
 				}
 			>
 				{title}
-			</PageTitle>
+			</PageHeader>
 
 			{inShort.length > 0 && <InShort items={inShort} />}
 
 			<Prose tree={tree} backLinks={inShort.length > 0} />
 
-			<footer className="grid gap-8">
+			<footer className="flex flex-col gap-8">
 				{onward.length > 0 && (
-					<nav aria-labelledby="onward">
-						<h2 id="onward" className="mb-3 text-ui font-medium text-muted-foreground">
-							{t.onward}
-						</h2>
+					<nav aria-label={t.onward} className="flex flex-col gap-2">
+						<Eyebrow as="h2">{t.onward}</Eyebrow>
 						<ListRows>
 							{onward.map((item) => (
 								<ListRow key={item.href} href={item.href} title={item.title} />
@@ -100,10 +104,8 @@ export function BlogPost({
 						</ListRows>
 					</nav>
 				)}
-				<p className="text-ui">
-					<Link href="/writing" variant="quiet">
-						{t.all}
-					</Link>
+				<p>
+					<TextLink href="/writing">{t.all}</TextLink>
 				</p>
 			</footer>
 		</Page>

@@ -1,8 +1,9 @@
 import 'server-only';
-import { Link, Tile } from '@/ds';
-import { Deck } from '@/ds/components/objects/deck';
-import { PostCard } from '@/ds/components/objects/post-card';
+import { Tile } from '@/components/ui/tile';
 import { bannerFor, getWritingIndex, postUrl } from '@/utils/writing';
+import { Deck } from '../deck';
+import { HomeLink } from '../home-link';
+import { PostCard } from '../post-card';
 
 /**
  * The last three posts as a stack of index cards that is the tile's whole composition: the newest
@@ -11,7 +12,7 @@ import { bannerFor, getWritingIndex, postUrl } from '@/utils/writing';
  * place and the card under the pointer comes forward; letting go squares the pile up. Where hover
  * is unavailable, or the tile is narrow, the same three cards show as a scrolling row.
  */
-export async function WritingTile({ order }: { order?: number }) {
+export async function WritingTile() {
 	const posts = await Promise.all(
 		getWritingIndex()
 			.slice(0, 3)
@@ -26,39 +27,44 @@ export async function WritingTile({ order }: { order?: number }) {
 			description={p.data.description}
 			date={p.data.pubDate}
 			image={p.banner}
-			headingLevel={3}
 			size={size}
 		/>
 	);
 	return (
 		<Tile
+			compact
 			label="Writing"
 			labelAs="h2"
-			data-deck-host=""
-			span={{ md: 6, lg: 4 }}
-			order={order}
-			as="section"
 			action={
-				<Link variant="arrow" href="/writing/">
+				<HomeLink variant="arrow" href="/writing/">
 					All writing
-				</Link>
+				</HomeLink>
 			}
 		>
-			<div className="flex h-full flex-col">
+			<div className="flex h-full flex-col justify-center">
 				<Deck
-					host="ancestor"
-					className="writing-deck"
 					label="Latest writing"
-					spread={0.26}
+					spread={0.7}
 					angle={5}
 					cycle={5}
-					cards={posts.map((p) => card(p, 'md'))}
+					max="8.5rem"
+					fit="100%"
+					className="hidden pointer-fine:sm:flex"
+					cards={posts.map((p) => card(p, 'sm'))}
 				/>
-				<ul className="writing-row">
-					{posts.map((p) => (
-						<li key={p.id}>{card(p, 'sm')}</li>
-					))}
-				</ul>
+				<div className="relative -mx-4 pointer-fine:sm:hidden">
+					<ul className="flex snap-x snap-mandatory gap-1.5 overflow-x-auto px-4 py-2 [scrollbar-width:none]">
+						{posts.map((p) => (
+							<li key={p.id} className="flex-[0_0_min(72%,15rem)] snap-start">
+								{card(p, 'sm')}
+							</li>
+						))}
+					</ul>
+					<div
+						aria-hidden="true"
+						className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-linear-to-l from-white via-white/50 via-75% to-white/0 dark:from-iron-900 dark:via-iron-900/50 dark:to-iron-900/0"
+					/>
+				</div>
 			</div>
 		</Tile>
 	);

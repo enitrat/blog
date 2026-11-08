@@ -1,6 +1,10 @@
 import { getImageProps } from 'next/image';
+import { DitherImage } from '@/components/places/dither-image';
+import { Lightbox } from '@/components/places/lightbox';
 import { Prose } from '@/components/reading/prose';
-import { Bench, Button, DitherImage, Label, Lightbox, Page, PageTitle, Tile } from '@/ds';
+import { Eyebrow } from '@/components/ui/eyebrow';
+import { Page, PageHeader } from '@/components/ui/page';
+import { Bench, Tile } from '@/components/ui/tile';
 import { getTrips, type Trip } from '@/lib/content';
 import { renderMarkdown } from '@/lib/markdown';
 import { type Img, maybeImage } from '@/lib/media';
@@ -40,7 +44,7 @@ export default async function PlacesPage() {
 				cover: await photoOf(trip, cover),
 				set: await Promise.all(
 					photos.map(async (p, n) => ({
-						src: lightboxSrc(await photoOf(trip, p.src)),
+						image: await photoOf(trip, p.src),
 						alt: p.caption ?? `${title}, photo ${n + 1}`,
 						caption: p.caption,
 					})),
@@ -50,47 +54,44 @@ export default async function PlacesPage() {
 		}),
 	);
 	return (
-		<Page>
-			<PageTitle>Places</PageTitle>
+		<Page width="wide">
+			<PageHeader>Places</PageHeader>
 			{trips.length === 0 ? (
-				<p className="empty text-muted-foreground">No trips yet.</p>
+				<p className="text-sm text-gray-500 dark:text-iron-400">No trips yet.</p>
 			) : (
 				<Bench>
 					{trips.map((t) => (
-						<Tile key={t.id} as="article" span={{ md: 3, lg: 6 }} id={t.id}>
-							<DitherImage
-								image={t.cover}
-								alt={`${t.title}, ${t.country}`}
-								ratio="4 / 3"
-								sizes="(min-width: 64rem) 38rem, 100vw"
-							/>
-							<div className="meta mt-2 grid gap-2">
-								<Label dot>{monthYear.format(t.date)}</Label>
-								<h2 className="text-heading font-semibold tracking-snug">
-									{t.title}
-									<span className="country font-regular text-muted-foreground">, {t.country}</span>
-								</h2>
-							</div>
-							{t.set.length > 0 && (
-								<div className="actions flex">
-									<Button
-										variant="ghost"
-										size="sm"
-										href={t.set[0].src}
-										data-lightbox=""
-										data-title={t.title}
-										data-photos={JSON.stringify(t.set)}
-									>
-										{t.set.length} photos
-									</Button>
+						<Tile key={t.id} span={{ md: 3, lg: 6 }}>
+							<article id={t.id} className="flex flex-col gap-4">
+								<DitherImage
+									image={t.cover}
+									alt={`${t.title}, ${t.country}`}
+									ratio="4 / 3"
+									sizes="(min-width: 64rem) 38rem, 100vw"
+									className="rounded-lg border border-iron-950/10 dark:border-white/10"
+								/>
+								<div className="flex flex-col gap-1.5">
+									<Eyebrow dot>{monthYear.format(t.date)}</Eyebrow>
+									<h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+										{t.title}
+										<span className="font-normal text-gray-500 dark:text-iron-400">
+											, {t.country}
+										</span>
+									</h2>
 								</div>
-							)}
-							{t.notes && <Prose tree={t.notes} />}
+								{t.set.length > 0 && (
+									<div className="flex">
+										<Lightbox title={t.title} photos={t.set} href={lightboxSrc(t.set[0].image)}>
+											{t.set.length} photos
+										</Lightbox>
+									</div>
+								)}
+								{t.notes && <Prose tree={t.notes} />}
+							</article>
 						</Tile>
 					))}
 				</Bench>
 			)}
-			{trips.length > 0 && <Lightbox />}
 		</Page>
 	);
 }
