@@ -3,8 +3,6 @@
  * the exploration libraries. CSS keeps `--duration-*` / `--ease-*`; a script that needs a spring
  * (interruptible, velocity-carrying motion) takes one of these presets and never inlines its own.
  */
-import type { AnimationOptions } from 'motion';
-
 /** Press feedback: buttons, pills, the deck's tapped card. */
 export const SPRING_PRESS = { type: 'spring', stiffness: 500, damping: 30, mass: 0.6 } as const;
 /** An object changing place: a deck card dealing out, a cover fanning. */
@@ -32,7 +30,7 @@ export const SPRING_ROLL = { type: 'spring', stiffness: 520, damping: 40, mass: 
 export const ROLL_FADE = { duration: 0.15, ease: 'easeOut' } as const;
 
 /** Instant: what every spring collapses to under reduced motion. */
-export const INSTANT: AnimationOptions = { duration: 0 };
+export const INSTANT = { duration: 0 } as const;
 
 const query = (q: string) => typeof matchMedia === 'function' && matchMedia(q).matches;
 
@@ -43,5 +41,5 @@ export const canHover = () => query('(hover: hover) and (pointer: fine)');
 export const prefersReducedMotion = () => query('(prefers-reduced-motion: reduce)');
 
 /** The spring to use for `preset`, or `INSTANT` under reduced motion. */
-export const transition = (preset: AnimationOptions): AnimationOptions =>
+export const transition = <T extends object>(preset: T): T | typeof INSTANT =>
 	prefersReducedMotion() ? INSTANT : preset;
