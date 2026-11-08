@@ -8,6 +8,7 @@ colors:
   paper-300: "oklch(0.82 0.012 70)"
   paper-400: "oklch(0.7 0.013 65)"
   paper-500: "oklch(0.58 0.014 60)"
+  paper-550: "oklch(0.52 0.014 58)"
   paper-700: "oklch(0.38 0.014 50)"
   paper-850: "oklch(0.245 0.013 50)"
   paper-900: "oklch(0.205 0.012 50)"
@@ -22,7 +23,7 @@ colors:
   card: "oklch(0.995 0.003 85)"
   muted: "oklch(0.945 0.008 80)"
   muted-foreground: "oklch(0.38 0.014 50)"
-  faint: "oklch(0.58 0.014 60)"
+  faint: "oklch(0.52 0.014 58)"
   border: "oklch(0.22 0.02 50 / 0.09)"
   border-strong: "oklch(0.22 0.02 50 / 0.16)"
   primary: "oklch(0.47 0.15 25)"
@@ -167,7 +168,7 @@ Warm neutrals from the room's paper and wood, one accent per theme, and a night 
 - **Muted Paper** (`muted`, paper-100): hover fills on rows and ghost buttons, image placeholders, the nav highlight.
 - **Walnut Ink** (`foreground`, paper-900): headings and primary text.
 - **Muted Ink** (`muted-foreground`, paper-700): descriptions, body prose, secondary text.
-- **Faint Ink** (`faint`, paper-500): eyebrows, dates, counts, captions, trailing arrows.
+- **Faint Ink** (`faint`, paper-550): eyebrows, dates, counts, captions, trailing arrows. It is the lightest ink that clears 4.5:1 on paper, card and muted, so small text in it stays legible.
 - **Hairline** (`border`) and **Strong Hairline** (`border-strong`): translucent walnut by day and translucent cream by night, so the line takes the colour of the surface under it. `border-strong` marks the lifted state and prose table and quote rules.
 - **Night Room** (`background-dark`, paper-950), **Night Card** (`card-dark`, paper-900), **Night Muted** (`muted-dark`, paper-850): the same roles after dark, on the same paper ramp read from the dark end.
 - **Night Scrim** (`scrim`, paper-950, with `scrim-foreground`, paper-50): the overlay behind photos, the writing card's banner and the lightbox.

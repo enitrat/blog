@@ -22,6 +22,7 @@
 	--color-paper-300: oklch(0.82 0.012 70);
 	--color-paper-400: oklch(0.7 0.013 65);
 	--color-paper-500: oklch(0.58 0.014 60);
+	--color-paper-550: oklch(0.52 0.014 58);
 	--color-paper-600: oklch(0.48 0.014 55);
 	--color-paper-700: oklch(0.38 0.014 50);
 	--color-paper-800: oklch(0.3 0.014 50);
@@ -92,7 +93,8 @@
 	--card: var(--color-paper-0);
 	--muted: var(--color-paper-100);
 	--muted-foreground: var(--color-paper-700);
-	--faint: var(--color-paper-500);
+	/* paper-550, not 500: small faint text must clear 4.5:1 on paper-50, card and muted. */
+	--faint: var(--color-paper-550);
 	--border: oklch(0.22 0.02 50 / 0.09);
 	--border-strong: oklch(0.22 0.02 50 / 0.16);
 	--primary: var(--color-oxblood-600);
