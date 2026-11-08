@@ -1,6 +1,7 @@
 export { Equalizer } from './components/motion/equalizer';
 export { Magnetic } from './components/motion/magnetic';
 export { Tilt } from './components/motion/tilt';
+export { type PileBook, piles } from './components/objects/book';
 export { BookLine } from './components/objects/book-line';
 export { BookPile } from './components/objects/book-pile';
 export { BookSpine } from './components/objects/book-spine';
@@ -12,7 +13,6 @@ export { Plate, type PlateRatio } from './components/objects/plate';
 export { PostCard, type PostCardSize } from './components/objects/post-card';
 export { Readout, type ReadoutMode } from './components/objects/readout';
 export { Shelf } from './components/objects/shelf';
-export { type PileBook, piles } from './components/objects/book';
 export {
 	Button,
 	type ButtonProps,

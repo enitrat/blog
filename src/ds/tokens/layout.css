@@ -15,7 +15,6 @@
 	/* Between the sections of a page. */
 	--gap-page: calc(var(--spacing) * 10);
 
-
 	/* WCAG 2.5.5: every interactive target reaches 44px; small ones extend a hit area. */
 	--target-min: 44px;
 	--control-h-sm: 2rem;
