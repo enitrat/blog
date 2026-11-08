@@ -14,8 +14,8 @@ const HeldContext = createContext(false);
 export const useCardHeld = () => useContext(HeldContext);
 
 /**
- * One card of the home bento: one inset, one radius, one shadow. It pops in on mount, staggered by
- * `index`. A `lift` card rises on hover and presses on tap; every card tells its children when it
+ * The one card: one inset, one radius, one shadow. With an `index` it pops in on mount, staggered
+ * by that position; without one it renders in place. A `lift` card rises on hover and presses on tap; every card tells its children when it
  * is held, so a stack inside can fan. Under reduced motion it renders in place and does not move.
  */
 export function Card({
@@ -25,12 +25,12 @@ export function Card({
 	className,
 	children,
 }: {
-	/** Position in the pop-in order. */
-	index: number;
+	/** Position in the pop-in order. Omit it and the card does not pop in. */
+	index?: number;
 	/** The whole card is a link: it rises on hover and presses on tap. */
 	lift?: boolean;
-	/** Id of the card's eyebrow heading. */
-	labelledBy: string;
+	/** Id of the card's eyebrow heading, when it has one. */
+	labelledBy?: string;
 	className?: string;
 	children: ReactNode;
 }) {
@@ -48,9 +48,9 @@ export function Card({
 						'transition-shadow duration-300 hover:shadow-lifted motion-reduce:transition-none',
 					className,
 				)}
-				initial={motile ? { opacity: 0, y: 14, scale: 0.98 } : false}
+				initial={motile && index !== undefined ? { opacity: 0, y: 14, scale: 0.98 } : false}
 				animate={{ opacity: 1, y: 0, scale: 1 }}
-				transition={{ ...spring.enter, delay: index * POP_STAGGER }}
+				transition={{ ...spring.enter, delay: (index ?? 0) * POP_STAGGER }}
 				whileHover={motile && lift ? { y: -3, transition: spring.hover } : undefined}
 				whileTap={motile && lift ? { y: -1, scale: 0.985, transition: spring.tap } : undefined}
 				onHoverStart={() => setHovered(true)}
@@ -99,7 +99,7 @@ export function CardHeader({
 			{children && (
 				<div
 					className={cn(
-						'ml-auto flex items-center gap-0.5 text-[0.8125rem] font-normal tracking-normal normal-case [&_svg]:transition-transform [&_svg]:duration-300 motion-safe:group-hover/card:[&_svg]:translate-x-0.5 motion-safe:group-hover/card:[&_svg]:-translate-y-0.5',
+						'ml-auto flex items-center gap-0.5 text-meta font-normal tracking-normal normal-case [&_svg]:transition-transform [&_svg]:duration-300 motion-safe:group-hover/card:[&_svg]:translate-x-0.5 motion-safe:group-hover/card:[&_svg]:-translate-y-0.5',
 						onMedia ? 'text-scrim-foreground' : 'text-muted-foreground',
 					)}
 				>

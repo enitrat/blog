@@ -2,9 +2,9 @@ import { getImageProps, type StaticImageData } from 'next/image';
 import { DitherImage } from '@/components/places/dither-image';
 import { Lightbox } from '@/components/places/lightbox';
 import { Prose } from '@/components/reading/prose';
+import { Card } from '@/components/ui/card';
 import { Eyebrow } from '@/components/ui/eyebrow';
 import { Page, PageHeader } from '@/components/ui/page';
-import { Tile } from '@/components/ui/tile';
 import { getTrips, type Trip } from '@/lib/content';
 import { renderMarkdown } from '@/lib/markdown';
 import { maybeImage } from '@/lib/media';
@@ -61,7 +61,7 @@ export default async function PlacesPage() {
 			) : (
 				<div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:auto-rows-[minmax(11rem,auto)]">
 					{trips.map((t) => (
-						<Tile key={t.id}>
+						<Card key={t.id}>
 							<article id={t.id} className="flex flex-col gap-4">
 								<DitherImage
 									image={t.cover}
@@ -86,7 +86,7 @@ export default async function PlacesPage() {
 								)}
 								{t.notes && <Prose tree={t.notes} />}
 							</article>
-						</Tile>
+						</Card>
 					))}
 				</div>
 			)}

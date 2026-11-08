@@ -1,6 +1,6 @@
 import { SparklesIcon } from 'lucide-react';
+import { Card, CardHeader } from '@/components/ui/card';
 import { now } from '@/data/now';
-import { Card, CardHeader } from '../card';
 
 /** A few short items Mathieu writes himself (`src/data/now.ts`). The page renders it only when the list has items. */
 export function NowTile({ index, className }: { index: number; className?: string }) {

@@ -25,6 +25,8 @@ export const metadata: Metadata = {
 	icons: { icon: { url: '/favicon.svg', type: 'image/svg+xml' } },
 };
 
+// Metadata cannot read CSS variables: these mirror paper-50 and paper-950 in globals.css, and
+// design-tokens.test.ts checks that they match.
 export const viewport: Viewport = {
 	themeColor: [
 		{ media: '(prefers-color-scheme: light)', color: 'oklch(0.972 0.006 85)' },

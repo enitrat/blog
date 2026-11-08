@@ -1,8 +1,8 @@
 import 'server-only';
 import { ArrowUpRightIcon, MapPinIcon } from 'lucide-react';
 import Link from 'next/link';
+import { Card, CardHeader } from '@/components/ui/card';
 import type { Trip } from '@/lib/content';
-import { Card, CardHeader } from '../card';
 
 /** The latest trips as rows. The page renders it only when a trip exists. */
 export function PlacesTile({

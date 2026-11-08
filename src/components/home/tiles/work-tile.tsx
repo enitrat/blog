@@ -2,10 +2,10 @@ import 'server-only';
 import { ArrowUpRightIcon, BriefcaseIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Card, CardHeader } from '@/components/ui/card';
 import { getReports, workUrl } from '@/lib/content';
 import { maybeImage } from '@/lib/media';
 import { cn } from '@/lib/utils';
-import { Card, CardHeader } from '../card';
 
 /** "October 2025 – present" becomes "2025–present", "August 2023 – October 2025" "2023–25". */
 function years(period: string) {
@@ -45,9 +45,7 @@ export async function WorkTile({ className }: { className?: string }) {
 						<Link href={workUrl(r)} className={LINK}>
 							{r.logo && <Image src={r.logo} alt="" sizes="20px" className={LOGO} />}
 							<h3 className="flex-none text-sm font-semibold">{r.data.title}</h3>
-							<span className="min-w-0 flex-1 truncate text-[0.8125rem] text-faint">
-								{r.data.role}
-							</span>
+							<span className="min-w-0 flex-1 truncate text-meta text-faint">{r.data.role}</span>
 							{r.data.period && (
 								<span className="flex-none font-mono text-xs tracking-[-0.01em] text-faint tabular-nums">
 									{years(r.data.period)}
@@ -74,7 +72,7 @@ export async function WorkTile({ className }: { className?: string }) {
 								)}
 							</span>
 							<h3 className="flex-none text-sm font-semibold">Projects</h3>
-							<span className="min-w-0 flex-1 truncate text-[0.8125rem] text-faint">
+							<span className="min-w-0 flex-1 truncate text-meta text-faint">
 								{projects.map((r) => r.data.title).join(', ')}
 							</span>
 						</Link>

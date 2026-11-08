@@ -2,8 +2,8 @@ import 'server-only';
 import { BookOpenIcon } from 'lucide-react';
 import Link from 'next/link';
 import { books } from '@/booksData';
+import { Card, CardHeader } from '@/components/ui/card';
 import { findImage } from '@/lib/media';
-import { Card, CardHeader } from '../card';
 import { BookStack } from './book-stack';
 
 const stamp = (d: Date | null) => d?.getTime() ?? 0;
@@ -52,7 +52,7 @@ export async function ReadingTile({ className }: { className?: string }) {
 						{short(front.title)}
 					</Link>
 				</h3>
-				<p className="truncate text-[0.8125rem] text-faint">{front.author}</p>
+				<p className="truncate text-meta text-faint">{front.author}</p>
 			</div>
 		</Card>
 	);

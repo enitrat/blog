@@ -35,35 +35,26 @@
 	--color-oxblood-500: oklch(0.6 0.16 25);
 	--color-oxblood-600: oklch(0.47 0.15 25);
 	--color-oxblood-800: oklch(0.3 0.07 25);
-	--color-bottle-100: oklch(0.93 0.025 162);
-	--color-bottle-400: oklch(0.68 0.09 162);
-	--color-bottle-600: oklch(0.43 0.075 162);
-	--color-bottle-800: oklch(0.28 0.04 162);
 	--color-brass-300: oklch(0.82 0.125 78);
 	--color-brass-500: oklch(0.68 0.12 75);
 	--color-brass-800: oklch(0.32 0.06 75);
-	--color-walnut-400: oklch(0.58 0.07 55);
-	--color-walnut-600: oklch(0.42 0.06 50);
 
-	--color-red-500: #f04438;
 	--color-green-500: #00c758;
 
 	/* Type: display sizes for the serif; UI text keeps Tailwind's scale. */
 	--text-display: 3.5rem;
 	--text-display--line-height: 1;
-	--text-number: 5.5rem;
-	--text-number--line-height: 1;
 	--text-eyebrow: 0.71875rem;
 	--text-eyebrow--line-height: 1.25rem;
 	--text-eyebrow--letter-spacing: 0.07em;
+	--text-meta: 0.8125rem;
+	--text-feature: 2.75rem;
 
 	/* The card system: one inset, one gap, and a media radius nested inside the card radius. */
 	--spacing-inset: 1rem;
 	--spacing-gutter: 0.75rem;
 	--radius-card: 1.5rem;
 	--radius-media: calc(var(--radius-card) - var(--spacing-inset));
-
-	--shadow-xs: 0 1px 2px rgb(16 24 40 / 0.05);
 }
 
 @theme inline {
@@ -78,7 +69,6 @@
 	--color-primary: var(--primary);
 	--color-primary-foreground: var(--primary-foreground);
 	--color-primary-soft: var(--primary-soft);
-	--color-secondary: var(--secondary);
 	--color-ring: var(--ring);
 	--color-scrim: var(--scrim);
 	--color-scrim-foreground: var(--scrim-foreground);
@@ -86,6 +76,12 @@
 	--shadow-card: var(--elevation-1);
 	--shadow-raised: var(--elevation-2);
 	--shadow-lifted: var(--elevation-3);
+	--shadow-art: var(--elevation-art);
+	--shadow-book: var(--elevation-book);
+	/* Theme-agnostic: they follow --primary, or the --c a brand chip sets on itself. */
+	--shadow-glow: 0 4px 12px -4px var(--primary);
+	--shadow-chip:
+		inset 0 1px 0 oklch(1 0 0 / 0.25), inset 0 -2px 0 oklch(0 0 0 / 0.15), 0 6px 14px -6px var(--c);
 }
 
 /* Day: cream paper, walnut-black ink, oxblood. */
@@ -102,7 +98,6 @@
 	--primary: var(--color-oxblood-600);
 	--primary-foreground: var(--color-paper-0);
 	--primary-soft: var(--color-oxblood-100);
-	--secondary: var(--color-bottle-600);
 	--ring: var(--color-oxblood-600);
 	/* The photo viewer is night in both themes, so .dark does not re-role it. */
 	--scrim: var(--color-paper-950);
@@ -118,6 +113,9 @@
 	--elevation-3:
 		0 0 0 1px var(--border-strong), 0 4px 8px oklch(0.3 0.03 50 / 0.06),
 		0 24px 48px -12px oklch(0.3 0.05 35 / 0.22);
+	/* Physical objects: album art on the player, book covers in the stack. */
+	--elevation-art: 0 6px 16px -6px oklch(0 0 0 / 0.4);
+	--elevation-book: inset 0 1px 0 oklch(1 0 0 / 0.2), 0 10px 20px -8px oklch(0.2 0.05 30 / 0.45);
 }
 
 /* Night: the room after dark. Brass, the lamp, takes over from oxblood. */
@@ -134,7 +132,6 @@
 	--primary: var(--color-brass-300);
 	--primary-foreground: var(--color-paper-900);
 	--primary-soft: var(--color-brass-800);
-	--secondary: var(--color-bottle-400);
 	--ring: var(--color-brass-300);
 	--dither-ink: var(--color-paper-900);
 	--dither-paper: var(--color-paper-300);
@@ -146,6 +143,9 @@
 	--elevation-3:
 		0 0 0 1px var(--border-strong), inset 0 1px 0 oklch(1 0 0 / 0.06),
 		0 28px 56px -16px oklch(0 0 0 / 0.75), 0 0 48px -20px oklch(0.82 0.125 78 / 0.25);
+	/* Physical objects: album art on the player, book covers in the stack. */
+	--elevation-art: 0 6px 16px -6px oklch(0 0 0 / 0.4);
+	--elevation-book: inset 0 1px 0 oklch(1 0 0 / 0.2), 0 10px 20px -8px oklch(0.2 0.05 30 / 0.45);
 }
 
 @layer base {

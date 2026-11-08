@@ -2,8 +2,8 @@
 
 import { DumbbellIcon } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
+import { Card, CardHeader } from '@/components/ui/card';
 import { spring } from '@/lib/motion';
-import { Card, CardHeader } from '../card';
 
 /** Mathieu's bench as a ring filling toward the goal. The page renders it only when `bench` is set. */
 export function BenchTile({
@@ -48,8 +48,8 @@ export function BenchTile({
 						/>
 					</svg>
 					<p className="absolute inset-0 grid place-content-center text-center">
-						<span className="font-display text-[2rem] leading-[0.9]">{current}</span>
-						<span className="text-[0.6875rem] text-faint">of {goal} kg</span>
+						<span className="font-display text-3xl leading-[0.9]">{current}</span>
+						<span className="text-xs text-faint">of {goal} kg</span>
 					</p>
 				</div>
 			</div>

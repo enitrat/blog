@@ -85,7 +85,7 @@ export function Lightbox({
 												src={p.image}
 												alt={p.alt}
 												sizes="(min-width: 72rem) 72rem, 100vw"
-												className="h-auto max-h-[70dvh] w-auto max-w-full rounded-xl object-contain"
+												className="h-auto max-h-[70dvh] w-auto max-w-full rounded-media object-contain"
 											/>
 											{p.caption && <figcaption className="text-xs">{p.caption}</figcaption>}
 										</figure>

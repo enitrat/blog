@@ -1,6 +1,6 @@
 import { BookOpenIcon, CakeIcon, Disc3Icon, DumbbellIcon, HandIcon } from 'lucide-react';
 import Link from 'next/link';
-import { Card, CardHeader } from '../card';
+import { Card, CardHeader } from '@/components/ui/card';
 
 const FACTS = [
 	{ icon: CakeIcon, text: "I'm 25" },

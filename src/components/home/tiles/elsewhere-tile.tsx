@@ -3,20 +3,26 @@
 import { AtSignIcon } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import { type SimpleIcon, siGithub, siSoundcloud, siTelegram, siX } from 'simple-icons';
+import { Card, CardHeader } from '@/components/ui/card';
 import { CONTACT_LINKS, SET } from '@/consts';
 import { spring } from '@/lib/motion';
 import { cn } from '@/lib/utils';
-import { Card, CardHeader } from '../card';
 
-// GitHub and X are black: on the dark card they take a lifted grey instead.
-const ICONS: Record<(typeof CONTACT_LINKS)[number]['label'], { icon: SimpleIcon; tile: string }> = {
-	GitHub: { icon: siGithub, tile: 'light-dark(#181717, oklch(0.32 0.01 60))' },
-	X: { icon: siX, tile: 'light-dark(#000, oklch(0.32 0.01 60))' },
+type Brand = { icon: SimpleIcon; tile: string };
+
+// Third-party brand colours stay literal. GitHub and X are black: on the dark card they take a
+// lifted grey instead.
+const LIFTED_BLACK = 'oklch(0.32 0.01 60)';
+const BRANDS = {
+	GitHub: { icon: siGithub, tile: `light-dark(#181717, ${LIFTED_BLACK})` },
+	X: { icon: siX, tile: `light-dark(#000, ${LIFTED_BLACK})` },
 	Telegram: { icon: siTelegram, tile: `#${siTelegram.hex}` },
-};
+	SoundCloud: { icon: siSoundcloud, tile: `#${siSoundcloud.hex}` },
+} satisfies Record<(typeof CONTACT_LINKS)[number]['label'] | 'SoundCloud', Brand>;
+
 const LINKS = [
-	...CONTACT_LINKS.map((c) => ({ ...c, ...ICONS[c.label] })),
-	{ label: 'SoundCloud', href: SET.url, icon: siSoundcloud, tile: `#${siSoundcloud.hex}` },
+	...CONTACT_LINKS.map((c) => ({ ...c, ...BRANDS[c.label] })),
+	{ label: 'SoundCloud', href: SET.url, ...BRANDS.SoundCloud },
 ];
 
 /** Where else to find Mathieu: brand icons in squircles, each labelled. */
@@ -46,8 +52,7 @@ export function ElsewhereTile({ className }: { className?: string }) {
 									press: { scale: 0.9, transition: spring.tap },
 								}}
 								className={cn(
-									'grid size-12 place-items-center rounded-[14px] bg-(--c) sm:size-14 sm:rounded-2xl',
-									'shadow-[inset_0_1px_0_oklch(1_0_0/0.25),inset_0_-2px_0_oklch(0_0_0/0.15),0_6px_14px_-6px_var(--c)]',
+									'grid size-12 place-items-center rounded-[14px] bg-(--c) shadow-chip sm:size-14 sm:rounded-2xl',
 								)}
 							>
 								<svg

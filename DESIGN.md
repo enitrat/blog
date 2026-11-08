@@ -16,8 +16,6 @@ colors:
   oxblood-600: "oklch(0.47 0.15 25)"
   brass-300: "oklch(0.82 0.125 78)"
   brass-800: "oklch(0.32 0.06 75)"
-  bottle-400: "oklch(0.68 0.09 162)"
-  bottle-600: "oklch(0.43 0.075 162)"
   green-500: "#00c758"
   background: "oklch(0.972 0.006 85)"
   foreground: "oklch(0.205 0.012 50)"
@@ -30,7 +28,6 @@ colors:
   primary: "oklch(0.47 0.15 25)"
   primary-foreground: "oklch(0.995 0.003 85)"
   primary-soft: "oklch(0.93 0.035 25)"
-  secondary: "oklch(0.43 0.075 162)"
   ring: "oklch(0.47 0.15 25)"
   scrim: "oklch(0.165 0.01 50)"
   scrim-foreground: "oklch(0.972 0.006 85)"
@@ -45,7 +42,6 @@ colors:
   primary-dark: "oklch(0.82 0.125 78)"
   primary-foreground-dark: "oklch(0.205 0.012 50)"
   primary-soft-dark: "oklch(0.32 0.06 75)"
-  secondary-dark: "oklch(0.68 0.09 162)"
   ring-dark: "oklch(0.82 0.125 78)"
 typography:
   display:
@@ -165,9 +161,6 @@ Warm neutrals from the room's paper and wood, one accent per theme, and a night 
 - **Brass** (`primary-dark`, brass-300): the night accent. It takes every role oxblood holds by day. Text on it is dark paper (`primary-foreground-dark`, paper-900).
 - **Brass Shadow** (`primary-soft-dark`, brass-800): the badge fill by night.
 
-### Secondary
-- **Bottle Green** (`secondary`, bottle-600 by day; bottle-400 by night): a defined role from the room's bottle green. No component uses it yet.
-
 ### Neutral
 - **Cream Paper** (`background`, paper-50): the page by day.
 - **Card Paper** (`card`, paper-0): card, button and code-block surfaces by day.
@@ -185,6 +178,8 @@ Warm neutrals from the room's paper and wood, one accent per theme, and a night 
 
 **The Lamp Rule.** The accent changes hue with the light: oxblood by day, brass by night. Never carry oxblood into dark mode or brass into light mode.
 
+**The Mirrored Literals Rule.** Two places cannot read CSS variables. The viewport `themeColor` in `src/app/layout.tsx` copies paper-50 and paper-950, and `design-tokens.test.ts` fails if they drift. The Elsewhere card keeps third-party brand colours literal, in one map in `elsewhere-tile.tsx`.
+
 **The Night Scrim Rule.** The scrim is night in both themes. `.dark` does not re-role it, so text over a photo is always light on dark.
 
 **The Dither Rule.** Place photographs are drawn as an ordered-dither duotone on a canvas. Its two inks come from `--dither-ink` and `--dither-paper` in `:root` and `.dark` (paper-850 on paper-50 by day, paper-900 on paper-300 by night), so every photo, whatever its source, reads as one set.
@@ -201,8 +196,10 @@ Warm neutrals from the room's paper and wood, one accent per theme, and a night 
 - **Display** (Instrument Serif 400, 3.5rem, line-height 1, tracking -0.015em): the greeting in the About card from 1100px up. It steps down to 2.25rem below that.
 - **Headline** (Instrument Serif 400, 2.25rem, 3rem from 640px): the page title on every inner page, essays and Field Reports included.
 - **Title** (Instrument Serif 400, 1.5rem, leading tight): essay titles in the writing list.
+- **Feature** (Instrument Serif 400, `text-4xl` 2.25rem, `text-feature` 2.75rem from 640px, leading 1): the latest essay's title on the home Writing card. The Bench card's number is `text-3xl`.
 - **Body** (Geist 400, 0.875rem, line-height 1.625): UI text, row titles (at 600), descriptions. Essays use Tailwind Typography at `prose-sm`, `prose-base` from 640px, inside a 36rem column.
 - **Label** (Geist 500, 0.71875rem, line-height 1.25rem, tracking 0.07em, uppercase): the eyebrow. Card headers and section headings on inner pages.
+- **Caption** (Geist 400, `text-meta` 0.8125rem): a card's trailing action, the author under a book, a work row's role.
 - **Meta** (Geist Mono 400, 0.75rem, tracking -0.01em, tabular figures): dates, durations, years, the In short numbering.
 
 ### Named Rules
@@ -229,6 +226,10 @@ Depth is a hairline and a soft, warm shadow folded into one value. Cards carry n
 - **Raised** (`shadow-raised`): solid primary buttons and dialogs. Adds a 12 to 16px soft drop.
 - **Lifted** (`shadow-lifted`): a linked home card under the pointer. Strong hairline and a 24 to 28px drop; at night, a brass glow.
 
+- **Art** (`shadow-art`) and **Book** (`shadow-book`): the album art on the player and the book covers in the stack. A soft contact drop, with a top highlight on the book. Defined per theme in both role blocks.
+- **Glow** (`shadow-glow`): the primary play button, a soft drop in the accent colour. It follows `--primary`, so it is oxblood by day and brass by night.
+- **Chip** (`shadow-chip`): the Elsewhere brand squircles. Top and bottom inner highlights and a drop in the brand colour the chip sets as `--c`.
+
 Exact values for both themes live in `.impeccable/design.json`.
 
 ### Named Rules
@@ -238,7 +239,7 @@ Exact values for both themes live in `.impeccable/design.json`.
 
 ## Shapes
 
-Corners are generous on cards and tighten as they nest. A card is 1.5rem (`rounded-card`). Media inside a card is the card radius minus the inset (`rounded-media`, 0.5rem), so the inner curve stays concentric with the outer one. Buttons, the nav, badges and chips are full pills. Interactive rows on inner pages round their hover fill at 0.75rem and bleed 0.75rem past the column on each side, so text stays aligned while the hover reads as a soft plate. Company logos are rounded squares: 0.5rem at 44px in rows, 1rem at 64px in Field Report headers, each with a hairline.
+Corners are generous on cards and tighten as they nest. A card is 1.5rem (`rounded-card`). Media inside a card is the card radius minus the inset (`rounded-media`, 0.5rem), so the inner curve stays concentric with the outer one. Dialogs are cards (`rounded-card`) and the photo inside the lightbox is media (`rounded-media`). Buttons, the nav, badges and chips are full pills. Interactive rows on inner pages round their hover fill at 0.75rem and bleed 0.75rem past the column on each side, so text stays aligned while the hover reads as a soft plate. Company logos are rounded squares: 0.5rem at 44px in rows, 1rem at 64px in Field Report headers, each with a hairline.
 
 **The Nested Radius Rule.** Inner radius equals outer radius minus the gap between them. Change `--radius-card` or `--spacing-inset` and media follows.
 
@@ -252,14 +253,14 @@ Corners are generous on cards and tighten as they nest. A card is 1.5rem (`round
 - **Ghost:** muted-foreground text; hover fills with muted and darkens the text.
 - **Focus:** a 2px ring in the ring role, offset 2px from the background, on every interactive element.
 
-### Cards (home)
+### Cards
 - **Corner Style:** 1.5rem.
 - **Background:** card role. Photo cards put the image full-bleed under a night scrim.
 - **Shadow Strategy:** card shadow at rest; a linked card rises 3px on the hover spring and takes the lifted shadow, then presses on tap.
 - **Internal Padding:** one inset, 1rem.
-- **Entry:** cards pop in on mount (fade, 14px rise, 0.98 scale) on the enter spring, 45ms apart.
+- **Entry:** a card given an `index` pops in on mount (fade, 14px rise, 0.98 scale) on the enter spring, 45ms apart. One component, `src/components/ui/card.tsx`, serves the home bento and the Places page; Places omits `index`, so its cards render in place.
 
-**The One Inset, One Eyebrow Rule.** Every home card opens with the same 20px header row: a 14px icon, the uppercase label that names the card, and an optional trailing action at 0.8125rem. Content follows at the one inset. Media runs to the card edge or sits inside it at the media radius.
+**The One Inset, One Eyebrow Rule.** Every home card opens with the same 20px header row: a 14px icon, the uppercase label that names the card, and an optional trailing action in the caption size. Content follows at the one inset. Media runs to the card edge or sits inside it at the media radius.
 
 ### Eyebrow
 The uppercase label (label typography, faint ink). It names a card, heads a section on an inner page, or holds real metadata above a page title (byline and date on an essay, role and period on a Field Report). It can carry a status dot, an icon and right-aligned meta.

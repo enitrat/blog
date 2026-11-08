@@ -11,11 +11,11 @@ import {
 } from 'motion/react';
 import Image, { type StaticImageData } from 'next/image';
 import { useEffect, useSyncExternalStore } from 'react';
+import { Card, CardHeader } from '@/components/ui/card';
 import { SET } from '@/consts';
 import { spring } from '@/lib/motion';
 import { setPlayer } from '@/lib/set-player';
 import { cn } from '@/lib/utils';
-import { Card, CardHeader } from '../card';
 
 /** One turn per 2.4s, as the prototype's record. */
 const CRUISE = 360 / 2.4;
@@ -148,7 +148,7 @@ export function SetPlayer({
 						<Image src={art} alt="" sizes="10rem" className="size-full object-cover" />
 					</motion.div>
 					<motion.div
-						className="relative size-full overflow-hidden shadow-[0_6px_16px_-6px_oklch(0_0_0/0.4)]"
+						className="relative size-full overflow-hidden shadow-art"
 						initial={false}
 						animate={{ ...shape, scale: playing ? 0.94 : 1 }}
 						transition={move}
@@ -183,7 +183,7 @@ export function SetPlayer({
 							onClick={() => setPlayer.toggle()}
 							whileHover={reduce ? undefined : { scale: 1.08, transition: spring.pop }}
 							whileTap={reduce ? undefined : { scale: 0.9, transition: spring.tap }}
-							className="grid size-9 flex-none cursor-pointer place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_4px_12px_-4px_var(--primary)] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+							className="grid size-9 flex-none cursor-pointer place-items-center rounded-full bg-primary text-primary-foreground shadow-glow outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
 						>
 							{playing ? (
 								<PauseIcon aria-hidden className="size-4 fill-current stroke-none" />

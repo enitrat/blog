@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-08T16:51:03+00:00",
+  "generatedAt": "2026-11-08T00:00:00+00:00",
   "title": "Design System: Mathieu Saugier",
   "extensions": {
     "colorMeta": {
@@ -35,17 +35,6 @@
         "role": "primary",
         "displayName": "Brass Shadow",
         "canonical": "oklch(0.32 0.06 75)"
-      },
-      "secondary": {
-        "role": "secondary",
-        "displayName": "Bottle Green",
-        "canonical": "oklch(0.43 0.075 162)",
-        "tonalRamp": [
-          "oklch(0.28 0.04 162)",
-          "oklch(0.43 0.075 162)",
-          "oklch(0.68 0.09 162)",
-          "oklch(0.93 0.025 162)"
-        ]
       },
       "background": {
         "role": "neutral",
@@ -137,6 +126,14 @@
       "meta": {
         "displayName": "Meta",
         "purpose": "Dates, durations, counts, with tabular figures."
+      },
+      "feature": {
+        "displayName": "Feature",
+        "purpose": "Latest essay title on the home Writing card; 2.25rem, 2.75rem from 640px."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Trailing card actions, book authors, work roles; text-meta 0.8125rem."
       }
     },
     "shadows": [
@@ -169,6 +166,26 @@
         "name": "lifted-dark",
         "value": "0 0 0 1px var(--border-strong), inset 0 1px 0 oklch(1 0 0 / 0.06), 0 28px 56px -16px oklch(0 0 0 / 0.75), 0 0 48px -20px oklch(0.82 0.125 78 / 0.25)",
         "purpose": "Night lifted, with the brass glow."
+      },
+      {
+        "name": "art",
+        "value": "0 6px 16px -6px oklch(0 0 0 / 0.4)",
+        "purpose": "Album art on the player. Same in both themes."
+      },
+      {
+        "name": "book",
+        "value": "inset 0 1px 0 oklch(1 0 0 / 0.2), 0 10px 20px -8px oklch(0.2 0.05 30 / 0.45)",
+        "purpose": "Book covers in the stack. Same in both themes."
+      },
+      {
+        "name": "glow",
+        "value": "0 4px 12px -4px var(--primary)",
+        "purpose": "Primary play button; follows the accent."
+      },
+      {
+        "name": "chip",
+        "value": "inset 0 1px 0 oklch(1 0 0 / 0.25), inset 0 -2px 0 oklch(0 0 0 / 0.15), 0 6px 14px -6px var(--c)",
+        "purpose": "Elsewhere brand squircles; --c is the brand colour."
       }
     ],
     "motion": [

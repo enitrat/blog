@@ -2,8 +2,8 @@
 
 import { motion, useReducedMotion } from 'motion/react';
 import Image, { type StaticImageData } from 'next/image';
+import { useCardHeld } from '@/components/ui/card';
 import { spring } from '@/lib/motion';
-import { useCardHeld } from '../card';
 
 type Pose = { x: number; y: number; rotate: number; scale: number };
 
@@ -39,7 +39,7 @@ export function BookStack({
 				.map(({ id, cover, i }) => (
 					<motion.div
 						key={id}
-						className="absolute top-1/2 left-1/2 aspect-2/3 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[0.25rem_0.375rem_0.375rem_0.25rem] bg-muted shadow-[inset_0_1px_0_oklch(1_0_0/.2),0_10px_20px_-8px_oklch(0.2_0.05_30/0.45)]"
+						className="absolute top-1/2 left-1/2 aspect-2/3 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[0.25rem_0.375rem_0.375rem_0.25rem] bg-muted shadow-book"
 						style={{ height: 'min(100cqh - 12px, 86cqw * 1.5)', zIndex: books.length - i }}
 						initial={false}
 						animate={poses[i]}

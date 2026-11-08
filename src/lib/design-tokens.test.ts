@@ -28,3 +28,15 @@ describe('components name roles, not ramps or themes', () => {
 		expect(offenders(darkColor)).toEqual([]);
 	});
 });
+
+describe('metadata colours mirror the tokens', () => {
+	test('viewport themeColor matches paper-50 and paper-950', () => {
+		const css = readFileSync('src/app/globals.css', 'utf8');
+		const layout = readFileSync('src/app/layout.tsx', 'utf8');
+		for (const step of ['50', '950']) {
+			const token = css.match(new RegExp(`--color-paper-${step}: (oklch\\([^)]+\\))`))?.[1];
+			expect(token).toBeDefined();
+			expect(layout).toContain(`color: '${token}'`);
+		}
+	});
+});

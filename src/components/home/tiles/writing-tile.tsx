@@ -2,8 +2,8 @@ import 'server-only';
 import { ArrowUpRightIcon, PenLineIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Card, CardHeader, Scrims } from '@/components/ui/card';
 import { bannerFor, getPosts, postUrl } from '@/lib/content';
-import { Card, CardHeader, Scrims } from '../card';
 
 const dateFormat = new Intl.DateTimeFormat('en-GB', {
 	day: 'numeric',
@@ -52,7 +52,7 @@ export async function WritingTile({ className }: { className?: string }) {
 				>
 					{dateFormat.format(latest.data.pubDate)}
 				</time>
-				<h3 className="mt-2 font-display text-[2.125rem] leading-none tracking-[-0.015em] text-balance sm:text-[2.75rem]">
+				<h3 className="mt-2 font-display text-4xl leading-none tracking-[-0.015em] text-balance sm:text-feature">
 					<Link
 						href={postUrl(latest)}
 						className={`rounded-sm after:absolute after:inset-0 after:z-0 ${FOCUS}`}
