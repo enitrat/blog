@@ -1,6 +1,13 @@
 export { Equalizer } from './components/motion/equalizer';
 export { Magnetic } from './components/motion/magnetic';
 export { Tilt } from './components/motion/tilt';
+export { type PileBook, piles } from './components/objects/book';
+export { BookLine } from './components/objects/book-line';
+export { BookPile } from './components/objects/book-pile';
+export { BookSpine } from './components/objects/book-spine';
+export { DitherImage, type DitherSource } from './components/objects/dither-image';
+export { Lightbox, type LightboxPhoto } from './components/objects/lightbox';
+export { Shelf } from './components/objects/shelf';
 export {
 	Button,
 	type ButtonProps,

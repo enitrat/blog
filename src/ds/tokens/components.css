@@ -12,8 +12,18 @@
 @import "../components/motion/equalizer.tokens.css";
 @import "../components/motion/tilt.tokens.css";
 
+/* ds/components/objects */
+@import "../components/objects/book-pile.tokens.css";
+@import "../components/objects/book-spine.tokens.css";
+@import "../components/objects/dither.tokens.css";
+@import "../components/objects/lightbox.tokens.css";
+@import "../components/objects/shelf.tokens.css";
+
 /* site: reading surfaces (src/components/reading, src/app/{writing,work,reading,places}) */
+@import "../../components/reading/copy-code.tokens.css";
+@import "../../components/reading/in-short.tokens.css";
 @import "../../components/reading/prose.css";
+@import "../../components/reading/reading-page.tokens.css";
 
 /* site: home bench (src/components/home, except room) */
 

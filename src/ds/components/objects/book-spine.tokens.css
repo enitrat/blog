@@ -1,0 +1,28 @@
+/* Cloth tones built from roles only, readable in both themes. `--book-spine-w` and
+   `--book-spine-h` are computed per book and set inline. */
+@layer base {
+	:where([data-slot="book-spine"]) {
+		--book-spine-bg: var(--surface-inverse);
+		--book-spine-fg: var(--surface-inverse-foreground);
+	}
+	:where([data-slot="book-spine"][data-tone="1"]) {
+		--book-spine-bg: var(--muted-foreground);
+		--book-spine-fg: var(--surface);
+	}
+	:where([data-slot="book-spine"][data-tone="2"]) {
+		--book-spine-bg: var(--muted);
+		--book-spine-fg: var(--foreground);
+	}
+	:where([data-slot="book-spine"][data-tone="3"]) {
+		--book-spine-bg: color-mix(in srgb, var(--surface-inverse) 60%, var(--muted-foreground));
+		--book-spine-fg: var(--surface-inverse-foreground);
+	}
+	:where([data-slot="book-spine"][data-tone="4"]) {
+		--book-spine-bg: var(--surface);
+		--book-spine-fg: var(--foreground);
+	}
+	:where([data-slot="book-spine"][data-tone="5"]) {
+		--book-spine-bg: color-mix(in srgb, var(--muted-foreground) 40%, var(--surface));
+		--book-spine-fg: var(--foreground);
+	}
+}

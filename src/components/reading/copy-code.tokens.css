@@ -1,0 +1,10 @@
+/* The Copy button sits in the top right corner of a code block (`[data-copy-code]`, set by the
+   controller), on the paper so code scrolling under it stays legible. */
+@layer base {
+	:where([data-copy-code]) {
+		--copy-code-inset: calc(var(--spacing) * 2);
+	}
+	:where([data-copy-code] [data-slot="button"]) {
+		--button-ghost-bg: var(--surface);
+	}
+}

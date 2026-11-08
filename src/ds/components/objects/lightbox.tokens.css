@@ -1,0 +1,16 @@
+/* The lightbox is a `Dialog` with no card: the photo floats on the scrim, and everything on it
+   reads in the scrim's foreground. */
+@layer base {
+	:where([data-slot="dialog-content"][data-lightbox]) {
+		--dialog-bg: transparent;
+		--dialog-fg: var(--scrim-foreground);
+		--foreground: var(--scrim-foreground);
+		--muted-foreground: var(--scrim-foreground);
+		--border: var(--scrim-foreground);
+		--lightbox-max-w: 72rem;
+		--lightbox-img-max-h: 70dvh;
+	}
+	:where([data-slot="dialog-overlay"]:has(~ [data-lightbox])) {
+		--dialog-overlay: var(--scrim);
+	}
+}
