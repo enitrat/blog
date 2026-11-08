@@ -49,7 +49,7 @@ export function WritingRow({
 					<h2 className="max-w-[44ch] font-display text-2xl leading-tight text-balance text-foreground">
 						{title}
 					</h2>
-					<p className="mt-1.5 max-w-[60ch] text-sm leading-relaxed text-pretty text-muted-foreground">
+					<p className="mt-1.5 text-sm leading-relaxed text-pretty text-muted-foreground">
 						{description}
 					</p>
 				</div>

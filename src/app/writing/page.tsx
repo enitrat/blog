@@ -16,7 +16,7 @@ export default async function WritingPage() {
 	const posts = getPosts();
 	const banners = await Promise.all(posts.map(bannerFor));
 	return (
-		<Page width="wide">
+		<Page className="max-w-5xl">
 			<PageHeader>Writing</PageHeader>
 			{posts.length > 0 ? (
 				<ul className="flex flex-col">
