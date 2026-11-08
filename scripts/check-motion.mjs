@@ -4,10 +4,10 @@
  *   bun run motion:check                 every installed engine and viewport
  *   bun run motion:check chromium        one engine (chromium | webkit | firefox | all)
  *
- * Measures a production build by default: `astro build`, then serves dist/ statically, so Vite's
- * client and the dev toolbar are not on the page. `--dev` (or DEV_URL) uses a dev server instead
- * (a running one at http://localhost:4321, else its own); dev-only scripts are then listed but not
- * counted. MOTION_NOBUILD=1 reuses the existing dist/.
+ * Measures a production build by default: `bun run build` (a static export), then serves dist/,
+ * so Next's dev client and overlay are not on the page. `--dev` (or DEV_URL) uses a dev server
+ * instead (a running one at http://localhost:3000, else its own); dev-only scripts are then listed
+ * but not counted. MOTION_NOBUILD=1 reuses the existing dist/.
  * MOTION_ONLY=5 runs one check by its number; MOTION_TRACE=1 writes a Chromium trace of the deck scenarios. Writes a video per viewport and a JSON report per engine to MOTION_OUT
  * (default /tmp/motion-check, like room:check's /tmp/room-check).
  *
@@ -20,11 +20,10 @@
  */
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
-import { createServer } from 'node:http';
-import { extname, join, normalize } from 'node:path';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium, firefox, webkit } from 'playwright';
 import { serve } from './dev-server.mjs';
+import { serveStatic } from './serve-dist.mjs';
 
 // ---- thresholds -------------------------------------------------------------------------------
 const JUMP_RATIO = 1.5; // a step this many times the larger of its two neighbouring steps (60Hz-normalised)...
@@ -65,7 +64,7 @@ const MAX_MEDIAN_FRAME_MS = 40; // slower than 25fps and frame-to-frame numbers 
 const fpsSeen = [];
 let reloads = 0;
 const DEV = process.argv.includes('--dev');
-const DEFAULT_URL = 'http://localhost:4321';
+const DEFAULT_URL = 'http://localhost:3000';
 const OUT = process.env.MOTION_OUT ?? '/tmp/motion-check';
 
 const ENGINES = { chromium, webkit, firefox };
@@ -103,7 +102,7 @@ function instrument() {
 		return /webgl/i.test(type) ? null : getContext.call(this, type, ...a);
 	};
 	const style = document.createElement('style');
-	style.textContent = 'astro-dev-toolbar{display:none!important}';
+	style.textContent = 'nextjs-portal{display:none!important}';
 	if (document.documentElement) document.documentElement.append(style);
 	else document.addEventListener('DOMContentLoaded', () => document.documentElement.append(style));
 
@@ -364,8 +363,9 @@ function instrument() {
 	m.countReads = () => {
 		const c = { total: 0, by: {}, sites: {}, dev: {}, moves: 0 };
 		m.reads = c;
-		// Vite's client and Astro's dev toolbar exist only under `astro dev`; they are listed, not counted.
-		const DEV = /\/@vite\/|\/@id\/|dev-toolbar|\/@fs\//;
+		// Next's dev client (HMR, overlay, Turbopack runtime) exists only under `next dev`; listed, not counted.
+		const DEV =
+			/next-devtools|react-refresh|hmr-client|turbopack-|\/_next\/static\/chunks\/.*_dev_/;
 		const hit = function __hit(name) {
 			// up to three frames, each as pathname:line, skipping the wrappers above
 			const frames = (new Error().stack || '')
@@ -1372,47 +1372,14 @@ async function runEngine(engine, base) {
 	return results;
 }
 
-const MIME = {
-	'.html': 'text/html',
-	'.js': 'text/javascript',
-	'.css': 'text/css',
-	'.svg': 'image/svg+xml',
-	'.json': 'application/json',
-	'.xml': 'application/xml',
-	'.jpg': 'image/jpeg',
-	'.png': 'image/png',
-	'.webp': 'image/webp',
-	'.avif': 'image/avif',
-	'.woff2': 'font/woff2',
-	'.glb': 'model/gltf-binary',
-};
-
 /** Builds once per run (the `all` parent builds; its children inherit MOTION_BUILT), serves dist/. */
 async function serveDist() {
 	if (!process.env.MOTION_BUILT && !process.env.MOTION_NOBUILD) {
-		const b = spawnSync(process.execPath, ['node_modules/astro/astro.js', 'build'], {
-			stdio: 'inherit',
-		});
+		const b = spawnSync(process.execPath, ['run', 'build'], { stdio: 'inherit' });
 		if (b.status !== 0) process.exit(1);
 	}
 	process.env.MOTION_BUILT = '1';
-	const server = createServer(async (req, res) => {
-		const path = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(
-			/^(\.\.[/\\])+/,
-			'',
-		);
-		let file = join('dist', path);
-		try {
-			if ((await stat(file)).isDirectory()) file = join(file, 'index.html');
-			const body = await readFile(file);
-			res.writeHead(200, { 'content-type': MIME[extname(file)] ?? 'application/octet-stream' });
-			res.end(body);
-		} catch {
-			res.writeHead(404).end();
-		}
-	});
-	await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-	return { base: `http://127.0.0.1:${server.address().port}`, stop: () => server.close() };
+	return serveStatic('dist');
 }
 
 async function resolveBase() {

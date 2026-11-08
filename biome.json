@@ -18,7 +18,8 @@
 			"!next-env.d.ts",
 			"!public/_assets",
 			"!**/*.md",
-			"!.next"
+			"!.next",
+			"!.claude"
 		]
 	},
 	"formatter": {

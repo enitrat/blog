@@ -52,3 +52,4 @@ public/_assets/
 src/generated/
 .next-dev-*/
 .next/
+.claude/worktrees/

@@ -6,7 +6,7 @@
 	"scripts": {
 		"dev": "bun scripts/sync-assets.mjs && next dev",
 		"assets": "bun scripts/sync-assets.mjs",
-		"build": "bun scripts/sync-assets.mjs && node scripts/check-room-assets.mjs && next build && node scripts/check-bundle.mjs",
+		"build": "node scripts/check-design-tokens.mjs && bun scripts/sync-assets.mjs && node scripts/check-room-assets.mjs && next build && node scripts/check-bundle.mjs",
 		"preview": "bun scripts/serve-dist.mjs",
 		"typecheck": "bun scripts/sync-assets.mjs && tsc --noEmit",
 		"lint": "biome check . && bun run typecheck",

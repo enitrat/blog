@@ -5,7 +5,7 @@
  *   bun run shots                      every route, chromium
  *   bun run shots webkit / /writing    one engine, some routes
  *
- * Starts its own dev server (fresh Vite cache, so no stale CSS), hides the Astro dev toolbar, and
+ * Starts its own Next dev server (its own dist dir, so no stale CSS), hides the Next dev overlay, and
  * stubs WebGL so the room shows its poster (software WebGL makes headless pages crawl; `room:check`
  * covers the room). Writes `<engine>-<route>-<width>-<scheme>.png` to SHOTS_OUT (default /tmp/shots).
  */
@@ -33,7 +33,7 @@ function stub() {
 	};
 	addEventListener('DOMContentLoaded', () => {
 		const style = document.createElement('style');
-		style.textContent = 'astro-dev-toolbar{display:none!important}';
+		style.textContent = 'nextjs-portal{display:none!important}';
 		document.head.append(style);
 	});
 }
