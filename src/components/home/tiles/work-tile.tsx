@@ -1,22 +1,22 @@
 import 'server-only';
 import NextLink from 'next/link';
+import { TextLink } from '@/components/ui/text-link';
 import { Tile } from '@/components/ui/tile';
-import { getWorkIndex, workUrl } from '@/utils/work';
-import { HomeLink } from '../home-link';
+import { getReports, workUrl } from '@/lib/content';
 
 /** The work collection, compact. */
 export function WorkTile() {
-	const reports = getWorkIndex();
+	const reports = getReports();
 	if (reports.length === 0) return null;
 	return (
 		<Tile
-			compact
+			size="compact"
 			label="Work"
 			labelAs="h2"
 			action={
-				<HomeLink variant="arrow" href="/work/">
+				<TextLink variant="action" icon="arrow" href="/work/">
 					All work
-				</HomeLink>
+				</TextLink>
 			}
 		>
 			<ul className="flex h-full flex-col justify-between">

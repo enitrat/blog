@@ -1,8 +1,8 @@
 import 'server-only';
 import { ListRow, ListRows } from '@/components/ui/list-row';
+import { TextLink } from '@/components/ui/text-link';
 import { Tile } from '@/components/ui/tile';
 import { getTrips, type Trip } from '@/lib/content';
-import { HomeLink } from '../home-link';
 
 /** The latest trips. Renders nothing until the first trip exists. */
 export function PlacesTile({
@@ -14,14 +14,14 @@ export function PlacesTile({
 	if (trips.length === 0) return null;
 	return (
 		<Tile
-			compact
+			size="compact"
 			label="Places"
 			labelAs="h2"
 			dot
 			action={
-				<HomeLink variant="arrow" href="/places/">
+				<TextLink variant="action" icon="arrow" href="/places/">
 					All places
-				</HomeLink>
+				</TextLink>
 			}
 		>
 			<ListRows>

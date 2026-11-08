@@ -2,7 +2,6 @@ import { ArrowRightIcon } from 'lucide-react';
 import NextLink from 'next/link';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
-import { Badge } from './badge';
 
 export type ListRowProps = {
 	href?: string;
@@ -12,10 +11,7 @@ export type ListRowProps = {
 	datetime?: string;
 	title: ReactNode;
 	description?: ReactNode;
-	badge?: string;
 	headingLevel?: 'h2' | 'h3';
-	meta?: ReactNode;
-	children?: ReactNode;
 };
 
 /** One hairline-separated row: date, title, description, and an arrow on hover when linked. */
@@ -25,43 +21,35 @@ export function ListRow({
 	datetime,
 	title,
 	description,
-	badge,
 	headingLevel: Heading = 'h3',
-	meta,
-	children,
 }: ListRowProps) {
 	const range = date?.split(' – ');
 	const Stamp = datetime ? 'time' : 'span';
 	const body = (
 		<>
-			{(date || meta) && (
+			{date && (
 				<div className="flex flex-wrap gap-x-2 text-xs font-medium text-gray-400 tabular-nums sm:w-32 sm:flex-none dark:text-iron-500">
-					{date && (
-						<Stamp dateTime={datetime} className="flex flex-wrap gap-x-1.5 sm:flex-col">
-							{range?.length === 2 ? (
-								<>
-									<span className="whitespace-nowrap">{range[0]}</span>
-									<span className="whitespace-nowrap">– {range[1]}</span>
-								</>
-							) : (
-								date
-							)}
-						</Stamp>
-					)}
-					{meta}
+					<Stamp dateTime={datetime} className="flex flex-wrap gap-x-1.5 sm:flex-col">
+						{range?.length === 2 ? (
+							<>
+								<span className="whitespace-nowrap">{range[0]}</span>
+								<span className="whitespace-nowrap">– {range[1]}</span>
+							</>
+						) : (
+							date
+						)}
+					</Stamp>
 				</div>
 			)}
 			<div className="min-w-0 flex-1">
 				<Heading className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-balance text-gray-800 dark:text-iron-100">
 					{title}
-					{badge && <Badge>{badge}</Badge>}
 				</Heading>
 				{description && (
 					<p className="mt-0.5 text-sm leading-relaxed text-pretty text-gray-500 dark:text-iron-400">
 						{description}
 					</p>
 				)}
-				{children}
 			</div>
 			{href && (
 				<ArrowRightIcon

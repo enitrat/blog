@@ -1,5 +1,5 @@
 import { Eyebrow } from '@/components/ui/eyebrow';
-import { IN_SHORT_LABEL, type InShortItem } from '@/utils/inShort';
+import { IN_SHORT_LABEL, type InShortItem } from '@/lib/in-short';
 
 /**
  * The build-time skim block: a numbered list of section titles, each with its first sentence and

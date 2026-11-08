@@ -20,7 +20,7 @@ export async function SetTile() {
 	});
 	const { src, width, height, blurDataURL } = await image('set/bouncyx-seven.jpg');
 	return (
-		<Tile compact label="Last set" labelAs="h2" action={<SetTileStatus />}>
+		<Tile size="compact" label="Last set" labelAs="h2" action={<SetTileStatus />}>
 			<SetTilePlayer art={{ src, width, height, blurDataURL }} date={date} />
 		</Tile>
 	);

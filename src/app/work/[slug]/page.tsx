@@ -1,14 +1,13 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Prose } from '@/components/reading/prose';
-import { TextLink } from '@/components/reading/text-link';
 import { Eyebrow } from '@/components/ui/eyebrow';
 import { ListRow, ListRows } from '@/components/ui/list-row';
 import { Page, PageHeader } from '@/components/ui/page';
-import { getReports } from '@/lib/content';
+import { TextLink } from '@/components/ui/text-link';
+import { getReports, workUrl } from '@/lib/content';
 import { renderMarkdown } from '@/lib/markdown';
 import { pageMeta } from '@/lib/meta';
-import { getWorkIndex, workUrl } from '@/utils/work';
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -34,10 +33,10 @@ export async function generateMetadata(props: Params): Promise<Metadata> {
 
 export default async function ReportPage(props: Params) {
 	const report = await reportOf(props);
-	const { tree } = await renderMarkdown(report.body, report.dir);
+	const tree = await renderMarkdown(report.body, report.dir);
 	const { title, summary, role, period, site } = report.data;
 	const meta = [role, period].filter(Boolean).join(' · ');
-	const siblings = getWorkIndex()
+	const siblings = getReports()
 		.filter((r) => r.id !== report.id)
 		.slice(0, 2);
 	return (

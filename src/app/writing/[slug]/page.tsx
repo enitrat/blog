@@ -1,11 +1,10 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { BlogPost } from '@/components/reading/blog-post';
-import { getPosts } from '@/lib/content';
+import { getAdjacent, getPosts, getRelated, postUrl } from '@/lib/content';
+import { inShort } from '@/lib/in-short';
 import { renderMarkdown } from '@/lib/markdown';
 import { pageMeta } from '@/lib/meta';
-import { inShort } from '@/utils/inShort';
-import { getAdjacent, getRelated, postUrl } from '@/utils/writing';
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -31,9 +30,9 @@ export async function generateMetadata(props: Params): Promise<Metadata> {
 
 export default async function PostPage(props: Params) {
 	const post = await postOf(props);
-	const { tree, headings } = await renderMarkdown(post.body, post.dir);
+	const tree = await renderMarkdown(post.body, post.dir);
 	// Sections without a paragraph (such as "Part 1:" headings) stay in the text but not in the skim list.
-	const items = inShort(post, headings).filter((item) => item.hook);
+	const items = inShort(tree, post.data.hooks).filter((item) => item.hook);
 	const minutes = Math.max(1, Math.round(post.body.split(/\s+/).length / 230));
 	const { newer, older } = getAdjacent(post);
 	return (

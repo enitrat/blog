@@ -1,27 +1,25 @@
+import { cva, type VariantProps } from 'class-variance-authority';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
-const WIDTHS = { wide: 'max-w-7xl', text: 'max-w-xl', list: 'max-w-3xl' } as const;
+const pageVariants = cva('mx-auto flex w-full flex-col gap-10 pt-8 pb-16', {
+	variants: { width: { wide: 'max-w-7xl', text: 'max-w-xl', list: 'max-w-3xl' } },
+	defaultVariants: { width: 'list' },
+});
 
 /** A page body: one centred column with the page rhythm. */
 export function Page({
-	width = 'list',
+	width,
 	as: Root = 'div',
 	className,
 	children,
 }: {
-	width?: keyof typeof WIDTHS;
+	width?: VariantProps<typeof pageVariants>['width'];
 	as?: 'div' | 'article';
 	className?: string;
 	children: ReactNode;
 }) {
-	return (
-		<Root
-			className={cn('mx-auto flex w-full flex-col gap-10 pt-8 pb-16', WIDTHS[width], className)}
-		>
-			{children}
-		</Root>
-	);
+	return <Root className={cn(pageVariants({ width }), className)}>{children}</Root>;
 }
 
 export function PageHeader({

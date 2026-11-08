@@ -4,8 +4,8 @@ import { ArrowUpIcon } from 'lucide-react';
 import Image from 'next/image';
 import type { ComponentProps } from 'react';
 import { Fragment, jsx, jsxs } from 'react/jsx-runtime';
+import { IN_SHORT_LABEL } from '@/lib/in-short';
 import { cn } from '@/lib/utils';
-import { IN_SHORT_LABEL } from '@/utils/inShort';
 import { CodeBlock } from './code-block';
 
 /** Stands in the tree where a back link to "In short" goes; rendered by `components`. */

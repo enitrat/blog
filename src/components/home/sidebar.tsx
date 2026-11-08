@@ -1,11 +1,11 @@
 import { Magnetic } from '@/components/motion/magnetic';
 import { buttonVariants } from '@/components/ui/button';
+import { TextLink } from '@/components/ui/text-link';
 import { CONTACT_LINKS } from '@/consts';
 import { AgePlate } from './glyphs/age-plate';
 import { Barbell } from './glyphs/barbell';
 import { Book } from './glyphs/book';
 import { Turntable } from './glyphs/turntable';
-import { HomeLink } from './home-link';
 
 const FACT =
 	'group/glyph grid grid-cols-[--spacing(10)_1fr] items-center gap-3 py-0.5 text-gray-800 dark:text-iron-100';
@@ -47,7 +47,10 @@ export function Sidebar() {
 			</div>
 			<div className="grid gap-3 text-sm text-gray-600 dark:text-iron-300">
 				<p>
-					Senior Protocol Engineer at <HomeLink href="/work/zama/">Zama</HomeLink>
+					Senior Protocol Engineer at{' '}
+					<TextLink variant="inline" href="/work/zama/">
+						Zama
+					</TextLink>
 				</p>
 				<nav aria-label="Contact" className="flex flex-wrap gap-1.5">
 					{CONTACT_LINKS.map((c) => (
@@ -63,9 +66,9 @@ export function Sidebar() {
 						</Magnetic>
 					))}
 				</nav>
-				<HomeLink variant="quiet" href="/about/" className="justify-self-start">
+				<TextLink variant="quiet" href="/about/" className="justify-self-start">
 					[Read more →]
-				</HomeLink>
+				</TextLink>
 			</div>
 		</aside>
 	);

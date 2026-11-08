@@ -1,14 +1,17 @@
 import { Analytics } from '@vercel/analytics/next';
+import { GeistMono } from 'geist/font/mono';
 import type { Metadata, Viewport } from 'next';
+import { Figtree } from 'next/font/google';
 import type { ReactNode } from 'react';
 import { Footer } from '@/components/site/footer';
 import { Header, type NavLink } from '@/components/site/header';
 import { ThemeProvider } from '@/components/theme-provider';
 import { getTrips } from '@/lib/content';
-import { mono, sans } from '@/lib/fonts';
 import { SITE_URL } from '@/lib/meta';
 import { cn } from '@/lib/utils';
 import './globals.css';
+
+const figtree = Figtree({ subsets: ['latin'], variable: '--font-figtree', display: 'swap' });
 
 export const metadata: Metadata = {
 	metadataBase: new URL(SITE_URL),
@@ -30,7 +33,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 		{ label: 'About', href: '/about' },
 	].filter((l) => l.href !== '/places' || getTrips().length > 0);
 	return (
-		<html lang="en" className={cn(sans.variable, mono.variable)} suppressHydrationWarning>
+		<html lang="en" className={cn(figtree.variable, GeistMono.variable)} suppressHydrationWarning>
 			<body>
 				<ThemeProvider>
 					<a

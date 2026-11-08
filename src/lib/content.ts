@@ -2,7 +2,10 @@ import 'server-only';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import matter from 'gray-matter';
+import type { StaticImageData } from 'next/image';
+import { cache } from 'react';
 import { z } from 'zod';
+import { findImage } from './media';
 
 /** The markdown collections, read once per build from `src/content/`. Replaces Astro's content layer. */
 const CONTENT = join(process.cwd(), 'src/content');
@@ -83,18 +86,47 @@ function files<T>(collection: string, schema: z.ZodType<T>): Entry<T>[] {
 		.map((d) => parse(schema, join(root, d.name), d.name.replace(/\.mdx?$/, ''), collection));
 }
 
-const cache = new Map<string, unknown>();
-const once = <T>(key: string, load: () => T): T => {
-	if (!cache.has(key)) cache.set(key, load());
-	return cache.get(key) as T;
-};
+/** Essays, newest first. */
+export const getPosts = cache((): Post[] =>
+	folders('blog', blogSchema).sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()),
+);
 
-export const getPosts = (): Post[] => once('blog', () => folders('blog', blogSchema));
-export const getReports = (): Report[] => once('work', () => files('work', workSchema));
-export const getNotes = (): Entry<Record<string, never>>[] =>
-	once('notes', () => files('notes', z.object({}).strict() as never));
+/** Work and projects, by their `order`. */
+export const getReports = cache((): Report[] =>
+	files('work', workSchema).sort((a, b) => a.data.order - b.data.order),
+);
+
+/** Reading notes, one per book, named by its ISBN-13. */
+export const getNotes = cache(() => files('notes', z.object({}).strict()));
+
 /** Trips, newest first. Empty until the first `src/content/trips/<slug>/index.md` exists. */
-export const getTrips = (): Trip[] =>
-	once('trips', () =>
-		folders('trips', tripSchema).sort((a, b) => b.data.date.getTime() - a.data.date.getTime()),
-	);
+export const getTrips = cache((): Trip[] =>
+	folders('trips', tripSchema).sort((a, b) => b.data.date.getTime() - a.data.date.getTime()),
+);
+
+/** The one place that knows the route shape of an essay. */
+export const postUrl = (post: Pick<Post, 'id'>) => `/writing/${post.id}/`;
+
+export const workUrl = (report: Pick<Report, 'id'>) => `/work/${report.id}/`;
+
+type PostLink = { href: string; title: string };
+const linkTo = (post: Post): PostLink => ({ href: postUrl(post), title: post.data.title });
+
+/** The post's `related` slugs as links, dropping any that name nothing. */
+export function getRelated(post: Post): PostLink[] {
+	const posts = getPosts();
+	return post.data.related.flatMap((slug) => posts.filter((p) => p.id === slug).map(linkTo));
+}
+
+/** Chronological neighbours, so an essay offers a way onward rather than only a way back. */
+export function getAdjacent(post: Post): { newer?: PostLink; older?: PostLink } {
+	const posts = getPosts();
+	const index = posts.findIndex((p) => p.id === post.id);
+	const newer = posts[index - 1];
+	const older = posts[index + 1];
+	return { newer: newer && linkTo(newer), older: older && linkTo(older) };
+}
+
+/** The post's `banner.*` image from its folder, if it has one. */
+export const bannerFor = (post: Pick<Post, 'id'>): Promise<StaticImageData | undefined> =>
+	findImage(`content/blog/${post.id}/banner`);

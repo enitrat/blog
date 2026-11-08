@@ -1,8 +1,6 @@
 import type { NextConfig } from 'next';
 
 const config: NextConfig = {
-	// `next dev` for a browser check sets its own dir, so parallel checks never share a cache.
-	distDir: process.env.NEXT_DIST_DIR ?? '.next',
 	// `about/` as Astro emitted it: indexed URLs keep their trailing slash.
 	trailingSlash: true,
 	reactStrictMode: true,

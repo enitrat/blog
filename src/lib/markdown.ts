@@ -1,6 +1,5 @@
 import 'server-only';
 import type { Element, Root as HastRoot } from 'hast';
-import { toString as hastToString } from 'hast-util-to-string';
 import type { Root as MdastRoot } from 'mdast';
 import rehypePrettyCode from 'rehype-pretty-code';
 import rehypeRaw from 'rehype-raw';
@@ -13,9 +12,6 @@ import type { ShikiTransformer } from 'shiki';
 import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
 import { maybeImage } from './media';
-
-export type Heading = { depth: number; slug: string; text: string };
-export type Rendered = { tree: HastRoot; headings: Heading[] };
 
 /** Essays set no banner: drop a leading `![](./banner.png)` paragraph. The file stays in the repo. */
 const remarkDropBanner = () => (tree: MdastRoot) => {
@@ -41,19 +37,6 @@ const rehypeLocalImages = (dir: string) => () => async (tree: HastRoot) => {
 	}
 };
 
-/** Collects every heading with its id, after `rehype-slug` has set them (github-slugger, as Astro did). */
-const rehypeCollectHeadings = (out: Heading[]) => () => (tree: HastRoot) => {
-	visit(tree, 'element', (node: Element) => {
-		const m = /^h([1-6])$/.exec(node.tagName);
-		if (!m) return;
-		out.push({
-			depth: Number(m[1]),
-			slug: String(node.properties.id ?? ''),
-			text: hastToString(node),
-		});
-	});
-};
-
 /**
  * Names every code block after its language and its place among blocks of that language
  * ("ts sample 2"), so a reader knows which sample a Copy button copies. `CodeBlock` reads it.
@@ -72,7 +55,7 @@ const sampleLabels = (): ShikiTransformer => {
 	};
 };
 
-const processor = (dir: string, headings: Heading[]) =>
+const processor = (dir: string) =>
 	unified()
 		.use(remarkParse)
 		.use(remarkGfm)
@@ -82,7 +65,6 @@ const processor = (dir: string, headings: Heading[]) =>
 		.use(remarkRehype, { allowDangerousHtml: true })
 		.use(rehypeRaw)
 		.use(rehypeSlug)
-		.use(rehypeCollectHeadings(headings))
 		.use(rehypeLocalImages(dir))
 		.use(rehypePrettyCode, {
 			// Each token carries `--shiki-light` and `--shiki-dark`; Prose picks one.
@@ -98,9 +80,7 @@ const processor = (dir: string, headings: Heading[]) =>
  * themes, and local images resolved to their bundled files. `dir` is the entry's folder under
  * `src/content`. `Prose` renders the tree as React.
  */
-export async function renderMarkdown(body: string, dir: string): Promise<Rendered> {
-	const headings: Heading[] = [];
-	const p = processor(dir, headings);
-	const tree = (await p.run(p.parse(body))) as HastRoot;
-	return { tree, headings };
+export async function renderMarkdown(body: string, dir: string): Promise<HastRoot> {
+	const p = processor(dir);
+	return p.run(p.parse(body));
 }

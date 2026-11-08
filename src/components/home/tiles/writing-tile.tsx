@@ -1,8 +1,8 @@
 import 'server-only';
+import { TextLink } from '@/components/ui/text-link';
 import { Tile } from '@/components/ui/tile';
-import { bannerFor, getWritingIndex, postUrl } from '@/utils/writing';
+import { bannerFor, getPosts, postUrl } from '@/lib/content';
 import { Deck } from '../deck';
-import { HomeLink } from '../home-link';
 import { PostCard } from '../post-card';
 
 /**
@@ -14,12 +14,12 @@ import { PostCard } from '../post-card';
  */
 export async function WritingTile() {
 	const posts = await Promise.all(
-		getWritingIndex()
+		getPosts()
 			.slice(0, 3)
 			.map(async (p) => ({ ...p, banner: await bannerFor(p) })),
 	);
 	if (posts.length === 0) return null;
-	const card = (p: (typeof posts)[number], size: 'sm' | 'md') => (
+	const card = (p: (typeof posts)[number]) => (
 		<PostCard
 			key={p.id}
 			href={postUrl(p)}
@@ -27,18 +27,17 @@ export async function WritingTile() {
 			description={p.data.description}
 			date={p.data.pubDate}
 			image={p.banner}
-			size={size}
 		/>
 	);
 	return (
 		<Tile
-			compact
+			size="compact"
 			label="Writing"
 			labelAs="h2"
 			action={
-				<HomeLink variant="arrow" href="/writing/">
+				<TextLink variant="action" icon="arrow" href="/writing/">
 					All writing
-				</HomeLink>
+				</TextLink>
 			}
 		>
 			<div className="flex h-full flex-col justify-center">
@@ -50,13 +49,13 @@ export async function WritingTile() {
 					max="8.5rem"
 					fit="100%"
 					className="hidden pointer-fine:sm:flex"
-					cards={posts.map((p) => card(p, 'sm'))}
+					cards={posts.map((p) => card(p))}
 				/>
 				<div className="relative -mx-4 pointer-fine:sm:hidden">
 					<ul className="flex snap-x snap-mandatory gap-1.5 overflow-x-auto px-4 py-2 [scrollbar-width:none]">
 						{posts.map((p) => (
 							<li key={p.id} className="flex-[0_0_min(72%,15rem)] snap-start">
-								{card(p, 'sm')}
+								{card(p)}
 							</li>
 						))}
 					</ul>

@@ -1,20 +1,23 @@
+import { cva, type VariantProps } from 'class-variance-authority';
 import type { ReactNode } from 'react';
-import { cn } from '@/lib/utils';
 
-const SIZES = { md: 'text-sm', lg: 'text-lg' } as const;
+const titleVariants = cva(
+	'flex flex-wrap items-center gap-1.5 font-semibold text-balance text-gray-800 dark:text-iron-100',
+	{ variants: { size: { md: 'text-sm', lg: 'text-lg' } }, defaultVariants: { size: 'md' } },
+);
 
 /** A book's title with its author beneath, and an optional mono facts line. */
 export function BookLine({
 	title,
 	author,
-	size = 'md',
+	size,
 	tag,
 	children,
 }: {
 	/** A trailing "(series, tome)" is dropped. */
 	title: string;
 	author: string;
-	size?: keyof typeof SIZES;
+	size?: VariantProps<typeof titleVariants>['size'];
 	/** Beside the title, such as a `StatusDot` or a `Badge`. */
 	tag?: ReactNode;
 	/** Mono facts under the author, such as "412 pages". */
@@ -22,12 +25,7 @@ export function BookLine({
 }) {
 	return (
 		<div>
-			<p
-				className={cn(
-					'flex flex-wrap items-center gap-1.5 leading-tight font-semibold text-balance text-gray-800 dark:text-iron-100',
-					SIZES[size],
-				)}
-			>
+			<p className={titleVariants({ size })}>
 				{title.replace(/\s*\(.*\)\s*$/, '')}
 				{tag}
 			</p>

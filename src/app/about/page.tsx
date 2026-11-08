@@ -15,7 +15,7 @@ export const metadata = pageMeta({
 // Mathieu's own prose, rendered unchanged. This page owns layout and typography only; the words
 // and every claim in them stay as written.
 export default async function AboutPage() {
-	const { tree } = await renderMarkdown(
+	const tree = await renderMarkdown(
 		readFileSync(join(process.cwd(), 'src/content/about.md'), 'utf8'),
 		'.',
 	);

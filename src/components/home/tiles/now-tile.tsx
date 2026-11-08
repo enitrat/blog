@@ -6,7 +6,7 @@ import { now } from '@/data/now';
 export function NowTile() {
 	if (now.length === 0) return null;
 	return (
-		<Tile compact label="Now" labelAs="h2" dot>
+		<Tile size="compact" label="Now" labelAs="h2" dot>
 			<ListRows>
 				{now.map((item) => (
 					<ListRow

@@ -1,8 +1,8 @@
 import { Eyebrow } from '@/components/ui/eyebrow';
 import { ListRow, ListRows } from '@/components/ui/list-row';
 import { Page, PageHeader } from '@/components/ui/page';
+import { getReports, workUrl } from '@/lib/content';
 import { pageMeta } from '@/lib/meta';
-import { getWorkIndex, workUrl } from '@/utils/work';
 
 export const metadata = pageMeta({
 	title: 'Work',
@@ -11,7 +11,7 @@ export const metadata = pageMeta({
 });
 
 export default function WorkPage() {
-	const reports = getWorkIndex();
+	const reports = getReports();
 	// Same two groups as the homepage index. Each section id is the fragment the homepage links
 	// to, so `/work/#projects` lands on the group it names.
 	const groups = [

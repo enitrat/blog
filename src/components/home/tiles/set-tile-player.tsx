@@ -15,10 +15,10 @@ import { Equalizer } from '@/components/motion/equalizer';
 import { Magnetic } from '@/components/motion/magnetic';
 import { Tilt } from '@/components/motion/tilt';
 import { Button } from '@/components/ui/button';
+import { TextLink } from '@/components/ui/text-link';
 import { SET } from '@/consts';
 import { spring } from '@/lib/motion';
 import { setPlayer } from '@/lib/set-player';
-import { HomeLink } from '../home-link';
 
 /** One turn per 9.6s, calm. */
 const CRUISE = 360 / 9.6;
@@ -142,9 +142,9 @@ export function SetTilePlayer({ art, date }: { art: StaticImageData; date: strin
 							{playing ? 'Pause' : 'Play'}
 						</Button>
 					</Magnetic>
-					<HomeLink variant="external" href={SET.url}>
+					<TextLink icon="external" href={SET.url}>
 						SoundCloud
-					</HomeLink>
+					</TextLink>
 				</div>
 			</div>
 		</div>

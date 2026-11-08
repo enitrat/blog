@@ -1,8 +1,6 @@
 import type { MetadataRoute } from 'next';
-import { getPosts, getReports, getTrips } from '@/lib/content';
+import { getPosts, getReports, getTrips, postUrl, workUrl } from '@/lib/content';
 import { SITE_URL } from '@/lib/meta';
-import { workUrl } from '@/utils/work';
-import { postUrl } from '@/utils/writing';
 
 export const dynamic = 'force-static';
 

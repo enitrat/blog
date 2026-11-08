@@ -2,11 +2,11 @@ import type { Root } from 'hast';
 import { Eyebrow } from '@/components/ui/eyebrow';
 import { ListRow, ListRows } from '@/components/ui/list-row';
 import { Page, PageHeader } from '@/components/ui/page';
+import { TextLink } from '@/components/ui/text-link';
 import type { BlogData } from '@/lib/content';
-import type { InShortItem } from '@/utils/inShort';
+import type { InShortItem } from '@/lib/in-short';
 import { InShort } from './in-short';
 import { Prose } from './prose';
-import { TextLink } from './text-link';
 
 type Adjacent = { href: string; title: string };
 
@@ -36,7 +36,7 @@ export function BlogPost({
 	data: BlogData;
 	/** The rendered markdown. */
 	tree: Root;
-	/** Items from `inShort(entry, headings)`; sections with no hook are left out. */
+	/** Items from `inShort(tree, hooks)`; sections with no hook are left out. */
 	inShort?: InShortItem[];
 	/** Estimated reading time. */
 	minutes?: number;

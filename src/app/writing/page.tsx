@@ -1,7 +1,7 @@
 import { ListRow, ListRows } from '@/components/ui/list-row';
 import { Page, PageHeader } from '@/components/ui/page';
+import { getPosts, postUrl } from '@/lib/content';
 import { pageMeta } from '@/lib/meta';
-import { getWritingIndex, postUrl } from '@/utils/writing';
 
 export const metadata = pageMeta({
 	title: 'Writing',
@@ -13,7 +13,7 @@ const fmt = (d: Date) =>
 	d.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: '2-digit' });
 
 export default function WritingPage() {
-	const posts = getWritingIndex();
+	const posts = getPosts();
 	return (
 		<Page>
 			<PageHeader>Writing</PageHeader>

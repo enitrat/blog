@@ -6,7 +6,6 @@ import { StatusDot } from './status-dot';
 export function Eyebrow({
 	as: Tag = 'span',
 	dot,
-	live,
 	meta,
 	id,
 	className,
@@ -15,7 +14,6 @@ export function Eyebrow({
 	id?: string;
 	as?: 'span' | 'p' | 'h2' | 'h3' | 'div';
 	dot?: boolean;
-	live?: boolean;
 	meta?: ReactNode;
 	className?: string;
 	children?: ReactNode;
@@ -28,7 +26,7 @@ export function Eyebrow({
 				className,
 			)}
 		>
-			{(dot || live) && <StatusDot live={live} />}
+			{dot && <StatusDot />}
 			{children}
 			{meta && <span className="ms-auto text-end">{meta}</span>}
 		</Tag>

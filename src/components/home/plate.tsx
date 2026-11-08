@@ -1,12 +1,12 @@
+import { cva, type VariantProps } from 'class-variance-authority';
 import Image, { type StaticImageData } from 'next/image';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
-const RATIOS = {
-	'2/3': 'aspect-2/3',
-	'1/1': 'aspect-square',
-	'3/2': 'aspect-3/2',
-} as const;
+const plateVariants = cva('relative isolate w-full', {
+	variants: { ratio: { '2/3': 'aspect-2/3', '1/1': 'aspect-square', '3/2': 'aspect-3/2' } },
+	defaultVariants: { ratio: '2/3' },
+});
 
 /**
  * One object on a tile (a cover, artwork): a hairline media frame with shadow-xs. An image via `src`,
@@ -15,7 +15,7 @@ const RATIOS = {
 export function Plate({
 	src,
 	alt = '',
-	ratio = '2/3',
+	ratio,
 	glow = false,
 	sizes = '16rem',
 	className,
@@ -24,7 +24,7 @@ export function Plate({
 	src?: StaticImageData;
 	/** Use "" when a caption sits beside it. */
 	alt?: string;
-	ratio?: keyof typeof RATIOS;
+	ratio?: VariantProps<typeof plateVariants>['ratio'];
 	glow?: boolean;
 	sizes?: string;
 	className?: string;
@@ -32,7 +32,7 @@ export function Plate({
 	children?: ReactNode;
 }) {
 	return (
-		<div className={cn('relative isolate w-full', RATIOS[ratio], className)}>
+		<div className={cn(plateVariants({ ratio }), className)}>
 			{src && glow && (
 				<Image
 					aria-hidden

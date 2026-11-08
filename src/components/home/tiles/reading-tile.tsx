@@ -1,7 +1,7 @@
 import 'server-only';
 import { books } from '@/booksData';
 import { Tile } from '@/components/ui/tile';
-import { coverFor } from '@/utils/covers';
+import { findImage } from '@/lib/media';
 import { Deck } from '../deck';
 import { Plate } from '../plate';
 
@@ -24,11 +24,11 @@ export async function ReadingTile() {
 	const label = current.length ? 'Reading' : 'Last read';
 	const shown = (current.length ? current : last ? [last] : []).slice(0, 2);
 	const stack = await Promise.all(
-		shown.map(async (book) => ({ book, cover: await coverFor(book.edition.isbn13) })),
+		shown.map(async (book) => ({ book, cover: await findImage(`covers/${book.edition.isbn13}`) })),
 	);
 	return (
 		<Tile
-			compact
+			size="compact"
 			label={label}
 			href="/reading/"
 			meta={current.length > 1 ? `+${current.length - 1} more` : undefined}
