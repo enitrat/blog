@@ -45,11 +45,6 @@ session-resume.txt
 # Next.js
 next-env.d.ts
 *.tsbuildinfo
-# Media copied from src/ by scripts/sync-assets.mjs
-public/_assets/
-
-# Written by scripts/sync-assets.mjs
-src/generated/
 .next-dev-*/
 .next/
 .claude/worktrees/

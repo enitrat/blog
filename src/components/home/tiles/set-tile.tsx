@@ -12,7 +12,7 @@ import { SetTilePlayer } from './set-tile-player';
  * (square to round, turning slowly) and the header equalizer moves; under reduced motion it turns
  * round but does not spin. The tile is not a link, so it does not lift.
  */
-export function SetTile({
+export async function SetTile({
 	span = { md: 3, lg: 4 },
 	order,
 }: {
@@ -43,7 +43,7 @@ export function SetTile({
 				</span>
 			}
 		>
-			<SetTilePlayer art={image('set/bouncyx-seven.jpg')} date={date} />
+			<SetTilePlayer art={await image('set/bouncyx-seven.jpg')} date={date} />
 		</Tile>
 	);
 }

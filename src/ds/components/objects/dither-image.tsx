@@ -1,10 +1,10 @@
 'use client';
 
+import Image, { type StaticImageData } from 'next/image';
 import { type CSSProperties, useEffect, useRef } from 'react';
 import { initDither } from './dither';
 
-/** A published image: `src`, its size, and a WebP `srcSet` (`Img` in `src/lib/media.ts`). */
-export type DitherSource = { src: string; width: number; height: number; srcSet: string };
+export type DitherSource = StaticImageData;
 
 /**
  * An image shown as an ordered-dither duotone that reveals its true colours on hover, focus or
@@ -40,17 +40,7 @@ export function DitherImage({
 			className="dither"
 			style={{ '--dither-ratio': ratio } as CSSProperties}
 		>
-			{/* biome-ignore lint/performance/noImgElement: a static export serves the published srcset as is */}
-			<img
-				src={image.src}
-				srcSet={image.srcSet}
-				sizes={sizes}
-				width={image.width}
-				height={image.height}
-				alt={alt}
-				loading="lazy"
-				decoding="async"
-			/>
+			<Image src={image} sizes={sizes} alt={alt} />
 			{/* biome-ignore lint/a11y/noAriaHiddenOnFocusable: the canvas is never focusable; it repeats the image */}
 			<canvas aria-hidden="true" />
 		</div>

@@ -31,7 +31,7 @@ export async function generateMetadata(props: Params): Promise<Metadata> {
 
 export default async function ReportPage(props: Params) {
 	const report = await reportOf(props);
-	const { html } = await renderMarkdown(report.body, report.dir);
+	const { tree } = await renderMarkdown(report.body, report.dir);
 	const { title, summary, role, period, site } = report.data;
 	const meta = [role, period].filter(Boolean).join(' · ');
 	const siblings = getWorkIndex()
@@ -50,7 +50,7 @@ export default async function ReportPage(props: Params) {
 				</p>
 			)}
 
-			<Prose html={html} />
+			<Prose tree={tree} />
 
 			<footer className="grid gap-6">
 				{siblings.length > 0 && (

@@ -14,14 +14,14 @@ export const metadata = pageMeta({
 // Mathieu's own prose, rendered unchanged. This page owns layout and typography only; the words
 // and every claim in them stay as written.
 export default async function AboutPage() {
-	const { html } = await renderMarkdown(
+	const { tree } = await renderMarkdown(
 		readFileSync(join(process.cwd(), 'src/content/about.md'), 'utf8'),
 		'.',
 	);
 	return (
 		<Page width="measure" as="article">
 			<PageTitle>About</PageTitle>
-			<Prose html={html} />
+			<Prose tree={tree} />
 			<dl className="m-0 grid gap-4 border-t border-border pt-6 text-ui">
 				<div>
 					<dt>

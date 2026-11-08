@@ -31,7 +31,7 @@ export async function generateMetadata(props: Params): Promise<Metadata> {
 
 export default async function PostPage(props: Params) {
 	const post = await postOf(props);
-	const { html, headings } = await renderMarkdown(post.body, post.dir);
+	const { tree, headings } = await renderMarkdown(post.body, post.dir);
 	// Sections without a paragraph (such as "Part 1:" headings) stay in the text but not in the skim list.
 	const items = inShort(post, headings).filter((item) => item.hook);
 	const minutes = Math.max(1, Math.round(post.body.split(/\s+/).length / 230));
@@ -39,7 +39,7 @@ export default async function PostPage(props: Params) {
 	return (
 		<BlogPost
 			data={post.data}
-			html={html}
+			tree={tree}
 			inShort={items}
 			minutes={minutes}
 			newer={newer}

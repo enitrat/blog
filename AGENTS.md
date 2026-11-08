@@ -33,7 +33,7 @@ Read `src/ds/README.md` before changing a token, an atom, or a tile.
 
 - macOS has no `timeout`. Run the checks bare; each carries its own limits.
 - Never measure while another agent edits the tree. `motion:check` builds and
-  serves `dist/`; run it after edits land, or in a separate worktree. Never
+  runs `next start` on the build; run it after edits land, or in a separate worktree. Never
   point a measurement at a shared `next dev`.
 - Headless runs stub WebGL so the bench is measurable. The room is covered
   only by `room:check`, so a green `motion:check` says nothing about the room.
@@ -45,6 +45,6 @@ Read `src/ds/README.md` before changing a token, an atom, or a tile.
   re-tested once the real fix lands.
 - Give every fix or investigation agent a time budget. It reports back after
   three failed hypotheses or 30 minutes, whichever comes first. Experiments
-  run on a copy of the build, never on `dist/` in place.
+  run on a copy of the build, never on `.next/` in place.
 - A final report lists every check the brief promised as passed, failed, or
   not run, with the reason for each one not run.

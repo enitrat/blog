@@ -34,9 +34,9 @@ export function getAdjacent(post: Post) {
 }
 
 /** The post's `banner.*` image from its folder, if it has one. */
-export function bannerFor(post: Pick<Post, 'id'>): Img | undefined {
+export async function bannerFor(post: Pick<Post, 'id'>): Promise<Img | undefined> {
 	for (const ext of ['png', 'jpg', 'jpeg', 'webp']) {
-		const img = maybeImage(`content/blog/${post.id}/banner.${ext}`);
+		const img = await maybeImage(`content/blog/${post.id}/banner.${ext}`);
 		if (img) return img;
 	}
 	return undefined;

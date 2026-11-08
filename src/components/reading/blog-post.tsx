@@ -1,7 +1,7 @@
+import type { Root } from 'hast';
 import { Label, Link, ListRow, ListRows, Page, PageTitle } from '@/ds';
 import type { BlogData } from '@/lib/content';
 import type { InShortItem } from '@/utils/inShort';
-import { CopyCodeButton } from './copy-code-button';
 import { InShort } from './in-short';
 import { Prose } from './prose';
 
@@ -23,7 +23,7 @@ const formatDate = (date: Date) =>
  */
 export function BlogPost({
 	data: { title, description, pubDate, updatedDate },
-	html,
+	tree,
 	inShort = [],
 	minutes,
 	newer,
@@ -32,7 +32,7 @@ export function BlogPost({
 }: {
 	data: BlogData;
 	/** The rendered markdown. */
-	html: string;
+	tree: Root;
 	/** Items from `inShort(entry, headings)`; sections with no hook are left out. */
 	inShort?: InShortItem[];
 	/** Estimated reading time. */
@@ -85,7 +85,7 @@ export function BlogPost({
 
 			{inShort.length > 0 && <InShort items={inShort} />}
 
-			<Prose html={html} />
+			<Prose tree={tree} backLinks={inShort.length > 0} />
 
 			<footer className="grid gap-8">
 				{onward.length > 0 && (
@@ -106,8 +106,6 @@ export function BlogPost({
 					</Link>
 				</p>
 			</footer>
-
-			<CopyCodeButton />
 		</Page>
 	);
 }

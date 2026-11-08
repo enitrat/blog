@@ -4,10 +4,10 @@
  *   bun run motion:check                 every installed engine and viewport
  *   bun run motion:check chromium        one engine (chromium | webkit | firefox | all)
  *
- * Measures a production build by default: `bun run build` (a static export), then serves dist/,
+ * Measures a production build by default: `bun run build`, then `next start` on it,
  * so Next's dev client and overlay are not on the page. `--dev` (or DEV_URL) uses a dev server
  * instead (a running one at http://localhost:3000, else its own); dev-only scripts are then listed
- * but not counted. MOTION_NOBUILD=1 reuses the existing dist/.
+ * but not counted. MOTION_NOBUILD=1 reuses the existing build.
  * MOTION_ONLY=5 runs one check by its number; MOTION_TRACE=1 writes a Chromium trace of the deck scenarios. Writes a video per viewport and a JSON report per engine to MOTION_OUT
  * (default /tmp/motion-check, like room:check's /tmp/room-check).
  *
@@ -22,8 +22,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium, firefox, webkit } from 'playwright';
-import { serve } from './dev-server.mjs';
-import { serveStatic } from './serve-dist.mjs';
+import { serve, serveBuild } from './dev-server.mjs';
 
 // ---- thresholds -------------------------------------------------------------------------------
 const JUMP_RATIO = 1.5; // a step this many times the larger of its two neighbouring steps (60Hz-normalised)...
@@ -1372,19 +1371,19 @@ async function runEngine(engine, base) {
 	return results;
 }
 
-/** Builds once per run (the `all` parent builds; its children inherit MOTION_BUILT), serves dist/. */
-async function serveDist() {
+/** Builds once per run (the `all` parent builds; its children inherit MOTION_BUILT), then `next start`. */
+async function startBuild() {
 	if (!process.env.MOTION_BUILT && !process.env.MOTION_NOBUILD) {
 		const b = spawnSync(process.execPath, ['run', 'build'], { stdio: 'inherit' });
 		if (b.status !== 0) process.exit(1);
 	}
 	process.env.MOTION_BUILT = '1';
-	return serveStatic('dist');
+	return serveBuild();
 }
 
 async function resolveBase() {
 	if (process.env.DEV_URL) return { base: process.env.DEV_URL.replace(/\/$/, ''), stop: () => {} };
-	if (!DEV) return serveDist();
+	if (!DEV) return startBuild();
 	try {
 		if ((await fetch(DEFAULT_URL, { signal: AbortSignal.timeout(2000) })).ok)
 			return { base: DEFAULT_URL, stop: () => {} };

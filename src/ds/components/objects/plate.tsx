@@ -1,6 +1,6 @@
+import Image, { type StaticImageData } from 'next/image';
 import type { CSSProperties, ReactNode } from 'react';
 import { cn } from '@/ds/lib/cn';
-import type { Img } from '@/lib/media';
 
 const RATIOS = {
 	'2/3': 'aspect-2/3',
@@ -32,7 +32,7 @@ export function Plate({
 	className,
 	children,
 }: {
-	src?: Img;
+	src?: StaticImageData;
 	/** Use "" when a caption sits beside it. */
 	alt?: string;
 	ratio?: PlateRatio;
@@ -54,17 +54,12 @@ export function Plate({
 			{glow && <span className="plate-glow" aria-hidden="true" />}
 			<div className="plate-face">
 				{src ? (
-					// biome-ignore lint/performance/noImgElement: static export; srcSet comes from the asset manifest
-					<img
+					<Image
 						className="block size-full object-cover"
-						src={src.src}
-						srcSet={src.srcSet || undefined}
+						src={src}
 						sizes={sizes}
-						width={src.width}
-						height={src.height}
 						alt={alt}
 						loading={loading}
-						decoding="async"
 					/>
 				) : (
 					children

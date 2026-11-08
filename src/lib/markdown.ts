@@ -5,7 +5,6 @@ import { toString as hastToString } from 'hast-util-to-string';
 import type { Root as MdastRoot } from 'mdast';
 import rehypeRaw from 'rehype-raw';
 import rehypeSlug from 'rehype-slug';
-import rehypeStringify from 'rehype-stringify';
 import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
@@ -17,7 +16,7 @@ import codeThemeDark from '@/styles/code-theme-dark.json';
 import { maybeImage } from './media';
 
 export type Heading = { depth: number; slug: string; text: string };
-export type Rendered = { html: string; headings: Heading[] };
+export type Rendered = { tree: HastRoot; headings: Heading[] };
 
 /** Essays set no banner: drop a leading `![](./banner.png)` paragraph. The file stays in the repo. */
 const remarkDropBanner = () => (tree: MdastRoot) => {
@@ -26,23 +25,21 @@ const remarkDropBanner = () => (tree: MdastRoot) => {
 	if (img?.type === 'image' && /(^|\/)banner\.\w+$/.test(img.url)) tree.children.shift();
 };
 
-/** Points a relative `<img src="./x.png">` at its published copy, with its size and srcset. */
-const rehypeLocalImages = (dir: string) => () => (tree: HastRoot) => {
+/** Points a relative `<img src="./x.png">` at the bundled file with its size, for `next/image`. */
+const rehypeLocalImages = (dir: string) => () => async (tree: HastRoot) => {
+	const imgs: Element[] = [];
 	visit(tree, 'element', (node: Element) => {
-		if (node.tagName !== 'img') return;
+		if (node.tagName === 'img') imgs.push(node);
+	});
+	for (const node of imgs) {
 		const src = String(node.properties.src ?? '');
-		if (/^(https?:)?\/\//.test(src) || src.startsWith('/')) return;
-		const key = `content/${dir}/${src.replace(/^\.\//, '')}`;
-		const img = maybeImage(key);
+		if (/^(https?:)?\/\//.test(src) || src.startsWith('/')) continue;
+		const img = await maybeImage(`content/${dir}/${src.replace(/^\.\//, '')}`);
 		if (!img) throw new Error(`Markdown image ${src} in ${dir} is not under src/content.`);
 		node.properties.src = img.src;
-		node.properties.srcSet = img.srcSet;
-		node.properties.sizes = '(min-width: 40rem) 38rem, 100vw';
 		node.properties.width = img.width;
 		node.properties.height = img.height;
-		node.properties.loading = 'lazy';
-		node.properties.decoding = 'async';
-	});
+	}
 };
 
 /** Collects every heading with its id, after `rehype-slug` has set them (github-slugger, as Astro did). */
@@ -59,13 +56,31 @@ const rehypeCollectHeadings = (out: Heading[]) => () => (tree: HastRoot) => {
 };
 
 /**
- * Markdown to HTML at build time: GFM, inline HTML, heading ids, Shiki in two themes (light
- * inlined as `color`, dark as `--shiki-dark`; Prose picks one), and local images published with a
- * srcset. `dir` is the entry's folder under `src/content`.
+ * Names every code block after its language and its place among blocks of that language
+ * ("ts sample 2"), so a reader knows which sample a Copy button copies. `CodeBlock` reads it.
  */
-export async function renderMarkdown(body: string, dir: string): Promise<Rendered> {
-	const headings: Heading[] = [];
-	const file = await unified()
+const rehypeCodeLabels = () => (tree: HastRoot) => {
+	const seen = new Map<string, number>();
+	visit(tree, 'element', (node: Element) => {
+		if (node.tagName !== 'pre') return;
+		const code = node.children.find(
+			(c): c is Element => c.type === 'element' && c.tagName === 'code',
+		);
+		if (!code) return;
+		// Shiki writes `class` as a string; remark-rehype writes `className` as a list.
+		const classes = [code.properties.className ?? [], code.properties.class ?? []]
+			.flat()
+			.flatMap((c) => String(c).split(/\s+/));
+		const language = classes.find((c) => c.startsWith('language-'))?.slice('language-'.length);
+		const kind = language && language !== 'plaintext' && language !== 'text' ? language : 'code';
+		const ordinal = (seen.get(kind) ?? 0) + 1;
+		seen.set(kind, ordinal);
+		node.properties.dataCopyLabel = `${kind} sample ${ordinal}`;
+	});
+};
+
+const processor = (dir: string, headings: Heading[]) =>
+	unified()
 		.use(remarkParse)
 		.use(remarkGfm)
 		// Curly quotes and dashes, as Astro's markdown did by default.
@@ -88,7 +103,16 @@ export async function renderMarkdown(body: string, dir: string): Promise<Rendere
 			fallbackLanguage: 'text',
 			addLanguageClass: true,
 		})
-		.use(rehypeStringify)
-		.process(body);
-	return { html: String(file), headings };
+		.use(rehypeCodeLabels);
+
+/**
+ * Markdown to a hast tree at build time: GFM, inline HTML, heading ids, Shiki in two themes (light
+ * inlined as `color`, dark as `--shiki-dark`; Prose picks one), and local images resolved to their
+ * bundled files. `dir` is the entry's folder under `src/content`. `Prose` renders the tree as React.
+ */
+export async function renderMarkdown(body: string, dir: string): Promise<Rendered> {
+	const headings: Heading[] = [];
+	const p = processor(dir, headings);
+	const tree = (await p.run(p.parse(body))) as HastRoot;
+	return { tree, headings };
 }

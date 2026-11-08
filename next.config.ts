@@ -1,17 +1,20 @@
 import type { NextConfig } from 'next';
 
-/**
- * A static export into `dist/`, so the browser checks serve a plain folder as they did under
- * Astro. Redirects live in `vercel.json`, since an export has no server to answer them.
- */
 const config: NextConfig = {
-	output: 'export',
 	// `next dev` for a browser check sets its own dir, so parallel checks never share a cache.
-	distDir: process.env.NEXT_DIST_DIR ?? 'dist',
-	// `about/index.html`, as Astro emitted: indexed URLs keep their trailing slash.
+	distDir: process.env.NEXT_DIST_DIR ?? '.next',
+	// `about/` as Astro emitted it: indexed URLs keep their trailing slash.
 	trailingSlash: true,
-	images: { unoptimized: true },
 	reactStrictMode: true,
+	async redirects() {
+		return [
+			{ source: '/blog', destination: '/writing/', permanent: true },
+			{ source: '/blog/:slug*', destination: '/writing/:slug*', permanent: true },
+			{ source: '/reads', destination: '/reading/', permanent: true },
+			{ source: '/bookshelf', destination: '/reading/', permanent: true },
+			{ source: '/bookshelf/archive', destination: '/reading/', permanent: true },
+		];
+	},
 };
 
 export default config;

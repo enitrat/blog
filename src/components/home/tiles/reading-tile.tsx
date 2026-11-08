@@ -27,7 +27,7 @@ export async function ReadingTile({ order }: { order?: number }) {
 	const shown = (current.length ? current : last ? [last] : []).slice(0, 2);
 	const stack = await Promise.all(
 		shown.map(async (book) => {
-			const cover = coverFor(book.edition.isbn13);
+			const cover = await coverFor(book.edition.isbn13);
 			return { book, cover, glow: cover ? await glowOf(cover) : undefined };
 		}),
 	);

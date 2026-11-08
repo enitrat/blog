@@ -11,8 +11,12 @@ import { bannerFor, getWritingIndex, postUrl } from '@/utils/writing';
  * place and the card under the pointer comes forward; letting go squares the pile up. Where hover
  * is unavailable, or the tile is narrow, the same three cards show as a scrolling row.
  */
-export function WritingTile({ order }: { order?: number }) {
-	const posts = getWritingIndex().slice(0, 3);
+export async function WritingTile({ order }: { order?: number }) {
+	const posts = await Promise.all(
+		getWritingIndex()
+			.slice(0, 3)
+			.map(async (p) => ({ ...p, banner: await bannerFor(p) })),
+	);
 	if (posts.length === 0) return null;
 	const card = (p: (typeof posts)[number], size: 'sm' | 'md') => (
 		<PostCard
@@ -21,7 +25,7 @@ export function WritingTile({ order }: { order?: number }) {
 			title={p.data.title}
 			description={p.data.description}
 			date={p.data.pubDate}
-			image={bannerFor(p)}
+			image={p.banner}
 			headingLevel={3}
 			size={size}
 		/>

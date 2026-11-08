@@ -1,3 +1,4 @@
+import { getImageProps } from 'next/image';
 import { Prose } from '@/components/reading/prose';
 import { Bench, Button, DitherImage, Label, Lightbox, Page, PageTitle, Tile } from '@/ds';
 import { getTrips, type Trip } from '@/lib/content';
@@ -14,22 +15,17 @@ export const metadata = pageMeta({
 const monthYear = new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' });
 
 /** A photo of a trip, by its path relative to the trip folder (`./cover.jpg`). */
-const photoOf = (trip: Trip, src: string): Img => {
+const photoOf = async (trip: Trip, src: string): Promise<Img> => {
 	const key = `content/${trip.dir}/${src.replace(/^\.\//, '')}`;
-	const img = maybeImage(key);
+	const img = await maybeImage(key);
 	if (!img) throw new Error(`${trip.dir}: ${src} is not an image in the trip folder.`);
 	return img;
 };
 
-/** The lightbox shows the 1600px WebP, or the largest one when the photo is smaller. */
+/** The lightbox shows the photo optimised to 1600px wide, or its own width when it is smaller. */
 const LIGHTBOX_WIDTH = 1600;
-const lightboxSrc = (img: Img) => {
-	const widths = img.srcSet.split(', ').map((s) => {
-		const [src, w] = s.split(' ');
-		return { src, width: Number.parseInt(w, 10) };
-	});
-	return (widths.find((w) => w.width >= LIGHTBOX_WIDTH) ?? widths.at(-1))?.src ?? img.src;
-};
+const lightboxSrc = (img: Img) =>
+	getImageProps({ src: img, alt: '', width: Math.min(img.width, LIGHTBOX_WIDTH) }).props.src;
 
 /** Trips and photographs. The header shows the link and the sitemap lists the page once a trip exists. */
 export default async function PlacesPage() {
@@ -41,13 +37,15 @@ export default async function PlacesPage() {
 				title,
 				country,
 				date,
-				cover: photoOf(trip, cover),
-				set: photos.map((p, n) => ({
-					src: lightboxSrc(photoOf(trip, p.src)),
-					alt: p.caption ?? `${title}, photo ${n + 1}`,
-					caption: p.caption,
-				})),
-				notes: trip.body.trim() ? (await renderMarkdown(trip.body, trip.dir)).html : undefined,
+				cover: await photoOf(trip, cover),
+				set: await Promise.all(
+					photos.map(async (p, n) => ({
+						src: lightboxSrc(await photoOf(trip, p.src)),
+						alt: p.caption ?? `${title}, photo ${n + 1}`,
+						caption: p.caption,
+					})),
+				),
+				notes: trip.body.trim() ? (await renderMarkdown(trip.body, trip.dir)).tree : undefined,
 			};
 		}),
 	);
@@ -87,7 +85,7 @@ export default async function PlacesPage() {
 									</Button>
 								</div>
 							)}
-							{t.notes && <Prose html={t.notes} />}
+							{t.notes && <Prose tree={t.notes} />}
 						</Tile>
 					))}
 				</Bench>

@@ -1,6 +1,6 @@
+import type { StaticImageData } from 'next/image';
 import NextLink from 'next/link';
 import { cn } from '@/ds/lib/cn';
-import type { Img } from '@/lib/media';
 import { Plate } from './plate';
 
 const SIZES = {
@@ -34,7 +34,7 @@ export function PostCard({
 	/** Shown as `en-GB` day, month, year (UTC). */
 	date: Date;
 	/** Banner; omit for the typographic card. */
-	image?: Img;
+	image?: StaticImageData;
 	headingLevel?: keyof typeof HEADINGS;
 	size?: PostCardSize;
 }) {

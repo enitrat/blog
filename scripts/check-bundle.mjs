@@ -9,7 +9,9 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, posix, relative, resolve, sep } from 'node:path';
 
-const DIST = 'dist';
+/** The build dir; prerendered pages are under `server/app`, and `/_next/x` is `x` in it. */
+const DIST = '.next';
+const PAGES = join(DIST, 'server/app');
 
 /**
  * Content markers, not filenames: Vite is free to name the chunk carrying three
@@ -38,9 +40,11 @@ function htmlFiles(dir) {
 /** Resolve a specifier against the importing file's directory, dist-relative. */
 function resolveSpecifier(specifier, fromDir) {
 	if (!specifier.startsWith('.') && !specifier.startsWith('/')) return null; // bare or http
-	const absolute = specifier.startsWith('/')
-		? join(DIST, specifier.slice(1))
-		: resolve(fromDir, specifier);
+	const absolute = specifier.startsWith('/_next/')
+		? join(DIST, specifier.slice('/_next/'.length))
+		: specifier.startsWith('/')
+			? join(DIST, specifier.slice(1))
+			: resolve(fromDir, specifier);
 	const relativePath = relative(DIST, absolute);
 	return relativePath.startsWith('..') ? null : relativePath.split(sep).join(posix.sep);
 }
@@ -75,10 +79,10 @@ function chainToThree(entry, source) {
 	return null;
 }
 
-const pages = htmlFiles(DIST);
+const pages = htmlFiles(PAGES);
 const offenders = [];
 for (const file of pages) {
-	const page = relative(DIST, file).split(sep).join(posix.sep);
+	const page = relative(PAGES, file).split(sep).join(posix.sep);
 	const html = readFileSync(file, 'utf8');
 	const pageDir = dirname(file);
 

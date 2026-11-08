@@ -3,7 +3,7 @@
 Every value the site draws with is a token. It is stated once, in this folder. Pages and site
 components (`src/components/**`) compose what this folder exports, and they read only roles.
 
-The site is Next.js (App Router, static export into `dist/`), React 19, Tailwind CSS v4, and
+The site is Next.js (App Router, every page prerendered; see ADR 0004), React 19, Tailwind CSS v4, and
 shadcn components on Base UI (`components.json`, style `base-nova`). `shadcn add <name>` writes
 into `src/ds/components/ui/`. Restyle what it writes onto the tokens before using it. The
 restyling rules are in [Add a component](#add-a-component).
