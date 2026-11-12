@@ -9,12 +9,11 @@ import { cn } from '@/lib/utils';
 
 type Brand = { icon: SimpleIcon; tile: string };
 
-// Third-party brand colours stay literal. GitHub and X are black: on the dark card they take a
-// lifted grey instead.
-const LIFTED_BLACK = 'oklch(0.32 0.014 250)';
+// Third-party brand colours stay literal. GitHub and X are black: on the dark card they take
+// --lifted-black instead.
 const BRANDS = {
-	GitHub: { icon: siGithub, tile: `light-dark(#181717, ${LIFTED_BLACK})` },
-	X: { icon: siX, tile: `light-dark(#000, ${LIFTED_BLACK})` },
+	GitHub: { icon: siGithub, tile: `light-dark(#181717, var(--lifted-black))` },
+	X: { icon: siX, tile: `light-dark(#000, var(--lifted-black))` },
 	Telegram: { icon: siTelegram, tile: `#${siTelegram.hex}` },
 	SoundCloud: { icon: siSoundcloud, tile: `#${siSoundcloud.hex}` },
 } satisfies Record<(typeof CONTACT_LINKS)[number]['label'] | 'SoundCloud', Brand>;
@@ -63,13 +62,13 @@ export function BrandLinks() {
 									press: { scale: 0.95, transition: spring.tap },
 								}}
 								className={cn(
-									'grid size-10 place-items-center rounded-[12px] bg-(--c) shadow-chip @[18rem]:size-14 @[18rem]:rounded-[16px]',
+									'grid size-10 place-items-center rounded-[28%] bg-(--c) shadow-chip @[18rem]:size-14',
 								)}
 							>
 								<svg
 									aria-hidden="true"
 									viewBox="0 0 24 24"
-									className="size-5 fill-white @[18rem]:size-[26px]"
+									className="size-5 fill-white @[18rem]:size-6.5"
 								>
 									<path d={l.icon.path} />
 								</svg>

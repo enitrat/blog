@@ -79,6 +79,8 @@
 	/* The photo viewer is night in both themes, so .dark does not re-role it. */
 	--scrim: var(--palette-neutral-950);
 	--scrim-foreground: var(--palette-neutral-50);
+	/* A black brand chip (GitHub, X) on the night card, lifted so it does not read as a hole. */
+	--lifted-black: var(--palette-neutral-800);
 	/* Ink and paper of the dithered place photos, read by the canvas. */
 	--dither-ink: var(--palette-neutral-850);
 	--dither-paper: var(--palette-neutral-50);
@@ -440,6 +442,20 @@
 	filter: blur(22px) saturate(1.7);
 	opacity: 0.75;
 	transform: scale(1.08);
+}
+
+/* The record behind the set art: an accent label, a spindle hole, and grooves. */
+@utility record {
+	background:
+		radial-gradient(circle, var(--primary) 0 14%, var(--scrim) 14.5% 16%, transparent 16.5%),
+		repeating-radial-gradient(circle, var(--scrim) 0 2px, oklch(1 0 0 / 0.06) 2px 3px);
+}
+
+/* Laid over the spinning art while the set plays: a spindle hole and faint grooves. */
+@utility record-grooves {
+	background:
+		radial-gradient(circle, var(--card) 0 5%, oklch(0.1 0 0 / 0.85) 5.5% 7%, transparent 7.5% 30%),
+		repeating-radial-gradient(circle, transparent 0 3px, oklch(0 0 0 / 0.08) 3px 4px);
 }
 
 /* Edge fades: an image melts into the surface it sits on. Masks, so any surface works. */

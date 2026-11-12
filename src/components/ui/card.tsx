@@ -15,20 +15,17 @@ export const useCardHeld = () => useContext(HeldContext);
 
 /**
  * The one card: one inset, one radius, one shadow. With an `index` it pops in on mount, staggered
- * by that position; without one it renders in place. A `lift` card rises on hover and presses on tap; every card tells its children when it
- * is held, so a stack inside can fan. Under reduced motion it renders in place and does not move.
+ * by that position; without one it renders in place. Every card tells its children when it is
+ * held, so a stack inside can fan. Under reduced motion it renders in place and does not move.
  */
 export function Card({
 	index,
-	lift = false,
 	labelledBy,
 	className,
 	children,
 }: {
 	/** Position in the pop-in order. Omit it and the card does not pop in. */
 	index?: number;
-	/** The whole card is a link: it rises on hover and presses on tap. */
-	lift?: boolean;
 	/** Id of the card's eyebrow heading, when it has one. */
 	labelledBy?: string;
 	className?: string;
@@ -44,15 +41,11 @@ export function Card({
 				aria-labelledby={labelledBy}
 				className={cn(
 					'group/card relative isolate flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-card bg-card p-inset shadow-card',
-					lift &&
-						'transition-shadow duration-300 hover:shadow-lifted motion-reduce:transition-none',
 					className,
 				)}
 				initial={motile && index !== undefined ? { opacity: 0, y: 14, scale: 0.98 } : false}
 				animate={{ opacity: 1, y: 0, scale: 1 }}
 				transition={{ ...spring.enter, delay: (index ?? 0) * POP_STAGGER }}
-				whileHover={motile && lift ? { y: -3, transition: spring.hover } : undefined}
-				whileTap={motile && lift ? { y: -1, scale: 0.985, transition: spring.tap } : undefined}
 				onHoverStart={() => setHovered(true)}
 				onHoverEnd={() => setHovered(false)}
 				onFocus={(e) => setFocused(e.target.matches(':focus-visible'))}

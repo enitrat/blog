@@ -26,7 +26,8 @@ const FOCUS = 'outline-none focus-visible:ring-2 focus-visible:ring-ring';
  * fading into the well on the right. Read more stretches over the slide, so the whole slide opens
  * the post; while the tile is held the title takes the accent and the banner slowly pushes in. It advances on its own, holds while the pointer or focus is
  * inside, and never advances under reduced motion. The pause button stops it for good, which
- * is the only way to on touch, where nothing hovers; the dots pick a post directly.
+ * is the only way to on touch, where nothing hovers; the dots pick a post directly. Both sit in a
+ * row under the slide.
  */
 export function WritingCarousel({ posts }: { posts: CarouselPost[] }) {
 	const [index, setIndex] = useState(0);
@@ -66,7 +67,9 @@ export function WritingCarousel({ posts }: { posts: CarouselPost[] }) {
 					exit={{ opacity: 0, x: -16, transition: reduce ? { duration: 0 } : ease }}
 					transition={reduce ? { duration: 0 } : spring.enter}
 				>
-					<div className="flex min-h-0 flex-col">
+					{/* Anchored to the bottom like every tile's title; `safe` keeps the date reachable when
+					    a long title fills the column. */}
+					<div className="flex min-h-0 flex-col justify-end-safe">
 						<time dateTime={post.iso} className="type-meta text-faint">
 							{post.date}
 						</time>
@@ -78,7 +81,7 @@ export function WritingCarousel({ posts }: { posts: CarouselPost[] }) {
 						</p>
 						<Link
 							href={post.href}
-							className={`mt-auto inline-flex min-h-10 items-center gap-0.5 self-start rounded-control bg-card pr-2.5 pl-3.5 type-control shadow-card transition-colors duration-150 ease-out after:absolute after:inset-0 group-data-[held]/tile:text-primary ${FOCUS}`}
+							className={`mt-4 inline-flex min-h-10 items-center gap-0.5 self-start rounded-control bg-card pr-2.5 pl-3.5 type-control shadow-card transition-colors duration-150 ease-out after:absolute after:inset-0 group-data-[held]/tile:text-primary ${FOCUS}`}
 						>
 							Read more
 							<ChevronRightIcon
@@ -101,7 +104,10 @@ export function WritingCarousel({ posts }: { posts: CarouselPost[] }) {
 				</motion.article>
 			</AnimatePresence>
 			{posts.length > 1 && (
-				<div className="absolute bottom-1 left-36 z-10 flex max-sm:right-0 max-sm:left-auto">
+				// A row of its own under the slide: beside Read more it ran under the banner when the tile
+				// was narrow. Phones hide the banner and the tile is one row short, so there it goes back
+				// beside Read more.
+				<div className="-mb-1.5 -ml-2.5 flex pt-2 max-sm:absolute max-sm:right-0 max-sm:bottom-1 max-sm:m-0 max-sm:pt-0">
 					{rotates && (
 						<button
 							type="button"
@@ -126,9 +132,12 @@ export function WritingCarousel({ posts }: { posts: CarouselPost[] }) {
 							className={`relative grid h-8 w-9 cursor-pointer place-items-center rounded-full after:absolute after:-inset-x-1 after:-inset-y-1.5 ${FOCUS}`}
 						>
 							<span
+								// The pill is always 16px wide; a clip trims it to a dot, so nothing reflows.
 								className={cn(
-									'block h-1.5 rounded-full transition-[width,background-color] duration-300 ease-out motion-reduce:transition-none',
-									k === index ? 'w-4 bg-foreground' : 'w-1.5 bg-border-strong',
+									'block h-1.5 w-4 rounded-full transition-[clip-path,background-color] duration-300 ease-out motion-reduce:transition-none',
+									k === index
+										? 'bg-foreground [clip-path:inset(0_round_9999px)]'
+										: 'bg-border-strong [clip-path:inset(0_5px_round_9999px)]',
 								)}
 							/>
 						</button>

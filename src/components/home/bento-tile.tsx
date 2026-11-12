@@ -54,12 +54,14 @@ export function BentoTile({
 					data-held={held || undefined}
 					className={cn(
 						'group/tile group/card relative h-full rounded-bezel bg-card p-bezel shadow-bezel',
-						lift && 'cursor-pointer',
+						// The press is CSS: motion's whileTap would make the section itself a tab stop that does
+						// nothing, beside the link that already stretches over it.
+						lift &&
+							'cursor-pointer transition-[scale] duration-150 ease-out active:scale-[0.985] motion-reduce:transition-none motion-reduce:active:scale-100',
 					)}
 					initial={false}
 					animate={{ y: held && !reduce ? -2 : 0 }}
 					transition={spring.hover}
-					whileTap={!reduce && lift ? { scale: 0.985, transition: spring.tap } : undefined}
 					onHoverStart={() => setHovered(true)}
 					onHoverEnd={() => setHovered(false)}
 					onFocus={(e) => setFocused(e.target.matches(':focus-visible'))}

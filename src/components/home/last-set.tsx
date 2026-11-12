@@ -65,7 +65,7 @@ function Waveform({ playing }: { playing: boolean }) {
 				<i
 					key={k.toString()}
 					className={cn(
-						'block w-1 flex-none rounded-[2px] transition-colors duration-200',
+						'block w-1 flex-none rounded-full transition-colors duration-200',
 						playing ? 'animate-bar bg-primary motion-reduce:animate-none' : 'bg-border-strong',
 					)}
 					style={{ height: `${h * 100}%`, animationDelay: `-${(k * 73) % 900}ms` }}
@@ -134,11 +134,7 @@ export function LastSet({ art }: { art: StaticImageData }) {
 				</motion.div>
 				<motion.span
 					aria-hidden="true"
-					className="absolute inset-[4%] rounded-full shadow-art"
-					style={{
-						background:
-							'radial-gradient(circle, var(--primary) 0 14%, var(--scrim) 14.5% 16%, transparent 16.5%), repeating-radial-gradient(circle, var(--scrim) 0 2px, oklch(1 0 0 / 0.06) 2px 3px)',
-					}}
+					className="absolute inset-[4%] rounded-full shadow-art record"
 					initial={false}
 					animate={{ x: peek ? '20%' : '0%', rotate: peek ? 30 : 0 }}
 					transition={move}
@@ -154,13 +150,9 @@ export function LastSet({ art }: { art: StaticImageData }) {
 						<span
 							aria-hidden="true"
 							className={cn(
-								'absolute inset-0 rounded-full transition-opacity duration-300',
+								'absolute inset-0 rounded-full record-grooves transition-opacity duration-300',
 								playing ? 'opacity-100' : 'opacity-0',
 							)}
-							style={{
-								background:
-									'radial-gradient(circle, var(--card) 0 5%, oklch(0.1 0 0 / 0.85) 5.5% 7%, transparent 7.5% 30%), repeating-radial-gradient(circle, transparent 0 3px, oklch(0 0 0 / 0.08) 3px 4px)',
-							}}
 						/>
 					</motion.div>
 				</motion.div>
