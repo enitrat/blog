@@ -1,25 +1,27 @@
-import { cva, type VariantProps } from 'class-variance-authority';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
-const pageVariants = cva('mx-auto flex w-full flex-col gap-10 pt-8 pb-16', {
-	variants: { width: { wide: 'max-w-7xl', text: 'max-w-xl', list: 'max-w-3xl' } },
-	defaultVariants: { width: 'list' },
-});
-
-/** A page body: one centred column with the page rhythm. */
+/**
+ * A page body: one centred column, the same width on every page, with the page rhythm. One width
+ * means every title starts at the same place, so moving between pages never shifts it. Content
+ * fits the column; long text caps its own measure inside it (see `Prose`). Home alone is wider.
+ */
 export function Page({
-	width,
 	as: Root = 'div',
 	className,
 	children,
 }: {
-	width?: VariantProps<typeof pageVariants>['width'];
 	as?: 'div' | 'article';
 	className?: string;
 	children: ReactNode;
 }) {
-	return <Root className={cn(pageVariants({ width }), className)}>{children}</Root>;
+	return (
+		<Root
+			className={cn('mx-auto flex w-full max-w-page flex-col gap-rhythm pt-8 pb-16', className)}
+		>
+			{children}
+		</Root>
+	);
 }
 
 export function PageHeader({
@@ -34,10 +36,8 @@ export function PageHeader({
 	return (
 		<header className="flex flex-col gap-2">
 			{kicker}
-			<h1 className="text-3xl leading-tight font-semibold tracking-tight text-balance text-foreground sm:text-4xl">
-				{children}
-			</h1>
-			{lead && <p className="text-sm leading-relaxed text-pretty text-muted-foreground">{lead}</p>}
+			<h1 className="type-headline text-balance text-foreground">{children}</h1>
+			{lead && <p className="type-body text-pretty text-muted-foreground">{lead}</p>}
 		</header>
 	);
 }

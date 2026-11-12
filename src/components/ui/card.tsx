@@ -84,7 +84,7 @@ export function CardHeader({
 	return (
 		<header
 			className={cn(
-				'flex h-5 flex-none items-center gap-1.5 text-eyebrow font-medium uppercase',
+				'flex h-5 flex-none items-center gap-1.5',
 				onMedia ? 'text-scrim-foreground/85' : 'text-faint',
 				className,
 			)}
@@ -95,11 +95,14 @@ export function CardHeader({
 			>
 				{icon}
 			</span>
-			<h2 id={id}>{label}</h2>
+			<h2 id={id} className="type-eyebrow whitespace-nowrap">
+				{label}
+			</h2>
 			{children && (
 				<div
 					className={cn(
-						'ml-auto flex items-center gap-0.5 text-meta font-normal tracking-normal normal-case [&_svg]:transition-transform [&_svg]:duration-300 motion-safe:group-hover/card:[&_svg]:translate-x-0.5 motion-safe:group-hover/card:[&_svg]:-translate-y-0.5',
+						// A narrow card truncates the trailing note rather than wrapping the row.
+						'ml-auto flex min-w-0 items-center gap-0.5 type-caption whitespace-nowrap [&>*]:min-w-0 [&>*]:truncate [&_svg]:transition-transform [&_svg]:duration-300 motion-safe:group-hover/card:[&_svg]:translate-x-0.5 motion-safe:group-hover/card:[&_svg]:-translate-y-0.5',
 						onMedia ? 'text-scrim-foreground' : 'text-muted-foreground',
 					)}
 				>

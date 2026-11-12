@@ -4,57 +4,217 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Two layers. Primitives (the ramps in @theme) are inks sampled from the living-room render and
- * never change with the theme. Roles (:root and .dark) pick a primitive per theme, and components
- * use only roles: `bg-card`, `text-muted-foreground`, `border-border`, `text-primary`.
- * Retint the site by editing a ramp; re-role it by editing the two role blocks.
+ * The design system, in three layers. Components only ever touch layer 3.
+ *
+ * 1. Palettes: raw OKLCH scales, named by the job they do in the brand, never by hue. They live
+ *    outside @theme, so Tailwind generates no utility for them and no component can name one.
+ *    Retint the site by editing a palette.
+ * 2. Roles: what a colour is for (`background`, `primary`, `faint`). Each theme points every role
+ *    at a palette step. Re-role the site by editing the `:root` and `.dark` blocks.
+ * 3. Utilities: `bg-card`, `text-faint`, `type-headline`, `rounded-control`, `gap-rhythm`,
+ *    `max-w-reading`. Change a role and every page that names it follows.
  */
+
+/* 1. Palettes. One hue per scale from end to end; every step sits inside sRGB. */
+:root {
+	/* Neutral: cool paper by day, slate by night. Night uses 850–950 and 200–400. */
+	--palette-neutral-0: oklch(0.993 0.006 250);
+	--palette-neutral-50: oklch(0.972 0.006 250);
+	--palette-neutral-100: oklch(0.945 0.007 250);
+	--palette-neutral-200: oklch(0.89 0.007 250);
+	--palette-neutral-300: oklch(0.81 0.008 250);
+	--palette-neutral-400: oklch(0.71 0.01 250);
+	--palette-neutral-500: oklch(0.61 0.011 250);
+	--palette-neutral-600: oklch(0.52 0.012 250);
+	--palette-neutral-700: oklch(0.42 0.013 250);
+	--palette-neutral-800: oklch(0.32 0.014 250);
+	--palette-neutral-850: oklch(0.27 0.015 250);
+	--palette-neutral-900: oklch(0.225 0.016 250);
+	--palette-neutral-950: oklch(0.185 0.016 250);
+
+	/* Accent: fountain-pen ink. The brand colour in both themes: 600 by day, 300 by night. */
+	--palette-accent-50: oklch(0.97 0.013 258);
+	--palette-accent-100: oklch(0.935 0.029 258);
+	--palette-accent-200: oklch(0.87 0.059 258);
+	--palette-accent-300: oklch(0.78 0.091 258);
+	--palette-accent-400: oklch(0.68 0.117 258);
+	--palette-accent-500: oklch(0.59 0.13 258);
+	--palette-accent-600: oklch(0.5 0.13 258);
+	--palette-accent-700: oklch(0.42 0.117 258);
+	--palette-accent-800: oklch(0.34 0.098 258);
+	--palette-accent-900: oklch(0.27 0.072 258);
+
+	/* Positive: live, on, now. */
+	--palette-positive-50: oklch(0.97 0.014 155);
+	--palette-positive-100: oklch(0.935 0.03 155);
+	--palette-positive-200: oklch(0.87 0.054 155);
+	--palette-positive-300: oklch(0.78 0.084 155);
+	--palette-positive-400: oklch(0.68 0.108 155);
+	--palette-positive-500: oklch(0.59 0.12 155);
+	--palette-positive-600: oklch(0.5 0.114 155);
+	--palette-positive-700: oklch(0.42 0.096 155);
+	--palette-positive-800: oklch(0.34 0.078 155);
+	--palette-positive-900: oklch(0.27 0.062 155);
+}
+
+/* 2. Roles. Day: `.light` re-roles a subtree back to day, so one page can show both lightings. */
+:root,
+.light {
+	color-scheme: light;
+	--background: var(--palette-neutral-50);
+	--foreground: var(--palette-neutral-950);
+	--card: var(--palette-neutral-0);
+	--muted: var(--palette-neutral-100);
+	--muted-foreground: var(--palette-neutral-700);
+	/* Small faint text clears 4.5:1 on background, card and muted. */
+	--faint: var(--palette-neutral-600);
+	--border: oklch(from var(--palette-neutral-950) l c h / 0.1);
+	--border-strong: oklch(from var(--palette-neutral-950) l c h / 0.18);
+	--primary: var(--palette-accent-600);
+	--primary-foreground: var(--palette-neutral-0);
+	--primary-soft: var(--palette-accent-100);
+	--signal: var(--palette-positive-500);
+	/* Focus is neutral: a coloured ring clashes with whatever it lands on. */
+	--ring: var(--palette-neutral-950);
+	/* The photo viewer is night in both themes, so .dark does not re-role it. */
+	--scrim: var(--palette-neutral-950);
+	--scrim-foreground: var(--palette-neutral-50);
+	/* Ink and paper of the dithered place photos, read by the canvas. */
+	--dither-ink: var(--palette-neutral-850);
+	--dither-paper: var(--palette-neutral-50);
+
+	/* A ring for the edge, a tight contact shadow, and a soft ambient one, tinted by the neutral. */
+	--shade: oklch(from var(--palette-neutral-800) l c h / 0.06);
+	--shade-deep: oklch(from var(--palette-neutral-800) l c h / 0.16);
+	--elevation-1: 0 0 0 1px var(--border), 0 1px 2px var(--shade), 0 3px 8px -4px var(--shade);
+	--elevation-2:
+		0 0 0 1px var(--border), 0 2px 4px var(--shade), 0 12px 28px -8px var(--shade-deep);
+	--elevation-3:
+		0 0 0 1px var(--border-strong), 0 4px 8px var(--shade), 0 24px 48px -12px var(--shade-deep);
+	/* Physical objects: album art on the player, book covers in the stack. */
+	--elevation-art: 0 6px 16px -6px oklch(0 0 0 / 0.4);
+	--elevation-book: inset 0 1px 0 oklch(1 0 0 / 0.2), 0 10px 20px -8px oklch(0.2 0.05 30 / 0.45);
+
+	/*
+	 * The bezel: a home tile is a thick card-coloured frame around a grey well. The well is mixed in
+	 * oklab, not oklch: an oklch mix of near-greys drops the hue, and the leftover chroma turns pink.
+	 */
+	--well: color-mix(in oklab, var(--muted) 75%, var(--card));
+	--elevation-bezel:
+		0 0 0 1px oklch(from var(--palette-neutral-950) l c h / 0.0625),
+		0 1px 2px oklch(from var(--palette-neutral-950) l c h / 0.0175),
+		0 16px 36px -14px oklch(from var(--palette-neutral-950) l c h / 0.065);
+	--elevation-well: inset 0 0 0 1px oklch(from var(--palette-neutral-950) l c h / 0.04);
+	/* A held tile: the same ring, a deeper ambient shadow. Cross-faded in, never animated. */
+	--elevation-bezel-raised:
+		0 0 0 1px oklch(from var(--palette-neutral-950) l c h / 0.08),
+		0 2px 4px oklch(from var(--palette-neutral-950) l c h / 0.03),
+		0 24px 48px -16px oklch(from var(--palette-neutral-950) l c h / 0.14);
+	/* Every photo's inside edge: pure black by day, pure white by night, never tinted. */
+	--image-edge: inset 0 0 0 1px oklch(0 0 0 / 0.1);
+}
+
+/*
+ * Night: slate, not black, with text held below full brightness so it reads without glare.
+ * Shadows vanish on a dark ground, so elevation collapses to a ring and a top highlight, and the
+ * lifted card picks up a faint glow in the accent.
+ */
+.dark {
+	color-scheme: dark;
+	--background: var(--palette-neutral-950);
+	--foreground: var(--palette-neutral-200);
+	--card: var(--palette-neutral-900);
+	--muted: var(--palette-neutral-850);
+	--muted-foreground: var(--palette-neutral-300);
+	--faint: var(--palette-neutral-400);
+	--border: oklch(from var(--palette-neutral-50) l c h / 0.09);
+	--border-strong: oklch(from var(--palette-neutral-50) l c h / 0.16);
+	--primary: var(--palette-accent-300);
+	--primary-foreground: var(--palette-neutral-950);
+	--primary-soft: var(--palette-accent-800);
+	--signal: var(--palette-positive-400);
+	--ring: var(--palette-neutral-100);
+	--dither-ink: var(--palette-neutral-950);
+	--dither-paper: var(--palette-neutral-300);
+
+	--elevation-1: 0 0 0 1px var(--border), inset 0 1px 0 oklch(1 0 0 / 0.04);
+	--elevation-2: 0 0 0 1px var(--border-strong), inset 0 1px 0 oklch(1 0 0 / 0.06);
+	--elevation-3:
+		0 0 0 1px var(--border-strong), inset 0 1px 0 oklch(1 0 0 / 0.07),
+		0 0 48px -20px oklch(from var(--primary) l c h / 0.3);
+	--elevation-art: 0 6px 16px -6px oklch(0 0 0 / 0.4);
+	--elevation-book: inset 0 1px 0 oklch(1 0 0 / 0.2), 0 10px 20px -8px oklch(0.2 0.05 30 / 0.45);
+
+	--well: color-mix(in oklab, var(--muted) 75%, var(--card));
+	--elevation-bezel: 0 0 0 1px var(--border), inset 0 1px 0 oklch(1 0 0 / 0.04);
+	--elevation-well: inset 0 0 0 1px oklch(1 0 0 / 0.04);
+	--elevation-bezel-raised:
+		0 0 0 1px var(--border-strong), inset 0 1px 0 oklch(1 0 0 / 0.06),
+		0 0 48px -20px oklch(from var(--primary) l c h / 0.3);
+	--image-edge: inset 0 0 0 1px oklch(1 0 0 / 0.1);
+}
+
+/* 3. Utilities over the roles. */
 @theme {
-	--font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
-	--font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+	/* Families. Components name a type role below, not a family. */
+	/* Instrument Sans speaks (headings, interface), Source Serif 4 reads, Fragment Mono labels.
+	   The list lives in src/lib/type-families.ts; the token test keeps this block in step with it. */
+	--font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+	--font-serif: var(--font-source-serif), ui-serif, Georgia, serif;
+	--font-mono: var(--font-fragment-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 
-	/* Paper: one warm neutral ramp, light to dark. */
-	--color-paper-0: oklch(0.995 0.003 85);
-	--color-paper-50: oklch(0.972 0.006 85);
-	--color-paper-100: oklch(0.945 0.008 80);
-	--color-paper-200: oklch(0.9 0.01 75);
-	--color-paper-300: oklch(0.82 0.012 70);
-	--color-paper-400: oklch(0.7 0.013 65);
-	--color-paper-500: oklch(0.58 0.014 60);
-	--color-paper-550: oklch(0.52 0.014 58);
-	--color-paper-600: oklch(0.48 0.014 55);
-	--color-paper-700: oklch(0.38 0.014 50);
-	--color-paper-800: oklch(0.3 0.014 50);
-	--color-paper-850: oklch(0.245 0.013 50);
-	--color-paper-900: oklch(0.205 0.012 50);
-	--color-paper-950: oklch(0.165 0.01 50);
-
-	/* Room inks. */
-	--color-oxblood-100: oklch(0.93 0.035 25);
-	--color-oxblood-300: oklch(0.7 0.13 25);
-	--color-oxblood-500: oklch(0.6 0.16 25);
-	--color-oxblood-600: oklch(0.47 0.15 25);
-	--color-oxblood-800: oklch(0.3 0.07 25);
-	--color-brass-300: oklch(0.82 0.125 78);
-	--color-brass-500: oklch(0.68 0.12 75);
-	--color-brass-800: oklch(0.32 0.06 75);
-
-	--color-green-500: #00c758;
-
-	/* Type: display sizes for the serif; UI text keeps Tailwind's scale. */
-	--text-display: 3.5rem;
-	--text-display--line-height: 1;
-	--text-eyebrow: 0.71875rem;
-	--text-eyebrow--line-height: 1.25rem;
-	--text-eyebrow--letter-spacing: 0.07em;
-	--text-meta: 0.8125rem;
-	--text-feature: 2.75rem;
-
-	/* The card system: one inset, one gap, and a media radius nested inside the card radius. */
+	/* Space: one inset inside a card, one gutter between cards, one rhythm between page blocks. */
 	--spacing-inset: 1rem;
 	--spacing-gutter: 0.75rem;
+	--spacing-rhythm: 2.5rem;
+	/* The header's height, pinned from `sm` up; home's sidebar and bento size against it. */
+	--spacing-header: 3.375rem;
+	/* Where a jumped-to anchor lands: clear of the sticky header, which is tallest on a phone. */
+	--spacing-anchor: 7.5rem;
+	/* Home bento: the gap between tiles, and the bezel's frame. */
+	--spacing-bento: 0.9375rem;
+	--spacing-bezel: 0.3125rem;
+
+	/* Shape. Media nests inside a card, so its radius is the card's minus the inset. */
 	--radius-card: 1.5rem;
 	--radius-media: calc(var(--radius-card) - var(--spacing-inset));
+	--radius-row: 0.75rem;
+	--radius-chip: 0.375rem;
+	--radius-inline: 0.25rem;
+	--radius-control: 9999px;
+	/* The bezel, and the well nested in it: outer radius minus the frame. */
+	--radius-bezel: 1.375rem;
+	--radius-well: calc(var(--radius-bezel) - var(--spacing-bezel));
+
+	/* Widths. Every page but home is one centred column (`page`); essays cap their text at
+	   `reading` inside it; the site container (`wide`) holds the header, home and the footer. */
+	--container-reading: 44.5rem;
+	--container-page: 48rem;
+	--container-wide: 90rem;
+
+	/*
+	 * Motion that must not wait for hydration runs in CSS. A home tile pops in as soon as the
+	 * stylesheet lands, so the server HTML is never held invisible; stagger it with an inline
+	 * animation-delay. The waveform's bars beat on the compositor, not once per frame in JS.
+	 */
+	--animate-tile-in: tile-in 450ms cubic-bezier(0.23, 1, 0.32, 1) both;
+	--animate-bar: bar 900ms ease-in-out infinite alternate;
+
+	@keyframes tile-in {
+		from {
+			opacity: 0;
+			transform: translateY(12px) scale(0.98);
+		}
+	}
+
+	@keyframes bar {
+		from {
+			transform: scaleY(0.45);
+		}
+		to {
+			transform: scaleY(1);
+		}
+	}
 }
 
 @theme inline {
@@ -69,6 +229,8 @@
 	--color-primary: var(--primary);
 	--color-primary-foreground: var(--primary-foreground);
 	--color-primary-soft: var(--primary-soft);
+	--color-signal: var(--signal);
+	--color-well: var(--well);
 	--color-ring: var(--ring);
 	--color-scrim: var(--scrim);
 	--color-scrim-foreground: var(--scrim-foreground);
@@ -78,83 +240,228 @@
 	--shadow-lifted: var(--elevation-3);
 	--shadow-art: var(--elevation-art);
 	--shadow-book: var(--elevation-book);
+	--shadow-bezel: var(--elevation-bezel);
+	--shadow-bezel-raised: var(--elevation-bezel-raised);
+	--shadow-well: var(--elevation-well);
+	--shadow-image-edge: var(--image-edge);
 	/* Theme-agnostic: they follow --primary, or the --c a brand chip sets on itself. */
 	--shadow-glow: 0 4px 12px -4px var(--primary);
 	--shadow-chip:
 		inset 0 1px 0 oklch(1 0 0 / 0.25), inset 0 -2px 0 oklch(0 0 0 / 0.15), 0 6px 14px -6px var(--c);
 }
 
-/* Day: cream paper, walnut-black ink, oxblood. */
-:root {
-	color-scheme: light;
-	--background: var(--color-paper-50);
-	--foreground: var(--color-paper-900);
-	--card: var(--color-paper-0);
-	--muted: var(--color-paper-100);
-	--muted-foreground: var(--color-paper-700);
-	/* paper-550, not 500: small faint text must clear 4.5:1 on paper-50, card and muted. */
-	--faint: var(--color-paper-550);
-	--border: oklch(0.22 0.02 50 / 0.09);
-	--border-strong: oklch(0.22 0.02 50 / 0.16);
-	--primary: var(--color-oxblood-600);
-	--primary-foreground: var(--color-paper-0);
-	--primary-soft: var(--color-oxblood-100);
-	--ring: var(--color-oxblood-600);
-	/* The photo viewer is night in both themes, so .dark does not re-role it. */
-	--scrim: var(--color-paper-950);
-	--scrim-foreground: var(--color-paper-50);
-	/* Ink and paper of the dithered place photos, read by the canvas. */
-	--dither-ink: var(--color-paper-850);
-	--dither-paper: var(--color-paper-50);
-
-	--elevation-1: 0 0 0 1px var(--border), 0 1px 2px oklch(0.3 0.03 50 / 0.05);
-	--elevation-2:
-		0 0 0 1px var(--border), 0 2px 4px oklch(0.3 0.03 50 / 0.05),
-		0 12px 28px -8px oklch(0.3 0.04 40 / 0.14);
-	--elevation-3:
-		0 0 0 1px var(--border-strong), 0 4px 8px oklch(0.3 0.03 50 / 0.06),
-		0 24px 48px -12px oklch(0.3 0.05 35 / 0.22);
-	/* Physical objects: album art on the player, book covers in the stack. */
-	--elevation-art: 0 6px 16px -6px oklch(0 0 0 / 0.4);
-	--elevation-book: inset 0 1px 0 oklch(1 0 0 / 0.2), 0 10px 20px -8px oklch(0.2 0.05 30 / 0.45);
+/*
+ * Type roles. Each one is the whole decision for a kind of text: family, size, leading, tracking,
+ * weight and figures. Components set a role and a colour role, nothing else.
+ */
+@utility type-display {
+	font-family: var(--font-sans);
+	font-size: 3rem;
+	line-height: 1;
+	letter-spacing: -0.03em;
+	font-weight: 600;
+	@media (width >= 68.75rem) {
+		font-size: 3.5rem;
+	}
 }
 
-/* Night: the room after dark. Brass, the lamp, takes over from oxblood. */
-.dark {
-	color-scheme: dark;
-	--background: var(--color-paper-950);
-	--foreground: var(--color-paper-100);
-	--card: var(--color-paper-900);
-	--muted: var(--color-paper-850);
-	--muted-foreground: var(--color-paper-300);
-	--faint: var(--color-paper-400);
-	--border: oklch(0.95 0.02 85 / 0.075);
-	--border-strong: oklch(0.95 0.02 85 / 0.14);
-	--primary: var(--color-brass-300);
-	--primary-foreground: var(--color-paper-900);
-	--primary-soft: var(--color-brass-800);
-	--ring: var(--color-brass-300);
-	--dither-ink: var(--color-paper-900);
-	--dither-paper: var(--color-paper-300);
+@utility type-headline {
+	font-family: var(--font-sans);
+	font-size: 2.25rem;
+	line-height: 1.1;
+	letter-spacing: -0.025em;
+	font-weight: 600;
+	@media (width >= 40rem) {
+		font-size: 2.875rem;
+		line-height: 1.06;
+	}
+}
 
-	--elevation-1: 0 0 0 1px var(--border), inset 0 1px 0 oklch(1 0 0 / 0.03);
-	--elevation-2:
-		0 0 0 1px var(--border-strong), inset 0 1px 0 oklch(1 0 0 / 0.05),
-		0 16px 32px -12px oklch(0 0 0 / 0.6);
-	--elevation-3:
-		0 0 0 1px var(--border-strong), inset 0 1px 0 oklch(1 0 0 / 0.06),
-		0 28px 56px -16px oklch(0 0 0 / 0.75), 0 0 48px -20px oklch(0.82 0.125 78 / 0.25);
-	/* Physical objects: album art on the player, book covers in the stack. */
-	--elevation-art: 0 6px 16px -6px oklch(0 0 0 / 0.4);
-	--elevation-book: inset 0 1px 0 oklch(1 0 0 / 0.2), 0 10px 20px -8px oklch(0.2 0.05 30 / 0.45);
+@utility type-title {
+	font-family: var(--font-sans);
+	font-size: 1.6875rem;
+	line-height: 1.15;
+	letter-spacing: -0.0175em;
+	font-weight: 600;
+}
+
+@utility type-subtitle {
+	font-family: var(--font-sans);
+	font-size: 1.25rem;
+	line-height: 1.3;
+	letter-spacing: -0.01em;
+	font-weight: 600;
+}
+
+/* Essays: oldstyle figures sit inside the running text instead of standing above it. */
+@utility type-reading {
+	font-family: var(--font-serif);
+	font-size: 1.09375rem;
+	line-height: 1.6;
+	font-weight: 400;
+	font-variant-numeric: oldstyle-nums proportional-nums;
+}
+
+@utility type-lead {
+	font-family: var(--font-sans);
+	font-size: 1.125rem;
+	line-height: 1.35;
+	letter-spacing: 0;
+	font-weight: 400;
+}
+
+@utility type-body {
+	font-family: var(--font-sans);
+	font-size: 0.875rem;
+	line-height: 1.6;
+	letter-spacing: 0;
+	font-weight: 400;
+}
+
+@utility type-body-strong {
+	font-family: var(--font-sans);
+	font-size: 0.875rem;
+	line-height: 1.4;
+	letter-spacing: 0;
+	font-weight: 600;
+}
+
+@utility type-control {
+	font-family: var(--font-sans);
+	font-size: 0.875rem;
+	line-height: 1.25rem;
+	letter-spacing: 0;
+	font-weight: 500;
+}
+
+@utility type-control-sm {
+	font-family: var(--font-sans);
+	font-size: 0.75rem;
+	line-height: 1rem;
+	letter-spacing: 0;
+	font-weight: 500;
+}
+
+@utility type-caption {
+	font-family: var(--font-sans);
+	font-size: 0.8125rem;
+	line-height: 1.25rem;
+	letter-spacing: 0;
+	font-weight: 400;
+}
+
+@utility type-small {
+	font-family: var(--font-sans);
+	font-size: 0.75rem;
+	line-height: 1rem;
+	letter-spacing: 0;
+	font-weight: 400;
+}
+
+@utility type-eyebrow {
+	font-family: var(--font-sans);
+	font-size: 0.6875rem;
+	line-height: 1.25rem;
+	letter-spacing: 0.1em;
+	font-weight: 500;
+	text-transform: uppercase;
+	font-variant-numeric: tabular-nums;
+}
+
+@utility type-meta {
+	font-family: var(--font-mono);
+	font-size: 0.75rem;
+	line-height: 1rem;
+	letter-spacing: -0.01em;
+	font-weight: 400;
+	font-variant-numeric: tabular-nums;
+}
+
+@utility type-figure {
+	font-family: var(--font-mono);
+	font-size: 1.875rem;
+	line-height: 1;
+	letter-spacing: -0.02em;
+	font-weight: 400;
+	font-variant-numeric: tabular-nums;
+}
+
+/* Code, inline and in blocks. Sized in em so it keeps pace with the text around it. */
+@utility type-code {
+	font-family: var(--font-mono);
+	font-size: 0.875em;
+	line-height: 1.7;
+	letter-spacing: 0;
+	font-weight: 400;
+	font-variant-numeric: normal;
+}
+
+/*
+ * Essays: rendered markdown, mapped element by element onto the roles. The typography plugin
+ * (`prose prose-lg`) only spaces the blocks; every family, size, weight and style comes from here.
+ * Descendant selectors outrank the plugin's :where() rules, so order does not matter.
+ */
+@utility essay {
+	@apply type-reading;
+	& h2 {
+		@apply type-title;
+	}
+	& :is(h3, h4) {
+		@apply type-subtitle;
+	}
+	/* Links and quotes keep the body's roman weight and style; the rule beside a quote marks it. */
+	& :is(a, blockquote) {
+		font-weight: inherit;
+	}
+	& blockquote {
+		font-style: normal;
+	}
+	& :is(:not(pre) > code, pre, kbd) {
+		@apply type-code;
+	}
+	& pre code {
+		font-size: inherit;
+		line-height: inherit;
+	}
+	& :is(blockquote p, :not(pre) > code)::before,
+	& :is(blockquote p, :not(pre) > code)::after {
+		content: none;
+	}
+	& figcaption {
+		@apply type-caption;
+	}
+	& table {
+		@apply type-body;
+	}
+}
+
+/* Ambient glow: a blurred, saturated copy of an image laid behind it. */
+@utility ambient-glow {
+	filter: blur(22px) saturate(1.7);
+	opacity: 0.75;
+	transform: scale(1.08);
+}
+
+/* Edge fades: an image melts into the surface it sits on. Masks, so any surface works. */
+@utility fade-inline-start {
+	mask-image: linear-gradient(to right, transparent, black 35%);
+}
+
+@utility fade-block-end {
+	mask-image: linear-gradient(to bottom, black 60%, transparent);
 }
 
 @layer base {
-	body {
-		@apply bg-background font-sans text-foreground antialiased;
+	html {
+		font-synthesis: none;
 	}
 
+	body {
+		@apply type-body bg-background text-foreground antialiased;
+	}
+
+	/* A tint, not a block of brand colour: selected text stays readable. */
 	::selection {
-		@apply bg-primary text-primary-foreground;
+		@apply bg-primary-soft text-foreground;
 	}
 }

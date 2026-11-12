@@ -10,7 +10,6 @@
 		"includes": [
 			"**",
 			"!**/*.webp.json",
-			"!.impeccable/**/*.json",
 			"!.vercel",
 			"!src/assets/room/*.json",
 			"!legacy-astro",

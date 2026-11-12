@@ -32,7 +32,7 @@ bunx playwright install chromium webkit   # once, for checks
 |---|---|
 | Audience and hard limits | [PRODUCT.md](./PRODUCT.md) |
 | Names for the site's parts | [CONTEXT.md](./CONTEXT.md) |
-| Colors, type, and layout | [DESIGN.md](./DESIGN.md) |
+| Colors, type, and layout | [globals.css](./src/app/globals.css), shown at `/design` |
 | Tokens and components | [src/ds/README.md](./src/ds/README.md) |
 | Why Next.js | [ADR 0003](./docs/adr/0003-move-to-nextjs.md) |
 | Changing the living room | [Room workflow](./docs/room-workflow.md) |

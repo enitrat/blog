@@ -28,7 +28,7 @@ export function ListRow({
 	const body = (
 		<>
 			{date && (
-				<div className="flex flex-wrap gap-x-2 font-mono text-xs tracking-[-0.01em] text-faint tabular-nums sm:w-32 sm:flex-none">
+				<div className="flex flex-wrap gap-x-2 type-meta text-faint sm:w-32 sm:flex-none">
 					<Stamp dateTime={datetime} className="flex flex-wrap gap-x-1.5 sm:flex-col">
 						{range?.length === 2 ? (
 							<>
@@ -42,13 +42,11 @@ export function ListRow({
 				</div>
 			)}
 			<div className="min-w-0 flex-1">
-				<Heading className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-balance text-foreground">
+				<Heading className="flex flex-wrap items-center gap-1.5 type-body-strong text-balance text-foreground">
 					{title}
 				</Heading>
 				{description && (
-					<p className="mt-0.5 text-sm leading-relaxed text-pretty text-muted-foreground">
-						{description}
-					</p>
+					<p className="mt-0.5 type-body text-pretty text-muted-foreground">{description}</p>
 				)}
 			</div>
 			{href && (
@@ -62,7 +60,7 @@ export function ListRow({
 	const row = cn(
 		'group flex flex-col gap-1 py-4 sm:flex-row sm:items-baseline sm:gap-4',
 		href &&
-			'-mx-3 rounded-xl px-3 transition-colors outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring',
+			'-mx-3 rounded-row px-3 transition-colors outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring',
 	);
 	return (
 		<li className="border-t border-border first:border-t-0">

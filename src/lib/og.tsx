@@ -3,25 +3,38 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ImageResponse } from 'next/og';
 import sharp from 'sharp';
+import { familyOf } from './type-families';
 
 export const OG_SIZE = { width: 1200, height: 630 };
 
-/** The room palette, converted from OKLCH to sRGB hex because Satori reads no OKLCH. */
-const PAPER = '#f8f5f1'; // oklch(0.972 0.006 85)
-const INK = '#1c1612'; // oklch(0.205 0.012 50)
-const MUTED = '#49403c'; // oklch(0.38 0.014 50)
-const ACCENT = '#9e2c2c'; // oklch(0.47 0.15 25)
-const CARD = '#fefdfb'; // oklch(0.995 0.003 85)
+/** The palette, converted from OKLCH to sRGB hex because Satori reads no OKLCH. */
+const PAPER = '#f3f6fa'; // neutral-50, oklch(0.972 0.006 250)
+const INK = '#0d131a'; // neutral-950, oklch(0.185 0.016 250)
+const MUTED = '#484e54'; // neutral-700, oklch(0.42 0.013 250)
+const ACCENT = '#2f62ac'; // accent-600, oklch(0.5 0.13 258)
+const CARD = '#fafdff'; // neutral-0, oklch(0.993 0.006 250)
 
 const PLATE = { width: 440, height: 330 };
 
 const read = (file: string) => readFileSync(join(/*turbopackIgnore: true*/ process.cwd(), file));
 
-const fonts = () => [
-	{ name: 'Figtree', data: read('src/assets/fonts/Figtree-Regular.ttf'), weight: 400 as const },
-	{ name: 'Figtree', data: read('src/assets/fonts/Figtree-Medium.ttf'), weight: 500 as const },
-	{ name: 'Figtree', data: read('src/assets/fonts/Figtree-SemiBold.ttf'), weight: 600 as const },
-];
+/**
+ * Satori reads neither CSS nor woff2, so the card carries static TTF cuts of the sans family and
+ * restates its roles by hand: title as headline (600, −0.025em), kicker as lead, footer as control.
+ */
+const SANS = familyOf('--font-sans').name;
+const fonts = () =>
+	(
+		[
+			[400, 'Regular'],
+			[500, 'Medium'],
+			[600, 'SemiBold'],
+		] as const
+	).map(([weight, cut]) => ({
+		name: SANS,
+		data: read(`src/assets/fonts/${SANS.replaceAll(' ', '')}-${cut}.ttf`),
+		weight,
+	}));
 
 /**
  * A checked-in image cropped to the plate at twice its size, as a JPEG data URL. Satori hands the
@@ -36,7 +49,7 @@ export async function plateUrl(file: string): Promise<string> {
 	return `data:image/jpeg;base64,${jpeg.toString('base64')}`;
 }
 
-/** The card: paper ground, an oxblood rule, text on the left and an optional framed plate on the right. */
+/** The card: paper ground, an ink rule, text on the left and an optional framed plate on the right. */
 export function ogImage({
 	title,
 	titleSize,
@@ -59,7 +72,7 @@ export function ogImage({
 				background: PAPER,
 				color: INK,
 				padding: 72,
-				fontFamily: 'Figtree',
+				fontFamily: SANS,
 			}}
 		>
 			<div
@@ -77,8 +90,8 @@ export function ogImage({
 							display: 'flex',
 							fontSize: titleSize,
 							fontWeight: 600,
-							lineHeight: 1.08,
-							letterSpacing: -2,
+							lineHeight: 1.06,
+							letterSpacing: titleSize * -0.025,
 							paddingRight: plate ? 40 : 0,
 						}}
 					>

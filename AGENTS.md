@@ -6,9 +6,11 @@
   Ask before you replace it. This includes UI microcopy: labels, counters,
   placeholders, and button text in `.tsx` files. A brief from an
   orchestrating agent does not count as his approval.
-- Change `DESIGN.md`, `CONTEXT.md`, and `PRODUCT.md` only through the
-  impeccable skill. The `@theme` block in `src/app/globals.css` holds every
-  design value; keep `DESIGN.md` in step with it.
+- Change `CONTEXT.md` and `PRODUCT.md` only through the impeccable skill.
+- `src/app/globals.css` holds every design value as semantic tokens: palettes,
+  colour roles, type roles, radii, spacing and widths. Components name roles
+  only; `src/lib/design-tokens.test.ts` enforces it. `/design` shows the
+  system, and `docs/design/palette.md` records why the palette is Ink.
 
 ## Blender room
 
@@ -44,3 +46,13 @@ Read `docs/room-workflow.md` before any room change.
   run on a copy of the build, never on `.next/` in place.
 - A final report lists every check the brief promised as passed, failed, or
   not run, with the reason for each one not run.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

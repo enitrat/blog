@@ -24,15 +24,15 @@ export default function WorkPage() {
 		},
 	].filter((group) => group.reports.length > 0);
 	return (
-		<Page width="wide">
+		<Page>
 			<PageHeader>Work</PageHeader>
-			<div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-16">
+			<div className="flex flex-col gap-rhythm">
 				{groups.map((group) => (
 					<section
 						key={group.id}
 						id={group.id}
 						aria-label={group.label}
-						className="flex scroll-mt-6 flex-col gap-2"
+						className="flex scroll-mt-anchor flex-col gap-2"
 					>
 						<Eyebrow as="h2">{group.label}</Eyebrow>
 						<ul className="flex flex-col">

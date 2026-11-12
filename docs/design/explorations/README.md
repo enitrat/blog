@@ -1,7 +1,7 @@
 # Visual directions we explored
 
 These sketches record directions we considered, not specifications.
-[DESIGN.md](../../../DESIGN.md) is the design system.
+[globals.css](../../../src/app/globals.css) is the design system.
 
 ## Quiet personal index, shipped
 

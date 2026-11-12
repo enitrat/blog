@@ -4,8 +4,8 @@ import { DitherImage } from '@/components/places/dither-image';
 import { Lightbox } from '@/components/places/lightbox';
 import { Prose } from '@/components/reading/prose';
 import { Card } from '@/components/ui/card';
-import { Eyebrow } from '@/components/ui/eyebrow';
 import { Page, PageHeader } from '@/components/ui/page';
+import { StatusDot } from '@/components/ui/status-dot';
 import { getTrips, type Trip } from '@/lib/content';
 import { renderMarkdown } from '@/lib/markdown';
 import { maybeImage } from '@/lib/media';
@@ -56,7 +56,7 @@ export default async function PlacesPage() {
 		}),
 	);
 	return (
-		<Page width="wide">
+		<Page>
 			<PageHeader>Places</PageHeader>
 			<div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:auto-rows-[minmax(11rem,auto)]">
 				{trips.map((t) => (
@@ -66,14 +66,17 @@ export default async function PlacesPage() {
 								image={t.cover}
 								alt={`${t.title}, ${t.country}`}
 								ratio="4 / 3"
-								sizes="(min-width: 64rem) 38rem, 100vw"
+								sizes="(min-width: 40rem) 24rem, 100vw"
 								className="rounded-media border border-border"
 							/>
 							<div className="flex flex-col gap-1.5">
-								<Eyebrow dot>{monthYear.format(t.date)}</Eyebrow>
-								<h2 className="text-lg font-semibold text-foreground">
+								<p className="flex items-center gap-1.5 type-meta text-faint">
+									<StatusDot />
+									{monthYear.format(t.date)}
+								</p>
+								<h2 className="type-subtitle text-foreground">
 									{t.title}
-									<span className="font-normal text-muted-foreground">, {t.country}</span>
+									<span className="text-muted-foreground">, {t.country}</span>
 								</h2>
 							</div>
 							{t.set.length > 0 && (

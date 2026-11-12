@@ -18,7 +18,7 @@ export function BookThumb({
 		return (
 			<span
 				aria-hidden="true"
-				className={cn(frame, 'grid place-items-center bg-muted text-sm font-semibold text-faint')}
+				className={cn(frame, 'grid place-items-center bg-muted type-body-strong text-faint')}
 			>
 				{title[0]}
 			</span>
@@ -66,12 +66,10 @@ export function BookRow({
 		<li className="grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-4 border-t border-border py-3 first:border-t-0">
 			<BookThumb cover={cover} title={title} className="w-10" />
 			<div className="min-w-0">
-				<h3 className="text-base leading-snug font-semibold text-balance text-foreground">
-					{title}
-				</h3>
-				<p className="text-sm text-muted-foreground">{author}</p>
+				<h3 className="type-subtitle text-balance text-foreground">{title}</h3>
+				<p className="type-body text-muted-foreground">{author}</p>
 			</div>
-			<div className="grid justify-items-end gap-0.5 font-mono text-xs tracking-[-0.01em] text-faint tabular-nums">
+			<div className="grid justify-items-end gap-0.5 type-meta text-faint">
 				{month && <time dateTime={datetime}>{month}</time>}
 				{rating !== null && (
 					<span className={high ? 'text-primary' : 'text-foreground'}>

@@ -13,6 +13,7 @@ import {
 	CarouselPrevious,
 } from '@/components/ui/carousel';
 import { Dialog, DialogClose, DialogOverlay, DialogPortal } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 
 export type LightboxPhoto = { image: StaticImageData; alt: string; caption?: string };
 
@@ -56,7 +57,7 @@ export function Lightbox({
 					setIndex(0);
 					setOpen(true);
 				}}
-				className={buttonVariants({ variant: 'ghost', size: 'sm' })}
+				className={cn(buttonVariants({ variant: 'ghost' }), 'h-11')}
 			>
 				{children}
 			</a>
@@ -72,10 +73,10 @@ export function Lightbox({
 					>
 						<Carousel setApi={setApi} opts={{ loop: true }} className="flex flex-col gap-4">
 							<div className="flex items-center justify-between gap-4">
-								<p className="text-xs font-medium tabular-nums" aria-live="polite">
+								<p className="type-meta" aria-live="polite">
 									{title} · {index + 1} / {photos.length}
 								</p>
-								<DialogClose render={<Button variant="glass" size="sm" />}>Close</DialogClose>
+								<DialogClose render={<Button variant="glass" />}>Close</DialogClose>
 							</div>
 							<CarouselContent>
 								{photos.map((p) => (
@@ -87,19 +88,16 @@ export function Lightbox({
 												sizes="(min-width: 72rem) 72rem, 100vw"
 												className="h-auto max-h-[70dvh] w-auto max-w-full rounded-media object-contain"
 											/>
-											{p.caption && <figcaption className="text-xs">{p.caption}</figcaption>}
+											{p.caption && <figcaption className="type-small">{p.caption}</figcaption>}
 										</figure>
 									</CarouselItem>
 								))}
 							</CarouselContent>
 							{photos.length > 1 && (
 								<div className="flex items-center justify-between gap-4">
-									<CarouselPrevious
-										size="icon-sm"
-										aria-label="Previous photo"
-										className="static my-0"
-									/>
-									<CarouselNext size="icon-sm" aria-label="Next photo" className="static my-0" />
+									{/* Static: the carousel's own offsets place its buttons outside a slide. */}
+									<CarouselPrevious aria-label="Previous photo" className="static my-0" />
+									<CarouselNext aria-label="Next photo" className="static my-0" />
 								</div>
 							)}
 						</Carousel>

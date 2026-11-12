@@ -14,7 +14,7 @@ const destinations = [
 export default function NotFound() {
 	return (
 		<Page>
-			<PageHeader lead="This address doesn't name anything here. Try one of these pages:">
+			<PageHeader lead="This address doesn’t name anything here. Try one of these pages:">
 				Not found
 			</PageHeader>
 			<ListRows>

@@ -37,21 +37,14 @@ export function WritingRow({
 		>
 			<Link
 				href={href}
-				className="group -mx-3 flex flex-col gap-3 rounded-xl px-3 py-5 outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring sm:flex-row sm:items-center sm:gap-8"
+				className="group -mx-3 flex flex-col gap-3 rounded-row px-3 py-5 outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring sm:flex-row sm:items-center sm:gap-8"
 			>
-				<time
-					dateTime={datetime}
-					className="font-mono text-xs tracking-[-0.01em] text-faint tabular-nums sm:w-24 sm:flex-none"
-				>
+				<time dateTime={datetime} className="type-meta text-faint sm:w-24 sm:flex-none">
 					{date}
 				</time>
 				<div className="min-w-0 flex-1">
-					<h2 className="max-w-[44ch] text-xl leading-snug font-semibold tracking-tight text-balance text-foreground">
-						{title}
-					</h2>
-					<p className="mt-1.5 text-sm leading-relaxed text-pretty text-muted-foreground">
-						{description}
-					</p>
+					<h2 className="max-w-[44ch] type-subtitle text-balance text-foreground">{title}</h2>
+					<p className="mt-1.5 type-body text-pretty text-muted-foreground">{description}</p>
 				</div>
 				<div
 					className={

@@ -1,54 +1,88 @@
 'use client';
 
-import { motion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
 import { spring } from '@/lib/motion';
+import type { NavLink } from '@/lib/nav';
+import { Mark } from './mark';
 import { ThemeToggle } from './theme-toggle';
 
-export type NavLink = { label: string; href: string };
+const FOCUS = 'outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
-export function Header({ links }: { links: NavLink[] }) {
+/** The site name and mark, linking home. */
+function SiteName() {
+	const home = usePathname() === '/';
+	return (
+		<Link
+			href="/"
+			aria-label="Mathieu Saugier, home"
+			aria-current={home ? 'page' : undefined}
+			className={`flex min-h-11 items-center gap-2.5 rounded-inline type-subtitle whitespace-nowrap text-foreground transition-opacity hover:opacity-70 ${FOCUS}`}
+		>
+			<Mark />
+			Mathieu Saugier
+		</Link>
+	);
+}
+
+/**
+ * The primary nav: plain text links, no container. An underline marks the current page and slides
+ * to the next one on navigation, so the current page is marked by more than a text colour.
+ */
+function SiteNav({ links }: { links: NavLink[] }) {
 	const path = usePathname().replace(/(.)\/$/, '$1');
 	const current = (href: string) => path === href || path.startsWith(`${href}/`);
-	const [hovered, setHovered] = useState<string | null>(null);
+	const reduce = useReducedMotion();
 	return (
-		<header className="sticky top-3 z-40 flex flex-wrap items-center justify-between gap-2 pt-2 pb-6 sm:h-16 sm:flex-nowrap sm:gap-4 sm:py-0">
-			<Link
-				href="/"
-				aria-label="Mathieu Saugier, home"
-				aria-current={path === '/' ? 'page' : undefined}
-				className="-my-3 py-3 text-sm font-semibold whitespace-nowrap text-foreground transition-opacity hover:opacity-70"
-			>
-				Mathieu Saugier
-			</Link>
-			<div className="contents sm:flex sm:items-center sm:gap-1.5">
-				<nav
-					aria-label="Primary navigation"
-					onMouseLeave={() => setHovered(null)}
-					className="order-last flex w-full rounded-full bg-card/60 p-0.5 shadow-card backdrop-blur-xs backdrop-saturate-150 sm:order-none sm:w-auto"
-				>
-					{links.map((l) => (
-						<Link
-							key={l.href}
-							href={l.href}
-							onMouseEnter={() => setHovered(l.href)}
-							aria-current={current(l.href) ? 'page' : undefined}
-							className="relative flex-1 rounded-full px-2 py-3 text-center text-sm font-medium text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring aria-[current=page]:text-foreground sm:flex-none sm:px-3 sm:py-1.5"
-						>
-							{hovered === l.href && (
-								<motion.span
-									layoutId="nav-highlight"
-									transition={spring.layout}
-									className="absolute inset-0 -z-10 rounded-full bg-muted"
-								/>
-							)}
-							{l.label}
-						</Link>
-					))}
-				</nav>
-				<ThemeToggle />
+		<nav
+			aria-label="Primary navigation"
+			className="-mx-4 w-[calc(100%+2rem)] overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:ml-auto sm:w-auto sm:overflow-visible sm:px-0"
+		>
+			<ul className="flex gap-4">
+				{links.map((l) => {
+					const here = current(l.href);
+					return (
+						<li key={l.href}>
+							<Link
+								href={l.href}
+								aria-current={here ? 'page' : undefined}
+								className={`relative inline-flex min-h-11 items-center rounded-inline type-control whitespace-nowrap text-muted-foreground transition-colors duration-150 hover:text-foreground aria-[current=page]:text-foreground ${FOCUS}`}
+							>
+								{l.label}
+								{here && (
+									// 4px under the text: half the 1.25rem line, plus the gap.
+									<motion.span
+										aria-hidden
+										layoutId="nav-underline"
+										transition={reduce ? { duration: 0 } : spring.layout}
+										className="absolute inset-x-0 top-[calc(50%+0.875rem)] h-[2.5px] rounded-full bg-primary"
+									/>
+								)}
+							</Link>
+						</li>
+					);
+				})}
+			</ul>
+		</nav>
+	);
+}
+
+/**
+ * The one header, on every page. It spans the window, with a hairline along its bottom edge that
+ * separates it from the page, as the rule beside home's sidebar does; its content sits in the site
+ * container. Pinned from `sm` up. On a phone it takes two rows, too much to pin over an essay, so
+ * it scrolls away there.
+ */
+export function Header({ links }: { links: NavLink[] }) {
+	return (
+		<header className="relative z-40 border-b border-border bg-background/90 backdrop-blur-sm sm:sticky sm:top-0 sm:h-header">
+			<div className="mx-auto flex w-full max-w-wide flex-wrap items-center justify-between gap-x-6 px-4 pt-1.5 sm:h-full sm:flex-nowrap sm:px-8 sm:pt-0">
+				<SiteName />
+				<div className="-mr-1 sm:order-last sm:-ml-2">
+					<ThemeToggle />
+				</div>
+				<SiteNav links={links} />
 			</div>
 		</header>
 	);

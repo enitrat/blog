@@ -49,17 +49,14 @@ export function BookSpine({
 			href={href}
 			title={`${short}, ${author}`}
 			className={cn(
-				'relative flex-none overflow-hidden rounded-t-xs py-3 no-underline shadow-card',
+				'relative flex flex-none justify-center overflow-hidden rounded-t-[2px] py-3 no-underline shadow-card',
 				TONES[hash % TONES.length],
 				href &&
 					'transition-transform duration-150 ease-out outline-none hover:-translate-y-2 focus-visible:-translate-y-2 focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:focus-visible:translate-y-0',
 			)}
 			style={{ width: `${width.toFixed(2)}rem`, height: `${height.toFixed(2)}rem` }}
 		>
-			<span
-				className="block max-h-full truncate text-xs font-semibold [writing-mode:vertical-rl]"
-				style={{ lineHeight: `${width.toFixed(2)}rem` }}
-			>
+			<span className="block max-h-full truncate type-control-sm [writing-mode:vertical-rl]">
 				{short}
 				<span className="sr-only">
 					{' '}

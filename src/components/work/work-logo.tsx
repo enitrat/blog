@@ -4,8 +4,8 @@ import { maybeImage } from '@/lib/media';
 import { cn } from '@/lib/utils';
 
 const SIZES = {
-	row: 'size-11 rounded-media text-lg',
-	header: 'size-16 rounded-2xl text-2xl',
+	row: 'size-11 rounded-media type-subtitle',
+	header: 'size-16 rounded-row type-title',
 } as const;
 
 /** A company's logo in a rounded square, or its first letter when no logo is checked in. */
@@ -33,10 +33,7 @@ export async function WorkLogo({
 	return (
 		<span
 			aria-hidden
-			className={cn(
-				box,
-				'flex items-center justify-center bg-muted font-semibold text-muted-foreground',
-			)}
+			className={cn(box, 'flex items-center justify-center bg-muted text-muted-foreground')}
 		>
 			{title.charAt(0).toUpperCase()}
 		</span>

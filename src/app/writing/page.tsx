@@ -16,7 +16,7 @@ export default async function WritingPage() {
 	const posts = getPosts();
 	const banners = await Promise.all(posts.map(bannerFor));
 	return (
-		<Page className="max-w-5xl">
+		<Page>
 			<PageHeader>Writing</PageHeader>
 			{posts.length > 0 ? (
 				<ul className="flex flex-col">
@@ -33,7 +33,7 @@ export default async function WritingPage() {
 					))}
 				</ul>
 			) : (
-				<p className="text-sm text-muted-foreground">No posts yet.</p>
+				<p className="type-body text-muted-foreground">No posts yet.</p>
 			)}
 		</Page>
 	);

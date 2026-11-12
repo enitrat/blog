@@ -58,7 +58,7 @@ export function BlogPost({
 		dateModified: (updatedDate ?? pubDate).toISOString(),
 	};
 	return (
-		<Page width="text" as="article">
+		<Page as="article">
 			<script
 				type="application/ld+json"
 				// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD of build-time frontmatter
@@ -66,10 +66,8 @@ export function BlogPost({
 			/>
 			<PageHeader
 				kicker={
-					<Eyebrow
-						as="p"
-						className="flex-wrap gap-x-1.5 tabular-nums [&>:not(:first-child)]:before:me-1.5 [&>:not(:first-child)]:before:content-['·']"
-					>
+					// Facts (byline, date, read time) are mono, as in every list; uppercase is for labels.
+					<p className="flex flex-wrap gap-x-1.5 type-meta text-faint [&>:not(:first-child)]:before:me-1.5 [&>:not(:first-child)]:before:content-['·']">
 						<span>Mathieu Saugier</span>
 						<time dateTime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
 						{minutes && (
@@ -83,7 +81,7 @@ export function BlogPost({
 								<time dateTime={updatedDate.toISOString()}>{formatDate(updatedDate)}</time>
 							</span>
 						)}
-					</Eyebrow>
+					</p>
 				}
 			>
 				{title}

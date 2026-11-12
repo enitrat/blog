@@ -20,10 +20,10 @@ export default async function AboutPage() {
 		'.',
 	);
 	return (
-		<Page width="text" as="article">
+		<Page as="article">
 			<PageHeader>About</PageHeader>
 			<Prose tree={tree} />
-			<dl className="border-t border-border pt-6 text-sm">
+			<dl className="border-t border-border pt-6">
 				<dt>
 					<Eyebrow>Currently</Eyebrow>
 				</dt>

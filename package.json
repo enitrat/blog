@@ -23,7 +23,6 @@
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"embla-carousel-react": "^8.6.0",
-		"geist": "^1.9.2",
 		"gray-matter": "4.0.3",
 		"hast-util-to-jsx-runtime": "^2.3.6",
 		"hast-util-to-string": "^3.0.1",

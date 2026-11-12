@@ -24,11 +24,6 @@ pnpm-debug.log*
 .idea/
 .vercel
 
-# Impeccable QA screenshots — regenerable from the dev server, ~16MB
-.impeccable/screenshots/
-.impeccable/review/
-.impeccable/design-review-*.jpeg
-
 # Generation originals for the placeholder artwork (~18MB of PNG that nothing
 # imports). The shipped .webp, their sidecars, and PLACEHOLDERS.md carry the
 # provenance; drop this line if you want the originals in history.
@@ -36,11 +31,6 @@ src/assets/home/originals/
 
 # Scratch
 session-resume.txt
-
-# Transient decision-page machinery; the .answer.json records the actual choice
-.impeccable/questions/*.log
-.impeccable/questions/*.state.json
-.impeccable/config.local.json
 
 # Next.js
 next-env.d.ts

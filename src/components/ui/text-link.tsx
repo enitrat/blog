@@ -11,15 +11,15 @@ const textLinkVariants = cva(
 			variant: {
 				/** Muted; one step darker on hover. Under a page or beside a control. */
 				muted:
-					'inline-flex items-center gap-1 rounded-xs text-sm font-medium text-muted-foreground hover:text-foreground',
+					'inline-flex items-center gap-1 rounded-inline type-control text-muted-foreground hover:text-foreground',
 				/** Accent text link in running text. */
 				inline:
-					'rounded-sm text-primary underline decoration-primary/30 underline-offset-[22%] hover:decoration-primary',
+					'rounded-inline text-primary underline decoration-primary/30 underline-offset-[22%] hover:decoration-primary',
 				/** Lighter than muted. */
-				quiet: 'rounded-sm text-faint hover:text-foreground',
+				quiet: 'rounded-inline text-faint hover:text-foreground',
 				/** A tile's header action. */
 				action:
-					'inline-flex items-center gap-1 rounded-sm text-xs font-medium text-muted-foreground hover:text-foreground',
+					'inline-flex items-center gap-1 rounded-inline type-control-sm text-muted-foreground hover:text-foreground',
 			},
 		},
 		defaultVariants: { variant: 'muted' },

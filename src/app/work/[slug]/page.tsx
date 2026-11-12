@@ -41,17 +41,13 @@ export default async function ReportPage(props: Params) {
 		.filter((r) => r.id !== report.id)
 		.slice(0, 2);
 	return (
-		<Page width="text" as="article">
+		<Page as="article">
 			<header className="flex flex-col gap-5">
 				<WorkLogo id={report.id} title={title} size="header" />
 				<div className="flex flex-col gap-2">
-					{meta && <Eyebrow as="p">{meta}</Eyebrow>}
-					<h1 className="text-3xl leading-tight font-semibold tracking-tight text-balance text-foreground sm:text-4xl">
-						{title}
-					</h1>
-					{summary && (
-						<p className="text-sm leading-relaxed text-pretty text-muted-foreground">{summary}</p>
-					)}
+					{meta && <p className="type-meta text-faint">{meta}</p>}
+					<h1 className="type-headline text-balance text-foreground">{title}</h1>
+					{summary && <p className="type-body text-pretty text-muted-foreground">{summary}</p>}
 				</div>
 				{site && (
 					<p>

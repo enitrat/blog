@@ -1,5 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Mathieu Saugier">
 	<title>Mathieu Saugier</title>
-	<rect width="100" height="100" fill="#ffffff"/>
-	<text x="50" y="50" font-family="monospace" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central" fill="#000000">MS</text>
+	<style>
+		.tile { fill: oklch(0.5 0.13 258); }
+		.ink { fill: oklch(0.993 0.006 250); }
+		@media (prefers-color-scheme: dark) {
+			.tile { fill: oklch(0.78 0.091 258); }
+			.ink { fill: oklch(0.185 0.016 250); }
+		}
+	</style>
+	<rect class="tile" width="100" height="100" rx="24"/>
+	<path class="ink" d="M75.4 29.8L78.8 71.7L84.6 73.3L84.6 74.4L61.6 74.4L61.6 73.3L67.5 71.9L64.4 31.3L64.9 31.4L47.9 74.8L42.8 74.8L25.3 32.0L25.9 31.9L23.4 72.0L29.4 73.3L29.4 74.4L15.4 74.4L15.4 73.3L20.9 72.0L23.5 30.8L17.5 28.3L17.5 27.2L35.3 27.2L50.4 64.6L49.4 64.6L63.9 27.2L81.7 27.2L81.7 28.3L75.4 29.8Z"/>
 </svg>

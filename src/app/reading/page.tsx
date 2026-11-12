@@ -38,7 +38,7 @@ type Shown = { book: Book; cover: StaticImageData | undefined };
 const withCover = (b: Book): Promise<Shown> =>
 	findImage(`covers/${b.edition.isbn13}`).then((cover) => ({ book: b, cover }));
 
-const meta = 'font-mono text-xs tracking-[-0.01em] text-faint tabular-nums';
+const meta = 'type-meta text-faint';
 
 export default async function ReadingPage() {
 	const reading = await Promise.all(
@@ -84,10 +84,8 @@ export default async function ReadingPage() {
 						<div key={book.title} className="grid grid-cols-[auto_minmax(0,1fr)] items-end gap-5">
 							<BookThumb cover={cover} title={book.title} className="w-24 shadow-book sm:w-30" />
 							<div className="min-w-0">
-								<h2 className="text-2xl leading-tight font-semibold tracking-tight text-balance text-foreground sm:text-3xl">
-									{short(book.title)}
-								</h2>
-								<p className="mt-1.5 text-sm text-muted-foreground">{book.author}</p>
+								<h2 className="type-title text-balance text-foreground">{short(book.title)}</h2>
+								<p className="mt-1.5 type-body text-muted-foreground">{book.author}</p>
 								<p className={`mt-3 flex items-center gap-2 ${meta}`}>
 									<StatusDot />
 									Reading now · {book.edition.pageCount} pages
@@ -106,11 +104,12 @@ export default async function ReadingPage() {
 					{picks.map(({ book, cover }) => (
 						<li key={book.title} className="min-w-0">
 							<BookThumb cover={cover} title={book.title} className="w-full shadow-book" />
-							<p className="mt-2.5 text-sm leading-snug font-semibold text-balance text-foreground">
+							<p className="mt-2.5 type-body-strong text-balance text-foreground">
 								{short(book.title)}
 							</p>
-							<p className={`mt-1 ${meta}`}>
-								{book.author.split(' ').at(-1)} · {book.rating}
+							<p className={`mt-1 flex justify-between gap-2 ${meta}`}>
+								<span className="truncate">{book.author.split(' ').at(-1)}</span>
+								<span>{book.rating}</span>
 							</p>
 						</li>
 					))}
@@ -121,10 +120,7 @@ export default async function ReadingPage() {
 				const head = (
 					<>
 						<div className="flex items-baseline justify-between gap-4">
-							<h2
-								id={id(year)}
-								className="text-2xl leading-none font-semibold tracking-tight text-foreground tabular-nums"
-							>
+							<h2 id={id(year)} className="type-figure text-foreground">
 								{year}
 							</h2>
 							<span className={meta}>
@@ -171,7 +167,7 @@ export default async function ReadingPage() {
 					<section key={year} aria-labelledby={id(year)}>
 						{folded ? (
 							<details className="group">
-								<summary className="cursor-pointer list-none rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+								<summary className="cursor-pointer list-none rounded-chip outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
 									{head}
 								</summary>
 								{rows}

@@ -17,3 +17,6 @@ export const SET = {
 	/** ISO date the track was published on SoundCloud (its `display_date`). */
 	recorded: '2026-09-26',
 } as const;
+
+/** The side project on the home page, previewed live in its tile. */
+export const PROJECT = { title: 'Morph', url: 'https://morph.msaug.dev' } as const;

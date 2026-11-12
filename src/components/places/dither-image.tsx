@@ -65,6 +65,7 @@ export function DitherImage({
 		<button
 			type="button"
 			aria-pressed={revealed}
+			aria-label={`Show ${alt} in colour`}
 			onClick={() => setRevealed((r) => !r)}
 			className={cn(
 				'group relative block w-full cursor-pointer overflow-hidden bg-muted outline-none focus-visible:ring-2 focus-visible:ring-ring',

@@ -6,6 +6,10 @@ import type { StaticImageData } from 'next/image';
 import { cache } from 'react';
 import { z } from 'zod';
 import { findImage } from './media';
+import { smartQuotes } from './typeset';
+
+/** Frontmatter prose: typographer's quotes, as the markdown bodies get. */
+const text = z.string().transform(smartQuotes);
 
 /** The markdown collections, read once per build from `src/content/`. Replaces Astro's content layer. */
 const CONTENT = join(process.cwd(), 'src/content');
@@ -21,22 +25,22 @@ export type Entry<T> = {
 };
 
 const blogSchema = z.object({
-	title: z.string(),
-	description: z.string(),
+	title: text,
+	description: text,
 	pubDate: z.coerce.date(),
 	updatedDate: z.coerce.date().optional(),
 	/** Base slugs of sibling pieces to offer in the close instead of the chronological neighbours. */
 	related: z.array(z.string()).default([]),
 	/** Overrides for the "In short" list: heading text -> sentence. Default is each section's first sentence. */
-	hooks: z.record(z.string(), z.string()).optional(),
+	hooks: z.record(z.string(), text).optional(),
 });
 
 const workSchema = z.object({
-	title: z.string(),
-	summary: z.string(),
+	title: text,
+	summary: text,
 	/** work = employment (Zama, Kakarot); project = things built alongside it. */
 	kind: z.enum(['work', 'project']).default('work'),
-	role: z.string().optional(),
+	role: text.optional(),
 	/** Free-form, such as "2023 — present". */
 	period: z.string().optional(),
 	site: z.url().optional(),
@@ -45,7 +49,7 @@ const workSchema = z.object({
 });
 
 const tripSchema = z.object({
-	title: z.string(),
+	title: text,
 	country: z.string(),
 	date: z.coerce.date(),
 	/** [lat, lon]. */
