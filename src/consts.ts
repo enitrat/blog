@@ -1,4 +1,4 @@
-export const SITE_DESCRIPTION = 'I build systems and products, and write about what I learn.';
+export const SITE_DESCRIPTION = 'cool things i do on the internet';
 
 /** Where to reach Mathieu; the footer and the home bio read this one list. */
 export const CONTACT_LINKS = [
