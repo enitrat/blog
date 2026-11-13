@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 export const buttonVariants = cva(
-	'inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-control type-control transition-[color,background-color,box-shadow,scale] duration-150 ease-out outline-none active:scale-[0.96] motion-reduce:active:scale-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0',
+	'inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-control type-control transition-[color,background-color,box-shadow,scale] duration-150 ease-out active:scale-[0.96] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0',
 	{
 		variants: {
 			variant: {
@@ -19,11 +19,10 @@ export const buttonVariants = cva(
 			size: {
 				sm: 'h-7 px-3 type-control-sm [&_svg]:size-3.5',
 				default: 'h-9 pt-2 pr-4 pb-1.5 pl-3.5 [&_svg]:size-4',
-				/** 36px, with a 44px hit area. */
-				icon: "relative size-9 after:absolute after:-inset-1 after:content-[''] [&_svg]:size-4",
-				/** 28px, with a 44px hit area. */
-				'icon-sm':
-					"relative size-7 after:absolute after:-inset-2 after:content-[''] [&_svg]:size-3.5",
+				/** 36px drawn, 44px to press. */
+				icon: 'relative size-9 hit-area [&_svg]:size-4',
+				/** 28px drawn, 44px to press. */
+				'icon-sm': 'relative size-7 hit-area [&_svg]:size-3.5',
 			},
 		},
 		defaultVariants: { variant: 'default', size: 'default' },

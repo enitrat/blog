@@ -67,7 +67,7 @@ export function CodeBlock({
 					<Button
 						variant="ghost"
 						size="sm"
-						className="absolute top-2 right-2 min-w-18 bg-card/80 backdrop-blur-sm after:absolute after:-inset-2 after:content-['']"
+						className="absolute top-2 right-2 min-w-18 bg-card/80 backdrop-blur-sm hit-area"
 						aria-label={`Copy ${label}`}
 						onClick={copy}
 					>

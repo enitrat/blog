@@ -10,23 +10,11 @@ export const spring = {
 	tap: { type: 'spring', stiffness: 200, damping: 12, duration: 0.2 },
 	/** Pop-in and exit of messages and cards. */
 	enter: { type: 'spring', stiffness: 450, damping: 32, bounce: 0.15 },
-	/** Drop-in from above. */
-	drop: { type: 'spring', stiffness: 250, damping: 18, delay: 0.05 },
-	/** 3D lid or folder. */
-	lid: { type: 'spring', stiffness: 400, damping: 25 },
 	/** Layout shifts, such as the navbar resizing. */
 	layout: { type: 'spring', stiffness: 400, damping: 40 },
-	/** Photo fan on group hover; stagger by `fanStagger * index`. */
+	/** A tile's object waking: covers fanning, sheets rising, icons rippling. */
 	fan: { type: 'spring', stiffness: 320, damping: 18 },
 } as const satisfies Record<string, Transition>;
 
-export const fanStagger = 0.0335;
-
 /** Fallback tween. */
 export const ease = { duration: 0.2, ease: [0.4, 0, 0.2, 1] } as const satisfies Transition;
-
-/** Hover scale: big surfaces and small ones. */
-export const hoverScale = { surface: 1.02, small: 1.08 } as const;
-
-/** Exit for popped-in elements. */
-export const exit = { y: -30, scale: 0.9, opacity: 0 } as const;

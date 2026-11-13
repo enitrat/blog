@@ -18,5 +18,5 @@ export const SET = {
 	recorded: '2026-09-26',
 } as const;
 
-/** The side project on the home page, previewed live in its tile. */
+/** The side project on the home page; its tile shows a screenshot, `src/assets/projects/morph.png`. */
 export const PROJECT = { title: 'Morph', url: 'https://morph.msaug.dev' } as const;

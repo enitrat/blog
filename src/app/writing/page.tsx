@@ -1,6 +1,7 @@
 import { Page, PageHeader } from '@/components/ui/page';
 import { WritingRow } from '@/components/writing/writing-row';
 import { bannerFor, getPosts, postUrl } from '@/lib/content';
+import { formatDate } from '@/lib/format';
 import { pageMeta } from '@/lib/meta';
 
 export const metadata = pageMeta({
@@ -8,9 +9,6 @@ export const metadata = pageMeta({
 	description: 'I write about software, AI, Cairo, and what I learn while building with them.',
 	path: '/writing/',
 });
-
-const fmt = (d: Date) =>
-	d.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: '2-digit' });
 
 export default async function WritingPage() {
 	const posts = getPosts();
@@ -24,7 +22,7 @@ export default async function WritingPage() {
 						<WritingRow
 							key={post.id}
 							href={postUrl(post)}
-							date={fmt(post.data.pubDate)}
+							date={formatDate(post.data.pubDate)}
 							datetime={post.data.pubDate.toISOString()}
 							title={post.data.title}
 							description={post.data.description}

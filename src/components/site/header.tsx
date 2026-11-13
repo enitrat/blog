@@ -1,27 +1,24 @@
 'use client';
 
-import { motion, useReducedMotion } from 'motion/react';
+import { motion } from 'motion/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { spring } from '@/lib/motion';
 import type { NavLink } from '@/lib/nav';
-import { Mark } from './mark';
 import { ThemeToggle } from './theme-toggle';
+import { Wordmark } from './wordmark';
 
-const FOCUS = 'outline-none focus-visible:ring-2 focus-visible:ring-ring';
-
-/** The site name and mark, linking home. */
+/** The wordmark, linking home. */
 function SiteName() {
 	const home = usePathname() === '/';
 	return (
 		<Link
 			href="/"
-			aria-label="Mathieu Saugier, home"
+			aria-label="msaug.dev, home"
 			aria-current={home ? 'page' : undefined}
-			className={`flex min-h-11 items-center gap-2.5 rounded-inline type-subtitle whitespace-nowrap text-foreground transition-opacity hover:opacity-70 ${FOCUS}`}
+			className="flex min-h-11 items-center rounded-inline transition-opacity hover:opacity-70"
 		>
-			<Mark />
-			Mathieu Saugier
+			<Wordmark />
 		</Link>
 	);
 }
@@ -33,11 +30,10 @@ function SiteName() {
 function SiteNav({ links }: { links: NavLink[] }) {
 	const path = usePathname().replace(/(.)\/$/, '$1');
 	const current = (href: string) => path === href || path.startsWith(`${href}/`);
-	const reduce = useReducedMotion();
 	return (
 		<nav
 			aria-label="Primary navigation"
-			className="-mx-4 w-[calc(100%+2rem)] overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:ml-auto sm:w-auto sm:overflow-visible sm:px-0"
+			className="-mx-4 -my-1 w-[calc(100%+2rem)] overflow-x-auto px-4 py-1 [scrollbar-width:none] sm:my-0 sm:py-0 sm:mx-0 sm:ml-auto sm:w-auto sm:overflow-visible sm:px-0"
 		>
 			<ul className="flex gap-4">
 				{links.map((l) => {
@@ -47,7 +43,7 @@ function SiteNav({ links }: { links: NavLink[] }) {
 							<Link
 								href={l.href}
 								aria-current={here ? 'page' : undefined}
-								className={`relative inline-flex min-h-11 items-center rounded-inline type-control whitespace-nowrap text-muted-foreground transition-colors duration-150 hover:text-foreground aria-[current=page]:text-foreground ${FOCUS}`}
+								className="relative inline-flex min-h-11 items-center rounded-inline type-control whitespace-nowrap text-muted-foreground transition-colors duration-150 hover:text-foreground aria-[current=page]:text-foreground"
 							>
 								{l.label}
 								{here && (
@@ -55,7 +51,7 @@ function SiteNav({ links }: { links: NavLink[] }) {
 									<motion.span
 										aria-hidden
 										layoutId="nav-underline"
-										transition={reduce ? { duration: 0 } : spring.layout}
+										transition={spring.layout}
 										className="absolute inset-x-0 top-[calc(50%+0.875rem)] h-[2.5px] rounded-full bg-primary"
 									/>
 								)}

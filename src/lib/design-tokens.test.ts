@@ -1,24 +1,11 @@
 import { describe, expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { Glob } from 'bun';
+import { offenders } from './source-lines';
 import { TYPE_FAMILIES } from './type-families';
 
 /** The one page that shows the palettes themselves. */
 const SPECIMEN = 'src/app/design/page.tsx';
-
-const files = [...new Glob('src/**/*.{ts,tsx}').scanSync('.')].filter(
-	(file) => !file.endsWith('.test.ts'),
-);
-
-function offenders(pattern: RegExp, skip: (file: string) => boolean = () => false) {
-	return files
-		.filter((file) => !skip(file))
-		.flatMap((file) =>
-			readFileSync(file, 'utf8')
-				.split('\n')
-				.flatMap((line, i) => (pattern.test(line) ? [`${file}:${i + 1}: ${line.trim()}`] : [])),
-		);
-}
 
 const COLOR_UTILITY =
 	'(?:bg|text|border|ring|ring-offset|outline|fill|stroke|from|via|to|decoration|divide|shadow|placeholder|caret|accent)';

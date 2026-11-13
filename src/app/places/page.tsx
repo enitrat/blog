@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Page, PageHeader } from '@/components/ui/page';
 import { StatusDot } from '@/components/ui/status-dot';
 import { getTrips, type Trip } from '@/lib/content';
+import { formatMonthYear } from '@/lib/format';
 import { renderMarkdown } from '@/lib/markdown';
 import { maybeImage } from '@/lib/media';
 import { pageMeta } from '@/lib/meta';
@@ -16,8 +17,6 @@ export const metadata = pageMeta({
 	description: 'Trips and photographs.',
 	path: '/places/',
 });
-
-const monthYear = new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' });
 
 /** A photo of a trip, by its path relative to the trip folder (`./cover.jpg`). */
 const photoOf = async (trip: Trip, src: string): Promise<StaticImageData> => {
@@ -72,7 +71,7 @@ export default async function PlacesPage() {
 							<div className="flex flex-col gap-1.5">
 								<p className="flex items-center gap-1.5 type-meta text-faint">
 									<StatusDot />
-									{monthYear.format(t.date)}
+									{formatMonthYear(t.date)}
 								</p>
 								<h2 className="type-subtitle text-foreground">
 									{t.title}

@@ -68,7 +68,7 @@ export function DitherImage({
 			aria-label={`Show ${alt} in colour`}
 			onClick={() => setRevealed((r) => !r)}
 			className={cn(
-				'group relative block w-full cursor-pointer overflow-hidden bg-muted outline-none focus-visible:ring-2 focus-visible:ring-ring',
+				'group relative block w-full cursor-pointer overflow-hidden bg-muted',
 				className,
 			)}
 			style={{ aspectRatio: ratio }}
@@ -79,7 +79,7 @@ export function DitherImage({
 				ref={canvas}
 				aria-hidden="true"
 				className={cn(
-					'pointer-events-none absolute inset-0 size-full opacity-0 transition-opacity duration-150 [image-rendering:pixelated] group-hover:opacity-0 group-focus-visible:opacity-0 motion-reduce:transition-none',
+					'pointer-events-none absolute inset-0 size-full opacity-0 transition-opacity duration-150 [image-rendering:pixelated] group-hover:opacity-0 group-focus-visible:opacity-0',
 					ready && !revealed && 'opacity-100',
 				)}
 			/>

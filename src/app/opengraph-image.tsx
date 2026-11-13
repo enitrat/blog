@@ -1,5 +1,5 @@
 import { SITE_DESCRIPTION } from '@/consts';
-import { OG_SIZE, ogImage, plateUrl } from '@/lib/og';
+import { OG_SIZE, ogImage } from '@/lib/og';
 
 export const alt = 'Mathieu Saugier';
 export const size = OG_SIZE;
@@ -10,7 +10,6 @@ export default async function Image() {
 		title: 'Mathieu Saugier',
 		titleSize: 92,
 		kicker: SITE_DESCRIPTION,
-		plate: await plateUrl('src/assets/living-room.png'),
 		footer: 'msaug.dev',
 	});
 }

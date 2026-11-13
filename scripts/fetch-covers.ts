@@ -31,7 +31,9 @@ async function fetchCover(isbn: string): Promise<Outcome> {
 	const raw = await download(isbn);
 	if (!raw) return 'missing';
 	const { width = 0, height = 0 } = await sharp(raw).metadata();
-	if (width < MIN_SIDE || height < MIN_SIDE) return 'missing';
+	// A jacket is portrait. A landscape scan is a wraparound or a flap, never the front alone, and
+	// no crop can recover it, so it counts as missing: check in a front cover by hand instead.
+	if (width < MIN_SIDE || height < MIN_SIDE || width >= height) return 'missing';
 	await sharp(raw)
 		.resize({ height: MAX_HEIGHT, withoutEnlargement: true })
 		.jpeg({ quality: 82, mozjpeg: true })

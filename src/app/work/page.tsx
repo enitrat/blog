@@ -11,6 +11,8 @@ export const metadata = pageMeta({
 	path: '/work/',
 });
 
+const TITLE = 'Work';
+
 export default function WorkPage() {
 	const reports = getReports();
 	// Same two groups as the homepage index. Each section id is the fragment the homepage links
@@ -25,7 +27,7 @@ export default function WorkPage() {
 	].filter((group) => group.reports.length > 0);
 	return (
 		<Page>
-			<PageHeader>Work</PageHeader>
+			<PageHeader>{TITLE}</PageHeader>
 			<div className="flex flex-col gap-rhythm">
 				{groups.map((group) => (
 					<section
@@ -34,7 +36,8 @@ export default function WorkPage() {
 						aria-label={group.label}
 						className="flex scroll-mt-anchor flex-col gap-2"
 					>
-						<Eyebrow as="h2">{group.label}</Eyebrow>
+						{/* A group named like the page is the page itself: the h1 already labels it. */}
+						{group.label !== TITLE && <Eyebrow as="h2">{group.label}</Eyebrow>}
 						<ul className="flex flex-col">
 							{group.reports.map((r) => (
 								<WorkRow

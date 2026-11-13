@@ -6,10 +6,10 @@ import type { StaticImageData } from 'next/image';
 import { cache } from 'react';
 import { z } from 'zod';
 import { findImage } from './media';
-import { smartQuotes } from './typeset';
+import { typeset } from './typeset';
 
-/** Frontmatter prose: typographer's quotes, as the markdown bodies get. */
-const text = z.string().transform(smartQuotes);
+/** Frontmatter prose: curly quotes, as the markdown bodies get, and numbers bound to their word. */
+const text = z.string().transform(typeset);
 
 /** The markdown collections, read once per build from `src/content/`. Replaces Astro's content layer. */
 const CONTENT = join(process.cwd(), 'src/content');

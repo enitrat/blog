@@ -1,12 +1,12 @@
-'use client';
-
 import { ArrowRightIcon } from 'lucide-react';
-import { motion, useReducedMotion } from 'motion/react';
 import Link from 'next/link';
-import { type ReactNode, useState } from 'react';
-import { hoverScale, spring } from '@/lib/motion';
+import type { ReactNode } from 'react';
 
-/** One work entry: logo, title, role, period and summary. The logo and arrow spring on hover. */
+/**
+ * One work entry: logo, title, role, period and summary. Hover or keyboard focus tints the row,
+ * grows the logo a little and slides the arrow in; both are CSS on the link's own states, so a
+ * focused row wakes exactly as a hovered one does.
+ */
 export function WorkRow({
 	href,
 	logo,
@@ -22,30 +22,16 @@ export function WorkRow({
 	period?: string;
 	summary?: string;
 }) {
-	const reduce = useReducedMotion();
-	// whileFocus never fires on the <li>, which is not focusable; focus inside the row wakes it.
-	const [focused, setFocused] = useState(false);
 	const meta = [role, period].filter(Boolean).join(' · ');
 	return (
-		<motion.li
-			initial="rest"
-			animate={focused ? 'hover' : 'rest'}
-			whileHover="hover"
-			onFocus={(e) => setFocused(e.target.matches(':focus-visible'))}
-			onBlur={() => setFocused(false)}
-			className="border-t border-border first:border-t-0"
-		>
+		<li className="border-t border-border first:border-t-0">
 			<Link
 				href={href}
-				className="-mx-3 flex items-start gap-4 rounded-row px-3 py-4 outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+				className="group -mx-3 flex items-start gap-4 rounded-row px-3 py-4 transition-colors hover:bg-muted"
 			>
-				<motion.span
-					className="flex flex-none"
-					variants={{ rest: { scale: 1 }, hover: { scale: reduce ? 1 : hoverScale.small } }}
-					transition={spring.pop}
-				>
+				<span className="flex flex-none transition-transform duration-200 ease-out group-hover:scale-[1.08] group-focus-visible:scale-[1.08]">
 					{logo}
-				</motion.span>
+				</span>
 				<span className="min-w-0 flex-1">
 					<h3 className="type-subtitle text-balance text-foreground">{title}</h3>
 					{meta && <span className="mt-0.5 block type-meta text-faint">{meta}</span>}
@@ -55,18 +41,11 @@ export function WorkRow({
 						</span>
 					)}
 				</span>
-				<motion.span
+				<ArrowRightIcon
 					aria-hidden
-					className="mt-3 hidden flex-none text-faint sm:block"
-					variants={{
-						rest: { opacity: 0, x: reduce ? 0 : -4 },
-						hover: { opacity: 1, x: 0 },
-					}}
-					transition={spring.enter}
-				>
-					<ArrowRightIcon className="size-4" />
-				</motion.span>
+					className="mt-3 hidden size-4 flex-none -translate-x-1 text-faint opacity-0 transition-[opacity,translate] duration-200 ease-out group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100 sm:block"
+				/>
 			</Link>
-		</motion.li>
+		</li>
 	);
 }

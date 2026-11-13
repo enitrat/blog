@@ -2,7 +2,7 @@
 
 import { motion, useReducedMotion } from 'motion/react';
 import { type SimpleIcon, siGithub, siSoundcloud, siTelegram, siX } from 'simple-icons';
-import { useTileHeld } from '@/components/home/bento-tile';
+import { useTileAwake } from '@/components/home/bento-tile';
 import { CONTACT_LINKS, SET } from '@/consts';
 import { spring } from '@/lib/motion';
 import { cn } from '@/lib/utils';
@@ -28,8 +28,9 @@ const LINKS = [
  * rise in a ripple, left to right; the one under the pointer rises and tilts further.
  */
 export function BrandLinks() {
-	const reduce = useReducedMotion();
-	const held = useTileHeld() && !reduce;
+	const awake = useTileAwake();
+	// Hovering one icon tilts it: a pose, so it waits for motion to be welcome, as the ripple does.
+	const posable = !useReducedMotion();
 	return (
 		// Four across only when the tile itself has room for "SoundCloud" under each icon; otherwise two
 		// by two. Measured on the tile, not the window: the bento's width depends on the sidebar.
@@ -42,10 +43,10 @@ export function BrandLinks() {
 							target="_blank"
 							rel="me noreferrer"
 							initial="rest"
-							animate={held ? 'awake' : 'rest'}
-							whileHover={reduce ? undefined : 'hover'}
-							whileTap={reduce ? undefined : 'press'}
-							className="flex flex-col items-center gap-2 rounded-media type-small text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+							animate={awake ? 'awake' : 'rest'}
+							whileHover={posable ? 'hover' : undefined}
+							whileTap="press"
+							className="flex flex-col items-center gap-2 rounded-media type-small text-muted-foreground"
 						>
 							<motion.span
 								aria-hidden

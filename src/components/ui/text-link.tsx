@@ -4,27 +4,24 @@ import NextLink from 'next/link';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
-const textLinkVariants = cva(
-	'group/link transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
-	{
-		variants: {
-			variant: {
-				/** Muted; one step darker on hover. Under a page or beside a control. */
-				muted:
-					'inline-flex items-center gap-1 rounded-inline type-control text-muted-foreground hover:text-foreground',
-				/** Accent text link in running text. */
-				inline:
-					'rounded-inline text-primary underline decoration-primary/30 underline-offset-[22%] hover:decoration-primary',
-				/** Lighter than muted. */
-				quiet: 'rounded-inline text-faint hover:text-foreground',
-				/** A tile's header action. */
-				action:
-					'inline-flex items-center gap-1 rounded-inline type-control-sm text-muted-foreground hover:text-foreground',
-			},
+const textLinkVariants = cva('group/link transition-colors', {
+	variants: {
+		variant: {
+			/** Muted; one step darker on hover. Under a page or beside a control. */
+			muted:
+				'inline-flex items-center gap-1 rounded-inline type-control text-muted-foreground hover:text-foreground',
+			/** Accent text link in running text. */
+			inline:
+				'rounded-inline text-primary underline decoration-primary/30 underline-offset-[22%] hover:decoration-primary',
+			/** Lighter than muted. */
+			quiet: 'rounded-inline text-faint hover:text-foreground',
+			/** A tile's header action. */
+			action:
+				'inline-flex items-center gap-1 rounded-inline type-control-sm text-muted-foreground hover:text-foreground',
 		},
-		defaultVariants: { variant: 'muted' },
 	},
-);
+	defaultVariants: { variant: 'muted' },
+});
 
 /**
  * A text link. `arrow` trails an arrow; `external` opens a new tab and trails a corner arrow.
@@ -49,7 +46,7 @@ export function TextLink({
 				{children}
 				<ArrowUpRightIcon
 					aria-hidden
-					className="size-3.5 transition-transform motion-safe:group-hover/link:translate-x-px motion-safe:group-hover/link:-translate-y-px"
+					className="size-3.5 transition-transform group-hover/link:translate-x-px group-hover/link:-translate-y-px"
 				/>
 			</a>
 		);
@@ -60,7 +57,7 @@ export function TextLink({
 			{icon === 'arrow' && (
 				<ArrowRightIcon
 					aria-hidden
-					className="size-3.5 transition-transform motion-safe:group-hover/link:translate-x-0.5"
+					className="size-3.5 transition-transform group-hover/link:translate-x-0.5"
 				/>
 			)}
 		</NextLink>

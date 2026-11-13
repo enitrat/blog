@@ -4,6 +4,7 @@ import { ListRow, ListRows } from '@/components/ui/list-row';
 import { Page, PageHeader } from '@/components/ui/page';
 import { TextLink } from '@/components/ui/text-link';
 import type { BlogData } from '@/lib/content';
+import { formatDate } from '@/lib/format';
 import type { InShortItem } from '@/lib/in-short';
 import { InShort } from './in-short';
 import { Prose } from './prose';
@@ -16,9 +17,6 @@ const t = {
 	onward: 'Keep reading',
 	all: 'All writing',
 };
-
-const formatDate = (date: Date) =>
-	date.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' });
 
 /**
  * The essay page: a meta line, the title, the build-time "In short" block, then the prose.

@@ -51,7 +51,7 @@ function BackLink() {
 		<p className="not-prose mt-8">
 			<a
 				href="#in-short"
-				className="inline-flex items-center gap-1 rounded-inline type-control-sm text-faint transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+				className="inline-flex items-center gap-1 rounded-inline type-control-sm text-faint transition-colors hover:text-foreground"
 			>
 				<ArrowUpIcon aria-hidden className="size-3.5" /> {IN_SHORT_LABEL}
 			</a>
@@ -72,11 +72,11 @@ const PROSE = cn(
 	'prose-p:text-pretty prose-li:text-pretty prose-headings:scroll-mt-anchor prose-headings:text-balance',
 	// Section breaks in the markdown; the h2 spacing carries them.
 	'prose-hr:hidden',
-	'prose-a:rounded-inline prose-a:decoration-primary/30 prose-a:underline-offset-[22%] prose-a:transition-colors prose-a:duration-200 prose-a:outline-none prose-a:hover:decoration-current prose-a:focus-visible:ring-2 prose-a:focus-visible:ring-ring',
+	'prose-a:rounded-inline prose-a:decoration-primary/30 prose-a:underline-offset-[22%] prose-a:transition-colors prose-a:duration-200 prose-a:hover:decoration-current',
 	// Inline code: a hairline chip, no backticks.
 	'[&_:not(pre)>code]:rounded-chip [&_:not(pre)>code]:border [&_:not(pre)>code]:border-border [&_:not(pre)>code]:px-1 [&_:not(pre)>code]:py-0.5',
 	// Code blocks: a card; tokens carry both theme colours as variables.
-	'prose-figure:my-6 prose-pre:my-0 prose-pre:rounded-row prose-pre:shadow-card prose-pre:outline-none prose-pre:focus-visible:ring-2 prose-pre:focus-visible:ring-ring',
+	'prose-figure:my-6 prose-pre:my-0 prose-pre:rounded-row prose-pre:shadow-card',
 	'[&_pre_span]:text-(--shiki-light) dark:[&_pre_span]:text-(--shiki-dark)',
 );
 

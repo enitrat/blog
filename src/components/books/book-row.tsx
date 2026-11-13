@@ -1,8 +1,12 @@
 import Image, { type StaticImageData } from 'next/image';
 import type { ReactNode } from 'react';
+import { formatRating } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
-/** A book's real cover cropped to a 2:3 jacket, or its initial on a blank board when none is checked in. */
+/**
+ * A book's cover as a 2:3 jacket, or its initial on a blank board when none is checked in. Covers
+ * are portrait by contract: `bun run covers:fetch` turns away any other shape.
+ */
 export function BookThumb({
 	cover,
 	title,
@@ -24,19 +28,7 @@ export function BookThumb({
 			</span>
 		);
 	}
-	// A landscape image is a wraparound jacket: its front cover is the right half.
-	return (
-		<Image
-			src={cover}
-			alt=""
-			sizes="8rem"
-			className={cn(
-				frame,
-				'bg-muted object-cover',
-				cover.width > cover.height ? 'object-right' : 'object-center',
-			)}
-		/>
-	);
+	return <Image src={cover} alt="" sizes="8rem" className={cn(frame, 'bg-muted object-cover')} />;
 }
 
 /**
@@ -73,7 +65,7 @@ export function BookRow({
 				{month && <time dateTime={datetime}>{month}</time>}
 				{rating !== null && (
 					<span className={high ? 'text-primary' : 'text-foreground'}>
-						{rating}
+						{formatRating(rating)}
 						<span className="text-faint">/5</span>
 						<span className="sr-only"> rating</span>
 					</span>

@@ -67,8 +67,9 @@ const processor = (dir: string) =>
 		.use(rehypeSlug)
 		.use(rehypeLocalImages(dir))
 		.use(rehypePrettyCode, {
-			// Each token carries `--shiki-light` and `--shiki-dark`; Prose picks one.
-			theme: { light: 'github-light', dark: 'github-dark-dimmed' },
+			// Each token carries `--shiki-light` and `--shiki-dark`; Prose picks one. Chosen so every token,
+			// comments included, clears 4.5:1 on our card: by day only the high-contrast GitHub theme does.
+			theme: { light: 'github-light-high-contrast', dark: 'github-dark-default' },
 			keepBackground: false,
 			bypassInlineCode: true,
 			defaultLang: { block: 'plaintext' },

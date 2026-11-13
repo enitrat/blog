@@ -10,7 +10,7 @@ export function InShort({ items }: { items: InShortItem[] }) {
 		<nav
 			id="in-short"
 			aria-label={IN_SHORT_LABEL}
-			className="scroll-mt-anchor border-b border-border pb-8"
+			className="max-w-reading scroll-mt-anchor border-b border-border pb-8"
 		>
 			<Eyebrow as="h2">{IN_SHORT_LABEL}</Eyebrow>
 			<ol className="mt-4 flex flex-col">
@@ -19,10 +19,7 @@ export function InShort({ items }: { items: InShortItem[] }) {
 						<span aria-hidden className="pt-2.5 type-meta text-faint">
 							{String(i + 1).padStart(2, '0')}
 						</span>
-						<a
-							href={`#${item.id}`}
-							className="group flex flex-col rounded-chip py-2 type-body outline-none focus-visible:ring-2 focus-visible:ring-ring"
-						>
+						<a href={`#${item.id}`} className="group flex flex-col rounded-chip py-2 type-body">
 							<strong className="type-body-strong text-foreground underline decoration-transparent underline-offset-[22%] transition-colors group-hover:decoration-primary">
 								{item.title}
 							</strong>

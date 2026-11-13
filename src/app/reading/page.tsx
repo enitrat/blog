@@ -1,3 +1,4 @@
+import { ChevronDownIcon } from 'lucide-react';
 import type { StaticImageData } from 'next/image';
 import { type Book, books } from '@/booksData';
 import { BookRow, BookThumb } from '@/components/books/book-row';
@@ -6,6 +7,8 @@ import { Eyebrow } from '@/components/ui/eyebrow';
 import { ListRow, ListRows } from '@/components/ui/list-row';
 import { Page, PageHeader } from '@/components/ui/page';
 import { StatusDot } from '@/components/ui/status-dot';
+import { shortTitle } from '@/lib/books';
+import { formatCount, formatMonth, formatRating } from '@/lib/format';
 import { findImage } from '@/lib/media';
 import { pageMeta } from '@/lib/meta';
 
@@ -19,19 +22,15 @@ const BEFORE_2020 = 'Before 2020';
 /** A rating at or above this is set in the accent, in its row and in the year's strip. */
 const HIGH = 4.2;
 
-const MONTH = new Intl.DateTimeFormat('en-GB', { month: 'short' });
-const COUNT = new Intl.NumberFormat('en-GB');
-
 const date = (b: Book) => b.dateFinished ?? b.dateStarted;
 const time = (b: Book) => date(b)?.getTime() ?? 0;
 const recent = (a: Book, b: Book) => time(b) - time(a);
-const short = (t: string) => t.replace(/\s*\(.*\)\s*$/, '');
 const pages = (bs: Book[]) => bs.reduce((s, b) => s + b.edition.pageCount, 0);
 const high = (b: Book) => (b.rating ?? 0) >= HIGH;
 const yearOf = (b: Book) =>
 	b.readingPeriod === 'before-2020' ? BEFORE_2020 : String(date(b)?.getFullYear());
 const tally = (bs: Book[]) =>
-	`${bs.length} ${bs.length === 1 ? 'book' : 'books'} · ${COUNT.format(pages(bs))} pages`;
+	`${bs.length} ${bs.length === 1 ? 'book' : 'books'} · ${formatCount(pages(bs))} pages`;
 const id = (s: string) => `y-${s.toLowerCase().replace(/\W+/g, '-')}`;
 
 type Shown = { book: Book; cover: StaticImageData | undefined };
@@ -72,7 +71,7 @@ export default async function ReadingPage() {
 				lead={
 					<span
 						className={meta}
-					>{`${all.length} finished · ${COUNT.format(pages(all))} pages`}</span>
+					>{`${all.length} finished · ${formatCount(pages(all))} pages`}</span>
 				}
 			>
 				Reading
@@ -84,7 +83,9 @@ export default async function ReadingPage() {
 						<div key={book.title} className="grid grid-cols-[auto_minmax(0,1fr)] items-end gap-5">
 							<BookThumb cover={cover} title={book.title} className="w-24 shadow-book sm:w-30" />
 							<div className="min-w-0">
-								<h2 className="type-title text-balance text-foreground">{short(book.title)}</h2>
+								<h2 className="type-title text-balance text-foreground">
+									{shortTitle(book.title)}
+								</h2>
 								<p className="mt-1.5 type-body text-muted-foreground">{book.author}</p>
 								<p className={`mt-3 flex items-center gap-2 ${meta}`}>
 									<StatusDot />
@@ -105,11 +106,11 @@ export default async function ReadingPage() {
 						<li key={book.title} className="min-w-0">
 							<BookThumb cover={cover} title={book.title} className="w-full shadow-book" />
 							<p className="mt-2.5 type-body-strong text-balance text-foreground">
-								{short(book.title)}
+								{shortTitle(book.title)}
 							</p>
 							<p className={`mt-1 flex justify-between gap-2 ${meta}`}>
 								<span className="truncate">{book.author.split(' ').at(-1)}</span>
-								<span>{book.rating}</span>
+								{book.rating !== null && <span>{formatRating(book.rating)}</span>}
 							</p>
 						</li>
 					))}
@@ -117,18 +118,24 @@ export default async function ReadingPage() {
 			</section>
 
 			{years.map(({ year, shown, folded }) => {
+				// The year and its tally share a line while they fit and stack when they do not, so a long
+				// label such as "Before 2020" never breaks inside itself.
 				const head = (
 					<>
-						<div className="flex items-baseline justify-between gap-4">
-							<h2 id={id(year)} className="type-figure text-foreground">
+						<div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+							<h2 id={id(year)} className="type-figure whitespace-nowrap text-foreground">
 								{year}
 							</h2>
-							<span className={meta}>
+							<span className={`flex items-center gap-3 whitespace-nowrap ${meta}`}>
 								{tally(shown.map((s) => s.book))}
 								{folded && (
-									<span className="ms-3 underline underline-offset-[22%] group-hover:text-foreground">
+									<span className="inline-flex items-center gap-0.5 text-foreground underline underline-offset-[22%]">
 										<span className="group-open:hidden">Show</span>
 										<span className="hidden group-open:inline">Hide</span>
+										<ChevronDownIcon
+											aria-hidden
+											className="size-3.5 transition-transform duration-200 ease-out group-open:rotate-180"
+										/>
 									</span>
 								)}
 							</span>
@@ -136,7 +143,7 @@ export default async function ReadingPage() {
 						<div className="mt-3 mb-1">
 							<YearStrip
 								books={[...shown].reverse().map(({ book }) => ({
-									title: short(book.title),
+									title: shortTitle(book.title),
 									pages: book.edition.pageCount,
 									high: high(book),
 								}))}
@@ -151,10 +158,10 @@ export default async function ReadingPage() {
 							return (
 								<BookRow
 									key={book.title}
-									title={short(book.title)}
+									title={shortTitle(book.title)}
 									author={book.author}
 									cover={cover}
-									month={folded || !d ? undefined : MONTH.format(d)}
+									month={folded || !d ? undefined : formatMonth(d)}
 									datetime={d?.toISOString().slice(0, 7)}
 									rating={book.rating}
 									high={high(book)}
@@ -167,7 +174,7 @@ export default async function ReadingPage() {
 					<section key={year} aria-labelledby={id(year)}>
 						{folded ? (
 							<details className="group">
-								<summary className="cursor-pointer list-none rounded-chip outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+								<summary className="cursor-pointer list-none rounded-chip [&::-webkit-details-marker]:hidden">
 									{head}
 								</summary>
 								{rows}
@@ -189,7 +196,7 @@ export default async function ReadingPage() {
 					</Eyebrow>
 					<ListRows>
 						{wanted.map((b) => (
-							<ListRow key={b.title} title={short(b.title)} description={b.author} />
+							<ListRow key={b.title} title={shortTitle(b.title)} description={b.author} />
 						))}
 					</ListRows>
 				</section>

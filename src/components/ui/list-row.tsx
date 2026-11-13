@@ -59,8 +59,7 @@ export function ListRow({
 	);
 	const row = cn(
 		'group flex flex-col gap-1 py-4 sm:flex-row sm:items-baseline sm:gap-4',
-		href &&
-			'-mx-3 rounded-row px-3 transition-colors outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring',
+		href && '-mx-3 rounded-row px-3 transition-colors hover:bg-muted',
 	);
 	return (
 		<li className="border-t border-border first:border-t-0">

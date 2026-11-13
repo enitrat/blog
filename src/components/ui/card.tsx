@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, useReducedMotion } from 'motion/react';
+import { motion } from 'motion/react';
 import { createContext, type ReactNode, useContext, useState } from 'react';
 import { spring } from '@/lib/motion';
 import { cn } from '@/lib/utils';
@@ -16,7 +16,7 @@ export const useCardHeld = () => useContext(HeldContext);
 /**
  * The one card: one inset, one radius, one shadow. With an `index` it pops in on mount, staggered
  * by that position; without one it renders in place. Every card tells its children when it is
- * held, so a stack inside can fan. Under reduced motion it renders in place and does not move.
+ * held, so a stack inside can fan. Under reduced motion it fades in without travelling.
  */
 export function Card({
 	index,
@@ -31,8 +31,6 @@ export function Card({
 	className?: string;
 	children: ReactNode;
 }) {
-	const reduce = useReducedMotion();
-	const motile = !reduce;
 	const [hovered, setHovered] = useState(false);
 	const [focused, setFocused] = useState(false);
 	return (
@@ -43,7 +41,7 @@ export function Card({
 					'group/card relative isolate flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-card bg-card p-inset shadow-card',
 					className,
 				)}
-				initial={motile && index !== undefined ? { opacity: 0, y: 14, scale: 0.98 } : false}
+				initial={index !== undefined ? { opacity: 0, y: 14, scale: 0.98 } : false}
 				animate={{ opacity: 1, y: 0, scale: 1 }}
 				transition={{ ...spring.enter, delay: (index ?? 0) * POP_STAGGER }}
 				onHoverStart={() => setHovered(true)}
@@ -95,7 +93,7 @@ export function CardHeader({
 				<div
 					className={cn(
 						// A narrow card truncates the trailing note rather than wrapping the row.
-						'ml-auto flex min-w-0 items-center gap-0.5 type-caption whitespace-nowrap [&>*]:min-w-0 [&>*]:truncate [&_svg]:transition-transform [&_svg]:duration-300 motion-safe:group-hover/card:[&_svg]:translate-x-0.5 motion-safe:group-hover/card:[&_svg]:-translate-y-0.5',
+						'ml-auto flex min-w-0 items-center gap-0.5 type-caption whitespace-nowrap [&>*]:min-w-0 [&>*]:truncate [&_svg]:transition-transform [&_svg]:duration-300 group-hover/card:[&_svg]:translate-x-0.5 group-hover/card:[&_svg]:-translate-y-0.5',
 						onMedia ? 'text-scrim-foreground' : 'text-muted-foreground',
 					)}
 				>

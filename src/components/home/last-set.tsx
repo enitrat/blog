@@ -5,7 +5,7 @@ import { ArrowUpRightIcon, PauseIcon, PlayIcon } from 'lucide-react';
 import { motion, useMotionValue, useReducedMotion, useSpring } from 'motion/react';
 import Image, { type StaticImageData } from 'next/image';
 import { useEffect, useSyncExternalStore } from 'react';
-import { useTileHeld } from '@/components/home/bento-tile';
+import { useTileAwake } from '@/components/home/bento-tile';
 import { SET } from '@/consts';
 import { spring } from '@/lib/motion';
 import { setPlayer } from '@/lib/set-player';
@@ -66,7 +66,7 @@ function Waveform({ playing }: { playing: boolean }) {
 					key={k.toString()}
 					className={cn(
 						'block w-1 flex-none rounded-full transition-colors duration-200',
-						playing ? 'animate-bar bg-primary motion-reduce:animate-none' : 'bg-border-strong',
+						playing ? 'animate-bar bg-primary' : 'bg-border-strong',
 					)}
 					style={{ height: `${h * 100}%`, animationDelay: `-${(k * 73) % 900}ms` }}
 				/>
@@ -80,13 +80,14 @@ function Waveform({ playing }: { playing: boolean }) {
  * SoundCloud widget, which loads on the first press. While the tile is held and the set stopped,
  * the record slides out of its sleeve. While playing the cover becomes a record (square to round, turning
  * slowly, a label and grooves fading in) and the waveform moves; under reduced motion the cover
- * turns round and the bars light, but nothing spins.
+ * turns round and the bars light, but nothing spins. The spin is the one motion here that is not an
+ * animation (a per-frame angle), so it is the one that checks reduced motion itself.
  */
 export function LastSet({ art }: { art: StaticImageData }) {
 	const playing = usePlaying();
 	const reduce = useReducedMotion();
 	// Held and stopped, the record slides halfway out of its sleeve and the sleeve tips back.
-	const peek = useTileHeld() && !playing && !reduce;
+	const peek = useTileAwake() && !playing;
 
 	// The record has inertia: `speed` (deg/s) springs up to cruise or down to zero, and each frame
 	// adds it to `angle`. A paused record stays where it stopped.
@@ -119,7 +120,7 @@ export function LastSet({ art }: { art: StaticImageData }) {
 	}, [speed, angle]);
 
 	const shape = { borderRadius: playing ? '50%' : 'var(--radius-media)' };
-	const move = reduce ? { duration: 0 } : spring.fan;
+	const move = spring.fan;
 	return (
 		<div className="mt-3 flex min-h-0 flex-1 gap-5">
 			<div className="relative aspect-square w-[42%] flex-none self-center">
@@ -158,10 +159,7 @@ export function LastSet({ art }: { art: StaticImageData }) {
 				</motion.div>
 			</div>
 			<div className="relative z-10 flex min-w-0 flex-1 flex-col">
-				{/* Truncated when the tile is narrow; the full title stays a hover away. */}
-				<p className="truncate type-subtitle" title={SET.title}>
-					{SET.title}
-				</p>
+				<p className="line-clamp-2 type-subtitle text-balance">{SET.title}</p>
 				<p className="mt-0.5 type-meta text-faint">{SET.artist}</p>
 				<Waveform playing={playing} />
 				<div className="flex items-center gap-2">
@@ -170,9 +168,9 @@ export function LastSet({ art }: { art: StaticImageData }) {
 						aria-pressed={playing}
 						aria-label={`${playing ? 'Pause' : 'Play'} ${SET.title}`}
 						onClick={() => setPlayer.toggle()}
-						whileHover={reduce ? undefined : { scale: 1.08, transition: spring.pop }}
-						whileTap={reduce ? undefined : { scale: 0.95, transition: spring.tap }}
-						className="relative grid size-9 flex-none cursor-pointer place-items-center rounded-full after:absolute after:-inset-1 after:rounded-full bg-primary text-primary-foreground shadow-glow outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-well"
+						whileHover={{ scale: 1.08, transition: spring.pop }}
+						whileTap={{ scale: 0.95, transition: spring.tap }}
+						className="relative grid size-9 flex-none cursor-pointer place-items-center rounded-full bg-primary text-primary-foreground shadow-glow hit-area"
 					>
 						{playing ? (
 							<PauseIcon aria-hidden className="size-4 fill-current stroke-none" />
@@ -186,7 +184,7 @@ export function LastSet({ art }: { art: StaticImageData }) {
 						target="_blank"
 						rel="noopener noreferrer"
 						aria-label={`Open ${SET.title} on SoundCloud`}
-						className="relative ml-auto grid size-7 place-items-center rounded-media text-faint after:absolute after:-inset-2 after:content-[''] outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+						className="relative ml-auto grid size-7 place-items-center rounded-media text-faint transition-colors hit-area hover:bg-muted hover:text-foreground"
 					>
 						<ArrowUpRightIcon aria-hidden className="size-4" />
 					</a>

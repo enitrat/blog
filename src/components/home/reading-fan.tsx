@@ -1,8 +1,8 @@
 'use client';
 
-import { motion, useReducedMotion } from 'motion/react';
+import { motion } from 'motion/react';
 import type { StaticImageData } from 'next/image';
-import { useTileHeld } from '@/components/home/bento-tile';
+import { useTileAwake } from '@/components/home/bento-tile';
 import { GlowImage } from '@/components/ui/glow-image';
 import { spring } from '@/lib/motion';
 
@@ -21,9 +21,7 @@ const HELD = [
  * and inert: clicks fall through to the tile's link, and the fan follows the tile being held.
  */
 export function ReadingFan({ covers }: { covers: { id: string; cover: StaticImageData }[] }) {
-	const reduce = useReducedMotion();
-	const held = useTileHeld();
-	const poses = held && !reduce ? HELD : REST;
+	const poses = useTileAwake() ? HELD : REST;
 	return (
 		<div aria-hidden className="pointer-events-none relative min-h-0 flex-1 [container-type:size]">
 			{covers

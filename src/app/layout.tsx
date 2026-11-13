@@ -2,9 +2,8 @@ import { Analytics } from '@vercel/analytics/next';
 import type { Metadata, Viewport } from 'next';
 import { Fragment_Mono, Instrument_Sans, Source_Serif_4 } from 'next/font/google';
 import type { ReactNode } from 'react';
-import { Footer } from '@/components/site/footer';
+import { Providers } from '@/components/providers';
 import { Header } from '@/components/site/header';
-import { ThemeProvider } from '@/components/theme-provider';
 import { SITE_URL } from '@/lib/meta';
 import { navLinks } from '@/lib/nav';
 import { cn } from '@/lib/utils';
@@ -60,20 +59,20 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 			suppressHydrationWarning
 		>
 			<body>
-				<ThemeProvider>
+				<Providers>
 					<a
 						href="#main"
 						className="sr-only type-control rounded-control bg-foreground px-4 py-2 text-background focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50"
 					>
 						Skip to content
 					</a>
-					{/* The header spans the window; its content and everything below share one container. */}
+					{/* The header spans the window; its content and the page share one container. No footer:
+					    home's Elsewhere tile holds the contact links, and a page ends where its content does. */}
 					<Header links={links} />
-					<div className="mx-auto w-full max-w-wide px-4 sm:px-8">
-						<main id="main">{children}</main>
-						<Footer />
-					</div>
-				</ThemeProvider>
+					<main id="main" className="mx-auto w-full max-w-wide px-4 sm:px-8">
+						{children}
+					</main>
+				</Providers>
 				<Analytics />
 			</body>
 		</html>

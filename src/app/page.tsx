@@ -7,18 +7,21 @@ import {
 	PenLineIcon,
 	SparklesIcon,
 } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { books } from '@/booksData';
 import { BentoTile } from '@/components/home/bento-tile';
 import { BrandLinks } from '@/components/home/brand-links';
-import { HomeFactsBelow, HomeSidebar } from '@/components/home/home-sidebar';
+import { HomeSidebar } from '@/components/home/home-sidebar';
 import { LastSet } from '@/components/home/last-set';
 import { ReadingFan } from '@/components/home/reading-fan';
 import { WorkFolder } from '@/components/home/work-folder';
 import { WritingCarousel } from '@/components/home/writing-carousel';
 import { CardHeader } from '@/components/ui/card';
 import { PROJECT, SET, SITE_DESCRIPTION } from '@/consts';
+import { shortTitle } from '@/lib/books';
 import { bannerFor, getPosts, getReports, postUrl } from '@/lib/content';
+import { formatDate, isoDate } from '@/lib/format';
 import { findImage, image, maybeImage } from '@/lib/media';
 import { pageMeta } from '@/lib/meta';
 
@@ -27,31 +30,28 @@ export const metadata = {
 	title: { absolute: 'Mathieu Saugier' },
 };
 
-const dateFormat = new Intl.DateTimeFormat('en-GB', {
-	day: 'numeric',
-	month: 'short',
-	year: 'numeric',
-	timeZone: 'UTC',
-});
 const stamp = (d: Date | null) => d?.getTime() ?? 0;
-const short = (t: string) => t.replace(/\s*\(.*\)\s*$/, '');
-const FOCUS = 'outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
 /**
- * Home: under the site header, a pinned sidebar (who Mathieu is) beside a bento of what he makes.
- * Both start where every page starts: the sidebar at the container's left edge, its first line
- * where other pages put their title. From 64rem the bento fills the screen below the header in
- * three rows, each clamped to 13–17rem so a tall monitor does not blow the tiles up and a short
- * window does not crush them:
+ * Home: the sidebar (who Mathieu is) beside a bento of what he makes. From `lg` the sidebar is pinned
+ * and the page scrolls only the bento, when the bento is taller than the window. Nothing follows the
+ * grid, so the pinned sidebar's container ends exactly where the page does.
  *
- *   Writing (4 x 2)            | Last set (2)
- *                              | Reading (2)
- *   Work (2) | Elsewhere (2)   | Project (2)
+ * The bento lays itself out by its own width, not the window's: the sidebar takes 20rem from `lg`,
+ * so a window breakpoint cannot tell how much room the tiles have. Three layouts:
  *
- * Below 64rem the sidebar holds only the intro, and the fun facts follow the tiles.
+ * One order at every width, the reading order: Writing, Work, Project, then Last set and
+ * Reading, then Elsewhere to sign off.
  *
- * Motion follows BentoTile's three layers: the surface lifts, one object per tile wakes (banner,
- * record, covers, folder sheets, icons, the live preview), and arrows and titles answer in CSS.
+ *   under 36rem   one column; tiles 16rem tall, Elsewhere as tall as its icons
+ *   36rem–58rem   two columns:  Writing (2 x 2) / Work | Project / Last set | Reading / Elsewhere (2),
+ *                 four 16rem rows and a last one as tall as Elsewhere's icons
+ *   58rem up      six columns, one screen, rows clamped to 13–17rem:
+ *                   Writing (4 x 2)               | Work (2)
+ *                                                 | Project (2)
+ *                   Last set (2) | Reading (2)    | Elsewhere (2)
+ *
+ * 58rem is the narrowest bento whose two-column tiles still set "Bouncyx Seven" beside its cover.
  */
 export default async function Home() {
 	const posts = await Promise.all(
@@ -60,8 +60,8 @@ export default async function Home() {
 			.map(async (p) => ({
 				title: p.data.title,
 				description: p.data.description,
-				date: dateFormat.format(p.data.pubDate),
-				iso: p.data.pubDate.toISOString().slice(0, 10),
+				date: formatDate(p.data.pubDate),
+				iso: isoDate(p.data.pubDate),
 				href: postUrl(p),
 				banner: await bannerFor(p),
 			})),
@@ -85,115 +85,125 @@ export default async function Home() {
 		})),
 	);
 	const art = await image('set/bouncyx-seven.jpg');
+	const shot = await image('projects/morph.png');
 	const book = reading[0];
 
 	return (
 		<div className="grid gap-8 pt-8 pb-16 lg:grid-cols-[20rem_1fr] lg:pt-0 lg:pb-0">
 			<HomeSidebar />
-			<div className="grid grid-cols-1 auto-rows-[16rem] gap-bento sm:grid-cols-2 lg:grid-cols-6 lg:grid-rows-[repeat(3,clamp(13rem,calc((100dvh-var(--spacing-header)-3.5rem-2*var(--spacing-bento))/3),17rem))] lg:pt-8 lg:pb-6">
-				{posts.length > 0 && (
+			<div className="@container/bento order-2 lg:order-none">
+				<div className="grid grid-cols-1 gap-bento lg:pt-8 lg:pb-6 @[36rem]/bento:auto-rows-[16rem] @[36rem]/bento:grid-rows-[repeat(4,16rem)_auto] @[36rem]/bento:grid-cols-2 @[58rem]/bento:grid-cols-6 @[58rem]/bento:grid-rows-[repeat(3,clamp(13rem,calc((100dvh-var(--spacing-header)-3.5rem-2*var(--spacing-bento))/3),17rem))]">
+					{posts.length > 0 && (
+						<BentoTile
+							index={0}
+							lift
+							labelledBy="writing-title"
+							className="@[36rem]/bento:col-span-2 @[36rem]/bento:row-span-2 @[58rem]/bento:col-span-4"
+						>
+							<CardHeader id="writing-title" icon={<PenLineIcon />} label="Writing">
+								<Link
+									href="/writing/"
+									className="relative inline-flex items-center gap-0.5 rounded-inline transition-colors hit-area hover:text-foreground"
+								>
+									All writing
+									<ArrowUpRightIcon aria-hidden className="size-3.5" />
+								</Link>
+							</CardHeader>
+							<WritingCarousel posts={posts} />
+						</BentoTile>
+					)}
+
+					<BentoTile index={1} labelledBy="work-title" className="@[58rem]/bento:col-span-2">
+						<CardHeader id="work-title" icon={<BriefcaseIcon />} label="Work" />
+						<WorkFolder sheets={sheets} />
+					</BentoTile>
+
 					<BentoTile
-						index={0}
+						index={2}
 						lift
-						labelledBy="writing-title"
-						className="sm:col-span-2 sm:row-span-2 lg:col-span-4"
+						labelledBy="project-title"
+						className="@[58rem]/bento:col-span-2"
 					>
-						<CardHeader id="writing-title" icon={<PenLineIcon />} label="Writing">
-							<Link
-								href="/writing/"
-								className={`relative inline-flex items-center gap-0.5 rounded-inline transition-colors after:absolute after:-inset-x-1 after:-inset-y-3 hover:text-foreground ${FOCUS}`}
-							>
-								All writing
-								<ArrowUpRightIcon aria-hidden className="size-3.5" />
-							</Link>
+						<CardHeader id="project-title" icon={<SparklesIcon />} label="Project">
+							<span className="type-meta">{new URL(PROJECT.url).host}</span>
 						</CardHeader>
-						<WritingCarousel posts={posts} />
-					</BentoTile>
-				)}
-
-				<BentoTile index={1} labelledBy="set-title" className="lg:col-span-2">
-					<CardHeader id="set-title" icon={<Disc3Icon />} label="Last set">
-						<time dateTime={SET.recorded} className="type-meta">
-							{dateFormat.format(new Date(SET.recorded))}
-						</time>
-					</CardHeader>
-					<LastSet art={art} />
-				</BentoTile>
-
-				{book && (
-					<BentoTile index={2} lift labelledBy="reading-title" className="lg:col-span-2">
-						<CardHeader id="reading-title" icon={<BookOpenIcon />} label="Reading">
-							{reading.length > 1 && (
-								<span className="type-meta whitespace-nowrap">+{reading.length - 1} more</span>
-							)}
-						</CardHeader>
-						{/* Covers beside the title when the tile is wide enough for a short title on one line;
-						    otherwise the title sits under them, so "East of Eden" never breaks in two. */}
-						<div className="@container mt-2 flex min-h-0 flex-1">
-							<div className="flex min-h-0 w-full flex-1 flex-col gap-2 @[15rem]:flex-row @[15rem]:gap-3">
-								<div className="flex min-h-0 flex-1 flex-col @[15rem]:w-2/5 @[15rem]:flex-none">
-									<ReadingFan covers={covers} />
-								</div>
-								<div className="flex min-w-0 flex-col justify-end @[15rem]:flex-1">
-									<h3 className="type-subtitle transition-colors duration-150 ease-out group-data-[held]/tile:text-primary">
-										<Link
-											href="/reading/"
-											className={`rounded-inline after:absolute after:inset-0 ${FOCUS}`}
-										>
-											{short(book.title)}
-										</Link>
-									</h3>
-									<p className="type-caption text-faint">{book.author}</p>
-								</div>
-							</div>
-						</div>
-					</BentoTile>
-				)}
-
-				<BentoTile index={3} labelledBy="work-title" className="lg:col-span-2">
-					<CardHeader id="work-title" icon={<BriefcaseIcon />} label="Work" />
-					<WorkFolder sheets={sheets} />
-				</BentoTile>
-
-				<BentoTile index={4} labelledBy="elsewhere-title" className="lg:col-span-2">
-					<CardHeader id="elsewhere-title" icon={<AtSignIcon />} label="Elsewhere" />
-					<BrandLinks />
-				</BentoTile>
-
-				<BentoTile index={5} lift labelledBy="project-title" className="lg:col-span-2">
-					<CardHeader id="project-title" icon={<SparklesIcon />} label="Project">
-						<span className="type-meta">{new URL(PROJECT.url).host}</span>
-					</CardHeader>
-					<span className="relative mt-3 block min-h-0 flex-1 overflow-hidden rounded-media bg-muted fade-block-end">
-						{/* Twice the window's height, so holding the tile can scroll the live page up a little. */}
-						<span className="absolute inset-x-0 top-0 h-[200%] transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-data-[held]/tile:-translate-y-[12%] motion-reduce:transition-none">
-							<iframe
-								src={PROJECT.url}
-								title={`${PROJECT.title}, live preview`}
-								tabIndex={-1}
-								aria-hidden
-								loading="lazy"
-								className="pointer-events-none absolute top-0 left-0 h-[250%] w-[250%] origin-top-left scale-[0.4] border-0"
+						<span className="relative mt-3 block min-h-0 flex-1 overflow-hidden rounded-media bg-scrim fade-block-end">
+							{/* Taller than its window, so holding the tile scrolls the page up a little. */}
+							<Image
+								src={shot}
+								alt=""
+								sizes="(min-width: 64rem) 30vw, 100vw"
+								className="h-auto w-full transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-data-[held]/tile:-translate-y-[8%]"
 							/>
 						</span>
-					</span>
-					<h3 className="mt-2 type-subtitle transition-colors duration-150 ease-out group-data-[held]/tile:text-primary">
-						<a
-							href={PROJECT.url}
-							target="_blank"
-							rel="noreferrer"
-							className={`rounded-inline after:absolute after:inset-0 ${FOCUS}`}
+						<h3 className="mt-2 type-subtitle transition-colors duration-150 ease-out group-data-[held]/tile:text-primary">
+							<a
+								href={PROJECT.url}
+								target="_blank"
+								rel="noreferrer"
+								className="rounded-inline link-cover"
+							>
+								{PROJECT.title}
+								<ArrowUpRightIcon
+									aria-hidden
+									className="ml-1 inline size-4 align-[-0.125em] transition-transform duration-150 ease-out group-data-[held]/tile:translate-x-0.5 group-data-[held]/tile:-translate-y-0.5"
+								/>
+							</a>
+						</h3>
+					</BentoTile>
+
+					<BentoTile index={3} labelledBy="set-title" className="@[58rem]/bento:col-span-2">
+						<CardHeader id="set-title" icon={<Disc3Icon />} label="Last set">
+							<time dateTime={SET.recorded} className="type-meta">
+								{formatDate(new Date(SET.recorded))}
+							</time>
+						</CardHeader>
+						<LastSet art={art} />
+					</BentoTile>
+
+					{book && (
+						<BentoTile
+							index={4}
+							lift
+							labelledBy="reading-title"
+							className="@[58rem]/bento:col-span-2"
 						>
-							{PROJECT.title}
-							<ArrowUpRightIcon
-								aria-hidden
-								className="ml-1 inline size-4 align-[-0.125em] transition-transform duration-150 ease-out group-data-[held]/tile:translate-x-0.5 group-data-[held]/tile:-translate-y-0.5 motion-reduce:transition-none"
-							/>
-						</a>
-					</h3>
-				</BentoTile>
+							<CardHeader id="reading-title" icon={<BookOpenIcon />} label="Reading">
+								{reading.length > 1 && (
+									<span className="type-meta whitespace-nowrap">+{reading.length - 1} more</span>
+								)}
+							</CardHeader>
+							{/* Covers beside the title when the tile is wide enough for a short title on one line;
+							    otherwise the title sits under them, so "East of Eden" never breaks in two. */}
+							<div className="@container mt-2 flex min-h-0 flex-1">
+								<div className="flex min-h-0 w-full flex-1 flex-col gap-2 @[15rem]:flex-row @[15rem]:gap-3">
+									<div className="flex min-h-0 flex-1 flex-col @[15rem]:w-2/5 @[15rem]:flex-none">
+										<ReadingFan covers={covers} />
+									</div>
+									<div className="flex min-w-0 flex-col justify-end @[15rem]:flex-1">
+										<h3 className="type-subtitle transition-colors duration-150 ease-out group-data-[held]/tile:text-primary">
+											<Link href="/reading/" className="rounded-inline link-cover">
+												{shortTitle(book.title)}
+											</Link>
+										</h3>
+										<p className="type-caption text-faint">{book.author}</p>
+									</div>
+								</div>
+							</div>
+						</BentoTile>
+					)}
+
+					<BentoTile
+						index={5}
+						fit
+						labelledBy="elsewhere-title"
+						className="@[36rem]/bento:col-span-2"
+					>
+						<CardHeader id="elsewhere-title" icon={<AtSignIcon />} label="Elsewhere" />
+						<BrandLinks />
+					</BentoTile>
+				</div>
 			</div>
-			<HomeFactsBelow className="lg:hidden" />
 		</div>
 	);
 }

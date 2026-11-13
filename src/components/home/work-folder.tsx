@@ -1,10 +1,10 @@
 'use client';
 
 import { ArrowUpRightIcon } from 'lucide-react';
-import { motion, useReducedMotion } from 'motion/react';
+import { motion } from 'motion/react';
 import Image, { type StaticImageData } from 'next/image';
 import Link from 'next/link';
-import { useTileHeld } from '@/components/home/bento-tile';
+import { useTileAwake } from '@/components/home/bento-tile';
 import { spring } from '@/lib/motion';
 
 export type FolderSheet = { title: string; role?: string; logo?: StaticImageData };
@@ -14,13 +14,12 @@ export type FolderSheet = { title: string; role?: string; logo?: StaticImageData
  * out of it; the whole folder opens /work.
  */
 export function WorkFolder({ sheets }: { sheets: FolderSheet[] }) {
-	const reduce = useReducedMotion();
-	const held = useTileHeld();
+	const awake = useTileAwake();
 	const shown = sheets.slice(0, 3);
 	return (
 		<Link
 			href="/work/"
-			className="relative mt-3 flex min-h-0 flex-1 items-end justify-center rounded-media outline-none focus-visible:ring-2 focus-visible:ring-ring"
+			className="relative mt-3 flex min-h-0 flex-1 items-end justify-center rounded-media"
 		>
 			<span className="relative h-[90%] w-[88%] max-w-72">
 				<span
@@ -39,10 +38,10 @@ export function WorkFolder({ sheets }: { sheets: FolderSheet[] }) {
 						style={{ zIndex: shown.length - i }}
 						initial={false}
 						animate={{
-							y: held && !reduce ? -18 - i * 12 : -i * 7,
-							rotate: held && !reduce ? (i - 1) * 3 : 0,
+							y: awake ? -18 - i * 12 : -i * 7,
+							rotate: awake ? (i - 1) * 3 : 0,
 						}}
-						transition={reduce ? { duration: 0 } : spring.fan}
+						transition={spring.fan}
 					>
 						{s.logo && (
 							<Image src={s.logo} alt="" sizes="16px" className="size-4 flex-none rounded-inline" />
@@ -61,7 +60,7 @@ export function WorkFolder({ sheets }: { sheets: FolderSheet[] }) {
 					All work
 					<ArrowUpRightIcon
 						aria-hidden
-						className="size-3.5 transition-transform duration-150 ease-out group-data-[held]/tile:translate-x-0.5 group-data-[held]/tile:-translate-y-0.5 motion-reduce:transition-none"
+						className="size-3.5 transition-transform duration-150 ease-out group-data-[held]/tile:translate-x-0.5 group-data-[held]/tile:-translate-y-0.5"
 					/>
 				</span>
 			</span>

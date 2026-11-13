@@ -74,6 +74,10 @@
 	--primary-foreground: var(--palette-neutral-0);
 	--primary-soft: var(--palette-accent-100);
 	--signal: var(--palette-positive-500);
+	/* The wordmark is printed like a sticker: the same inks in both themes, so .dark keeps them. */
+	--sticker-fill: var(--palette-neutral-0);
+	--sticker-outline: var(--palette-accent-600);
+	--sticker-shadow: var(--palette-accent-800);
 	/* Focus is neutral: a coloured ring clashes with whatever it lands on. */
 	--ring: var(--palette-neutral-950);
 	/* The photo viewer is night in both themes, so .dark does not re-role it. */
@@ -232,6 +236,9 @@
 	--color-primary-foreground: var(--primary-foreground);
 	--color-primary-soft: var(--primary-soft);
 	--color-signal: var(--signal);
+	--color-sticker-fill: var(--sticker-fill);
+	--color-sticker-outline: var(--sticker-outline);
+	--color-sticker-shadow: var(--sticker-shadow);
 	--color-well: var(--well);
 	--color-ring: var(--ring);
 	--color-scrim: var(--scrim);
@@ -458,6 +465,39 @@
 		repeating-radial-gradient(circle, transparent 0 3px, oklch(0 0 0 / 0.08) 3px 4px);
 }
 
+/*
+ * Interaction primitives. Each is the one way the site does a job, so a component names the job
+ * instead of re-deriving it.
+ */
+
+/* A press target of at least 44px, whatever the control's drawn size. Percentages in `inset` on
+   the pseudo-element read the control's own box, so the overhang is computed, never guessed; a
+   control already 44px or larger gets none. The control must be positioned. */
+@utility hit-area {
+	&::after {
+		content: "";
+		position: absolute;
+		inset-inline: min(0px, calc((100% - 2.75rem) / 2));
+		inset-block: min(0px, calc((100% - 2.75rem) / 2));
+	}
+}
+
+/* A link stretched over its nearest positioned ancestor, so the whole card answers it. */
+@utility link-cover {
+	&::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+	}
+}
+
+/* An element that exists only to move (a pulse, a ping) and has nothing to say standing still. */
+@utility motion-only {
+	@media (prefers-reduced-motion: reduce) {
+		display: none;
+	}
+}
+
 /* Edge fades: an image melts into the surface it sits on. Masks, so any surface works. */
 @utility fade-inline-start {
 	mask-image: linear-gradient(to right, transparent, black 35%);
@@ -479,5 +519,31 @@
 	/* A tint, not a block of brand colour: selected text stays readable. */
 	::selection {
 		@apply bg-primary-soft text-foreground;
+	}
+
+	/* Focus is a site behaviour, not a component option: anything that takes keyboard focus shows
+	   the same ring, and nothing opts out. An outline, not a box-shadow ring, so it never fights a
+	   component's own shadow, and it follows the element's radius. */
+	:focus-visible {
+		outline: 2px solid var(--ring);
+		outline-offset: 2px;
+	}
+}
+
+/*
+ * Reduced motion, once for the whole site. Keyframes stop, and only colour, opacity and shadow
+ * still transition, so a state still changes but nothing travels to get there. Motion components
+ * get the same rule from <MotionConfig reducedMotion="user"> in Providers. Unlayered, so it
+ * outranks every Tailwind utility (all layered) without !important.
+ */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	::before,
+	::after {
+		animation: none;
+		transition-property:
+			color, background-color, border-color, outline-color, text-decoration-color, fill, stroke,
+			opacity, box-shadow;
+		scroll-behavior: auto;
 	}
 }

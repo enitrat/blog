@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { TypeSpec } from '@/components/design/type-spec';
-import { Mark } from '@/components/site/mark';
+import { StickerMark, Wordmark } from '@/components/site/wordmark';
 import {
 	Accordion,
 	AccordionItem,
@@ -118,19 +118,23 @@ function Brand() {
 		<div className="flex flex-col gap-gutter">
 			<Lightings className="flex flex-col gap-6">
 				<div className="flex items-end gap-4">
-					<Mark className="size-16" />
-					<Mark className="size-10" />
-					<Mark className="size-7" />
-					<Mark className="size-4" />
+					<StickerMark className="size-16" />
+					<StickerMark className="size-10" />
+					<StickerMark className="size-7" />
+					<StickerMark className="size-4" />
 				</div>
-				<div className="flex items-center gap-2.5 type-subtitle">
-					<Mark />
-					Mathieu Saugier
+				<div className="flex items-end gap-6">
+					<Wordmark className="h-24" />
+					<Wordmark />
 				</div>
 			</Lightings>
 			<Note>
-				The mark sits on a tile in the primary role, so it follows the theme like everything else.
-				The favicon draws the same path.
+				The favicon is the wordmark’s M as a sticker of its own: the full wordmark is two lines, and
+				at 16px it cannot be read. It keeps the sticker roles, the same in both themes.
+			</Note>
+			<Note>
+				The header carries the sticker wordmark: Titan One, outlined so it needs no font, in the
+				sticker roles, which stay the same in both themes.
 			</Note>
 		</div>
 	);

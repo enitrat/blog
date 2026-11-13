@@ -26,7 +26,10 @@ function AccordionItem({ className, ...props }: AccordionPrimitive.Item.Props) {
 	);
 }
 
-/** The row that opens a section: a mono number, the title, a one-line summary, and a plus. */
+/**
+ * The row that opens a section: a mono number, the title, a one-line summary, and a plus. Its
+ * heading is an h2: an accordion is a page's list of sections, straight under the h1.
+ */
 function AccordionTrigger({
 	number,
 	summary,
@@ -35,11 +38,11 @@ function AccordionTrigger({
 	...props
 }: AccordionPrimitive.Trigger.Props & { number?: string; summary?: ReactNode }) {
 	return (
-		<AccordionPrimitive.Header className="flex">
+		<AccordionPrimitive.Header className="flex" render={(props) => <h2 {...props} />}>
 			<AccordionPrimitive.Trigger
 				data-slot="accordion-trigger"
 				className={cn(
-					'group/trigger -mx-3 flex flex-1 cursor-pointer items-baseline gap-4 rounded-row px-3 py-5 text-start outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring',
+					'group/trigger -mx-3 flex flex-1 cursor-pointer items-baseline gap-4 rounded-row px-3 py-5 text-start transition-colors hover:bg-muted',
 					className,
 				)}
 				{...props}
@@ -54,7 +57,7 @@ function AccordionTrigger({
 				<PlusIcon
 					aria-hidden
 					className={cn(
-						'size-4 flex-none self-center text-faint transition-transform duration-200 ease-out group-hover/trigger:text-foreground group-data-panel-open/trigger:rotate-45 motion-reduce:transition-none',
+						'size-4 flex-none self-center text-faint transition-transform duration-200 ease-out group-hover/trigger:text-foreground group-data-panel-open/trigger:rotate-45',
 						!summary && 'ms-auto',
 					)}
 				/>
@@ -63,12 +66,12 @@ function AccordionTrigger({
 	);
 }
 
-/** Opens to its measured height; under reduced motion it opens in place. */
+/** Opens to its measured height; under reduced motion it opens in place (globals.css). */
 function AccordionPanel({ className, children, ...props }: AccordionPrimitive.Panel.Props) {
 	return (
 		<AccordionPrimitive.Panel
 			data-slot="accordion-panel"
-			className="h-(--accordion-panel-height) overflow-hidden transition-[height] duration-250 ease-out data-ending-style:h-0 data-starting-style:h-0 motion-reduce:transition-none"
+			className="h-(--accordion-panel-height) overflow-hidden transition-[height] duration-250 ease-out data-ending-style:h-0 data-starting-style:h-0"
 			{...props}
 		>
 			<div className={cn('pt-1 pb-10', className)}>{children}</div>
