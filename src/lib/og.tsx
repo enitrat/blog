@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ImageResponse } from 'next/og';
 import sharp from 'sharp';
+import { LETTERS, SPARK } from '@/components/site/wordmark-paths';
 import { familyOf } from './type-families';
 
 export const OG_SIZE = { width: 1200, height: 630 };
@@ -13,6 +14,7 @@ const INK = '#0d131a'; // neutral-950, oklch(0.185 0.016 250)
 const MUTED = '#484e54'; // neutral-700, oklch(0.42 0.013 250)
 const ACCENT = '#2f62ac'; // accent-600, oklch(0.5 0.13 258)
 const CARD = '#fafdff'; // neutral-0, oklch(0.993 0.006 250)
+const STICKER_SHADOW = '#133769'; // accent-800, oklch(0.34 0.098 258)
 
 const PLATE = { width: 440, height: 330 };
 
@@ -136,6 +138,50 @@ export function ogImage({
 					</div>
 				</div>
 			) : null}
+		</div>,
+		{ ...OG_SIZE, fonts: fonts() },
+	);
+}
+
+/**
+ * The header wordmark as an SVG data URL: Satori reads neither Tailwind classes nor motion, so the
+ * sticker layers, tilt and slant of `Wordmark` are restated with the sticker inks inlined.
+ */
+const WORDMARK = (() => {
+	const d = `<path d="${LETTERS}"/><path d="${SPARK}"/>`;
+	const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-10.5 -10.9 469.1 211.1"><g transform="translate(220.4 97) rotate(-8) skewX(-4.5) translate(-220.4 -97)" stroke-width="18" stroke-linejoin="round"><g transform="translate(5.25 7.5)" fill="${STICKER_SHADOW}" stroke="${STICKER_SHADOW}">${d}</g><g fill="none" stroke="${ACCENT}">${d}</g><g fill="${CARD}">${d}</g></g></svg>`;
+	return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+})();
+
+/** The site card: the sticker wordmark, centred on paper, over one line set in the lead's grey. */
+export function wordmarkOgImage({ line }: { line: string }): ImageResponse {
+	return new ImageResponse(
+		<div
+			style={{
+				width: '100%',
+				height: '100%',
+				display: 'flex',
+				flexDirection: 'column',
+				alignItems: 'center',
+				justifyContent: 'center',
+				gap: 36,
+				background: PAPER,
+				fontFamily: SANS,
+			}}
+		>
+			{/* biome-ignore lint/performance/noImgElement: Satori draws plain img elements */}
+			<img src={WORDMARK} width={700} height={315} alt="" />
+			<div
+				style={{
+					display: 'flex',
+					fontSize: 40,
+					fontWeight: 500,
+					color: MUTED,
+					letterSpacing: -0.4,
+				}}
+			>
+				{line}
+			</div>
 		</div>,
 		{ ...OG_SIZE, fonts: fonts() },
 	);

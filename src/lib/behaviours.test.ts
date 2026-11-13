@@ -70,8 +70,8 @@ describe('book covers are portrait', () => {
 describe('the favicon is the wordmark\u2019s M', () => {
 	// A static file cannot import the component, so this keeps the copy honest.
 	const favicon = readFileSync('public/favicon.svg', 'utf8');
-	const letters = readFileSync('src/components/site/wordmark.tsx', 'utf8').match(
-		/const LETTERS =\s*'([^']+)'/,
+	const letters = readFileSync('src/components/site/wordmark-paths.ts', 'utf8').match(
+		/export const LETTERS =\s*'([^']+)'/,
 	)?.[1];
 	const css = readFileSync('src/app/globals.css', 'utf8');
 	const step = (name: string) =>
