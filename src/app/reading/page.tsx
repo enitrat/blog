@@ -1,16 +1,15 @@
-import { ChevronDownIcon } from 'lucide-react';
-import type { StaticImageData } from 'next/image';
 import { type Book, books } from '@/booksData';
-import { BookRow, BookThumb } from '@/components/books/book-row';
-import { YearStrip } from '@/components/books/year-strip';
+import { PileTable } from '@/components/books/pile-table';
 import { Eyebrow } from '@/components/ui/eyebrow';
 import { ListRow, ListRows } from '@/components/ui/list-row';
 import { Page, PageHeader } from '@/components/ui/page';
-import { StatusDot } from '@/components/ui/status-dot';
 import { shortTitle } from '@/lib/books';
-import { formatCount, formatMonth, formatRating } from '@/lib/format';
+import { getNotes } from '@/lib/content';
+import { formatCount, formatMonthShortYear } from '@/lib/format';
 import { findImage } from '@/lib/media';
 import { pageMeta } from '@/lib/meta';
+import { FAVOURITE, type ShelfBook } from '@/lib/piles';
+import { PLEIADE_HEX, pleiadeStyleFor } from '@/utils/pleiade';
 
 export const metadata = pageMeta({
 	title: 'Reading',
@@ -18,177 +17,47 @@ export const metadata = pageMeta({
 	path: '/reading/',
 });
 
-const BEFORE_2020 = 'Before 2020';
-/** A rating at or above this is set in the accent, in its row and in the year's strip. */
-const HIGH = 4.2;
-
 const date = (b: Book) => b.dateFinished ?? b.dateStarted;
-const time = (b: Book) => date(b)?.getTime() ?? 0;
-const recent = (a: Book, b: Book) => time(b) - time(a);
-const pages = (bs: Book[]) => bs.reduce((s, b) => s + b.edition.pageCount, 0);
-const high = (b: Book) => (b.rating ?? 0) >= HIGH;
-const yearOf = (b: Book) =>
-	b.readingPeriod === 'before-2020' ? BEFORE_2020 : String(date(b)?.getFullYear());
-const tally = (bs: Book[]) =>
-	`${bs.length} ${bs.length === 1 ? 'book' : 'books'} · ${formatCount(pages(bs))} pages`;
-const id = (s: string) => `y-${s.toLowerCase().replace(/\W+/g, '-')}`;
+const recent = (a: Book, b: Book) => (date(b)?.getTime() ?? 0) - (date(a)?.getTime() ?? 0);
+const BEFORE_2020 = 'Before 2020';
 
-type Shown = { book: Book; cover: StaticImageData | undefined };
-const withCover = (b: Book): Promise<Shown> =>
-	findImage(`covers/${b.edition.isbn13}`).then((cover) => ({ book: b, cover }));
+async function shelve(b: Book): Promise<ShelfBook> {
+	const d = b.readingPeriod === 'before-2020' ? null : date(b);
+	return {
+		isbn: b.edition.isbn13,
+		title: shortTitle(b.title),
+		author: b.author,
+		pages: b.edition.pageCount,
+		status: b.status,
+		year: d ? String(d.getUTCFullYear()) : BEFORE_2020,
+		when: d ? formatMonthShortYear(d) : undefined,
+		rating: b.rating,
+		favourite: (b.rating ?? 0) >= FAVOURITE,
+		leather: PLEIADE_HEX[pleiadeStyleFor(b.author).color],
+		cover: await findImage(`covers/${b.edition.isbn13}`),
+		note: notes.get(b.edition.isbn13),
+	};
+}
 
-const meta = 'type-meta text-faint';
+const notes = new Map(getNotes().map((n) => [n.id, n.body.trim()]));
 
 export default async function ReadingPage() {
-	const reading = await Promise.all(
-		books
-			.filter((b) => b.status === 'reading')
-			.sort(recent)
-			.map(withCover),
-	);
-	const finished = await Promise.all(
-		books
-			.filter((b) => b.status === 'finished')
-			.sort(recent)
-			.map(withCover),
-	);
-	const picks = finished
-		.filter(({ book }) => (book.rating ?? 0) >= 4)
-		.sort((a, b) => (b.book.rating ?? 0) - (a.book.rating ?? 0))
-		.slice(0, 6);
-	// The archive by year, newest first; books known only as "before 2020" close it, folded.
-	const years = [...Map.groupBy(finished, ({ book }) => yearOf(book))].map(([year, shown]) => ({
-		year,
-		shown,
-		folded: year === BEFORE_2020,
-	}));
-	const wanted = books.filter((b) => b.status === 'want-to-read').sort(recent);
-	const all = finished.map(({ book }) => book);
+	const sorted = [...books].sort(recent);
+	const shelved = await Promise.all(sorted.filter((b) => b.status !== 'want-to-read').map(shelve));
+	const finished = sorted.filter((b) => b.status === 'finished');
+	const pages = finished.reduce((s, b) => s + b.edition.pageCount, 0);
+	const wanted = sorted.filter((b) => b.status === 'want-to-read');
 
 	return (
 		<Page>
 			<PageHeader
 				lead={
-					<span
-						className={meta}
-					>{`${all.length} finished · ${formatCount(pages(all))} pages`}</span>
+					<span className="type-meta text-faint">{`${finished.length} finished · ${formatCount(pages)} pages`}</span>
 				}
 			>
 				Reading
 			</PageHeader>
-
-			{reading.length > 0 && (
-				<section aria-label="Reading now" className="grid gap-5">
-					{reading.map(({ book, cover }) => (
-						<div key={book.title} className="grid grid-cols-[auto_minmax(0,1fr)] items-end gap-5">
-							<BookThumb cover={cover} title={book.title} className="w-24 shadow-book sm:w-30" />
-							<div className="min-w-0">
-								<h2 className="type-title text-balance text-foreground">
-									{shortTitle(book.title)}
-								</h2>
-								<p className="mt-1.5 type-body text-muted-foreground">{book.author}</p>
-								<p className={`mt-3 flex items-center gap-2 ${meta}`}>
-									<StatusDot />
-									Reading now · {book.edition.pageCount} pages
-								</p>
-							</div>
-						</div>
-					))}
-				</section>
-			)}
-
-			<section aria-labelledby="picks">
-				<Eyebrow as="h2" id="picks" className="mb-4">
-					Rated highest
-				</Eyebrow>
-				<ul className="grid grid-cols-3 gap-x-4 gap-y-6 sm:grid-cols-6">
-					{picks.map(({ book, cover }) => (
-						<li key={book.title} className="min-w-0">
-							<BookThumb cover={cover} title={book.title} className="w-full shadow-book" />
-							<p className="mt-2.5 type-body-strong text-balance text-foreground">
-								{shortTitle(book.title)}
-							</p>
-							<p className={`mt-1 flex justify-between gap-2 ${meta}`}>
-								<span className="truncate">{book.author.split(' ').at(-1)}</span>
-								{book.rating !== null && <span>{formatRating(book.rating)}</span>}
-							</p>
-						</li>
-					))}
-				</ul>
-			</section>
-
-			{years.map(({ year, shown, folded }) => {
-				// The year and its tally share a line while they fit and stack when they do not, so a long
-				// label such as "Before 2020" never breaks inside itself.
-				const head = (
-					<>
-						<div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-							<h2 id={id(year)} className="type-figure whitespace-nowrap text-foreground">
-								{year}
-							</h2>
-							<span className={`flex items-center gap-3 whitespace-nowrap ${meta}`}>
-								{tally(shown.map((s) => s.book))}
-								{folded && (
-									<span className="inline-flex items-center gap-0.5 text-foreground underline underline-offset-[22%]">
-										<span className="group-open:hidden">Show</span>
-										<span className="hidden group-open:inline">Hide</span>
-										<ChevronDownIcon
-											aria-hidden
-											className="size-3.5 transition-transform duration-200 ease-out group-open:rotate-180"
-										/>
-									</span>
-								)}
-							</span>
-						</div>
-						<div className="mt-3 mb-1">
-							<YearStrip
-								books={[...shown].reverse().map(({ book }) => ({
-									title: shortTitle(book.title),
-									pages: book.edition.pageCount,
-									high: high(book),
-								}))}
-							/>
-						</div>
-					</>
-				);
-				const rows = (
-					<ol>
-						{shown.map(({ book, cover }) => {
-							const d = date(book);
-							return (
-								<BookRow
-									key={book.title}
-									title={shortTitle(book.title)}
-									author={book.author}
-									cover={cover}
-									month={folded || !d ? undefined : formatMonth(d)}
-									datetime={d?.toISOString().slice(0, 7)}
-									rating={book.rating}
-									high={high(book)}
-								/>
-							);
-						})}
-					</ol>
-				);
-				return (
-					<section key={year} aria-labelledby={id(year)}>
-						{folded ? (
-							<details className="group">
-								<summary className="cursor-pointer list-none rounded-chip [&::-webkit-details-marker]:hidden">
-									{head}
-								</summary>
-								{rows}
-							</details>
-						) : (
-							<>
-								{head}
-								{rows}
-							</>
-						)}
-					</section>
-				);
-			})}
-
+			<PileTable books={shelved} />
 			{wanted.length > 0 && (
 				<section aria-labelledby="g-want">
 					<Eyebrow as="h2" id="g-want" className="mb-4" meta={wanted.length}>

@@ -15,6 +15,11 @@ const DAY_LONG = new Intl.DateTimeFormat('en-GB', {
 	timeZone: 'UTC',
 });
 const MONTH = new Intl.DateTimeFormat('en-GB', { month: 'short', timeZone: 'UTC' });
+const MONTH_SHORT_YEAR = new Intl.DateTimeFormat('en-GB', {
+	month: 'short',
+	year: 'numeric',
+	timeZone: 'UTC',
+});
 const MONTH_YEAR = new Intl.DateTimeFormat('en-GB', {
 	month: 'long',
 	year: 'numeric',
@@ -28,6 +33,8 @@ export const formatDate = (date: Date) => DAY.format(date);
 export const formatDateLong = (date: Date) => DAY_LONG.format(date);
 /** "Aug": a row inside a year that already names the year. */
 export const formatMonth = (date: Date) => MONTH.format(date);
+/** "Aug 2026": a book's month on its own, outside any year heading. */
+export const formatMonthShortYear = (date: Date) => MONTH_SHORT_YEAR.format(date);
 /** "August 2026". */
 export const formatMonthYear = (date: Date) => MONTH_YEAR.format(date);
 /** "24,897". */
