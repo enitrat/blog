@@ -22,9 +22,9 @@ export function useTileAwake() {
 }
 
 /**
- * A home tile: a bezel (a card-coloured frame) around a grey well that holds the content. Its size
- * comes from the bento: under 36rem of bento it is 16rem tall, or as tall as its content with `fit`;
- * wider, the bento's tracks size it.
+ * A home tile: a bezel (a card-coloured frame) around a grey well that holds the content. Under 36rem
+ * of bento the tile is `phone` tall, a height class chosen for what it holds; wider, the bento's
+ * tracks size it.
  *
  * Motion has three layers, and every tile follows them:
  * - Surface: held, the bezel rises 2px and a deeper shadow cross-fades in. A `lift` tile, one whose
@@ -37,15 +37,15 @@ export function useTileAwake() {
 export function BentoTile({
 	index,
 	lift = false,
-	fit = false,
+	phone = 'h-64',
 	labelledBy,
 	className,
 	children,
 }: {
 	index: number;
 	lift?: boolean;
-	/** As tall as its content wherever the bento lets a row fit it, instead of a fixed 16rem. */
-	fit?: boolean;
+	/** Height class under 36rem of bento, where the tile sits alone or in a pair. */
+	phone?: string;
 	/** Id of the tile's eyebrow heading. */
 	labelledBy: string;
 	className?: string;
@@ -59,11 +59,7 @@ export function BentoTile({
 	return (
 		<HeldContext.Provider value={held}>
 			<div
-				className={cn(
-					'min-h-0 min-w-0 animate-tile-in',
-					fit ? 'h-auto' : 'h-64 @[36rem]/bento:h-auto',
-					className,
-				)}
+				className={cn('min-h-0 min-w-0 animate-tile-in @[36rem]/bento:h-auto', phone, className)}
 				style={{ animationDelay: `${index * POP_STAGGER}ms` }}
 			>
 				<motion.section

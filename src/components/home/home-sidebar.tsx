@@ -38,8 +38,8 @@ function Label({
 	);
 }
 
-/** Mathieu: `src/assets/portrait.jpg`, his own square framing at 480px, for a 128px frame. Lit by
- *  its own glow, like every photo on the page. */
+/** Mathieu: `src/assets/portrait.jpg`, his own square framing at 480px, for an 80px frame beside
+ *  the name on a phone and a 128px one above it from `lg`. Lit by its own glow, like every photo. */
 function Portrait({ src }: { src: StaticImageData }) {
 	return (
 		<GlowImage
@@ -47,7 +47,7 @@ function Portrait({ src }: { src: StaticImageData }) {
 			alt="Mathieu Saugier"
 			sizes="8rem"
 			eager
-			className="size-32 flex-none"
+			className="size-20 flex-none lg:size-32"
 			imageClassName="rounded-row"
 		/>
 	);
@@ -57,8 +57,9 @@ function Portrait({ src }: { src: StaticImageData }) {
  * Home's left column, rendered once. From `lg` it is a pinned column below the header: who Mathieu
  * is, then the lifeline. Its box reaches 2rem into the page gutter and pads back by the same: a
  * scroll box clips at its edge, and the portrait's glow needs that room to fade out. Below `lg` the
- * aside dissolves (`display: contents`) and its two blocks join home's grid on their own: the intro
- * before the bento, the lifeline after it, so the tiles start on the first screen.
+ * aside dissolves (`display: contents`) and both blocks come before the bento, so the page reads who
+ * Mathieu is, then what he makes, and Elsewhere still signs off. To keep that short on a phone, the
+ * portrait sits beside the name and the lifeline's rail runs at a fixed 2px a year.
  */
 export async function HomeSidebar() {
 	const portrait = await image('portrait.jpg');
@@ -68,7 +69,7 @@ export async function HomeSidebar() {
 				<Label as="p" icon={<HandIcon />}>
 					About
 				</Label>
-				<div className="flex flex-col items-start gap-4">
+				<div className="flex items-center gap-4 lg:flex-col lg:items-start">
 					<Portrait src={portrait} />
 					<h1 className="type-title">
 						Hi! I’m <span className="text-primary">Mathieu</span>.
@@ -86,7 +87,7 @@ export async function HomeSidebar() {
 			</header>
 			<section
 				aria-labelledby="lifeline-title"
-				className="order-3 border-t border-border pt-5 lg:order-none"
+				className="order-2 border-t border-border pt-5 max-lg:[--spacing-lifeline-year:0.125rem] lg:order-none"
 			>
 				<Label as="h2" id="lifeline-title" icon={<HistoryIcon />}>
 					Me in 10s

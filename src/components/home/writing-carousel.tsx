@@ -78,8 +78,9 @@ export function WritingCarousel({ posts }: { posts: CarouselPost[] }) {
 					aria-roledescription="slide"
 					aria-label={`${index + 1} of ${posts.length}`}
 					className={cn(
-						'grid min-h-0 flex-1 grid-cols-1 gap-6',
-						post.banner && '@[32rem]/slide:grid-cols-[1.25fr_1fr]',
+						'grid min-h-0 flex-1 grid-cols-1 gap-4 @[32rem]/slide:gap-6',
+						post.banner &&
+							'grid-rows-[auto_1fr] @[32rem]/slide:grid-rows-none @[32rem]/slide:grid-cols-[1.25fr_1fr]',
 					)}
 					initial={{ opacity: 0, x: 16 }}
 					animate={{ opacity: 1, x: 0 }}
@@ -115,12 +116,12 @@ export function WritingCarousel({ posts }: { posts: CarouselPost[] }) {
 						</div>
 					</div>
 					{post.banner && (
-						<div className="relative hidden min-h-40 overflow-hidden rounded-media fade-inline-start @[32rem]/slide:block">
+						<div className="relative order-first h-32 overflow-hidden rounded-media @[32rem]/slide:order-none @[32rem]/slide:h-auto @[32rem]/slide:min-h-40 @[32rem]/slide:fade-inline-start">
 							<Image
 								src={post.banner}
 								alt=""
 								fill
-								sizes="(min-width: 64rem) 25vw, 50vw"
+								sizes="(min-width: 64rem) 25vw, (min-width: 36rem) 50vw, 100vw"
 								className="object-cover transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-data-[held]/tile:scale-[1.04]"
 							/>
 						</div>

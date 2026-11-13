@@ -43,7 +43,9 @@ const stamp = (d: Date | null) => d?.getTime() ?? 0;
  * One order at every width, the reading order: Writing, Work, Project, then Last set and
  * Reading, then Elsewhere to sign off.
  *
- *   under 36rem   one column; tiles 16rem tall, Elsewhere as tall as its icons
+ *   under 36rem   one column, but Last set and Reading share a row; each tile sized for what it
+ *                 holds (`phone`). Writing fits its longest slide, so the slideshow never moves
+ *                 the tiles below it; Elsewhere is as tall as its icons
  *   36rem–58rem   two columns:  Writing (2 x 2) / Work | Project / Last set | Reading / Elsewhere (2),
  *                 four 16rem rows and a last one as tall as Elsewhere's icons
  *   58rem up      six columns, one screen, rows clamped to 13–17rem:
@@ -92,13 +94,14 @@ export default async function Home() {
 		<div className="grid gap-8 pt-8 pb-16 lg:grid-cols-[20rem_1fr] lg:pt-0 lg:pb-0">
 			<HomeSidebar />
 			<div className="@container/bento order-2 lg:order-none">
-				<div className="grid grid-cols-1 gap-bento lg:pt-8 lg:pb-6 @[36rem]/bento:auto-rows-[16rem] @[36rem]/bento:grid-rows-[repeat(4,16rem)_auto] @[36rem]/bento:grid-cols-2 @[58rem]/bento:grid-cols-6 @[58rem]/bento:grid-rows-[repeat(3,clamp(13rem,calc((100dvh-var(--spacing-header)-3.5rem-2*var(--spacing-bento))/3),17rem))]">
+				<div className="grid grid-cols-2 gap-bento lg:pt-8 lg:pb-6 @[36rem]/bento:auto-rows-[16rem] @[36rem]/bento:grid-rows-[repeat(4,16rem)_auto] @[36rem]/bento:grid-cols-2 @[58rem]/bento:grid-cols-6 @[58rem]/bento:grid-rows-[repeat(3,clamp(13rem,calc((100dvh-var(--spacing-header)-3.5rem-2*var(--spacing-bento))/3),17rem))]">
 					{posts.length > 0 && (
 						<BentoTile
 							index={0}
 							lift
 							labelledBy="writing-title"
-							className="@[36rem]/bento:col-span-2 @[36rem]/bento:row-span-2 @[58rem]/bento:col-span-4"
+							phone="h-[27.5rem]"
+							className="col-span-2 @[36rem]/bento:row-span-2 @[58rem]/bento:col-span-4"
 						>
 							<CardHeader id="writing-title" icon={<PenLineIcon />} label="Writing">
 								<Link
@@ -113,7 +116,11 @@ export default async function Home() {
 						</BentoTile>
 					)}
 
-					<BentoTile index={1} labelledBy="work-title" className="@[58rem]/bento:col-span-2">
+					<BentoTile
+						index={1}
+						labelledBy="work-title"
+						className="col-span-2 @[36rem]/bento:col-span-1 @[58rem]/bento:col-span-2"
+					>
 						<CardHeader id="work-title" icon={<BriefcaseIcon />} label="Work" />
 						<WorkFolder sheets={sheets} />
 					</BentoTile>
@@ -122,7 +129,7 @@ export default async function Home() {
 						index={2}
 						lift
 						labelledBy="project-title"
-						className="@[58rem]/bento:col-span-2"
+						className="col-span-2 @[36rem]/bento:col-span-1 @[58rem]/bento:col-span-2"
 					>
 						<CardHeader id="project-title" icon={<SparklesIcon />} label="Project">
 							<span className="type-meta">{new URL(PROJECT.url).host}</span>
@@ -152,9 +159,14 @@ export default async function Home() {
 						</h3>
 					</BentoTile>
 
-					<BentoTile index={3} labelledBy="set-title" className="@[58rem]/bento:col-span-2">
+					<BentoTile
+						index={3}
+						labelledBy="set-title"
+						phone="h-72"
+						className="@[58rem]/bento:col-span-2"
+					>
 						<CardHeader id="set-title" icon={<Disc3Icon />} label="Last set">
-							<time dateTime={SET.recorded} className="type-meta">
+							<time dateTime={SET.recorded} className="hidden type-meta @[36rem]/bento:inline">
 								{formatDate(new Date(SET.recorded))}
 							</time>
 						</CardHeader>
@@ -166,6 +178,7 @@ export default async function Home() {
 							index={4}
 							lift
 							labelledBy="reading-title"
+							phone="h-72"
 							className="@[58rem]/bento:col-span-2"
 						>
 							<CardHeader id="reading-title" icon={<BookOpenIcon />} label="Reading">
@@ -193,12 +206,7 @@ export default async function Home() {
 						</BentoTile>
 					)}
 
-					<BentoTile
-						index={5}
-						fit
-						labelledBy="elsewhere-title"
-						className="@[36rem]/bento:col-span-2"
-					>
+					<BentoTile index={5} phone="h-auto" labelledBy="elsewhere-title" className="col-span-2">
 						<CardHeader id="elsewhere-title" icon={<AtSignIcon />} label="Elsewhere" />
 						<BrandLinks />
 					</BentoTile>

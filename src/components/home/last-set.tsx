@@ -59,7 +59,7 @@ function Waveform({ playing }: { playing: boolean }) {
 	return (
 		<div
 			aria-hidden="true"
-			className="my-1.5 flex min-h-0 flex-1 items-center gap-0.5 overflow-hidden"
+			className="my-1.5 hidden min-h-0 flex-1 items-center gap-0.5 overflow-hidden @[12rem]/set:flex"
 		>
 			{BARS.map((h, k) => (
 				<i
@@ -76,8 +76,9 @@ function Waveform({ playing }: { playing: boolean }) {
 }
 
 /**
- * The last set, inside its home tile: cover, title, waveform, play button. It drives the shared
- * SoundCloud widget, which loads on the first press. While the tile is held and the set stopped,
+ * The last set, inside its home tile: cover, title, waveform, play button. Under 12rem of tile, as
+ * at half a phone's width, the cover sits small above the title and the waveform steps aside. It
+ * drives the shared SoundCloud widget, which loads on the first press. While the tile is held and the set stopped,
  * the record slides out of its sleeve. While playing the cover becomes a record (square to round, turning
  * slowly, a label and grooves fading in) and the waveform moves; under reduced motion the cover
  * turns round and the bars light, but nothing spins. The spin is the one motion here that is not an
@@ -122,72 +123,74 @@ export function LastSet({ art }: { art: StaticImageData }) {
 	const shape = { borderRadius: playing ? '50%' : 'var(--radius-media)' };
 	const move = spring.fan;
 	return (
-		<div className="mt-3 flex min-h-0 flex-1 gap-5">
-			<div className="relative aspect-square w-[42%] flex-none self-center">
-				<motion.div
-					aria-hidden="true"
-					className="absolute inset-[6%] overflow-hidden ambient-glow"
-					initial={false}
-					animate={{ scale: playing ? 1.3 : 1.08, opacity: playing ? 0.9 : 0.75 }}
-					transition={move}
-				>
-					<Image src={art} alt="" sizes="10rem" className="size-full object-cover" />
-				</motion.div>
-				<motion.span
-					aria-hidden="true"
-					className="absolute inset-[4%] rounded-full shadow-art record"
-					initial={false}
-					animate={{ x: peek ? '20%' : '0%', rotate: peek ? 30 : 0 }}
-					transition={move}
-				/>
-				<motion.div
-					className="relative size-full overflow-hidden shadow-art"
-					initial={false}
-					animate={{ ...shape, scale: playing ? 0.94 : 1, rotate: peek ? -3 : 0 }}
-					transition={move}
-				>
-					<motion.div className="size-full" style={{ rotate: angle }}>
+		<div className="@container/set mt-3 flex min-h-0 flex-1">
+			<div className="flex min-h-0 w-full flex-col gap-3 @[12rem]/set:flex-row @[12rem]/set:gap-5">
+				<div className="relative aspect-square w-20 flex-none @[12rem]/set:w-[42%] @[12rem]/set:self-center">
+					<motion.div
+						aria-hidden="true"
+						className="absolute inset-[6%] overflow-hidden ambient-glow"
+						initial={false}
+						animate={{ scale: playing ? 1.3 : 1.08, opacity: playing ? 0.9 : 0.75 }}
+						transition={move}
+					>
 						<Image src={art} alt="" sizes="10rem" className="size-full object-cover" />
-						<span
-							aria-hidden="true"
-							className={cn(
-								'absolute inset-0 rounded-full record-grooves transition-opacity duration-300',
-								playing ? 'opacity-100' : 'opacity-0',
-							)}
-						/>
 					</motion.div>
-				</motion.div>
-			</div>
-			<div className="relative z-10 flex min-w-0 flex-1 flex-col">
-				<p className="line-clamp-2 type-subtitle text-balance">{SET.title}</p>
-				<p className="mt-0.5 type-meta text-faint">{SET.artist}</p>
-				<Waveform playing={playing} />
-				<div className="flex items-center gap-2">
-					<motion.button
-						type="button"
-						aria-pressed={playing}
-						aria-label={`${playing ? 'Pause' : 'Play'} ${SET.title}`}
-						onClick={() => setPlayer.toggle()}
-						whileHover={{ scale: 1.08, transition: spring.pop }}
-						whileTap={{ scale: 0.95, transition: spring.tap }}
-						className="relative grid size-9 flex-none cursor-pointer place-items-center rounded-full bg-primary text-primary-foreground shadow-glow hit-area"
+					<motion.span
+						aria-hidden="true"
+						className="absolute inset-[4%] rounded-full shadow-art record"
+						initial={false}
+						animate={{ x: peek ? '20%' : '0%', rotate: peek ? 30 : 0 }}
+						transition={move}
+					/>
+					<motion.div
+						className="relative size-full overflow-hidden shadow-art"
+						initial={false}
+						animate={{ ...shape, scale: playing ? 0.94 : 1, rotate: peek ? -3 : 0 }}
+						transition={move}
 					>
-						{playing ? (
-							<PauseIcon aria-hidden className="size-4 fill-current stroke-none" />
-						) : (
-							<PlayIcon aria-hidden className="size-4 translate-x-px fill-current stroke-none" />
-						)}
-					</motion.button>
-					<Elapsed />
-					<a
-						href={SET.url}
-						target="_blank"
-						rel="noopener noreferrer"
-						aria-label={`Open ${SET.title} on SoundCloud`}
-						className="relative ml-auto grid size-7 place-items-center rounded-media text-faint transition-colors hit-area hover:bg-muted hover:text-foreground"
-					>
-						<ArrowUpRightIcon aria-hidden className="size-4" />
-					</a>
+						<motion.div className="size-full" style={{ rotate: angle }}>
+							<Image src={art} alt="" sizes="10rem" className="size-full object-cover" />
+							<span
+								aria-hidden="true"
+								className={cn(
+									'absolute inset-0 rounded-full record-grooves transition-opacity duration-300',
+									playing ? 'opacity-100' : 'opacity-0',
+								)}
+							/>
+						</motion.div>
+					</motion.div>
+				</div>
+				<div className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col">
+					<p className="line-clamp-2 type-subtitle text-balance">{SET.title}</p>
+					<p className="mt-0.5 type-meta text-faint">{SET.artist}</p>
+					<Waveform playing={playing} />
+					<div className="mt-auto flex items-center gap-2">
+						<motion.button
+							type="button"
+							aria-pressed={playing}
+							aria-label={`${playing ? 'Pause' : 'Play'} ${SET.title}`}
+							onClick={() => setPlayer.toggle()}
+							whileHover={{ scale: 1.08, transition: spring.pop }}
+							whileTap={{ scale: 0.95, transition: spring.tap }}
+							className="relative grid size-9 flex-none cursor-pointer place-items-center rounded-full bg-primary text-primary-foreground shadow-glow hit-area"
+						>
+							{playing ? (
+								<PauseIcon aria-hidden className="size-4 fill-current stroke-none" />
+							) : (
+								<PlayIcon aria-hidden className="size-4 translate-x-px fill-current stroke-none" />
+							)}
+						</motion.button>
+						<Elapsed />
+						<a
+							href={SET.url}
+							target="_blank"
+							rel="noopener noreferrer"
+							aria-label={`Open ${SET.title} on SoundCloud`}
+							className="relative ml-auto grid size-7 place-items-center rounded-media text-faint transition-colors hit-area hover:bg-muted hover:text-foreground"
+						>
+							<ArrowUpRightIcon aria-hidden className="size-4" />
+						</a>
+					</div>
 				</div>
 			</div>
 		</div>
