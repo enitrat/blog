@@ -1,29 +1,12 @@
-import {
-	BookOpenIcon,
-	CakeIcon,
-	Disc3Icon,
-	DumbbellIcon,
-	HandIcon,
-	SparklesIcon,
-} from 'lucide-react';
+import { HandIcon, HistoryIcon } from 'lucide-react';
 import type { StaticImageData } from 'next/image';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { Lifeline } from '@/components/home/lifeline';
 import { Eyebrow } from '@/components/ui/eyebrow';
 import { GlowImage } from '@/components/ui/glow-image';
+import { lifeline } from '@/data/lifeline';
 import { image } from '@/lib/media';
-
-/** Born March 2001; the age turns over on 1 March, since the day is not recorded. */
-function age(now = new Date()) {
-	return now.getFullYear() - 2001 - (now.getMonth() < 2 ? 1 : 0);
-}
-
-const FACTS = [
-	{ icon: CakeIcon, text: `I’m ${age()}` },
-	{ icon: Disc3Icon, text: 'I record DJ sets on SoundCloud' },
-	{ icon: DumbbellIcon, text: 'I’m on a quest to bench 100kg' },
-	{ icon: BookOpenIcon, text: 'I enjoy classical literature a lot' },
-];
 
 const LINK =
 	'rounded-inline text-foreground underline decoration-border-strong underline-offset-[3px] transition-colors hover:decoration-primary';
@@ -72,10 +55,10 @@ function Portrait({ src }: { src: StaticImageData }) {
 
 /**
  * Home's left column, rendered once. From `lg` it is a pinned column below the header: who Mathieu
- * is, then the fun facts. Its box reaches 2rem into the page gutter and pads back by the same: a
+ * is, then the lifeline. Its box reaches 2rem into the page gutter and pads back by the same: a
  * scroll box clips at its edge, and the portrait's glow needs that room to fade out. Below `lg` the
  * aside dissolves (`display: contents`) and its two blocks join home's grid on their own: the intro
- * before the bento, the facts after it, so the tiles start on the first screen.
+ * before the bento, the lifeline after it, so the tiles start on the first screen.
  */
 export async function HomeSidebar() {
 	const portrait = await image('portrait.jpg');
@@ -102,21 +85,15 @@ export async function HomeSidebar() {
 				</div>
 			</header>
 			<section
-				aria-labelledby="facts-title"
+				aria-labelledby="lifeline-title"
 				className="order-3 border-t border-border pt-5 lg:order-none"
 			>
-				<Label as="h2" id="facts-title" icon={<SparklesIcon />}>
-					Fun facts
+				<Label as="h2" id="lifeline-title" icon={<HistoryIcon />}>
+					Me in 10s
 				</Label>
-				<ul className="mt-3 grid gap-2">
-					{FACTS.map(({ icon: Icon, text }) => (
-						<li key={text} className="flex items-start gap-2 type-body text-muted-foreground">
-							{/* Centred on the first line (14px icon, 1.6 leading), so a fact that wraps keeps its icon at the top. */}
-							<Icon aria-hidden className="mt-[0.3em] size-3.5 flex-none text-primary" />
-							{text}
-						</li>
-					))}
-				</ul>
+				<div className="mt-3">
+					<Lifeline entries={lifeline} />
+				</div>
 			</section>
 		</aside>
 	);

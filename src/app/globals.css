@@ -180,6 +180,9 @@
 	/* Home bento: the gap between tiles, and the bezel's frame. */
 	--spacing-bento: 0.9375rem;
 	--spacing-bezel: 0.3125rem;
+	/* Home's lifeline: rail per year between two entries, so the axis is to scale. It compresses on
+	   short windows, so the pinned sidebar fits a 768px laptop without scrolling. */
+	--spacing-lifeline-year: clamp(0.0625rem, calc((100dvh - 40rem) / 60), 0.3rem);
 
 	/* Shape. Media nests inside a card, so its radius is the card's minus the inset. */
 	--radius-card: 1.5rem;
